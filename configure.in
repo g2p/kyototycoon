@@ -1,0 +1,256 @@
+# Source of configuration for Kyoto Tycoon
+
+
+
+#================================================================
+# Generic Settings
+#================================================================
+
+# Package name
+AC_INIT(kyototycoon, 0.0.2)
+
+# Package information
+MYLIBVER=1
+MYLIBREV=1
+
+# Targets
+MYHEADERFILES="ktcommon.h ktutil.h ktsocket.h"
+MYLIBRARYFILES="libkyototycoon.a"
+MYLIBOBJFILES="ktutil.o ktsocket.o"
+MYCOMMANDFILES="ktutiltest ktutilmgr ktutilserv"
+MYMAN1FILES="ktutiltest.1 ktutilmgr.1 ktutilserv.1"
+MYDOCUMENTFILES="COPYING ChangeLog doc kyototycoon.idl"
+MYPCFILES="kyototycoon.pc"
+
+# Building flags
+MYCFLAGS="-Wall -ansi -pedantic -fPIC -fsigned-char -O2"
+MYCXXFLAGS="-Wall -fPIC -fsigned-char -O2"
+MYCPPFLAGS="-I. -I\$(INCLUDEDIR) -I$HOME/include -I/usr/local/include"
+MYCPPFLAGS="$MYCPPFLAGS -DNDEBUG -D_GNU_SOURCE=1"
+MYCPPFLAGS="$MYCPPFLAGS -D_FILE_OFFSET_BITS=64 -D_REENTRANT -D__EXTENSIONS__"
+MYLDFLAGS="-L. -L\$(LIBDIR) -L$HOME/lib -L/usr/local/lib"
+MYCMDLDFLAGS=""
+MYRUNPATH="\$(LIBDIR)"
+MYLDLIBPATHENV="LD_LIBRARY_PATH"
+MYPOSTCMD="true"
+
+# Building paths
+PATH="$PATH:$HOME/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
+PATH="$PATH:/opt/SUNWspro/bin:/usr/ccs/bin:/usr/xpg4/bin:/usr/xpg6/bin:/usr/ucb"
+CPATH="$HOME/include:/usr/local/include:$CPATH"
+LIBRARY_PATH="$HOME/lib:/usr/local/lib:$LIBRARY_PATH"
+LD_LIBRARY_PATH="$HOME/lib:/usr/local/lib:$LD_LIBRARY_PATH"
+PKG_CONFIG_PATH="$HOME/lib/pkgconfig:/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
+export PATH CPATH LIBRARY_PATH LD_LIBRARY_PATH PKG_CONFIG_PATH
+
+
+
+#================================================================
+# Options
+#================================================================
+
+# Internal variables
+enables=""
+
+# Debug mode
+AC_ARG_ENABLE(debug,
+  AC_HELP_STRING([--enable-debug], [build for debugging]))
+if test "$enable_debug" = "yes"
+then
+  MYCFLAGS="-Wall -ansi -pedantic -fPIC -fsigned-char -O0"
+  MYCXXFLAGS="-Wall -fPIC -fsigned-char -g -O0"
+  MYCPPFLAGS="$MYCPPFLAGS -UNDEBUG -D_KCDEBUG"
+  MYCMDLDFLAGS="$MYCMDLDFLAGS -static"
+  MYRUNPATH="$MYRUNPATH:."
+  enables="$enables (debug)"
+fi
+
+# Developping mode
+AC_ARG_ENABLE(devel,
+  AC_HELP_STRING([--enable-devel], [build for development]))
+if test "$enable_devel" = "yes"
+then
+  MYCFLAGS="-Wall -ansi -pedantic -fPIC -fsigned-char -O2 -fno-inline -pipe"
+  MYCXXFLAGS="-Wall -fPIC -fsigned-char -g -O2 -fno-inline -pipe"
+  MYCPPFLAGS="$MYCPPFLAGS -UNDEBUG -D_KCDEBUG"
+  MYRUNPATH="$MYRUNPATH:."
+  enables="$enables (devel)"
+fi
+
+# Profiling mode
+AC_ARG_ENABLE(profile,
+  AC_HELP_STRING([--enable-profile], [build for profiling]))
+if test "$enable_profile" = "yes"
+then
+  MYCXXFLAGS="-Wall -fPIC -fsigned-char -g -pg -O2 -fno-inline -pipe"
+  MYRUNPATH="$MYRUNPATH:."
+  enables="$enables (profile)"
+fi
+
+# Micro yield mode
+AC_ARG_ENABLE(uyield,
+  AC_HELP_STRING([--enable-uyield], [build for detecting race conditions]))
+if test "$enable_uyield" = "yes"
+then
+  MYCPPFLAGS="$MYCPPFLAGS -UNDEBUG -D_KCUYIELD"
+  MYRUNPATH="$MYRUNPATH:."
+  enables="$enables (uyield)"
+fi
+
+# Static mode
+AC_ARG_ENABLE(static,
+  AC_HELP_STRING([--enable-static], [build by static linking]))
+if test "$enable_static" = "yes"
+then
+  MYCMDLDFLAGS="$MYCMDLDFLAGS -static"
+  enables="$enables (static)"
+fi
+
+# Disable shared object
+AC_ARG_ENABLE(shared,
+  AC_HELP_STRING([--disable-shared], [avoid to build shared libraries]))
+if test "$enable_shared" = "no"
+then
+  enables="$enables (no-shared)"
+fi
+
+# Messages
+printf '#================================================================\n'
+printf '# Configuring Kyoto Tycoon version %s%s.\n' "$PACKAGE_VERSION" "$enables"
+printf '#================================================================\n'
+
+
+
+#================================================================
+# Checking Commands and Libraries
+#================================================================
+
+# C and C++ compilers
+AC_PROG_CC
+AC_PROG_CXX
+AC_LANG(C++)
+if test "$enable_devel" = "yes"
+then
+  AC_CHECK_PROG(is_ccache, ccache, yes, no)
+  if test "$is_ccache" = "yes"
+  then
+    CC="ccache $CC"
+    CXX="ccache $CXX"
+    ccache >/dev/null
+  fi
+fi
+
+# Reset variables
+if test "$GCC" != "yes"
+then
+  AC_MSG_WARN([another compiler except for GCC was detected])
+  MYCXXFLAGS=""
+fi
+test -n "$CXXFLAGS" && MYCXXFLAGS="$CXXFLAGS $MYCXXFLAGS"
+test -n "$CPPFLAGS" && MYCPPFLAGS="$CPPFLAGS $MYCPPFLAGS"
+test -n "$LDFLAGS" && MYLDFLAGS="$LDFLAGS $MYLDFLAGS"
+
+# System-depending optimization
+printf 'checking for 64-bit availability... '
+if printf 'main() {}' | $CC -xc -m64 -o /dev/null - >/dev/null 2>&1
+then
+  MYCFLAGS="-m64 $MYCFLAGS"
+  MYCXXFLAGS="-m64 $MYCXXFLAGS"
+  printf 'yes'
+else
+  printf 'no'
+fi
+printf '\n'
+printf 'checking whether the CPU is i686... '
+if uname -a | egrep ' i686' >/dev/null
+then
+  MYCXXFLAGS="-march=i686 $MYCXXFLAGS"
+  printf 'yes'
+else
+  printf 'no'
+fi
+printf '\n'
+
+# Underlying libraries
+AC_CHECK_LIB(c, main)
+AC_CHECK_LIB(m, main)
+AC_CHECK_LIB(pthread, main)
+AC_CHECK_LIB(rt, main)
+AC_CHECK_LIB(dl, main)
+AC_CHECK_LIB(nsl, main)
+AC_CHECK_LIB(socket, main)
+AC_CHECK_LIB(resolv, main)
+AC_CHECK_LIB(stdc++, main)
+AC_CHECK_LIB(z, main)
+AC_CHECK_LIB(lzo2, main)
+AC_CHECK_LIB(lzma, main)
+AC_CHECK_LIB(kyotocabinet, main)
+AC_CHECK_LIB(kyototycoon, main, AC_MSG_WARN([old version of Kyoto Tycoon was detected]))
+
+# Necessary headers
+AC_CHECK_HEADER(stdlib.h, true, AC_MSG_ERROR([stdlib.h is required]))
+AC_CHECK_HEADER(stdint.h, true, AC_MSG_ERROR([stdint.h is required]))
+AC_CHECK_HEADER(unistd.h, true, AC_MSG_ERROR([unistd.h is required]))
+AC_CHECK_HEADER(sys/socket.h, true, AC_MSG_ERROR([sys/socket.h is required]))
+AC_CHECK_HEADER(kccommon.h, true, AC_MSG_ERROR([kccommon.h is required]))
+
+# Shared libraries
+if test "$enable_shared" != "no" && test "$enable_profile" != "yes"
+then
+  if uname | grep Darwin >/dev/null
+  then
+    MYLIBRARYFILES="$MYLIBRARYFILES libkyototycoon.$MYLIBVER.$MYLIBREV.0.dylib"
+    MYLIBRARYFILES="$MYLIBRARYFILES libkyototycoon.$MYLIBVER.dylib"
+    MYLIBRARYFILES="$MYLIBRARYFILES libkyototycoon.dylib"
+    MYLDLIBPATHENV="DYLD_LIBRARY_PATH"
+  else
+    MYLIBRARYFILES="$MYLIBRARYFILES libkyototycoon.so.$MYLIBVER.$MYLIBREV.0"
+    MYLIBRARYFILES="$MYLIBRARYFILES libkyototycoon.so.$MYLIBVER"
+    MYLIBRARYFILES="$MYLIBRARYFILES libkyototycoon.so"
+  fi
+fi
+
+# Work around of bugs of some environments
+if uname | grep Darwin >/dev/null
+then
+  MYCFLAGS="$MYCFLAGS -Os"
+  MYCXXFLAGS="$MYCXXFLAGS -Os"
+fi
+
+
+
+#================================================================
+# Generic Settings
+#================================================================
+
+# Export variables
+AC_SUBST(MYLIBVER)
+AC_SUBST(MYLIBREV)
+AC_SUBST(MYFORMATVER)
+AC_SUBST(MYHEADERFILES)
+AC_SUBST(MYLIBRARYFILES)
+AC_SUBST(MYLIBOBJFILES)
+AC_SUBST(MYCOMMANDFILES)
+AC_SUBST(MYMAN1FILES)
+AC_SUBST(MYDOCUMENTFILES)
+AC_SUBST(MYPCFILES)
+AC_SUBST(MYCFLAGS)
+AC_SUBST(MYCXXFLAGS)
+AC_SUBST(MYCPPFLAGS)
+AC_SUBST(MYLDFLAGS)
+AC_SUBST(MYCMDLDFLAGS)
+AC_SUBST(MYRUNPATH)
+AC_SUBST(MYLDLIBPATHENV)
+AC_SUBST(MYPOSTCMD)
+
+# Targets
+AC_OUTPUT(Makefile kyototycoon.pc)
+
+# Messages
+printf '#================================================================\n'
+printf '# Ready to make.\n'
+printf '#================================================================\n'
+
+
+
+# END OF FILE

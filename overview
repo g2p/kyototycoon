@@ -1,0 +1,22 @@
+/**
+
+@mainpage Kyoto Tycoon: a cache server based on Kyoto Cabinet
+
+@section Introduction
+
+I love you.
+
+*/
+
+
+/**
+ * Common namespace of Kyoto Tycoon.
+ */
+namespace kyototycoon {}
+
+
+/**
+ * @file ktcommon.h     common symbols for the library
+ * @file ktutil.h       utility functions
+ * @file ktsocket.h     network functions
+ */

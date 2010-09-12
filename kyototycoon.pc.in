@@ -1,0 +1,14 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+datarootdir = @datarootdir@
+bindir=@bindir@
+libdir=@libdir@
+libexecdir=@libexecdir@
+includedir=@includedir@
+datadir=@datadir@
+
+Name: Kyoto Tyrant
+Description: cache server based on Kyoto Cabinet
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -lkyototycoon @LIBS@
+Cflags: -I${includedir}
