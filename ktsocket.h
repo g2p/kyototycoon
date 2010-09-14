@@ -63,7 +63,7 @@ public:
  * Network stream abstraction based on TCP/IP.
  */
 class Socket : public Pollable {
-  friend class Server;
+  friend class ServerSocket;
 public:
   /**
    * Default constructor.
@@ -152,8 +152,7 @@ public:
   bool abort();
   /**
    * Set the timeout of each operation.
-   * @param timeout the timeout of each operation in seconds.  If it is not more than 0, no
-   * timeout is specified.
+   * @param timeout the timeout of each operation in seconds.
    * @return true on success, or false on failure.
    */
   bool set_timeout(double timeout);
@@ -222,16 +221,16 @@ private:
 /**
  * Network server abstraction based on TCP/IP.
  */
-class Server : public Pollable {
+class ServerSocket : public Pollable {
 public:
   /**
    * Default constructor.
    */
-  explicit Server();
+  explicit ServerSocket();
   /**
    * Destructor.
    */
-  ~Server();
+  ~ServerSocket();
   /**
    * Get the last happened error information.
    * @return the last happened error information.
@@ -261,8 +260,7 @@ public:
   bool abort();
   /**
    * Set the timeout of each operation.
-   * @param timeout the timeout of each operation in seconds.  If it is not more than 0, no
-   * timeout is specified.
+   * @param timeout the timeout of each operation in seconds.
    * @return true on success, or false on failure.
    */
   bool set_timeout(double timeout);
@@ -279,8 +277,8 @@ public:
   /**
    * Set event flags.
    * @param flags specifies the event mode.  The following may be added by bitwise-or:
-   * Server::EVINPUT for input events, Server::EVOUTPUT for output events, Server::EVERROR for
-   * error events.
+   * ServerSocket::EVINPUT for input events, ServerSocket::EVOUTPUT for output events,
+   * ServerSocket::EVERROR for error events.
    */
   void set_event_flags(uint32_t flags);
   /**
@@ -290,9 +288,9 @@ public:
   uint32_t event_flags();
 private:
   /** Dummy constructor to forbid the use. */
-  Server(const Socket&);
+  ServerSocket(const Socket&);
   /** Dummy Operator to forbid the use. */
-  Server& operator =(const Server&);
+  ServerSocket& operator =(const ServerSocket&);
   /** Opaque pointer. */
   void* opq_;
 };

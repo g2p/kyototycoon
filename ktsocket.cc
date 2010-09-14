@@ -48,9 +48,9 @@ struct SocketCore {
 
 
 /**
- * Server internal.
+ * ServerSocket internal.
  */
-struct ServerCore {
+struct ServerSocketCore {
   const char* errmsg;                    ///< error message
   int32_t fd;                            ///< file descriptor
   std::string expr;                      ///< address expression
@@ -133,7 +133,7 @@ static int32_t sockgetc(SocketCore* core);
  * @param core the inner condition of the server.
  * @param msg the error message.
  */
-static void servseterrmsg(ServerCore* core, const char* msg);
+static void servseterrmsg(ServerSocketCore* core, const char* msg);
 
 
 /**
@@ -834,9 +834,9 @@ int32_t Socket::fetch_http(const std::string& url, std::string* resbody,
 /**
  * Default constructor.
  */
-Server::Server() {
+ServerSocket::ServerSocket() {
   _assert_(true);
-  ServerCore* core = new ServerCore;
+  ServerSocketCore* core = new ServerSocketCore;
   core->errmsg = NULL;
   core->fd = -1;
   core->timeout = UINT32_MAX;
@@ -850,9 +850,9 @@ Server::Server() {
 /**
  * Destructor.
  */
-Server::~Server() {
+ServerSocket::~ServerSocket() {
   _assert_(true);
-  ServerCore* core = (ServerCore*)opq_;
+  ServerSocketCore* core = (ServerSocketCore*)opq_;
   if (core->fd >= 0) close();
   delete core;
 }
@@ -861,9 +861,9 @@ Server::~Server() {
 /**
  * Get the last happened error information.
  */
-const char* Server::error() {
+const char* ServerSocket::error() {
   _assert_(true);
-  ServerCore* core = (ServerCore*)opq_;
+  ServerSocketCore* core = (ServerSocketCore*)opq_;
   if (!core->errmsg) return "no error";
   return core->errmsg;
 }
@@ -872,9 +872,9 @@ const char* Server::error() {
 /**
  * Open a server socket.
  */
-bool Server::open(const std::string& expr) {
+bool ServerSocket::open(const std::string& expr) {
   _assert_(true);
-  ServerCore* core = (ServerCore*)opq_;
+  ServerSocketCore* core = (ServerSocketCore*)opq_;
   if (core->fd > 0) {
     servseterrmsg(core, "already opened");
     return false;
@@ -935,9 +935,9 @@ bool Server::open(const std::string& expr) {
 /**
  * Close the socket.
  */
-bool Server::close() {
+bool ServerSocket::close() {
   _assert_(true);
-  ServerCore* core = (ServerCore*)opq_;
+  ServerSocketCore* core = (ServerSocketCore*)opq_;
   if (core->fd < 1) {
     servseterrmsg(core, "not opened");
     return false;
@@ -956,9 +956,9 @@ bool Server::close() {
 /**
  * Accept a connection from a client.
  */
-bool Server::accept(Socket* sock) {
+bool ServerSocket::accept(Socket* sock) {
   _assert_(sock);
-  ServerCore* core = (ServerCore*)opq_;
+  ServerSocketCore* core = (ServerSocketCore*)opq_;
   if (core->fd < 1) {
     servseterrmsg(core, "not opened");
     return false;
@@ -1017,9 +1017,9 @@ bool Server::accept(Socket* sock) {
 /**
  * Abort the current operation.
  */
-bool Server::abort() {
+bool ServerSocket::abort() {
   _assert_(true);
-  ServerCore* core = (ServerCore*)opq_;
+  ServerSocketCore* core = (ServerSocketCore*)opq_;
   if (core->fd < 1) {
     servseterrmsg(core, "not opened");
     return false;
@@ -1032,9 +1032,9 @@ bool Server::abort() {
 /**
  * Set the timeout of each operation.
  */
-bool Server::set_timeout(double timeout) {
+bool ServerSocket::set_timeout(double timeout) {
   _assert_(true);
-  ServerCore* core = (ServerCore*)opq_;
+  ServerSocketCore* core = (ServerSocketCore*)opq_;
   if (core->fd > 0) {
     servseterrmsg(core, "already opened");
     return false;
@@ -1048,9 +1048,9 @@ bool Server::set_timeout(double timeout) {
 /**
  * Get the expression of the socket.
  */
-const std::string Server::expression() {
+const std::string ServerSocket::expression() {
   _assert_(true);
-  ServerCore* core = (ServerCore*)opq_;
+  ServerSocketCore* core = (ServerSocketCore*)opq_;
   if (core->fd < 0) {
     servseterrmsg(core, "not opened");
     return "";
@@ -1062,9 +1062,9 @@ const std::string Server::expression() {
 /**
  * Get the descriptor integer.
  */
-int32_t Server::descriptor() {
+int32_t ServerSocket::descriptor() {
   _assert_(true);
-  ServerCore* core = (ServerCore*)opq_;
+  ServerSocketCore* core = (ServerSocketCore*)opq_;
   if (core->fd < 0) {
     servseterrmsg(core, "not opened");
     return -1;
@@ -1076,9 +1076,9 @@ int32_t Server::descriptor() {
 /**
  * Set event flags.
  */
-void Server::set_event_flags(uint32_t flags) {
+void ServerSocket::set_event_flags(uint32_t flags) {
   _assert_(true);
-  ServerCore* core = (ServerCore*)opq_;
+  ServerSocketCore* core = (ServerSocketCore*)opq_;
   core->evflags = flags;
 }
 
@@ -1086,9 +1086,9 @@ void Server::set_event_flags(uint32_t flags) {
 /**
  * Get the current event flags.
  */
-uint32_t Server::event_flags() {
+uint32_t ServerSocket::event_flags() {
   _assert_(true);
-  ServerCore* core = (ServerCore*)opq_;
+  ServerSocketCore* core = (ServerSocketCore*)opq_;
   return core->evflags;
 }
 
@@ -1172,7 +1172,10 @@ bool Poller::push(Pollable* event) {
     pollseterrmsg(core, "not opened");
     return false;
   }
-  core->items.insert(event);
+  if (!core->items.insert(event).second) {
+    pollseterrmsg(core, "duplicated");
+    return false;
+  }
   return true;
 }
 
@@ -1536,7 +1539,7 @@ static int32_t sockgetc(SocketCore* core) {
 /**
  * Set the error message of a server.
  */
-static void servseterrmsg(ServerCore* core, const char* msg) {
+static void servseterrmsg(ServerSocketCore* core, const char* msg) {
   _assert_(core && msg);
   core->errmsg = msg;
 }

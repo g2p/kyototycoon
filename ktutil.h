@@ -35,7 +35,7 @@ extern const int32_t LIBREV;
 
 /**
  * Set the signal handler for termination signals.
- * @param the function pointer of the signal handler.
+ * @param handler the function pointer of the signal handler.
  * @return true on success, or false on failure.
  */
 bool setkillsignalhandler(void (*handler)(int));

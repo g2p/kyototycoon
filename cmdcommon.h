@@ -18,6 +18,7 @@
 #include <ktcommon.h>
 #include <ktutil.h>
 #include <ktsocket.h>
+#include <ktthserv.h>
 
 namespace kc = kyotocabinet;
 namespace kt = kyototycoon;
@@ -186,6 +187,31 @@ inline std::string unitnumstrbyte(int64_t num) {
     return kc::strprintf("%.3Lf KiB", (long double)num / (1ULL << 10));
   }
   return kc::strprintf("%lld B", (long long)num);
+}
+
+
+// get the logger into the standard stream
+inline kt::ThreadedServer::Logger* stdlogger(const char* prefix, std::ostream* strm) {
+  class LoggerImpl : public kt::ThreadedServer::Logger {
+  public:
+    explicit LoggerImpl(std::ostream* strm, const char* prefix) :
+      strm_(strm), prefix_(prefix) {}
+    void log(Kind kind, const char* message) {
+      const char* kstr = "MISC";
+      switch (kind) {
+        case kt::ThreadedServer::Logger::DEBUG: kstr = "DEBUG"; break;
+        case kt::ThreadedServer::Logger::INFO: kstr = "INFO"; break;
+        case kt::ThreadedServer::Logger::SYSTEM: kstr = "SYSTEM"; break;
+        case kt::ThreadedServer::Logger::ERROR: kstr = "ERROR"; break;
+      }
+      *strm_ << prefix_ << ": [" << kstr << "]: " << message << std::endl;
+    }
+  private:
+    std::ostream* strm_;
+    const char* prefix_;
+  };
+  static LoggerImpl logger(strm, prefix);
+  return &logger;
 }
 
 

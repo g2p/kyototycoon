@@ -7,16 +7,16 @@
 #================================================================
 
 # Package name
-AC_INIT(kyototycoon, 0.0.2)
+AC_INIT(kyototycoon, 0.0.3)
 
 # Package information
 MYLIBVER=1
 MYLIBREV=1
 
 # Targets
-MYHEADERFILES="ktcommon.h ktutil.h ktsocket.h"
+MYHEADERFILES="ktcommon.h ktutil.h ktsocket.h ktthserv.h"
 MYLIBRARYFILES="libkyototycoon.a"
-MYLIBOBJFILES="ktutil.o ktsocket.o"
+MYLIBOBJFILES="ktutil.o ktsocket.o ktthserv.o"
 MYCOMMANDFILES="ktutiltest ktutilmgr ktutilserv"
 MYMAN1FILES="ktutiltest.1 ktutilmgr.1 ktutilserv.1"
 MYDOCUMENTFILES="COPYING ChangeLog doc kyototycoon.idl"
@@ -136,7 +136,7 @@ then
   then
     CC="ccache $CC"
     CXX="ccache $CXX"
-    ccache >/dev/null
+    ccache -C >/dev/null 2>&1
   fi
 fi
 

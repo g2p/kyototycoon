@@ -154,6 +154,7 @@ dist :
 distclean : clean
 	cd example && $(MAKE) clean
 	rm -rf Makefile kyototycoon.pc config.cache config.log config.status autom4te.cache
+	which ccache >/dev/null 2>&1 && ccache -C >/dev/null 2>&1
 
 
 check :
@@ -239,7 +240,9 @@ ktutil.o : ktcommon.h ktutil.h myconf.h
 
 ktsocket.o : ktcommon.h ktutil.h ktsocket.h myconf.h
 
-ktutiltest.o ktutilmgr.o ktutilserv.o : ktcommon.h ktutil.h ktsocket.h cmdcommon.h
+ktthserv.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h myconf.h
+
+ktutiltest.o ktutilmgr.o ktutilserv.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h cmdcommon.h
 
 
 

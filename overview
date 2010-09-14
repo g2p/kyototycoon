@@ -19,4 +19,5 @@ namespace kyototycoon {}
  * @file ktcommon.h     common symbols for the library
  * @file ktutil.h       utility functions
  * @file ktsocket.h     network functions
+ * @file ktthserv.h     threaded server
  */

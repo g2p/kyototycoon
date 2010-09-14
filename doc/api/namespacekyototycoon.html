@@ -34,11 +34,15 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Interface of poolable I/O event.  <a href="classkyototycoon_1_1Pollable.html#_details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1Socket.html">Socket</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Network stream abstraction based on TCP/IP.  <a href="classkyototycoon_1_1Socket.html#_details">More...</a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1Server.html">Server</a></td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Network server abstraction based on TCP/IP.  <a href="classkyototycoon_1_1Server.html#_details">More...</a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ServerSocket.html">ServerSocket</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Network server abstraction based on TCP/IP.  <a href="classkyototycoon_1_1ServerSocket.html#_details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1Poller.html">Poller</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">I/O event notification.  <a href="classkyototycoon_1_1Poller.html#_details">More...</a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ThreadedServer.html">ThreadedServer</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Interface of poolable I/O event.  <a href="classkyototycoon_1_1ThreadedServer.html#_details">More...</a><br/></td></tr>
 <tr><td colspan="2"><h2>Functions</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a9ab27b9ecf56eedb045b412ef741d40e">setkillsignalhandler</a> (void(*handler)(int))</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the signal handler for termination signals.  <a href="#a9ab27b9ecf56eedb045b412ef741d40e"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">const char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a941cc3f97a2e848ba58a3b68380e350d">strmapget</a> (const std::map&lt; std::string, std::string &gt; &amp;map, const char *key)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the C-style string value of a record in a string map.  <a href="#a941cc3f97a2e848ba58a3b68380e350d"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a6ac45374f36f35280d2d8203a5bcf253">urlbreak</a> (const char *url, std::map&lt; std::string, std::string &gt; *elems)</td></tr>
@@ -57,6 +61,33 @@
 <p>All symbols of Kyoto Tycoon. </p>
 <p>Common namespace of Kyoto Tycoon. </p>
 <hr/><h2>Function Documentation</h2>
+<a class="anchor" id="a9ab27b9ecf56eedb045b412ef741d40e"></a><!-- doxytag: member="kyototycoon::setkillsignalhandler" ref="a9ab27b9ecf56eedb045b412ef741d40e" args="(void(*handler)(int))" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::setkillsignalhandler </td>
+          <td>(</td>
+          <td class="paramtype">void(*)(int)&nbsp;</td>
+          <td class="paramname"> <em>handler</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Set the signal handler for termination signals. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>handler</em>&nbsp;</td><td>the function pointer of the signal handler. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a941cc3f97a2e848ba58a3b68380e350d"></a><!-- doxytag: member="kyototycoon::strmapget" ref="a941cc3f97a2e848ba58a3b68380e350d" args="(const std::map&lt; std::string, std::string &gt; &amp;map, const char *key)" -->
 <div class="memitem">
 <div class="memproto">
@@ -205,7 +236,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Sun Sep 12 02:10:36 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Sep 14 19:07:05 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>
