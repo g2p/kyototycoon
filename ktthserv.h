@@ -27,9 +27,13 @@ namespace kyototycoon {                  // common namespace
  * Interface of poolable I/O event.
  */
 class ThreadedServer {
+public:
+  class Logger;
+  class Worker;
+  class Session;
 private:
   class TaskQueueImpl;
-  class SocketTask;
+  class SessionTask;
 public:
   /**
    * Interface to log internal information and errors.
@@ -68,19 +72,94 @@ public:
     virtual ~Worker() {}
     /**
      * Process each request.
-     * @param sock the socket to the client.
-     * @param thid the ID number of the thread.  It can be from 0 to less than the number of
-     * worker threads.
-     * @return true to reuse the socket, or false to close the socket.
+     * @param sess the session with the client.
+     * @return true to reuse the session, or false to close the session.
      */
-    virtual bool process(Socket* sock, uint32_t thid) = 0;
+    virtual bool process(Session* sess) = 0;
+  };
+  /**
+   * Interface to access each session data.
+   */
+  class Session : public Socket {
+    friend class ThreadedServer;
+  public:
+    class Data;
+  public:
+    /**
+     * Interface of session local data.
+     */
+    class Data {
+    public:
+      /**
+       * Destructor.
+       */
+      virtual ~Data() {
+        _assert_(true);
+      }
+    };
+    /**
+     * Get the ID number of the session.
+     * @return the ID number of the session.
+     */
+    uint64_t id() {
+      _assert_(true);
+      return id_;
+    }
+    /**
+     * Get the ID number of the worker thread.
+     * @return the ID number of the worker thread.  It is from 0 to less than the number of
+     * worker threads.
+     */
+    uint32_t thread_id() {
+      _assert_(true);
+      return thid_;
+    }
+    /**
+     * Set the session local data.
+     * @param data the session local data.  If it is NULL, no data is registered.
+     * @note The registered data is destroyed implicitly when the session object is destroyed or
+     * this method is called again.
+     */
+    void set_data(Data* data) {
+      _assert_(true);
+      delete data_;
+      data_ = data;
+    }
+    /**
+     * Get the session local data.
+     * @return the session local data, or NULL if no data is registered.
+     */
+    Data* data() {
+      _assert_(true);
+      return data_;
+    }
+  private:
+    /**
+     * Default Constructor.
+     */
+    explicit Session(uint64_t id) : id_(id), thid_(0), data_(NULL) {
+      _assert_(true);
+    }
+    /**
+     * Destructor.
+     */
+    ~Session() {
+      _assert_(true);
+      delete data_;
+    }
+    /** The ID number of the session. */
+    uint64_t id_;
+    /** The ID number of the worker thread. */
+    uint32_t thid_;
+    /** The session local data. */
+    Data* data_;
   };
   /**
    * Default constructor.
    */
   ThreadedServer() :
     run_(false), expr_(), timeout_(0), worker_(NULL), thnum_(0), logger_(NULL), logkinds_(0),
-    sock_(), poll_(), queue_(this) {
+    sock_(), poll_(), queue_(this), sesscnt_(0) {
     _assert_(true);
   }
   /**
@@ -166,12 +245,12 @@ public:
         Pollable* event;
         while ((event = poll_.pop()) != NULL) {
           if (event == &sock_) {
-            Socket* csock = new Socket;
-            csock->set_timeout(timeout_);
-            if (sock_.accept(csock)) {
-              log(Logger::INFO, "connected: expr=%s", csock->expression().c_str());
-              csock->set_event_flags(Pollable::EVINPUT);
-              if (!poll_.push(csock)) {
+            Session* sess = new Session(++sesscnt_);
+            sess->set_timeout(timeout_);
+            if (sock_.accept(sess)) {
+              log(Logger::INFO, "connected: expr=%s", sess->expression().c_str());
+              sess->set_event_flags(Pollable::EVINPUT);
+              if (!poll_.push(sess)) {
                 log(Logger::ERROR, "poller error: msg=%s", poll_.error());
                 err = true;
               }
@@ -185,8 +264,8 @@ public:
               err = true;
             }
           } else {
-            Socket* csock = (Socket*)event;
-            SocketTask* task = new SocketTask(csock);
+            Session* sess = (Session*)event;
+            SessionTask* task = new SessionTask(sess);
             queue_.add_task(task);
           }
         }
@@ -230,13 +309,13 @@ public:
       Pollable* event;
       while ((event = poll_.pop()) != NULL) {
         if (event == &sock_) continue;
-        Socket* csock = (Socket*)event;
-        log(Logger::INFO, "disconnecting: expr=%s", csock->expression().c_str());
-        if (!csock->close()) {
-          log(Logger::ERROR, "socket error: fd=%d msg=%s", csock->descriptor(), csock->error());
+        Session* sess = (Session*)event;
+        log(Logger::INFO, "disconnecting: expr=%s", sess->expression().c_str());
+        if (!sess->close()) {
+          log(Logger::ERROR, "socket error: fd=%d msg=%s", sess->descriptor(), sess->error());
           err = true;
         }
-        delete csock;
+        delete sess;
       }
     } else {
       log(Logger::ERROR, "poller error: msg=%s", poll_.error());
@@ -256,7 +335,7 @@ private:
    */
   class TaskQueueImpl : public kc::TaskQueue {
   public:
-    TaskQueueImpl(ThreadedServer* serv) : serv_(serv), worker_(NULL), err_(false) {
+    explicit TaskQueueImpl(ThreadedServer* serv) : serv_(serv), worker_(NULL), err_(false) {
       _assert_(true);
     }
     void set_worker(Worker* worker) {
@@ -270,27 +349,28 @@ private:
   private:
     void do_task(kc::TaskQueue::Task* task) {
       _assert_(task);
-      SocketTask* mytask = (SocketTask*)task;
-      Socket* sock = mytask->sock_;
+      SessionTask* mytask = (SessionTask*)task;
+      Session* sess = mytask->sess_;
       bool keep = false;
       if (mytask->aborted()) {
-        serv_->log(Logger::INFO, "aborted a request: expr=%s", sock->expression().c_str());
+        serv_->log(Logger::INFO, "aborted a request: expr=%s", sess->expression().c_str());
       } else {
-        keep = worker_->process(sock, mytask->thread_id());
+        sess->thid_ = mytask->thread_id();
+        keep = worker_->process(sess);
       }
       if (keep) {
-        sock->set_event_flags(Pollable::EVINPUT);
-        if (!serv_->poll_.push(sock)) {
+        sess->set_event_flags(Pollable::EVINPUT);
+        if (!serv_->poll_.push(sess)) {
           serv_->log(Logger::ERROR, "poller error: msg=%s", serv_->poll_.error());
           err_ = true;
         }
       } else {
-        serv_->log(Logger::INFO, "disconnecting: expr=%s", sock->expression().c_str());
-        if (!sock->close()) {
-          serv_->log(Logger::ERROR, "socket error: msg=%s", sock->error());
+        serv_->log(Logger::INFO, "disconnecting: expr=%s", sess->expression().c_str());
+        if (!sess->close()) {
+          serv_->log(Logger::ERROR, "socket error: msg=%s", sess->error());
           err_ = true;
         }
-        delete sock;
+        delete sess;
       }
       delete mytask;
     }
@@ -299,14 +379,14 @@ private:
     bool err_;
   };
   /**
-   * Task with a socket.
+   * Task with a session.
    */
-  class SocketTask : public kc::TaskQueue::Task {
+  class SessionTask : public kc::TaskQueue::Task {
     friend class ThreadedServer;
   public:
-    SocketTask(Socket* sock) : sock_(sock) {}
+    explicit SessionTask(Session* sess) : sess_(sess) {}
   private:
-    Socket* sock_;
+    Session* sess_;
   };
   /**
    * Log a message.
@@ -345,6 +425,8 @@ private:
   Poller poll_;
   /** The task queue. */
   TaskQueueImpl queue_;
+  /** The session count. */
+  uint64_t sesscnt_;
 };
 
 

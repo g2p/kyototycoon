@@ -89,7 +89,7 @@ static void killserver(int signum) {
 static int32_t runecho(int argc, char** argv) {
   const char* host = NULL;
   int32_t port = DEFPORT;
-  double tout = 0;
+  double tout = DEFTOUT;
   for (int32_t i = 2; i < argc; i++) {
     if (argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "-host")) {
@@ -118,7 +118,7 @@ static int32_t runecho(int argc, char** argv) {
 static int32_t runmtecho(int argc, char** argv) {
   const char* host = NULL;
   int32_t port = DEFPORT;
-  double tout = 0;
+  double tout = DEFTOUT;
   int32_t thnum = 1;
   for (int32_t i = 2; i < argc; i++) {
     if (argv[i][0] == '-') {
@@ -289,15 +289,27 @@ static int32_t procmtecho(const char* host, int32_t port, double tout, int32_t t
   kt::ThreadedServer serv;
   class MyServer : public kt::ThreadedServer::Worker {
   private:
-    bool process(kt::Socket* sock, uint32_t thid) {
+    bool process(kt::ThreadedServer::Session* sess) {
       bool keep = false;
       char line[1024];
-      if (sock->receive_line(line, sizeof(line))) {
+      if (sess->receive_line(line, sizeof(line))) {
         if (!kc::stricmp(line, "/quit")) {
-          sock->printf("> Bye!\n");
+          sess->printf("> Bye!\n");
         } else {
-          iprintf("%s: [%s]: %s\n", g_progname, sock->expression().c_str(), line);
-          sock->printf("> %s\n", line);
+          class Data : public kt::ThreadedServer::Session::Data {
+          public:
+            time_t t;
+          };
+          Data* data = (Data*)sess->data();
+          if (!data) {
+            data = new Data;
+            sess->set_data(data);
+            data->t = kc::time();
+          }
+          iprintf("%s: [%s]: id=%llu thid=%u time=%lld msg=%s\n", g_progname,
+                  sess->expression().c_str(), (unsigned long long)sess->id(),
+                  (unsigned)sess->thread_id(), (long long)(kc::time() - data->t), line);
+          sess->printf("> %s\n", line);
           keep = true;
         }
       }

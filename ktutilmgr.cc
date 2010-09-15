@@ -15,15 +15,6 @@
 
 #include "cmdcommon.h"
 
-enum HTTPMode {                          // HTTP method mode
-  HTTPAUTO,                              // auto determination
-  HTTPGET,                               // GET
-  HTTPHEAD,                              // HEAD
-  HTTPPOST,                              // POST
-  HTTPPUT,                               // PUT
-  HTTPDELETE                             // DELETE
-};
-
 
 // global variables
 const char* g_progname;                  // program name
@@ -33,7 +24,7 @@ const char* g_progname;                  // program name
 int main(int argc, char** argv);
 static void usage();
 static int runhttp(int argc, char** argv);
-static int32_t prochttp(const char* url, const char* file, HTTPMode mode,
+static int32_t prochttp(const char* url, const char* file, uint32_t mode,
                         std::map<std::string, std::string>* reqheads,
                         std::map<std::string, std::string>* queries,
                         double tout, bool ph, int32_t ec);
@@ -75,7 +66,7 @@ static void usage() {
 static int runhttp(int argc, char** argv) {
   const char* url = NULL;
   const char* file = NULL;
-  HTTPMode mode = HTTPAUTO;
+  uint32_t mode = UINT32_MAX;
   std::map<std::string, std::string> reqheads;
   std::map<std::string, std::string> queries;
   double tout = 0;
@@ -84,15 +75,15 @@ static int runhttp(int argc, char** argv) {
   for (int32_t i = 2; i < argc; i++) {
     if (argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "-get")) {
-        mode = HTTPGET;
+        mode = kt::HTTPClient::MGET;
       } else if (!std::strcmp(argv[i], "-head")) {
-        mode = HTTPHEAD;
+        mode = kt::HTTPClient::MHEAD;
       } else if (!std::strcmp(argv[i], "-post")) {
-        mode = HTTPPOST;
+        mode = kt::HTTPClient::MPOST;
       } else if (!std::strcmp(argv[i], "-put")) {
-        mode = HTTPPUT;
+        mode = kt::HTTPClient::MPUT;
       } else if (!std::strcmp(argv[i], "-delete")) {
-        mode = HTTPDELETE;
+        mode = kt::HTTPClient::MDELETE;
       } else if (!std::strcmp(argv[i], "-ah")) {
         if ((i += 2) >= argc) usage();
         reqheads[argv[i-1]] = argv[i];
@@ -125,7 +116,7 @@ static int runhttp(int argc, char** argv) {
 
 
 // perform http command
-static int32_t prochttp(const char* url, const char* file, HTTPMode mode,
+static int32_t prochttp(const char* url, const char* file, uint32_t mode,
                         std::map<std::string, std::string>* reqheads,
                         std::map<std::string, std::string>* queries,
                         double tout, bool ph, int32_t ec) {
@@ -149,7 +140,7 @@ static int32_t prochttp(const char* url, const char* file, HTTPMode mode,
   }
   std::string urlstr = url;
   std::ostringstream oss;
-  bool body = file || mode == HTTPPOST || mode == HTTPPUT;
+  bool body = file || mode == kt::HTTPClient::MPOST || mode == kt::HTTPClient::MPUT;
   if (body) {
     if (queries->empty()) {
       char c;
@@ -196,22 +187,19 @@ static int32_t prochttp(const char* url, const char* file, HTTPMode mode,
       it++;
     }
   }
+  if (!kt::strmapget(*reqheads, "user-agent") && !kt::strmapget(*reqheads, "User-Agent")) {
+    std::string uastr;
+    kc::strprintf(&uastr, "KyotoTycoon/%s", kt::VERSION);
+    (*reqheads)["user-agent"] = uastr;
+  }
   const std::string& ostr = oss.str();
   const std::string* reqbody = body ? &ostr : NULL;
   std::string resbody;
   std::map<std::string, std::string> resheads;
-  const char* method;
-  switch (mode) {
-    default: method = NULL; break;
-    case HTTPGET: method = "GET"; break;
-    case HTTPHEAD: method = "HEAD"; break;
-    case HTTPPOST: method = "POST"; break;
-    case HTTPPUT: method = "PUT"; break;
-    case HTTPDELETE: method = "DELETE"; break;
-  }
-  if (method) (*reqheads)[""] = method;
+  if (mode == UINT32_MAX) mode = body ? kt::HTTPClient::MPOST : kt::HTTPClient::MGET;
   bool err = false;
-  int32_t code = kt::Socket::fetch_http(urlstr, &resbody, &resheads, reqbody, reqheads, tout);
+  int32_t code = kt::HTTPClient::fetch_once(urlstr, (kt::HTTPClient::Method)mode,
+                                            &resbody, &resheads, reqbody, reqheads, tout);
   if ((ec < 1 && code > 0) || code == ec) {
     if (ph) {
       std::map<std::string, std::string>::const_iterator it = resheads.begin();

@@ -88,6 +88,14 @@ static void parseaddr(const char* expr, char* addr, int32_t* portp);
 
 
 /**
+ * Check whether an error code is retriable.
+ * @param ecode the error code.
+ * @return true if the error code is retriable, or false if not.
+ */
+static bool checkerrnoretriable(int32_t ecode);
+
+
+/**
  * Set options of a sockeet.
  * @param fd the file descriptor of the socket.
  * @return true on success, or false on failure.
@@ -231,8 +239,7 @@ bool Socket::open(const std::string& expr) {
   double ct = kc::time();
   while (true) {
     if (::connect(fd, (struct sockaddr*)&sain, sizeof(sain)) == 0) break;
-    int32_t en = errno;
-    if (en != EINTR && en != EAGAIN && en != EINPROGRESS && en != ETIMEDOUT) {
+    if (!checkerrnoretriable(errno)) {
       sockseterrmsg(core, "connect failed");
       ::close(fd);
       return false;
@@ -284,8 +291,7 @@ bool Socket::close() {
   double ct = kc::time();
   while (true) {
     int32_t rv = ::shutdown(core->fd, SHUT_RDWR);
-    int32_t en = errno;
-    if (rv == 0 || en != EAGAIN || en != EWOULDBLOCK) break;
+    if (rv == 0 || !checkerrnoretriable(errno)) break;
     if (kc::time() > ct + core->timeout) {
       sockseterrmsg(core, "operation timed out");
       err = true;
@@ -325,10 +331,9 @@ bool Socket::send(const void* buf, size_t size) {
   double ct = kc::time();
   while (size > 0) {
     int32_t wb = ::send(core->fd, rp, size, 0);
-    int32_t en = errno;
     switch (wb) {
       case -1: {
-        if (en != EINTR && en != EAGAIN && en != EWOULDBLOCK) {
+        if (!checkerrnoretriable(errno)) {
           sockseterrmsg(core, "send failed");
           return false;
         }
@@ -991,8 +996,7 @@ bool ServerSocket::accept(Socket* sock) {
       sockcore->aborted = false;
       return true;
     } else {
-      int32_t en = errno;
-      if (en != EINTR && en != EAGAIN && en != EINPROGRESS && en != ETIMEDOUT) {
+      if (!checkerrnoretriable(errno)) {
         servseterrmsg(core, "accept failed");
         break;
       }
@@ -1249,7 +1253,6 @@ bool Poller::wait(double timeout) {
     ts.tv_sec = integ;
     ts.tv_nsec = fract * 999999000;
     int32_t rv = ::pselect(maxfd + 1, &rset, &wset, &xset, &ts, NULL);
-    int32_t en = errno;
     if (rv > 0) {
       if (!rmap.empty()) {
         std::map<int32_t, Pollable*>::iterator mit = rmap.begin();
@@ -1303,7 +1306,7 @@ bool Poller::wait(double timeout) {
         }
       }
       return true;
-    } else if (rv == 0 || en == EINTR || en == EAGAIN || en == EWOULDBLOCK) {
+    } else if (rv == 0 || checkerrnoretriable(errno)) {
       if (kc::time() > ct + timeout) {
         pollseterrmsg(core, "operation timed out");
         break;
@@ -1410,6 +1413,22 @@ static void parseaddr(const char* expr, char* addr, int32_t* portp) {
 
 
 /**
+ * Check whether an error code is retriable.
+ */
+static bool checkerrnoretriable(int32_t ecode) {
+  switch(ecode) {
+    case EINTR: return true;
+    case EAGAIN: return true;
+    case EINPROGRESS: return true;
+    case EALREADY: return true;
+    case ETIMEDOUT: return true;
+  }
+  if (ecode == EWOULDBLOCK) return true;
+  return false;
+}
+
+
+/**
  * Set options of a sockeet.
  */
 static bool setsocketoptions(int32_t fd) {
@@ -1475,8 +1494,7 @@ static bool waitsocket(int32_t fd, uint32_t mode, double timeout) {
       break;
     }
   }
-  int32_t en = errno;
-  if (rv >= 0 || en == EINTR || en == EAGAIN || en == EWOULDBLOCK) {
+  if (rv >= 0 || checkerrnoretriable(errno)) {
     clearsocketerror(fd);
     return true;
   }
@@ -1508,7 +1526,6 @@ static int32_t sockgetc(SocketCore* core) {
   double ct = kc::time();
   while (true) {
     int32_t rv = ::recv(core->fd, core->buf, IOBUFSIZ, 0);
-    int32_t en = errno;
     if (rv > 0) {
       core->rp = core->buf + 1;
       core->ep = core->buf + rv;
@@ -1517,7 +1534,7 @@ static int32_t sockgetc(SocketCore* core) {
       sockseterrmsg(core, "end of stream");
       return -1;
     }
-    if (en != EINTR && en != EAGAIN && en != EINPROGRESS && en != ETIMEDOUT) break;
+    if (!checkerrnoretriable(errno)) break;
     if (kc::time() > ct + core->timeout) {
       sockseterrmsg(core, "operation timed out");
       return -1;

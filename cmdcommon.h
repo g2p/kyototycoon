@@ -19,6 +19,7 @@
 #include <ktutil.h>
 #include <ktsocket.h>
 #include <ktthserv.h>
+#include <kthttp.h>
 
 namespace kc = kyotocabinet;
 namespace kt = kyototycoon;
@@ -30,6 +31,7 @@ const size_t RECBUFSIZ = 64;             // buffer size for a record
 const size_t RECBUFSIZL = 1024;          // buffer size for a long record
 const size_t LINEBUFSIZ = 8192;          // buffer size for a line
 const int32_t DEFPORT = 1978;            // default port number
+const double DEFTOUT = 30;               // default timeout
 
 
 // global variables

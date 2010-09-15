@@ -16,41 +16,81 @@
 #include "cmdcommon.h"
 
 
-kt::ThreadedServer* g_server = NULL;
-
-
-
-// kill the running server
-void killserver(int signum) {
-  iprintf("catched the signal %d\n", signum);
-  if (g_server) {
-    g_server->stop();
-    g_server = NULL;
-  }
-}
-
 int main(int argc, char** argv) {
-  kc::setstdiobin();
-  kt::setkillsignalhandler(killserver);
-  kt::ThreadedServer serv;
-  class MyServer : public kt::ThreadedServer::Worker {
-  private:
-    bool process(kt::Socket* sock, uint32_t thid) {
-      std::printf("process:%d\n", thid);
-      char line[1024];
-      if (sock->receive_line(line, sizeof(line))) {
-        std::printf("%s\n", line);
-        sock->printf(":::%s\n", line);
-      }
-      return true;
-    }
-  } worker;
-  serv.set_network(":1978", 10);
-  serv.set_worker(&worker, 2);
-  serv.set_logger(stdlogger(argv[0], &std::cout), UINT32_MAX);
-  g_server = &serv;
-  serv.start();
-  serv.finish();
+
+
+  std::string resbody;
+  std::map<std::string, std::string> resheads;
+  int32_t code = kt::HTTPClient::fetch_once(argv[1], kt::HTTPClient::MGET, &resbody, &resheads);
+  printf("code:%d\n", code);
+
+
+  std::map<std::string, std::string>::iterator it = resheads.begin();
+  std::map<std::string, std::string>::iterator itend = resheads.end();
+  while (it != itend) {
+    std::cout << it->first << ": " << it->second << std::endl;
+    it++;
+  }
+  std::cout << resbody << std::endl;
+
+
+
+  /*
+  kt::URL url(argv[1]);
+
+
+  kt::HTTPClient ua;
+  printf("open: %d\n", ua.open(url.host(), url.port()));
+
+  std::string resbody;
+  std::map<std::string, std::string> resheads;
+  int32_t code = ua.fetch(url.path_query(), kt::HTTPClient::MGET, &resbody, &resheads);
+  printf("code:%d\n", code);
+
+
+  std::map<std::string, std::string>::iterator it = resheads.begin();
+  std::map<std::string, std::string>::iterator itend = resheads.end();
+  while (it != itend) {
+    std::cout << it->first << ": " << it->second << std::endl;
+    it++;
+  }
+  std::cout << resbody << std::endl;
+
+
+
+  code = ua.fetch("/", kt::HTTPClient::MGET, &resbody, &resheads);
+  printf("code:%d\n", code);
+  it = resheads.begin();
+  itend = resheads.end();
+  while (it != itend) {
+    std::cout << it->first << ": " << it->second << std::endl;
+    it++;
+  }
+  std::cout << resbody << std::endl;
+
+
+  printf("close: %d\n", ua.close());
+
+  */
+
+
+  /*
+  std::cout << url.expression() << std::endl;
+  std::cout << url.path_query() << std::endl;
+
+    std::cout << "scheme:[" << url.scheme() << "]" << std::endl;
+    std::cout << "host:[" << url.host() << "]" << std::endl;
+    std::cout << "port:[" << url.port() << "]" << std::endl;
+    std::cout << "authority:[" << url.authority() << "]" << std::endl;
+    std::cout << "path:[" << url.path() << "]" << std::endl;
+    std::cout << "query:[" << url.query() << "]" << std::endl;
+    std::cout << "fragment:[" << url.fragment() << "]" << std::endl;
+
+  */
+
+
+
+
   return 0;
 }
 

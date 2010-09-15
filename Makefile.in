@@ -242,7 +242,10 @@ ktsocket.o : ktcommon.h ktutil.h ktsocket.h myconf.h
 
 ktthserv.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h myconf.h
 
-ktutiltest.o ktutilmgr.o ktutilserv.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h cmdcommon.h
+kthttp.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h myconf.h
+
+ktutiltest.o ktutilmgr.o ktutilserv.o : ktcommon.h ktutil.h ktsocket.h \
+  ktthserv.h kthttp.h cmdcommon.h
 
 
 
