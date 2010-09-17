@@ -32,153 +32,373 @@ const int32_t LIBREV = _KT_LIBREV;
 
 
 /**
- * Set the signal handler for termination signals.
+ * Get the Gregorian calendar of a time.
  */
-bool setkillsignalhandler(void (*handler)(int)) {
-  _assert_(handler);
-  bool err = false;
-  if (std::signal(SIGTERM, handler) == SIG_ERR) err = true;
-  if (std::signal(SIGINT, handler) == SIG_ERR) err = true;
-  if (std::signal(SIGHUP, handler) == SIG_ERR) err = true;
-  return !err;
+void getcalendar(int64_t t, int32_t jl,
+                 int32_t* yearp, int32_t* monp, int32_t* dayp,
+                 int32_t* hourp, int32_t* minp, int32_t* secp) {
+  _assert_(true);
+  if (t == INT64_MAX) t = std::time(NULL);
+  if (jl == INT32_MAX) jl = jetlag();
+  time_t tt = (time_t)t + jl;
+  struct std::tm ts;
+  if (!getgmtime(tt, &ts)) {
+    if (yearp) *yearp = 0;
+    if (monp) *monp = 0;
+    if (dayp) *dayp = 0;
+    if (hourp) *hourp = 0;
+    if (minp) *minp = 0;
+    if (secp) *secp = 0;
+  }
+  if (yearp) *yearp = ts.tm_year + 1900;
+  if (monp) *monp = ts.tm_mon + 1;
+  if (dayp) *dayp = ts.tm_mday;
+  if (hourp) *hourp = ts.tm_hour;
+  if (minp) *minp = ts.tm_min;
+  if (secp) *secp = ts.tm_sec;
 }
 
 
 /**
- * Get the C-style string value of a record in a string map.
+ * Format a date as a string in W3CDTF.
  */
-const char* strmapget(const std::map<std::string, std::string>& map, const char* key) {
-  _assert_(key);
-  std::map<std::string, std::string>::const_iterator it = map.find(key);
-  return it == map.end() ? NULL : it->second.c_str();
-}
-
-
-/**
- * Break up a URL into elements.
- */
-void urlbreak(const char* url, std::map<std::string, std::string>* elems) {
-  _assert_(url);
-  char* trim = kc::strdup(url);
-  kc::strtrim(trim);
-  char* rp = trim;
-  char* norm = new char[std::strlen(trim)*3+1];
-  char* wp = norm;
-  while (*rp != '\0') {
-    if (*rp > 0x20 && *rp < 0x7f) {
-      *(wp++) = *rp;
-    } else {
-      *(wp++) = '%';
-      int32_t num = *(unsigned char*)rp >> 4;
-      if (num < 10) {
-        *(wp++) = '0' + num;
-      } else {
-        *(wp++) = 'a' + num - 10;
-      }
-      num = *rp & 0x0f;
-      if (num < 10) {
-        *(wp++) = '0' + num;
-      } else {
-        *(wp++) = 'a' + num - 10;
-      }
-    }
-    rp++;
-  }
-  *wp = '\0';
-  rp = norm;
-  (*elems)["self"] = rp;
-  bool serv = false;
-  if (kc::strifwm(rp, "http://")) {
-    (*elems)["scheme"] = "http";
-    rp += 7;
-    serv = true;
-  } else if (kc::strifwm(rp, "https://")) {
-    (*elems)["scheme"] = "https";
-    rp += 8;
-    serv = true;
-  } else if (kc::strifwm(rp, "ftp://")) {
-    (*elems)["scheme"] = "ftp";
-    rp += 6;
-    serv = true;
-  } else if (kc::strifwm(rp, "sftp://")) {
-    (*elems)["scheme"] = "sftp";
-    rp += 7;
-    serv = true;
-  } else if (kc::strifwm(rp, "ftps://")) {
-    (*elems)["scheme"] = "ftps";
-    rp += 7;
-    serv = true;
-  } else if (kc::strifwm(rp, "tftp://")) {
-    (*elems)["scheme"] = "tftp";
-    rp += 7;
-    serv = true;
-  } else if (kc::strifwm(rp, "ldap://")) {
-    (*elems)["scheme"] = "ldap";
-    rp += 7;
-    serv = true;
-  } else if (kc::strifwm(rp, "ldaps://")) {
-    (*elems)["scheme"] = "ldaps";
-    rp += 8;
-    serv = true;
-  } else if (kc::strifwm(rp, "file://")) {
-    (*elems)["scheme"] = "file";
-    rp += 7;
-    serv = true;
-  }
-  char* ep;
-  if ((ep = std::strchr(rp, '#')) != NULL) {
-    (*elems)["fragment"] = ep + 1;
-    *ep = '\0';
-  }
-  if ((ep = std::strchr(rp, '?')) != NULL) {
-    (*elems)["query"] = ep + 1;
-    *ep = '\0';
-  }
-  if (serv) {
-    if ((ep = std::strchr(rp, '/')) != NULL) {
-      (*elems)["path"] = ep;
-      *ep = '\0';
-    } else {
-      (*elems)["path"] = "/";
-    }
-    if ((ep = std::strchr(rp, '@')) != NULL) {
-      *ep = '\0';
-      if (rp[0] != '\0') (*elems)["authority"] = rp;
-      rp = ep + 1;
-    }
-    if ((ep = std::strchr(rp, ':')) != NULL) {
-      if (ep[1] != '\0') (*elems)["port"] = ep + 1;
-      *ep = '\0';
-    }
-    if (rp[0] != '\0') (*elems)["host"] = rp;
+void datestrwww(int64_t t, int32_t jl, char* buf) {
+  _assert_(buf);
+  if (t == INT64_MAX) t = std::time(NULL);
+  if (jl == INT32_MAX) jl = jetlag();
+  time_t tt = (time_t)t + jl;
+  struct std::tm ts;
+  if (!getgmtime(tt, &ts)) std::memset(&ts, 0, sizeof(ts));
+  ts.tm_year += 1900;
+  ts.tm_mon += 1;
+  jl /= 60;
+  char tzone[16];
+  if (jl == 0) {
+    std::sprintf(tzone, "Z");
+  } else if (jl < 0) {
+    jl *= -1;
+    std::sprintf(tzone, "-%02d:%02d", jl / 60, jl % 60);
   } else {
-    (*elems)["path"] = rp;
+    std::sprintf(tzone, "+%02d:%02d", jl / 60, jl % 60);
   }
-  delete[] norm;
-  delete[] trim;
-  const char* file = strmapget(*elems, "path");
-  if (file) {
-    const char* pv = std::strrchr(file, '/');
-    if (pv) file = pv + 1;
-    if (*file != '\0' && std::strcmp(file, ".") && std::strcmp(file, ".."))
-      (*elems)["file"] = file;
+  std::sprintf(buf, "%04d-%02d-%02dT%02d:%02d:%02d%s",
+               ts.tm_year, ts.tm_mon, ts.tm_mday, ts.tm_hour, ts.tm_min, ts.tm_sec, tzone);
+}
+
+
+/**
+ * Format a date as a string in RFC 1123 format.
+ */
+void datestrhttp(int64_t t, int32_t jl, char* buf) {
+  _assert_(buf);
+  if (t == INT64_MAX) t = std::time(NULL);
+  if (jl == INT_MAX) jl = jetlag();
+  time_t tt = (time_t)t + jl;
+  struct std::tm ts;
+  if (!getgmtime(tt, &ts)) std::memset(&ts, 0, sizeof(ts));
+  ts.tm_year += 1900;
+  ts.tm_mon += 1;
+  jl /= 60;
+  char* wp = buf;
+  switch (dayofweek(ts.tm_year, ts.tm_mon, ts.tm_mday)) {
+    case 0: wp += std::sprintf(wp, "Sun, "); break;
+    case 1: wp += std::sprintf(wp, "Mon, "); break;
+    case 2: wp += std::sprintf(wp, "Tue, "); break;
+    case 3: wp += std::sprintf(wp, "Wed, "); break;
+    case 4: wp += std::sprintf(wp, "Thu, "); break;
+    case 5: wp += std::sprintf(wp, "Fri, "); break;
+    case 6: wp += std::sprintf(wp, "Sat, "); break;
+  }
+  wp += std::sprintf(wp, "%02d ", ts.tm_mday);
+  switch (ts.tm_mon) {
+    case 1: wp += std::sprintf(wp, "Jan "); break;
+    case 2: wp += std::sprintf(wp, "Feb "); break;
+    case 3: wp += std::sprintf(wp, "Mar "); break;
+    case 4: wp += std::sprintf(wp, "Apr "); break;
+    case 5: wp += std::sprintf(wp, "May "); break;
+    case 6: wp += std::sprintf(wp, "Jun "); break;
+    case 7: wp += std::sprintf(wp, "Jul "); break;
+    case 8: wp += std::sprintf(wp, "Aug "); break;
+    case 9: wp += std::sprintf(wp, "Sep "); break;
+    case 10: wp += std::sprintf(wp, "Oct "); break;
+    case 11: wp += std::sprintf(wp, "Nov "); break;
+    case 12: wp += std::sprintf(wp, "Dec "); break;
+  }
+  wp += std::sprintf(wp, "%04d %02d:%02d:%02d ", ts.tm_year, ts.tm_hour, ts.tm_min, ts.tm_sec);
+  if (jl == 0) {
+    std::sprintf(wp, "GMT");
+  } else if (jl < 0) {
+    jl *= -1;
+    std::sprintf(wp, "-%02d%02d", jl / 60, jl % 60);
+  } else {
+    std::sprintf(wp, "+%02d%02d", jl / 60, jl % 60);
   }
 }
 
 
 /**
- * Capitalize letters of a string.
+ * Get the time value of a date string.
  */
-char* strcapitalize(char* str) {
+int64_t strmktime(const char* str) {
   _assert_(str);
-  char* wp = str;
-  bool head = true;
-  while (*wp != '\0') {
-    if (head && *wp >= 'a' && *wp <= 'z') *wp -= 'a' - 'A';
-    head = *wp == '-' || *wp == ' ';
-    wp++;
+  while (*str > '\0' && *str <= ' ') {
+    str++;
   }
-  return str;
+  if (*str == '\0') return INT64_MIN;
+  if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X')) return kc::atoih(str + 2);
+  struct std::tm ts;
+  std::memset(&ts, 0, sizeof(ts));
+  ts.tm_year = 70;
+  ts.tm_mon = 0;
+  ts.tm_mday = 1;
+  ts.tm_hour = 0;
+  ts.tm_min = 0;
+  ts.tm_sec = 0;
+  ts.tm_isdst = 0;
+  int32_t len = std::strlen(str);
+  time_t t = (time_t)kc::atoi(str);
+  const char* pv = str;
+  while (*pv >= '0' && *pv <= '9') {
+    pv++;
+  }
+  while (*pv > '\0' && *pv <= ' ') {
+    pv++;
+  }
+  if (*pv == '\0') return t;
+  if ((pv[0] == 's' || pv[0] == 'S') && pv[1] >= '\0' && pv[1] <= ' ') return t;
+  if ((pv[0] == 'm' || pv[0] == 'M') && pv[1] >= '\0' && pv[1] <= ' ') return t * 60;
+  if ((pv[0] == 'h' || pv[0] == 'H') && pv[1] >= '\0' && pv[1] <= ' ') return t * 60 * 60;
+  if ((pv[0] == 'd' || pv[0] == 'D') && pv[1] >= '\0' && pv[1] <= ' ') return t * 60 * 60 * 24;
+  if (len > 4 && str[4] == '-') {
+    ts.tm_year = kc::atoi(str) - 1900;
+    if ((pv = std::strchr(str, '-')) != NULL && pv - str == 4) {
+      const char* rp = pv + 1;
+      ts.tm_mon = kc::atoi(rp) - 1;
+      if ((pv = std::strchr(rp, '-')) != NULL && pv - str == 7) {
+        rp = pv + 1;
+        ts.tm_mday = kc::atoi(rp);
+        if ((pv = std::strchr(rp, 'T')) != NULL && pv - str == 10) {
+          rp = pv + 1;
+          ts.tm_hour = kc::atoi(rp);
+          if ((pv = std::strchr(rp, ':')) != NULL && pv - str == 13) {
+            rp = pv + 1;
+            ts.tm_min = kc::atoi(rp);
+          }
+          if ((pv = std::strchr(rp, ':')) != NULL && pv - str == 16) {
+            rp = pv + 1;
+            ts.tm_sec = kc::atoi(rp);
+          }
+          if ((pv = std::strchr(rp, '.')) != NULL && pv - str >= 19) rp = pv + 1;
+          pv = rp;
+          while (*pv >= '0' && *pv <= '9') {
+            pv++;
+          }
+          if ((*pv == '+' || *pv == '-') && std::strlen(pv) >= 6 && pv[3] == ':')
+            ts.tm_sec -= (kc::atoi(pv + 1) * 3600 +
+                          kc::atoi(pv + 4) * 60) * (pv[0] == '+' ? 1 : -1);
+        }
+      }
+    }
+    return mkgmtime(&ts);
+  }
+  if (len > 4 && str[4] == '/') {
+    ts.tm_year = kc::atoi(str) - 1900;
+    if ((pv = std::strchr(str, '/')) != NULL && pv - str == 4) {
+      const char* rp = pv + 1;
+      ts.tm_mon = kc::atoi(rp) - 1;
+      if ((pv = std::strchr(rp, '/')) != NULL && pv - str == 7) {
+        rp = pv + 1;
+        ts.tm_mday = kc::atoi(rp);
+        if ((pv = std::strchr(rp, ' ')) != NULL && pv - str == 10) {
+          rp = pv + 1;
+          ts.tm_hour = kc::atoi(rp);
+          if ((pv = std::strchr(rp, ':')) != NULL && pv - str == 13) {
+            rp = pv + 1;
+            ts.tm_min = kc::atoi(rp);
+          }
+          if ((pv = std::strchr(rp, ':')) != NULL && pv - str == 16) {
+            rp = pv + 1;
+            ts.tm_sec = kc::atoi(rp);
+          }
+          if ((pv = std::strchr(rp, '.')) != NULL && pv - str >= 19) rp = pv + 1;
+          pv = rp;
+          while (*pv >= '0' && *pv <= '9') {
+            pv++;
+          }
+          if ((*pv == '+' || *pv == '-') && std::strlen(pv) >= 6 && pv[3] == ':')
+            ts.tm_sec -= (kc::atoi(pv + 1) * 3600 +
+                          kc::atoi(pv + 4) * 60) * (pv[0] == '+' ? 1 : -1);
+        }
+      }
+    }
+    return mkgmtime(&ts);
+  }
+  const char* crp = str;
+  if (len >= 4 && str[3] == ',') crp = str + 4;
+  while (*crp == ' ') {
+    crp++;
+  }
+  ts.tm_mday = kc::atoi(crp);
+  while ((*crp >= '0' && *crp <= '9') || *crp == ' ') {
+    crp++;
+  }
+  if (kc::strifwm(crp, "Jan")) {
+    ts.tm_mon = 0;
+  } else if (kc::strifwm(crp, "Feb")) {
+    ts.tm_mon = 1;
+  } else if (kc::strifwm(crp, "Mar")) {
+    ts.tm_mon = 2;
+  } else if (kc::strifwm(crp, "Apr")) {
+    ts.tm_mon = 3;
+  } else if (kc::strifwm(crp, "May")) {
+    ts.tm_mon = 4;
+  } else if (kc::strifwm(crp, "Jun")) {
+    ts.tm_mon = 5;
+  } else if (kc::strifwm(crp, "Jul")) {
+    ts.tm_mon = 6;
+  } else if (kc::strifwm(crp, "Aug")) {
+    ts.tm_mon = 7;
+  } else if (kc::strifwm(crp, "Sep")) {
+    ts.tm_mon = 8;
+  } else if (kc::strifwm(crp, "Oct")) {
+    ts.tm_mon = 9;
+  } else if (kc::strifwm(crp, "Nov")) {
+    ts.tm_mon = 10;
+  } else if (kc::strifwm(crp, "Dec")) {
+    ts.tm_mon = 11;
+  } else {
+    ts.tm_mon = -1;
+  }
+  if (ts.tm_mon >= 0) crp += 3;
+  while (*crp == ' ') {
+    crp++;
+  }
+  ts.tm_year = kc::atoi(crp);
+  if (ts.tm_year >= 1969) ts.tm_year -= 1900;
+  while (*crp >= '0' && *crp <= '9') {
+    crp++;
+  }
+  while (*crp == ' ') {
+    crp++;
+  }
+  if (ts.tm_mday > 0 && ts.tm_mon >= 0 && ts.tm_year >= 0) {
+    int32_t clen = std::strlen(crp);
+    if (clen >= 8 && crp[2] == ':' && crp[5] == ':') {
+      ts.tm_hour = kc::atoi(crp + 0);
+      ts.tm_min = kc::atoi(crp + 3);
+      ts.tm_sec = kc::atoi(crp + 6);
+      if (clen >= 14 && crp[8] == ' ' && (crp[9] == '+' || crp[9] == '-')) {
+        ts.tm_sec -= ((crp[10] - '0') * 36000 + (crp[11] - '0') * 3600 +
+                      (crp[12] - '0') * 600 + (crp[13] - '0') * 60) * (crp[9] == '+' ? 1 : -1);
+      } else if (clen > 9) {
+        if (!std::strcmp(crp + 9, "JST")) {
+          ts.tm_sec -= 9 * 3600;
+        } else if (!std::strcmp(crp + 9, "CCT")) {
+          ts.tm_sec -= 8 * 3600;
+        } else if (!std::strcmp(crp + 9, "KST")) {
+          ts.tm_sec -= 9 * 3600;
+        } else if (!std::strcmp(crp + 9, "EDT")) {
+          ts.tm_sec -= -4 * 3600;
+        } else if (!std::strcmp(crp + 9, "EST")) {
+          ts.tm_sec -= -5 * 3600;
+        } else if (!std::strcmp(crp + 9, "CDT")) {
+          ts.tm_sec -= -5 * 3600;
+        } else if (!std::strcmp(crp + 9, "CST")) {
+          ts.tm_sec -= -6 * 3600;
+        } else if (!std::strcmp(crp + 9, "MDT")) {
+          ts.tm_sec -= -6 * 3600;
+        } else if (!std::strcmp(crp + 9, "MST")) {
+          ts.tm_sec -= -7 * 3600;
+        } else if (!std::strcmp(crp + 9, "PDT")) {
+          ts.tm_sec -= -7 * 3600;
+        } else if (!std::strcmp(crp + 9, "PST")) {
+          ts.tm_sec -= -8 * 3600;
+        } else if (!std::strcmp(crp + 9, "HDT")) {
+          ts.tm_sec -= -9 * 3600;
+        } else if (!std::strcmp(crp + 9, "HST")) {
+          ts.tm_sec -= -10 * 3600;
+        }
+      }
+    }
+    return mkgmtime(&ts);
+  }
+  return INT64_MIN;
+}
+
+
+/**
+ * Get the jet lag of the local time.
+ */
+int32_t jetlag() {
+#if defined(_SYS_LINUX_)
+  _assert_(true);
+  ::tzset();
+  return -timezone;
+#else
+  _assert_(true);
+  time_t t = 86400;
+  struct std::tm gts;
+  if (!getgmtime(t, &gts)) return 0;
+  struct std::tm lts;
+  t = 86400;
+  if (!getlocaltime(t, &lts)) return 0;
+  return std::mktime(&lts) - std::mktime(&gts);
+#endif
+}
+
+
+/**
+ * Get the day of week of a date.
+ */
+int32_t dayofweek(int32_t year, int32_t mon, int32_t day) {
+  _assert_(true);
+  if (mon < 3) {
+    year--;
+    mon += 12;
+  }
+  return (day + ((8 + (13 * mon)) / 5) + (year + (year / 4) - (year / 100) + (year / 400))) % 7;
+}
+
+
+/**
+ * Get the local time of a time.
+ */
+bool getlocaltime(time_t time, struct std::tm* result) {
+#if defined(_SYS_MSVC_) || defined(_SYS_MINGW_)
+  _assert_(result);
+  return ::localtime_s(result, &time) == 0;
+#else
+  _assert_(result);
+  return ::localtime_r(&time, result) != NULL;
+#endif
+}
+
+
+/**
+ * Get the GMT local time of a time.
+ */
+bool getgmtime(time_t time, struct std::tm* result) {
+#if defined(_SYS_MSVC_) || defined(_SYS_MINGW_)
+  _assert_(result);
+  return ::gmtime_s(result, &time) == 0;
+#else
+  _assert_(result);
+  return ::gmtime_r(&time, result)!= NULL;
+#endif
+}
+
+
+/**
+ * Make the GMT from a time structure.
+ */
+time_t mkgmtime(struct std::tm *tm) {
+#if defined(_SYS_LINUX_)
+  _assert_(tm);
+  return ::timegm(tm);
+#else
+  _assert_(tm);
+  return std::mktime(tm) + jetlag();
+#endif
 }
 
 

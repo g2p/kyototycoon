@@ -28,13 +28,13 @@ namespace kyototycoon {                  // common namespace
  * Constants for implementation.
  */
 namespace {
-  const int32_t IOBUFSIZ = 4096;
-  const int32_t RECVMAXSIZ = 1 << 30;
+const int32_t LINEBUFSIZ = 8192;
+const int32_t RECVMAXSIZ = 1 << 30;
 }
 
 
 /**
- * URL.
+ * URL accessor.
  */
 class URL {
 public:
@@ -134,9 +134,9 @@ public:
   std::string expression() {
     _assert_(true);
     std::string expr;
-    if(!scheme_.empty()) {
+    if (!scheme_.empty()) {
       kc::strprintf(&expr, "%s://", scheme_.c_str());
-      if(!authority_.empty()) kc::strprintf(&expr, "%s@", authority_.c_str());
+      if (!authority_.empty()) kc::strprintf(&expr, "%s@", authority_.c_str());
       if (!host_.empty()) {
         kc::strprintf(&expr, "%s", host_.c_str());
         if (port_ > 0 && port_ != default_port(scheme_)) kc::strprintf(&expr, ":%u", port_);
@@ -303,7 +303,7 @@ private:
     }
     if ((ep = std::strchr(rp, '?')) != NULL) {
       query_ = ep + 1;
-    *ep = '\0';
+      *ep = '\0';
     }
     if (!scheme_.empty()) {
       if ((ep = std::strchr(rp, '/')) != NULL) {
@@ -374,7 +374,8 @@ public:
     MHEAD,                               ///< HEAD
     MPOST,                               ///< POST
     MPUT,                                ///< PUT
-    MDELETE                              ///< DELETE
+    MDELETE,                             ///< DELETE
+    MUNKNOWN                             ///< unknown
   };
   /**
    * Default constructor.
@@ -452,7 +453,9 @@ public:
       case MDELETE: mstr = "DELETE"; break;
     }
     kc::strprintf(&request, "%s %s HTTP/1.1\r\n", mstr, pathquery.c_str());
-    kc::strprintf(&request, "Host: %s:%u\r\n", host_.c_str(), port_);
+    kc::strprintf(&request, "Host: %s", host_.c_str());
+    if (port_ != 80) kc::strprintf(&request, ":%u", port_);
+    kc::strprintf(&request, "\r\n");
     if (reqbody) kc::strprintf(&request, "Content-Length: %lld\r\n", (long long)reqbody->size());
     if (reqheads) {
       std::map<std::string, std::string>::const_iterator it = reqheads->begin();
@@ -478,7 +481,7 @@ public:
       if (resbody) resbody->append("[sending data failed]");
       return -1;
     }
-    char line[IOBUFSIZ];
+    char line[LINEBUFSIZ];
     if (!sock_.receive_line(line, sizeof(line))) {
       if (resbody) resbody->append("[receiving data failed]");
       return -1;
@@ -535,7 +538,7 @@ public:
         if (resbody) resbody->append(body, clen);
         delete[] body;
       } else if (chunked) {
-        int64_t asiz = IOBUFSIZ;
+        int64_t asiz = LINEBUFSIZ;
         char* body = (char*)kc::xmalloc(asiz);
         int64_t bsiz = 0;
         while (true) {
@@ -571,7 +574,7 @@ public:
         if (resbody) resbody->append(body, bsiz);
         kc::xfree(body);
       } else {
-        int64_t asiz = IOBUFSIZ;
+        int64_t asiz = LINEBUFSIZ;
         char* body = (char*)kc::xmalloc(asiz);
         int64_t bsiz = 0;
         while (true) {
@@ -654,6 +657,378 @@ private:
   std::string host_;
   /** The port number of the server. */
   uint32_t port_;
+};
+
+
+/**
+ * HTTP server.
+ */
+class HTTPServer {
+public:
+  class Worker;
+  class Logger;
+private:
+  class WorkerAdapter;
+public:
+  /**
+   * Interface to process each request.
+   */
+  class Worker {
+  public:
+    /**
+     * Destructor.
+     */
+    virtual ~Worker() {}
+    /**
+     * Process each request.
+     * @param pathquery the path and the query string of the resource.
+     * @param method the kind of the request methods.
+     * @param reqheads a string map which contains the headers of the request.
+     * @param reqbody a string which contains the entity body of the request.
+     * @param resheads a string map to contain the headers of the response.
+     * @param resbody a string to contain the entity body of the response.
+     * @param sessdata a string map to contain the session local data.
+     * @return the status code of the response.  If it is less than 1, internal server error is
+     * sent to the client and the connection is closed.
+     */
+    virtual int32_t process(const std::string& pathquery, HTTPClient::Method method,
+                            const std::map<std::string, std::string>& reqheads,
+                            const std::string& reqbody,
+                            std::map<std::string, std::string>& resheads,
+                            std::string& resbody,
+                            std::map<std::string, std::string>& sessdata) = 0;
+  };
+  /**
+   * Interface to log internal information and errors.
+   */
+  class Logger : public ThreadedServer::Logger {
+  public:
+    /**
+     * Destructor.
+     */
+    virtual ~Logger() {}
+  };
+  /**
+   * Default constructor.
+   */
+  HTTPServer() : serv_(), worker_() {
+    _assert_(true);
+  }
+  /**
+   * Destructor.
+   */
+  ~HTTPServer() {
+    _assert_(true);
+  }
+  /**
+   * Set the network configurations.
+   * @param expr an expression of the address and the port of the server.
+   * @param timeout the timeout of each network operation in seconds.  If it is not more than 0,
+   * no timeout is specified.
+   */
+  void set_network(const std::string& expr, double timeout = -1) {
+    _assert_(true);
+    serv_.set_network(expr, timeout);
+  }
+  /**
+   * Set the worker to process each request.
+   * @param worker the worker object.
+   * @param thnum the number of worker threads.
+   */
+  void set_worker(Worker* worker, size_t thnum = 1) {
+    _assert_(true);
+    worker_.worker_ = worker;
+    serv_.set_worker(&worker_, thnum);
+  }
+  /**
+   * Set the logger to process each log message.
+   * @param logger the logger object.
+   * @param kinds kinds of logged messages by bitwise-or: Logger::DEBUG for debugging,
+   * Logger::INFO for normal information, Logger::SYSTEM for system information, and
+   * Logger::ERROR for fatal error.
+   */
+  void set_logger(Logger* logger, uint32_t kinds = Logger::SYSTEM | Logger::ERROR) {
+    _assert_(true);
+    serv_.set_logger(logger, kinds);
+  }
+  /**
+   * Start the service.
+   * @return true on success, or false on failure.
+   * @note This function blocks until the server stops by the ThreadedServer::stop method.
+   */
+  bool start() {
+    _assert_(true);
+    return serv_.start();
+  }
+  /**
+   * Stop the service.
+   * @return true on success, or false on failure.
+   */
+  bool stop() {
+    _assert_(true);
+    return serv_.stop();
+  }
+  /**
+   * Finish the service.
+   * @return true on success, or false on failure.
+   */
+  bool finish() {
+    _assert_(true);
+    return serv_.finish();
+  }
+private:
+  /**
+   * Adapter for the worker.
+   */
+  class WorkerAdapter : public ThreadedServer::Worker {
+    friend class HTTPServer;
+  public:
+    WorkerAdapter() : worker_(NULL) {
+      _assert_(true);
+    }
+  private:
+    bool process(ThreadedServer::Session* sess) {
+      _assert_(true);
+      char line[LINEBUFSIZ];
+      if (!sess->receive_line(&line, sizeof(line))) return false;
+      HTTPClient::Method method;
+      std::map<std::string, std::string> reqheads;
+      reqheads[""] = line;
+      char* pv = std::strchr(line, ' ');
+      if (!pv) return false;
+      *(pv++) = '\0';
+      char* pathquery = pv;
+      pv = std::strchr(pathquery, ' ');
+      if (!pv) return false;
+      *(pv++) = '\0';
+      int32_t htver;
+      if (!std::strcmp(pv, "HTTP/1.0")) {
+        htver = 0;
+      } else if (!std::strcmp(pv, "HTTP/1.1")) {
+        htver = 1;
+      } else {
+        return false;
+      }
+      if (!std::strcmp(line, "GET")) {
+        method = HTTPClient::MGET;
+      } else if (!std::strcmp(line, "HEAD")) {
+        method = HTTPClient::MHEAD;
+      } else if (!std::strcmp(line, "POST")) {
+        method = HTTPClient::MPOST;
+      } else if (!std::strcmp(line, "PUT")) {
+        method = HTTPClient::MPUT;
+      } else if (!std::strcmp(line, "DELETE")) {
+        method = HTTPClient::MDELETE;
+      } else {
+        method = HTTPClient::MUNKNOWN;
+      }
+      bool keep = htver >= 1;
+      int64_t clen = -1;
+      bool chunked = false;
+      while (true) {
+        if (!sess->receive_line(&line, sizeof(line))) return false;
+        if (*line == '\0') break;
+        pv = std::strchr(line, ':');
+        if (pv) {
+          *(pv++) = '\0';
+          kc::strnrmspc(line);
+          kc::strtolower(line);
+          if (*line != '\0') {
+            while (*pv == ' ') {
+              pv++;
+            }
+            if (!std::strcmp(line, "connection")) {
+              if (!kc::stricmp(pv, "close")) {
+                keep = false;
+              } else if (!kc::stricmp(pv, "keep-alive")) {
+                keep = true;
+              }
+            } else if (!std::strcmp(line, "content-length")) {
+              clen = kc::atoi(pv);
+            } else if (!std::strcmp(line, "transfer-encoding")) {
+              if (!kc::stricmp(pv, "chunked")) chunked = true;
+            }
+            reqheads[line] = pv;
+          }
+        }
+      }
+      std::string reqbody;
+      if (method == HTTPClient::MPOST || method == HTTPClient::MPUT ||
+          method == HTTPClient::MUNKNOWN) {
+        if (clen >= 0) {
+          if (clen > RECVMAXSIZ) {
+            send_error(sess, 413, "request entity too large");
+            return false;
+          }
+          char* body = new char[clen];
+          if (!sess->receive(body, clen)) {
+            send_error(sess, 400, "receiving data failed");
+            delete[] body;
+            return false;
+          }
+          reqbody.append(body, clen);
+          delete[] body;
+        } else if (chunked) {
+          int64_t asiz = LINEBUFSIZ;
+          char* body = (char*)kc::xmalloc(asiz);
+          int64_t bsiz = 0;
+          while (true) {
+            if (!sess->receive_line(line, sizeof(line))) {
+              send_error(sess, 400, "receiving data failed");
+              kc::xfree(body);
+              return false;
+            }
+            if (*line == '\0') break;
+            int64_t csiz = kc::atoih(line);
+            if (bsiz + csiz > RECVMAXSIZ) {
+              send_error(sess, 413, "request entity too large");
+              kc::xfree(body);
+              return false;
+            }
+            if (bsiz + csiz > asiz) {
+              asiz = bsiz * 2 + csiz;
+              body = (char*)kc::xrealloc(body, asiz);
+            }
+            if (csiz > 0 && !sess->receive(body + bsiz, csiz)) {
+              send_error(sess, 400, "receiving data failed");
+              kc::xfree(body);
+              return false;
+            }
+            if (sess->receive_byte() != '\r' || sess->receive_byte() != '\n') {
+              send_error(sess, 400, "invalid chunk");
+              kc::xfree(body);
+              return false;
+            }
+            if (csiz < 1) break;
+            bsiz += csiz;
+          }
+          reqbody.append(body, bsiz);
+          kc::xfree(body);
+        }
+      }
+      std::string resbody;
+      std::map<std::string, std::string> resheads;
+
+
+      struct MapData : public ThreadedServer::Session::Data {
+        std::map<std::string, std::string> map;
+      };
+
+      MapData* sessdata = (MapData*)sess->data();
+
+      if (!sessdata) {
+        sessdata = new MapData;
+        sess->set_data(sessdata);
+      }
+
+      int32_t code = worker_->process(pathquery, method, reqheads, reqbody, resheads, resbody,
+                                      sessdata->map);
+      if (code > 0) {
+
+
+        send_error(sess, code, "love");
+
+
+
+      } else {
+        send_error(sess, 500, "logic error");
+        keep = false;
+      }
+      return keep;
+    }
+    void send_error(ThreadedServer::Session* sess, int32_t code, const char* msg) {
+      _assert_(sess && code > 0);
+      std::string str;
+      kc::strprintf(&str, "%d %s (%s)\n", code, status_name(code), msg);
+      std::string data;
+      kc::strprintf(&data, "HTTP/1.1 %d Bad Request\r\n", code);
+      append_server_headers(&data);
+      kc::strprintf(&data, "Connection: close\r\n");
+      kc::strprintf(&data, "Content-Length: %d\r\n", (int)str.size());
+      kc::strprintf(&data, "Content-Type: text/plain\r\n");
+      kc::strprintf(&data, "\r\n");
+      data.append(str);
+      sess->send(data.data(), data.size());
+    }
+    void append_server_headers(std::string* str) {
+      _assert_(str);
+      kc::strprintf(str, "Server: KyotoTycoon/%s\r\n", VERSION);
+      char buf[48];
+      datestrhttp(INT64_MAX, 0, buf);
+      kc::strprintf(str, "Date: %s\r\n", buf);
+    }
+    const char* status_name(int32_t code) {
+      _assert_(true);
+      switch (code) {
+        case 100: return "Continue";
+        case 101: return "Switching Protocols";
+        case 102: return "Processing";
+        case 200: return "OK";
+        case 201: return "Created";
+        case 202: return "Accepted";
+        case 203: return "Non-Authoritative Information";
+        case 204: return "No Content";
+        case 205: return "Reset Content";
+        case 206: return "Partial Content";
+        case 207: return "Multi-Status";
+        case 300: return "Multiple Choices";
+        case 301: return "Moved Permanently";
+        case 302: return "Found";
+        case 303: return "See Other";
+        case 304: return "Not Modified";
+        case 305: return "Use Proxy";
+        case 307: return "Temporary Redirect";
+        case 400: return "Bad Request";
+        case 401: return "Unauthorized";
+        case 402: return "Payment Required";
+        case 403: return "Forbidden";
+        case 404: return "Not Found";
+        case 405: return "Method Not Allowed";
+        case 406: return "Not Acceptable";
+        case 407: return "Proxy Authentication Required";
+        case 408: return "Request Timeout";
+        case 409: return "Conflict";
+        case 410: return "Gone";
+        case 411: return "Length Required";
+        case 412: return "Precondition Failed";
+        case 413: return "Request Entity Too Large";
+        case 414: return "Request-URI Too Long";
+        case 415: return "Unsupported Media Type";
+        case 416: return "Requested Range Not Satisfiable";
+        case 417: return "Expectation Failed";
+        case 422: return "Unprocessable Entity";
+        case 423: return "Locked";
+        case 424: return "Failed Dependency";
+        case 426: return "Upgrade Required";
+        case 500: return "Internal Server Error";
+        case 501: return "Not Implemented";
+        case 502: return "Bad Gateway";
+        case 503: return "Service Unavailable";
+        case 504: return "Gateway Timeout";
+        case 505: return "HTTP Version Not Supported";
+        case 506: return "Variant Also Negotiates";
+        case 507: return "Insufficient Storage";
+        case 509: return "Bandwidth Limit Exceeded";
+        case 510: return "Not Extended";
+      }
+      if (code < 100) return "Unknown Status";
+      if (code < 200) return "Unknown Informational Status";
+      if (code < 300) return "Unknown Success Status";
+      if (code < 400) return "Unknown Redirection Status";
+      if (code < 500) return "Unknown Client Error Status";
+      if (code < 600) return "Unknown Server Error Status";
+      return "Unknown Status";
+    }
+    HTTPServer::Worker* worker_;
+  };
+  /** Dummy constructor to forbid the use. */
+  HTTPServer(const HTTPServer&);
+  /** Dummy Operator to forbid the use. */
+  HTTPServer& operator =(const HTTPServer&);
+  /** The internal server. */
+  ThreadedServer serv_;
+  /** The adapter for worker. */
+  WorkerAdapter worker_;
 };
 
 

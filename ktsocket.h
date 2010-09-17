@@ -188,26 +188,6 @@ public:
    * @return the host address, or an empty string on failure.
    */
   static std::string get_host_address(const std::string& name);
-  /**
-   * Fetch a resource by HTTP.
-   * @param url the URL of the resource.
-   * @param resbody a string to contain the entity body of the response.  If it is NULL, it is
-   * ignored.
-   * @param resheads a string map to contain the headers of the response.  If it is NULL, it is
-   * ignored.
-   * @param reqbody a string which contains the entity body of the request.  If it is NULL, it
-   * is ignored.
-   * @param reqheads a string map which contains the headers of the request.  If it is NULL, it
-   * is ignored.
-   * @param timeout the timeout of each operation in seconds.  If it is not more than 0, no
-   * timeout is specified.
-   * @return the status code of the response, or -1 on failure.
-   */
-  static int32_t fetch_http(const std::string& url, std::string* resbody = NULL,
-                            std::map<std::string, std::string>* resheads = NULL,
-                            const std::string* reqbody = NULL,
-                            const std::map<std::string, std::string>* reqheads = NULL,
-                            double timeout = -1);
 private:
   /** Dummy constructor to forbid the use. */
   Socket(const Socket&);

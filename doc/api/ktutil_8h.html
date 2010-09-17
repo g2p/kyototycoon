@@ -39,12 +39,24 @@
 <tr><td colspan="2"><h2>Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a9ab27b9ecf56eedb045b412ef741d40e">kyototycoon::setkillsignalhandler</a> (void(*handler)(int))</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the signal handler for termination signals.  <a href="#a9ab27b9ecf56eedb045b412ef741d40e"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">const char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a941cc3f97a2e848ba58a3b68380e350d">kyototycoon::strmapget</a> (const std::map&lt; std::string, std::string &gt; &amp;map, const char *key)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the C-style string value of a record in a string map.  <a href="#a941cc3f97a2e848ba58a3b68380e350d"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">const char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a7c223f25ea31736e64de5380c4864c74">kyototycoon::strmapget</a> (const std::map&lt; std::string, std::string &gt; &amp;map, const char *key)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the C-style string value of a record in a string map.  <a href="#a7c223f25ea31736e64de5380c4864c74"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a6ac45374f36f35280d2d8203a5bcf253">kyototycoon::urlbreak</a> (const char *url, std::map&lt; std::string, std::string &gt; *elems)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Break up a <a class="el" href="classkyototycoon_1_1URL.html" title="URL.">URL</a> into elements.  <a href="#a6ac45374f36f35280d2d8203a5bcf253"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a7b1b06a7b219229566b7ca7e45b0fe39">kyototycoon::strcapitalize</a> (char *str)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Capitalize letters of a string.  <a href="#a7b1b06a7b219229566b7ca7e45b0fe39"></a><br/></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Break up a <a class="el" href="classkyototycoon_1_1URL.html" title="URL accessor.">URL</a> into elements.  <a href="#a6ac45374f36f35280d2d8203a5bcf253"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#aff047ef8d15604042a8349d54f344353">kyototycoon::strcapitalize</a> (char *str)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Capitalize letters of a string.  <a href="#aff047ef8d15604042a8349d54f344353"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#ae0f925395a82daba3c4c81a25840d1e2">kyototycoon::getcalendar</a> (int64_t t, int32_t jl, int32_t *yearp=NULL, int32_t *monp=NULL, int32_t *dayp=NULL, int32_t *hourp=NULL, int32_t *minp=NULL, int32_t *secp=NULL)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the Gregorian calendar of a time.  <a href="#ae0f925395a82daba3c4c81a25840d1e2"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a77b8bf8385b9b7d2b19f71835298364a">kyototycoon::datestrwww</a> (int64_t t, int32_t jl, char *buf)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Format a date as a string in W3CDTF.  <a href="#a77b8bf8385b9b7d2b19f71835298364a"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a2e0bbd4f25c677ebf29d802154614df0">kyototycoon::datestrhttp</a> (int64_t t, int32_t jl, char *buf)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Format a date as a string in RFC 1123 format.  <a href="#a2e0bbd4f25c677ebf29d802154614df0"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#ad28f227807383d23d55f03929243216e">kyototycoon::strmktime</a> (const char *str)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the time value of a date string.  <a href="#ad28f227807383d23d55f03929243216e"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#addcd83afe401f04ab5ba63ab2be087b1">kyototycoon::jetlag</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the jet lag of the local time.  <a href="#addcd83afe401f04ab5ba63ab2be087b1"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#af684186e0557a36beadbc68e107225ae">kyototycoon::dayofweek</a> (int32_t year, int32_t mon, int32_t day)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the day of week of a date.  <a href="#af684186e0557a36beadbc68e107225ae"></a><br/></td></tr>
 <tr><td colspan="2"><h2>Variables</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">const char *const&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#adacdf98cae86752dc99be348a3e35cab">kyototycoon::VERSION</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The package version.  <a href="#adacdf98cae86752dc99be348a3e35cab"></a><br/></td></tr>
@@ -56,7 +68,7 @@
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>utility functions </p>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Sep 16 03:09:27 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Sep 16 23:30:19 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

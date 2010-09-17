@@ -19,6 +19,24 @@
 int main(int argc, char** argv) {
 
 
+  kt::URL url(argv[1]);
+  kt::HTTPClient ua;
+  printf("open: %d\n", ua.open(url.host(), url.port()));
+  double stime = kc::time();
+  for (int i = 0; i < 10000; i++) {
+    int32_t code = ua.fetch(url.path_query());
+
+    printf("%d:%d\n", i, code);
+
+    if (code != 200) abort();
+  }
+  double etime = kc::time();
+  printf("%f\n", etime - stime);
+  printf("close: %d\n", ua.close());
+
+
+
+  /*
   std::string resbody;
   std::map<std::string, std::string> resheads;
   int32_t code = kt::HTTPClient::fetch_once(argv[1], kt::HTTPClient::MGET, &resbody, &resheads);
@@ -32,7 +50,7 @@ int main(int argc, char** argv) {
     it++;
   }
   std::cout << resbody << std::endl;
-
+  */
 
 
   /*

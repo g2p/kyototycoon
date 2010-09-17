@@ -21,6 +21,7 @@ const char* g_progname;                  // program name
 kt::ServerSocket *g_servsock;            // running server socket
 kt::Poller *g_poller;                    // running poller
 kt::ThreadedServer* g_thserv;            // running threaded server
+kt::HTTPServer* g_httpserv;              // running HTTP server
 
 
 // function prototypes
@@ -29,8 +30,11 @@ static void usage();
 static void killserver(int signum);
 static int32_t runecho(int argc, char** argv);
 static int32_t runmtecho(int argc, char** argv);
+static int32_t runhttp(int argc, char** argv);
 static int32_t procecho(const char* host, int32_t port, double tout);
 static int32_t procmtecho(const char* host, int32_t port, double tout, int32_t thnum);
+static int32_t prochttp(const char* base,
+                        const char* host, int32_t port, double tout, int32_t thnum);
 
 
 // main routine
@@ -44,6 +48,8 @@ int main(int argc, char** argv) {
     rv = runecho(argc, argv);
   } else if (!std::strcmp(argv[1], "mtecho")) {
     rv = runmtecho(argc, argv);
+  } else if (!std::strcmp(argv[1], "http")) {
+    rv = runhttp(argc, argv);
   } else if (!std::strcmp(argv[1], "version") || !std::strcmp(argv[1], "--version")) {
     printversion();
     rv = 0;
@@ -62,6 +68,7 @@ static void usage() {
   eprintf("usage:\n");
   eprintf("  %s echo [-host str] [-port num] [-tout num]\n", g_progname);
   eprintf("  %s mtecho [-host str] [-port num] [-tout num] [-th num]\n", g_progname);
+  eprintf("  %s http [-host str] [-port num] [-tout num] [-th num] [basedir]\n", g_progname);
   eprintf("\n");
   std::exit(1);
 }
@@ -81,6 +88,10 @@ static void killserver(int signum) {
   if (g_thserv) {
     g_thserv->stop();
     g_thserv = NULL;
+  }
+  if (g_httpserv) {
+    g_httpserv->stop();
+    g_httpserv = NULL;
   }
 }
 
@@ -144,6 +155,43 @@ static int32_t runmtecho(int argc, char** argv) {
   if (port < 1 || thnum < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
   int32_t rv = procmtecho(host, port, tout, thnum);
+  return rv;
+}
+
+
+// parse arguments of http command
+static int32_t runhttp(int argc, char** argv) {
+  const char* host = NULL;
+  const char* base = NULL;
+  int32_t port = DEFPORT;
+  double tout = DEFTOUT;
+  int32_t thnum = 1;
+  for (int32_t i = 2; i < argc; i++) {
+    if (argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "-host")) {
+        if (++i >= argc) usage();
+        host = argv[i];
+      } else if (!std::strcmp(argv[i], "-port")) {
+        if (++i >= argc) usage();
+        port = kc::atoi(argv[i]);
+      } else if (!std::strcmp(argv[i], "-tout")) {
+        if (++i >= argc) usage();
+        tout = kc::atof(argv[i]);
+      } else if (!std::strcmp(argv[i], "-th")) {
+        if (++i >= argc) usage();
+        thnum = kc::atof(argv[i]);
+      } else {
+        usage();
+      }
+    } else if (!base) {
+      base = argv[i];
+    } else {
+      usage();
+    }
+  }
+  if (port < 1 || thnum < 1) usage();
+  if (thnum > THREADMAX) thnum = THREADMAX;
+  int32_t rv = prochttp(base, host, port, tout, thnum);
   return rv;
 }
 
@@ -287,7 +335,7 @@ static int32_t procmtecho(const char* host, int32_t port, double tout, int32_t t
   }
   std::string expr = kc::strprintf("%s:%d", addr.c_str(), port);
   kt::ThreadedServer serv;
-  class MyServer : public kt::ThreadedServer::Worker {
+  class Worker : public kt::ThreadedServer::Worker {
   private:
     bool process(kt::ThreadedServer::Session* sess) {
       bool keep = false;
@@ -316,16 +364,72 @@ static int32_t procmtecho(const char* host, int32_t port, double tout, int32_t t
       return keep;
     }
   } worker;
+  kt::ThreadedServer::Logger* logger = stdlogger(g_progname, &std::cout);
   bool err = false;
   serv.set_network(expr, tout);
   serv.set_worker(&worker, thnum);
-  serv.set_logger(stdlogger(g_progname, &std::cout), UINT32_MAX);
+  serv.set_logger(logger, UINT32_MAX);
   g_thserv = &serv;
+  logger->log(kt::ThreadedServer::Logger::SYSTEM, "================ [START]");
   if (serv.start()) {
     if (serv.finish()) err = true;
   } else {
     err = true;
   }
+  logger->log(kt::ThreadedServer::Logger::SYSTEM, "================ [FINISH]");
+  return err ? 1 : 0;
+}
+
+
+// perform http command
+static int32_t prochttp(const char* base,
+                        const char* host, int32_t port, double tout, int32_t thnum) {
+  if (!base) base = kc::File::CDIRSTR;
+
+
+  // absolute path of the base directory
+
+
+  std::string addr = "";
+  if (host) {
+    addr = kt::Socket::get_host_address(host);
+    if (addr.empty()) {
+      eprintf("%s: %s: unknown host\n", g_progname, host);
+      return 1;
+    }
+  }
+  std::string expr = kc::strprintf("%s:%d", addr.c_str(), port);
+  kt::HTTPServer serv;
+  class Worker : public kt::HTTPServer::Worker {
+  private:
+    int32_t process(const std::string& pathquery, kt::HTTPClient::Method method,
+                    const std::map<std::string, std::string>& reqheads,
+                    const std::string& reqbody,
+                    std::map<std::string, std::string>& resheads,
+                    std::string& resbody,
+                    std::map<std::string, std::string>& sessdata) {
+
+
+
+
+      return 200;
+
+
+    }
+  } worker;
+  kt::HTTPServer::Logger* logger = stdlogger(g_progname, &std::cout);
+  bool err = false;
+  serv.set_network(expr, tout);
+  serv.set_worker(&worker, thnum);
+  serv.set_logger(logger, UINT32_MAX);
+  g_httpserv = &serv;
+  logger->log(kt::ThreadedServer::Logger::SYSTEM, "================ [START]");
+  if (serv.start()) {
+    if (serv.finish()) err = true;
+  } else {
+    err = true;
+  }
+  logger->log(kt::ThreadedServer::Logger::SYSTEM, "================ [FINISH]");
   return err ? 1 : 0;
 }
 

@@ -31,9 +31,11 @@
 <table border="0" cellpadding="0" cellspacing="0">
 <tr><td colspan="2"><h2>Classes</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1URL.html">URL</a></td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><a class="el" href="classkyototycoon_1_1URL.html" title="URL.">URL</a>.  <a href="classkyototycoon_1_1URL.html#_details">More...</a><br/></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><a class="el" href="classkyototycoon_1_1URL.html" title="URL accessor.">URL</a> accessor.  <a href="classkyototycoon_1_1URL.html#_details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPClient.html">HTTPClient</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">HTTP client.  <a href="classkyototycoon_1_1HTTPClient.html#_details">More...</a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPServer.html">HTTPServer</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">HTTP server.  <a href="classkyototycoon_1_1HTTPServer.html#_details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1Pollable.html">Pollable</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Interface of poolable I/O event.  <a href="classkyototycoon_1_1Pollable.html#_details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1Socket.html">Socket</a></td></tr>
@@ -47,12 +49,24 @@
 <tr><td colspan="2"><h2>Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a9ab27b9ecf56eedb045b412ef741d40e">setkillsignalhandler</a> (void(*handler)(int))</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the signal handler for termination signals.  <a href="#a9ab27b9ecf56eedb045b412ef741d40e"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">const char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a941cc3f97a2e848ba58a3b68380e350d">strmapget</a> (const std::map&lt; std::string, std::string &gt; &amp;map, const char *key)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the C-style string value of a record in a string map.  <a href="#a941cc3f97a2e848ba58a3b68380e350d"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">const char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a7c223f25ea31736e64de5380c4864c74">strmapget</a> (const std::map&lt; std::string, std::string &gt; &amp;map, const char *key)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the C-style string value of a record in a string map.  <a href="#a7c223f25ea31736e64de5380c4864c74"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a6ac45374f36f35280d2d8203a5bcf253">urlbreak</a> (const char *url, std::map&lt; std::string, std::string &gt; *elems)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Break up a <a class="el" href="classkyototycoon_1_1URL.html" title="URL.">URL</a> into elements.  <a href="#a6ac45374f36f35280d2d8203a5bcf253"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a7b1b06a7b219229566b7ca7e45b0fe39">strcapitalize</a> (char *str)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Capitalize letters of a string.  <a href="#a7b1b06a7b219229566b7ca7e45b0fe39"></a><br/></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Break up a <a class="el" href="classkyototycoon_1_1URL.html" title="URL accessor.">URL</a> into elements.  <a href="#a6ac45374f36f35280d2d8203a5bcf253"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#aff047ef8d15604042a8349d54f344353">strcapitalize</a> (char *str)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Capitalize letters of a string.  <a href="#aff047ef8d15604042a8349d54f344353"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#ae0f925395a82daba3c4c81a25840d1e2">getcalendar</a> (int64_t t, int32_t jl, int32_t *yearp=NULL, int32_t *monp=NULL, int32_t *dayp=NULL, int32_t *hourp=NULL, int32_t *minp=NULL, int32_t *secp=NULL)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the Gregorian calendar of a time.  <a href="#ae0f925395a82daba3c4c81a25840d1e2"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a77b8bf8385b9b7d2b19f71835298364a">datestrwww</a> (int64_t t, int32_t jl, char *buf)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Format a date as a string in W3CDTF.  <a href="#a77b8bf8385b9b7d2b19f71835298364a"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a2e0bbd4f25c677ebf29d802154614df0">datestrhttp</a> (int64_t t, int32_t jl, char *buf)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Format a date as a string in RFC 1123 format.  <a href="#a2e0bbd4f25c677ebf29d802154614df0"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#ad28f227807383d23d55f03929243216e">strmktime</a> (const char *str)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the time value of a date string.  <a href="#ad28f227807383d23d55f03929243216e"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#addcd83afe401f04ab5ba63ab2be087b1">jetlag</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the jet lag of the local time.  <a href="#addcd83afe401f04ab5ba63ab2be087b1"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#af684186e0557a36beadbc68e107225ae">dayofweek</a> (int32_t year, int32_t mon, int32_t day)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the day of week of a date.  <a href="#af684186e0557a36beadbc68e107225ae"></a><br/></td></tr>
 <tr><td colspan="2"><h2>Variables</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">const char *const&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#adacdf98cae86752dc99be348a3e35cab">VERSION</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The package version.  <a href="#adacdf98cae86752dc99be348a3e35cab"></a><br/></td></tr>
@@ -92,12 +106,12 @@
 
 </div>
 </div>
-<a class="anchor" id="a941cc3f97a2e848ba58a3b68380e350d"></a><!-- doxytag: member="kyototycoon::strmapget" ref="a941cc3f97a2e848ba58a3b68380e350d" args="(const std::map&lt; std::string, std::string &gt; &amp;map, const char *key)" -->
+<a class="anchor" id="a7c223f25ea31736e64de5380c4864c74"></a><!-- doxytag: member="kyototycoon::strmapget" ref="a7c223f25ea31736e64de5380c4864c74" args="(const std::map&lt; std::string, std::string &gt; &amp;map, const char *key)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const char* kyototycoon::strmapget </td>
+          <td class="memname">const char * kyototycoon::strmapget </td>
           <td>(</td>
           <td class="paramtype">const std::map&lt; std::string, std::string &gt; &amp;&nbsp;</td>
           <td class="paramname"> <em>map</em>, </td>
@@ -154,24 +168,24 @@
 </div>
 <div class="memdoc">
 
-<p>Break up a <a class="el" href="classkyototycoon_1_1URL.html" title="URL.">URL</a> into elements. </p>
+<p>Break up a <a class="el" href="classkyototycoon_1_1URL.html" title="URL accessor.">URL</a> into elements. </p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
-    <tr><td valign="top"></td><td valign="top"><em>url</em>&nbsp;</td><td>the <a class="el" href="classkyototycoon_1_1URL.html" title="URL.">URL</a> string. </td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>elems</em>&nbsp;</td><td>the map object to contain the result elements. The key "self" indicates the <a class="el" href="classkyototycoon_1_1URL.html" title="URL.">URL</a> itself. "scheme" indicates the scheme. "host" indicates the host of the server. "port" indicates the port number of the server. "authority" indicates the authority information. "path" indicates the path of the resource. "file" indicates the file name without the directory section. "query" indicates the query string. "fragment" indicates the fragment string. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>url</em>&nbsp;</td><td>the <a class="el" href="classkyototycoon_1_1URL.html" title="URL accessor.">URL</a> string. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>elems</em>&nbsp;</td><td>the map object to contain the result elements. The key "self" indicates the <a class="el" href="classkyototycoon_1_1URL.html" title="URL accessor.">URL</a> itself. "scheme" indicates the scheme. "host" indicates the host of the server. "port" indicates the port number of the server. "authority" indicates the authority information. "path" indicates the path of the resource. "file" indicates the file name without the directory section. "query" indicates the query string. "fragment" indicates the fragment string. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="note"><dt><b>Note:</b></dt><dd>Supported schema are HTTP, HTTPS, FTP, and FILE. Both of absolute <a class="el" href="classkyototycoon_1_1URL.html" title="URL.">URL</a> and relative <a class="el" href="classkyototycoon_1_1URL.html" title="URL.">URL</a> are supported. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>Supported schema are HTTP, HTTPS, FTP, and FILE. Both of absolute <a class="el" href="classkyototycoon_1_1URL.html" title="URL accessor.">URL</a> and relative <a class="el" href="classkyototycoon_1_1URL.html" title="URL accessor.">URL</a> are supported. </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="a7b1b06a7b219229566b7ca7e45b0fe39"></a><!-- doxytag: member="kyototycoon::strcapitalize" ref="a7b1b06a7b219229566b7ca7e45b0fe39" args="(char *str)" -->
+<a class="anchor" id="aff047ef8d15604042a8349d54f344353"></a><!-- doxytag: member="kyototycoon::strcapitalize" ref="aff047ef8d15604042a8349d54f344353" args="(char *str)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">char* kyototycoon::strcapitalize </td>
+          <td class="memname">char * kyototycoon::strcapitalize </td>
           <td>(</td>
           <td class="paramtype">char *&nbsp;</td>
           <td class="paramname"> <em>str</em></td>
@@ -190,6 +204,261 @@
   </dd>
 </dl>
 <dl class="return"><dt><b>Returns:</b></dt><dd>the string itself. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ae0f925395a82daba3c4c81a25840d1e2"></a><!-- doxytag: member="kyototycoon::getcalendar" ref="ae0f925395a82daba3c4c81a25840d1e2" args="(int64_t t, int32_t jl, int32_t *yearp=NULL, int32_t *monp=NULL, int32_t *dayp=NULL, int32_t *hourp=NULL, int32_t *minp=NULL, int32_t *secp=NULL)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void kyototycoon::getcalendar </td>
+          <td>(</td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>t</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t&nbsp;</td>
+          <td class="paramname"> <em>jl</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t *&nbsp;</td>
+          <td class="paramname"> <em>yearp</em> = <code>NULL</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t *&nbsp;</td>
+          <td class="paramname"> <em>monp</em> = <code>NULL</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t *&nbsp;</td>
+          <td class="paramname"> <em>dayp</em> = <code>NULL</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t *&nbsp;</td>
+          <td class="paramname"> <em>hourp</em> = <code>NULL</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t *&nbsp;</td>
+          <td class="paramname"> <em>minp</em> = <code>NULL</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t *&nbsp;</td>
+          <td class="paramname"> <em>secp</em> = <code>NULL</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Get the Gregorian calendar of a time. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>t</em>&nbsp;</td><td>the source time in seconds from the epoch. If it is INT64_MAX, the current time is specified. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>jl</em>&nbsp;</td><td>the jet lag of a location in seconds. If it is INT32_MAX, the local jet lag is specified. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>yearp</em>&nbsp;</td><td>the pointer to a variable to which the year is assigned. If it is NULL, it is not used. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>monp</em>&nbsp;</td><td>the pointer to a variable to which the month is assigned. If it is NULL, it is not used. 1 means January and 12 means December. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>dayp</em>&nbsp;</td><td>the pointer to a variable to which the day of the month is assigned. If it is NULL, it is not used. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>hourp</em>&nbsp;</td><td>the pointer to a variable to which the hours is assigned. If it is NULL, it is not used. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>minp</em>&nbsp;</td><td>the pointer to a variable to which the minutes is assigned. If it is NULL, it is not used. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>secp</em>&nbsp;</td><td>the pointer to a variable to which the seconds is assigned. If it is NULL, it is not used. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a77b8bf8385b9b7d2b19f71835298364a"></a><!-- doxytag: member="kyototycoon::datestrwww" ref="a77b8bf8385b9b7d2b19f71835298364a" args="(int64_t t, int32_t jl, char *buf)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void kyototycoon::datestrwww </td>
+          <td>(</td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>t</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t&nbsp;</td>
+          <td class="paramname"> <em>jl</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&nbsp;</td>
+          <td class="paramname"> <em>buf</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Format a date as a string in W3CDTF. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>t</em>&nbsp;</td><td>the source time in seconds from the epoch. If it is INT64_MAX, the current time is specified. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>jl</em>&nbsp;</td><td>the jet lag of a location in seconds. If it is INT32_MAX, the local jet lag is specified. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>buf</em>&nbsp;</td><td>the pointer to the region into which the result string is written. The size of the buffer should be equal to or more than 48 bytes. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a2e0bbd4f25c677ebf29d802154614df0"></a><!-- doxytag: member="kyototycoon::datestrhttp" ref="a2e0bbd4f25c677ebf29d802154614df0" args="(int64_t t, int32_t jl, char *buf)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void kyototycoon::datestrhttp </td>
+          <td>(</td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>t</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t&nbsp;</td>
+          <td class="paramname"> <em>jl</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&nbsp;</td>
+          <td class="paramname"> <em>buf</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Format a date as a string in RFC 1123 format. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>t</em>&nbsp;</td><td>the source time in seconds from the epoch. If it is INT64_MAX, the current time is specified. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>jl</em>&nbsp;</td><td>the jet lag of a location in seconds. If it is INT32_MAX, the local jet lag is specified. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>buf</em>&nbsp;</td><td>the pointer to the region into which the result string is written. The size of the buffer should be equal to or more than 48 bytes. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ad28f227807383d23d55f03929243216e"></a><!-- doxytag: member="kyototycoon::strmktime" ref="ad28f227807383d23d55f03929243216e" args="(const char *str)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t kyototycoon::strmktime </td>
+          <td>(</td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>str</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Get the time value of a date string. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>str</em>&nbsp;</td><td>the date string in decimal, hexadecimal, W3CDTF, or RFC 822 (1123). Decimal can be trailed by "s" for in seconds, "m" for in minutes, "h" for in hours, and "d" for in days. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the time value of the date or INT64_MIN if the format is invalid. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="addcd83afe401f04ab5ba63ab2be087b1"></a><!-- doxytag: member="kyototycoon::jetlag" ref="addcd83afe401f04ab5ba63ab2be087b1" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int32_t kyototycoon::jetlag </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Get the jet lag of the local time. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the jet lag of the local time in seconds. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="af684186e0557a36beadbc68e107225ae"></a><!-- doxytag: member="kyototycoon::dayofweek" ref="af684186e0557a36beadbc68e107225ae" args="(int32_t year, int32_t mon, int32_t day)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int32_t kyototycoon::dayofweek </td>
+          <td>(</td>
+          <td class="paramtype">int32_t&nbsp;</td>
+          <td class="paramname"> <em>year</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t&nbsp;</td>
+          <td class="paramname"> <em>mon</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t&nbsp;</td>
+          <td class="paramname"> <em>day</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Get the day of week of a date. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>year</em>&nbsp;</td><td>the year of a date. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>mon</em>&nbsp;</td><td>the month of the date. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>day</em>&nbsp;</td><td>the day of the date. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the day of week of the date. 0 means Sunday and 6 means Saturday. </dd></dl>
 
 </div>
 </div>
@@ -240,7 +509,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Sep 16 03:09:27 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Sep 16 23:30:19 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

@@ -54,6 +54,7 @@ bool getline(std::istream* is, std::string* str);
 void splitstr(const std::string& str, char delim, std::vector<std::string>* elems);
 std::string unitnumstr(int64_t num);
 std::string unitnumstrbyte(int64_t num);
+kt::HTTPServer::Logger* stdlogger(const char* prefix, std::ostream* strm);
 
 
 // get the random seed
@@ -193,18 +194,18 @@ inline std::string unitnumstrbyte(int64_t num) {
 
 
 // get the logger into the standard stream
-inline kt::ThreadedServer::Logger* stdlogger(const char* prefix, std::ostream* strm) {
-  class LoggerImpl : public kt::ThreadedServer::Logger {
+inline kt::HTTPServer::Logger* stdlogger(const char* prefix, std::ostream* strm) {
+  class LoggerImpl : public kt::HTTPServer::Logger {
   public:
     explicit LoggerImpl(std::ostream* strm, const char* prefix) :
       strm_(strm), prefix_(prefix) {}
     void log(Kind kind, const char* message) {
       const char* kstr = "MISC";
       switch (kind) {
-        case kt::ThreadedServer::Logger::DEBUG: kstr = "DEBUG"; break;
-        case kt::ThreadedServer::Logger::INFO: kstr = "INFO"; break;
-        case kt::ThreadedServer::Logger::SYSTEM: kstr = "SYSTEM"; break;
-        case kt::ThreadedServer::Logger::ERROR: kstr = "ERROR"; break;
+        case kt::HTTPServer::Logger::DEBUG: kstr = "DEBUG"; break;
+        case kt::HTTPServer::Logger::INFO: kstr = "INFO"; break;
+        case kt::HTTPServer::Logger::SYSTEM: kstr = "SYSTEM"; break;
+        case kt::HTTPServer::Logger::ERROR: kstr = "ERROR"; break;
       }
       *strm_ << prefix_ << ": [" << kstr << "]: " << message << std::endl;
     }

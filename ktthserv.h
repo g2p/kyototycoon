@@ -44,7 +44,7 @@ public:
      * Event kinds.
      */
     enum Kind {
-      DEBUG = 1 << 0,                     ///< normal information
+      DEBUG = 1 << 0,                    ///< normal information
       INFO = 1 << 1,                     ///< normal information
       SYSTEM = 1 << 2,                   ///< system information
       ERROR = 1 << 3                     ///< error
@@ -206,7 +206,6 @@ public:
    * @note This function blocks until the server stops by the ThreadedServer::stop method.
    */
   bool start() {
-    log(Logger::SYSTEM, "================ [START]");
     log(Logger::SYSTEM, "starting the server");
     if (run_) {
       log(Logger::ERROR, "alreadiy running");
@@ -326,7 +325,6 @@ public:
       log(Logger::ERROR, "socket error: fd=%d msg=%s", sock_.descriptor(), sock_.error());
       err = true;
     }
-    log(Logger::SYSTEM, "================ [FINISH]");
     return !err;
   }
 private:

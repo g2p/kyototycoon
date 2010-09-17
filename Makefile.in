@@ -159,7 +159,8 @@ distclean : clean
 
 check :
 	rm -rf casket*
-	true
+	$(RUNENV) $(RUNCMD) ./ktutilmgr date -ds '1978-02-11T18:05:00+09:00' -wf
+	$(RUNENV) $(RUNCMD) ./ktutilmgr date -ds '1977-10-07T12:00:00+09:00' -rf
 	rm -rf casket*
 	@printf '\n'
 	@printf '#================================================================\n'

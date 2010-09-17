@@ -81,8 +81,6 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the primary name of the local host.  <a href="#abea0900e33d8cb5acd8ec44849072f3b"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">static std::string&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1Socket.html#a2cb9c6f10a53c99aa68be7cd1d256d4b">get_host_address</a> (const std::string &amp;name)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the address of a host.  <a href="#a2cb9c6f10a53c99aa68be7cd1d256d4b"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">static int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1Socket.html#aad3930d27407dded9cb4a8093b26bf28">fetch_http</a> (const std::string &amp;url, std::string *resbody=NULL, std::map&lt; std::string, std::string &gt; *resheads=NULL, const std::string *reqbody=NULL, const std::map&lt; std::string, std::string &gt; *reqheads=NULL, double timeout=-1)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Fetch a resource by HTTP.  <a href="#aad3930d27407dded9cb4a8093b26bf28"></a><br/></td></tr>
 <tr><td colspan="2"><h2>Friends</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a11a8bb11feaafab939278a8285afa567"></a><!-- doxytag: member="kyototycoon::Socket::ServerSocket" ref="a11a8bb11feaafab939278a8285afa567" args="" -->
 class&nbsp;</td><td class="memItemRight" valign="bottom"><b>ServerSocket</b></td></tr>
@@ -636,73 +634,8 @@ class&nbsp;</td><td class="memItemRight" valign="bottom"><b>ServerSocket</b></td
 
 </div>
 </div>
-<a class="anchor" id="aad3930d27407dded9cb4a8093b26bf28"></a><!-- doxytag: member="kyototycoon::Socket::fetch_http" ref="aad3930d27407dded9cb4a8093b26bf28" args="(const std::string &amp;url, std::string *resbody=NULL, std::map&lt; std::string, std::string &gt; *resheads=NULL, const std::string *reqbody=NULL, const std::map&lt; std::string, std::string &gt; *reqheads=NULL, double timeout=&#45;1)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">static int32_t kyototycoon::Socket::fetch_http </td>
-          <td>(</td>
-          <td class="paramtype">const std::string &amp;&nbsp;</td>
-          <td class="paramname"> <em>url</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::string *&nbsp;</td>
-          <td class="paramname"> <em>resbody</em> = <code>NULL</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::map&lt; std::string, std::string &gt; *&nbsp;</td>
-          <td class="paramname"> <em>resheads</em> = <code>NULL</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::string *&nbsp;</td>
-          <td class="paramname"> <em>reqbody</em> = <code>NULL</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::map&lt; std::string, std::string &gt; *&nbsp;</td>
-          <td class="paramname"> <em>reqheads</em> = <code>NULL</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double&nbsp;</td>
-          <td class="paramname"> <em>timeout</em> = <code>-1</code></td><td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td><td><code> [static]</code></td>
-        </tr>
-      </table>
 </div>
-<div class="memdoc">
-
-<p>Fetch a resource by HTTP. </p>
-<dl><dt><b>Parameters:</b></dt><dd>
-  <table border="0" cellspacing="2" cellpadding="0">
-    <tr><td valign="top"></td><td valign="top"><em>url</em>&nbsp;</td><td>the <a class="el" href="classkyototycoon_1_1URL.html" title="URL.">URL</a> of the resource. </td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>resbody</em>&nbsp;</td><td>a string to contain the entity body of the response. If it is NULL, it is ignored. </td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>resheads</em>&nbsp;</td><td>a string map to contain the headers of the response. If it is NULL, it is ignored. </td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>reqbody</em>&nbsp;</td><td>a string which contains the entity body of the request. If it is NULL, it is ignored. </td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>reqheads</em>&nbsp;</td><td>a string map which contains the headers of the request. If it is NULL, it is ignored. </td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>timeout</em>&nbsp;</td><td>the timeout of each operation in seconds. If it is not more than 0, no timeout is specified. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="return"><dt><b>Returns:</b></dt><dd>the status code of the response, or -1 on failure. </dd></dl>
-
-</div>
-</div>
-</div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Sep 16 03:09:27 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Sep 16 23:30:19 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

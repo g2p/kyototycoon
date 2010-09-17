@@ -23,8 +23,10 @@ const char* g_progname;                  // program name
 // function prototypes
 int main(int argc, char** argv);
 static void usage();
-static int runhttp(int argc, char** argv);
-static int32_t prochttp(const char* url, const char* file, uint32_t mode,
+static int32_t rundate(int32_t argc, char** argv);
+static int32_t runhttp(int32_t argc, char** argv);
+static int32_t procdate(const char* str, int jl, bool wf, bool rf);
+static int32_t prochttp(const char* url, const char* file, kt::HTTPClient::Method meth,
                         std::map<std::string, std::string>* reqheads,
                         std::map<std::string, std::string>* queries,
                         double tout, bool ph, int32_t ec);
@@ -36,7 +38,9 @@ int main(int argc, char** argv) {
   kc::setstdiobin();
   if (argc < 2) usage();
   int32_t rv = 0;
-  if (!std::strcmp(argv[1], "http")) {
+  if (!std::strcmp(argv[1], "date")) {
+    rv = rundate(argc, argv);
+  } else if (!std::strcmp(argv[1], "http")) {
     rv = runhttp(argc, argv);
   } else if (!std::strcmp(argv[1], "version") || !std::strcmp(argv[1], "--version")) {
     printversion();
@@ -54,6 +58,7 @@ static void usage() {
           g_progname);
   eprintf("\n");
   eprintf("usage:\n");
+  eprintf("  %s date [-ds str] [-jl num] [-wf] [-rf]\n", g_progname);
   eprintf("  %s http [-get|-head|-post|-put|-delete] [-ah name value] [-qs name value]"
           " [-tout num] [-ph] [-ec num] url [file]\n", g_progname);
   eprintf("  %s version\n", g_progname);
@@ -62,11 +67,41 @@ static void usage() {
 }
 
 
+// parse arguments of date command
+static int32_t rundate(int32_t argc, char** argv) {
+  const char* str = NULL;
+  int32_t jl = INT_MAX;
+  bool wf = false;
+  bool rf = false;
+  for (int32_t i = 2; i < argc; i++) {
+    if (argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "-ds")) {
+        if (++i >= argc) usage();
+        str = argv[i];
+      } else if (!std::strcmp(argv[i], "-jl")) {
+        if (++i >= argc) usage();
+        jl = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-wf")) {
+        wf = true;
+      } else if (!std::strcmp(argv[i], "-rf")) {
+        rf = true;
+      } else {
+        usage();
+      }
+    } else {
+      usage();
+    }
+  }
+  int rv = procdate(str, jl, wf, rf);
+  return rv;
+}
+
+
 // parse arguments of http command
-static int runhttp(int argc, char** argv) {
+static int32_t runhttp(int32_t argc, char** argv) {
   const char* url = NULL;
   const char* file = NULL;
-  uint32_t mode = UINT32_MAX;
+  kt::HTTPClient::Method meth = kt::HTTPClient::MUNKNOWN;
   std::map<std::string, std::string> reqheads;
   std::map<std::string, std::string> queries;
   double tout = 0;
@@ -75,18 +110,22 @@ static int runhttp(int argc, char** argv) {
   for (int32_t i = 2; i < argc; i++) {
     if (argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "-get")) {
-        mode = kt::HTTPClient::MGET;
+        meth = kt::HTTPClient::MGET;
       } else if (!std::strcmp(argv[i], "-head")) {
-        mode = kt::HTTPClient::MHEAD;
+        meth = kt::HTTPClient::MHEAD;
       } else if (!std::strcmp(argv[i], "-post")) {
-        mode = kt::HTTPClient::MPOST;
+        meth = kt::HTTPClient::MPOST;
       } else if (!std::strcmp(argv[i], "-put")) {
-        mode = kt::HTTPClient::MPUT;
+        meth = kt::HTTPClient::MPUT;
       } else if (!std::strcmp(argv[i], "-delete")) {
-        mode = kt::HTTPClient::MDELETE;
+        meth = kt::HTTPClient::MDELETE;
       } else if (!std::strcmp(argv[i], "-ah")) {
         if ((i += 2) >= argc) usage();
-        reqheads[argv[i-1]] = argv[i];
+        char* name = kc::strdup(argv[i-1]);
+        kc::strnrmspc(name);
+        kc::strtolower(name);
+        reqheads[name] = argv[i];
+        delete[] name;
       } else if (!std::strcmp(argv[i], "-qs")) {
         if ((i += 2) >= argc) usage();
         queries[argv[i-1]] = argv[i];
@@ -110,13 +149,32 @@ static int runhttp(int argc, char** argv) {
     }
   }
   if (!url) usage();
-  int32_t rv = prochttp(url, file, mode, &reqheads, &queries, tout, ph, ec);
+  int32_t rv = prochttp(url, file, meth, &reqheads, &queries, tout, ph, ec);
   return rv;
 }
 
 
+
+// perform date command
+static int32_t procdate(const char* str, int jl, bool wf, bool rf) {
+  int64_t t = str ? kt::strmktime(str) : std::time(NULL);
+  if (wf) {
+    char buf[48];
+    kt::datestrwww(t, jl, buf);
+    printf("%s\n", buf);
+  } else if (rf) {
+    char buf[48];
+    kt::datestrhttp(t, jl, buf);
+    iprintf("%s\n", buf);
+  } else {
+    iprintf("%lld\n", (long long)t);
+  }
+  return 0;
+}
+
+
 // perform http command
-static int32_t prochttp(const char* url, const char* file, uint32_t mode,
+static int32_t prochttp(const char* url, const char* file, kt::HTTPClient::Method meth,
                         std::map<std::string, std::string>* reqheads,
                         std::map<std::string, std::string>* queries,
                         double tout, bool ph, int32_t ec) {
@@ -140,7 +198,7 @@ static int32_t prochttp(const char* url, const char* file, uint32_t mode,
   }
   std::string urlstr = url;
   std::ostringstream oss;
-  bool body = file || mode == kt::HTTPClient::MPOST || mode == kt::HTTPClient::MPUT;
+  bool body = file || meth == kt::HTTPClient::MPOST || meth == kt::HTTPClient::MPUT;
   if (body) {
     if (queries->empty()) {
       char c;
@@ -187,18 +245,20 @@ static int32_t prochttp(const char* url, const char* file, uint32_t mode,
       it++;
     }
   }
-  if (!kt::strmapget(*reqheads, "user-agent") && !kt::strmapget(*reqheads, "User-Agent")) {
+  if (!kt::strmapget(*reqheads, "user-agent")) {
     std::string uastr;
     kc::strprintf(&uastr, "KyotoTycoon/%s", kt::VERSION);
     (*reqheads)["user-agent"] = uastr;
   }
+  if (!kt::strmapget(*reqheads, "accept")) (*reqheads)["accept"] = "*/*";
   const std::string& ostr = oss.str();
   const std::string* reqbody = body ? &ostr : NULL;
   std::string resbody;
   std::map<std::string, std::string> resheads;
-  if (mode == UINT32_MAX) mode = body ? kt::HTTPClient::MPOST : kt::HTTPClient::MGET;
+  if (meth == kt::HTTPClient::MUNKNOWN)
+    meth = body ? kt::HTTPClient::MPOST : kt::HTTPClient::MGET;
   bool err = false;
-  int32_t code = kt::HTTPClient::fetch_once(urlstr, (kt::HTTPClient::Method)mode,
+  int32_t code = kt::HTTPClient::fetch_once(urlstr, meth,
                                             &resbody, &resheads, reqbody, reqheads, tout);
   if ((ec < 1 && code > 0) || code == ec) {
     if (ph) {
