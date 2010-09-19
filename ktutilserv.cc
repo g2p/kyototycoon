@@ -444,15 +444,14 @@ static int32_t prochttp(const char* base,
   public:
     Worker(const std::string& base) : base_(base) {}
   private:
-    int32_t process(kt::HTTPServer* serv, const std::string& path, kt::HTTPClient::Method method,
+    int32_t process(kt::HTTPServer* serv, kt::HTTPServer::Session* sess,
+                    const std::string& path, kt::HTTPClient::Method method,
                     const std::map<std::string, std::string>& reqheads,
                     const std::string& reqbody,
                     std::map<std::string, std::string>& resheads,
                     std::string& resbody,
-                    const std::map<std::string, std::string>& misc,
-                    std::map<std::string, std::string>& sessdata) {
+                    const std::map<std::string, std::string>& misc) {
       const char* reqline = kt::strmapget(reqheads, "");
-      const char* expr = kt::strmapget(misc, "expr");
       const char* url = kt::strmapget(misc, "url");
       int32_t code = -1;
       const std::string& lpath = kt::HTTPServer::localize_path(path);
@@ -535,7 +534,7 @@ static int32_t prochttp(const char* base,
         kc::strprintf(&resbody, "%s\n", kt::HTTPServer::status_name(code));
       }
       serv->log(kt::HTTPServer::Logger::INFO, "(%s): %s: %d",
-                expr ? expr : "-", reqline ? reqline : "-", code);
+                sess->expression().c_str(), reqline ? reqline : "-", code);
       return code;
     }
     std::string base_;

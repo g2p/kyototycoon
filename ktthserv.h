@@ -148,6 +148,7 @@ public:
       _assert_(true);
       delete data_;
     }
+  private:
     /** The ID number of the session. */
     uint64_t id_;
     /** The ID number of the worker thread. */

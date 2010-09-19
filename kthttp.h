@@ -669,6 +669,7 @@ class HTTPServer {
 public:
   class Logger;
   class Worker;
+  class Session;
 private:
   class WorkerAdapter;
 public:
@@ -694,27 +695,103 @@ public:
     /**
      * Process each request.
      * @param serv the server.
-     * @param path the path of the resource.
+     * @param sess the session with the client.
+     * @param path the path of the requested resource.
      * @param method the kind of the request methods.
      * @param reqheads a string map which contains the headers of the request.  Header names are
      * converted into lower cases.  The empty key means the request-line.
      * @param reqbody a string which contains the entity body of the request.
      * @param resheads a string map to contain the headers of the response.
      * @param resbody a string to contain the entity body of the response.
-     * @param misc a string map which contains miscellaneous information.  The key "expr" means
-     * the expression of the client socket.  "url" means the absolute URL.  "query" means the
-     * query string of the URL.
-     * @param sessdata a string map to contain the session local data.
+     * @param misc a string map which contains miscellaneous information.  "url" means the
+     * absolute URL.  "query" means the query string of the URL.
      * @return the status code of the response.  If it is less than 1, internal server error is
      * sent to the client and the connection is closed.
      */
-    virtual int32_t process(HTTPServer* serv, const std::string& path, HTTPClient::Method method,
+    virtual int32_t process(HTTPServer* serv, Session* sess,
+                            const std::string& path, HTTPClient::Method method,
                             const std::map<std::string, std::string>& reqheads,
                             const std::string& reqbody,
                             std::map<std::string, std::string>& resheads,
                             std::string& resbody,
-                            const std::map<std::string, std::string>& misc,
-                            std::map<std::string, std::string>& sessdata) = 0;
+                            const std::map<std::string, std::string>& misc) = 0;
+  };
+  /**
+   * Interface to access each session data.
+   */
+  class Session {
+    friend class HTTPServer;
+  public:
+    /**
+     * Interface of session local data.
+     */
+    class Data  : public ThreadedServer::Session::Data {
+    public:
+      /**
+       * Destructor.
+       */
+      virtual ~Data() {
+        _assert_(true);
+      }
+    };
+    /**
+     * Get the ID number of the session.
+     * @return the ID number of the session.
+     */
+    uint64_t id() {
+      _assert_(true);
+      return sess_->id();
+    }
+    /**
+     * Get the ID number of the worker thread.
+     * @return the ID number of the worker thread.  It is from 0 to less than the number of
+     * worker threads.
+     */
+    uint32_t thread_id() {
+      _assert_(true);
+      return sess_->thread_id();
+    }
+    /**
+     * Set the session local data.
+     * @param data the session local data.  If it is NULL, no data is registered.
+     * @note The registered data is destroyed implicitly when the session object is destroyed or
+     * this method is called again.
+     */
+    void set_data(Data* data) {
+      _assert_(true);
+      sess_->set_data(data);
+    }
+    /**
+     * Get the session local data.
+     * @return the session local data, or NULL if no data is registered.
+     */
+    Data* data() {
+      _assert_(true);
+      return (Data*)sess_->data();
+    }
+    /**
+     * Get the expression of the socket.
+     * @return the expression of the socket or an empty string on failure.
+     */
+    const std::string expression() {
+      _assert_(true);
+      return sess_->expression();
+    }
+  private:
+    /**
+     * Constructor.
+     */
+    explicit Session(ThreadedServer::Session* sess) : sess_(sess) {
+      _assert_(true);
+    }
+    /**
+     * Destructor.
+     */
+    ~Session() {
+      _assert_(true);
+    }
+  private:
+    ThreadedServer::Session* sess_;
   };
   /**
    * Default constructor.
@@ -991,10 +1068,9 @@ private:
   private:
     bool process(ThreadedServer* serv, ThreadedServer::Session* sess) {
       _assert_(true);
-      std::map<std::string, std::string> misc;
-      misc["expr"] = sess->expression();
       char line[LINEBUFSIZ];
       if (!sess->receive_line(&line, sizeof(line))) return false;
+      std::map<std::string, std::string> misc;
       std::map<std::string, std::string> reqheads;
       reqheads[""] = line;
       char* pv = std::strchr(line, ' ');
@@ -1122,16 +1198,9 @@ private:
       }
       std::string resbody;
       std::map<std::string, std::string> resheads;
-      struct MapData : public ThreadedServer::Session::Data {
-        std::map<std::string, std::string> map;
-      };
-      MapData* sessdata = (MapData*)sess->data();
-      if (!sessdata) {
-        sessdata = new MapData;
-        sess->set_data(sessdata);
-      }
-      int32_t code = worker_->process(serv_, path, method, reqheads, reqbody,
-                                      resheads, resbody, misc, sessdata->map);
+      Session mysess(sess);
+      int32_t code = worker_->process(serv_, &mysess, path, method, reqheads, reqbody,
+                                      resheads, resbody, misc);
       if (code > 0) {
         if (!send_result(sess, code, keep, path, method, reqheads, reqbody,
                          resheads, resbody, misc)) keep = false;
