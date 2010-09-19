@@ -264,7 +264,7 @@
     <tr><td valign="top"></td><td valign="top"><em>pathquery</em>&nbsp;</td><td>the path and the query string of the resource. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>method</em>&nbsp;</td><td>the kind of the request methods. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>resbody</em>&nbsp;</td><td>a string to contain the entity body of the response. If it is NULL, it is ignored. </td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>resheads</em>&nbsp;</td><td>a string map to contain the headers of the response. If it is NULL, it is ignored. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>resheads</em>&nbsp;</td><td>a string map to contain the headers of the response. If it is NULL, it is ignored. Header names are converted into lower cases. The empty key means the request-line. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>reqbody</em>&nbsp;</td><td>a string which contains the entity body of the request. If it is NULL, it is ignored. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>reqheads</em>&nbsp;</td><td>a string map which contains the headers of the request. If it is NULL, it is ignored. </td></tr>
   </table>
@@ -335,7 +335,7 @@
     <tr><td valign="top"></td><td valign="top"><em>url</em>&nbsp;</td><td>the <a class="el" href="classkyototycoon_1_1URL.html" title="URL accessor.">URL</a> of the resource. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>method</em>&nbsp;</td><td>the kind of the request methods. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>resbody</em>&nbsp;</td><td>a string to contain the entity body of the response. If it is NULL, it is ignored. </td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>resheads</em>&nbsp;</td><td>a string map to contain the headers of the response. If it is NULL, it is ignored. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>resheads</em>&nbsp;</td><td>a string map to contain the headers of the response. If it is NULL, it is ignored. Header names are converted into lower cases. The empty key means the request-line. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>reqbody</em>&nbsp;</td><td>a string which contains the entity body of the request. If it is NULL, it is ignored. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>reqheads</em>&nbsp;</td><td>a string map which contains the headers of the request. If it is NULL, it is ignored. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>timeout</em>&nbsp;</td><td>the timeout of each operation in seconds. If it is not more than 0, no timeout is specified. </td></tr>
@@ -347,7 +347,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Sep 16 23:30:19 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Sun Sep 19 11:05:48 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

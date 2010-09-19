@@ -66,8 +66,10 @@ struct ServerSocketCore {
 struct PollerCore {
   const char* errmsg;                    ///< error message
   bool open;                             ///< flag for open
-  std::set<Pollable*> items;             ///< polled file descriptors
+  std::set<Pollable*> events;            ///< monitored events
   std::set<Pollable*> hits;              ///< notified file descriptors
+  kc::SpinLock elock;                    ///< lock for events
+  ::pthread_t th;                        ///< main thread ID
   bool aborted;                          ///< flag for abortion
 };
 
@@ -76,6 +78,13 @@ struct PollerCore {
  * Ignore useless signals.
  */
 static void ignoresignal();
+
+
+/**
+ * Dummy signal handler.
+ * @param signum the signal number.
+ */
+static void dummysighandler(int signum);
 
 
 /**
@@ -877,6 +886,7 @@ Poller::Poller() {
   PollerCore* core = new PollerCore;
   core->errmsg = NULL;
   core->open = false;
+  core->th = ::pthread_self();
   core->aborted = false;
   opq_ = core;
   ignoresignal();
@@ -931,7 +941,7 @@ bool Poller::close() {
     return false;
   }
   core->hits.clear();
-  core->items.clear();
+  core->events.clear();
   core->open = false;
   core->aborted = false;
   return true;
@@ -939,17 +949,34 @@ bool Poller::close() {
 
 
 /**
- * Register an I/O event.
+ * Add a pollable I/O event to the monitored list.
  */
-bool Poller::push(Pollable* event) {
+bool Poller::deposit(Pollable* event) {
   _assert_(event);
   PollerCore* core = (PollerCore*)opq_;
   if (!core->open) {
     pollseterrmsg(core, "not opened");
     return false;
   }
-  if (!core->items.insert(event).second) {
+  core->elock.lock();
+  if (!core->events.insert(event).second) {
     pollseterrmsg(core, "duplicated");
+    core->elock.unlock();
+    return false;
+  }
+  core->elock.unlock();
+  return true;
+}
+
+
+/**
+ * Remove a pollable I/O from the monitored list.
+ */
+bool Poller::withdraw(Pollable* event) {
+  _assert_(event);
+  PollerCore* core = (PollerCore*)opq_;
+  if (!core->open) {
+    pollseterrmsg(core, "not opened");
     return false;
   }
   return true;
@@ -957,22 +984,47 @@ bool Poller::push(Pollable* event) {
 
 
 /**
- * Fetch and remove a notified I/O event.
+ * Fetch the next notified I/O event.
  */
-Pollable* Poller::pop() {
+Pollable* Poller::next() {
   _assert_(true);
   PollerCore* core = (PollerCore*)opq_;
   if (!core->open) {
     pollseterrmsg(core, "not opened");
     return NULL;
   }
+  core->elock.lock();
   if (core->hits.empty()) {
     pollseterrmsg(core, "no event");
+    core->elock.unlock();
     return NULL;
   }
   Pollable* item = *core->hits.begin();
   core->hits.erase(item);
+  core->elock.unlock();
   return item;
+}
+
+
+/**
+ * Enable the next notification of a pollable event.
+ */
+bool Poller::undo(Pollable* event) {
+  _assert_(event);
+  PollerCore* core = (PollerCore*)opq_;
+  if (!core->open) {
+    pollseterrmsg(core, "not opened");
+    return false;
+  }
+  core->elock.lock();
+  if (!core->events.insert(event).second) {
+    pollseterrmsg(core, "duplicated");
+    core->elock.unlock();
+    return false;
+  }
+  core->elock.unlock();
+  ::pthread_kill(core->th, SIGUSR2);
+  return true;
 }
 
 
@@ -988,8 +1040,20 @@ bool Poller::wait(double timeout) {
   }
   if (timeout <= 0) timeout = UINT32_MAX;
   core->hits.clear();
+  ::sigset_t sigmask;
+  struct ::sigaction sa;
+  ::sigemptyset(&sigmask);
+  ::sigaddset(&sigmask, SIGUSR2);
+  ::pthread_sigmask(SIG_BLOCK, &sigmask, NULL);
+  sa.sa_flags = 0;
+  sa.sa_handler = dummysighandler;
+  ::sigemptyset(&sa.sa_mask);
+  ::sigaction(SIGUSR2, &sa, NULL);
+  ::sigset_t empmask;
+  ::sigemptyset(&empmask);
   double ct = kc::time();
   while (true) {
+    core->elock.lock();
     ::fd_set rset, wset, xset;
     FD_ZERO(&rset);
     FD_ZERO(&wset);
@@ -998,8 +1062,8 @@ bool Poller::wait(double timeout) {
     std::map<int32_t, Pollable*> wmap;
     std::map<int32_t, Pollable*> xmap;
     int32_t maxfd = 0;
-    std::set<Pollable*>::iterator it = core->items.begin();
-    std::set<Pollable*>::iterator itend = core->items.end();
+    std::set<Pollable*>::iterator it = core->events.begin();
+    std::set<Pollable*>::iterator itend = core->events.end();
     while (it != itend) {
       Pollable* item = *it;
       int32_t fd = item->descriptor();
@@ -1019,12 +1083,13 @@ bool Poller::wait(double timeout) {
       if (fd > maxfd) maxfd = fd;
       it++;
     }
+    core->elock.unlock();
     double integ, fract;
     fract = modf(WAITTIME, &integ);
     struct ::timespec ts;
     ts.tv_sec = integ;
     ts.tv_nsec = fract * 999999000;
-    int32_t rv = ::pselect(maxfd + 1, &rset, &wset, &xset, &ts, NULL);
+    int32_t rv = ::pselect(maxfd + 1, &rset, &wset, &xset, &ts, &empmask);
     if (rv > 0) {
       if (!rmap.empty()) {
         std::map<int32_t, Pollable*>::iterator mit = rmap.begin();
@@ -1038,7 +1103,9 @@ bool Poller::wait(double timeout) {
               uint32_t flags = item->event_flags();
               item->set_event_flags(flags | Pollable::EVINPUT);
             }
-            core->items.erase(item);
+            core->elock.lock();
+            core->events.erase(item);
+            core->elock.unlock();
           }
           mit++;
         }
@@ -1055,7 +1122,9 @@ bool Poller::wait(double timeout) {
               uint32_t flags = item->event_flags();
               item->set_event_flags(flags | Pollable::EVOUTPUT);
             }
-            core->items.erase(item);
+            core->elock.lock();
+            core->events.erase(item);
+            core->elock.unlock();
           }
           mit++;
         }
@@ -1072,7 +1141,9 @@ bool Poller::wait(double timeout) {
               uint32_t flags = item->event_flags();
               item->set_event_flags(flags | Pollable::EVEXCEPT);
             }
-            core->items.erase(item);
+            core->elock.lock();
+            core->events.erase(item);
+            core->elock.unlock();
           }
           mit++;
         }
@@ -1105,15 +1176,17 @@ bool Poller::flush() {
     pollseterrmsg(core, "not opened");
     return false;
   }
+  core->elock.lock();
   core->hits.clear();
-  std::set<Pollable*>::iterator it = core->items.begin();
-  std::set<Pollable*>::iterator itend = core->items.end();
+  std::set<Pollable*>::iterator it = core->events.begin();
+  std::set<Pollable*>::iterator itend = core->events.end();
   while (it != itend) {
     Pollable* item = *it;
     item->set_event_flags(0);
     core->hits.insert(item);
     it++;
   }
+  core->elock.unlock();
   return true;
 }
 
@@ -1128,7 +1201,10 @@ int64_t Poller::count() {
     pollseterrmsg(core, "not opened");
     return -1;
   }
-  return core->items.size();
+  core->elock.lock();
+  int64_t count = core->events.size();
+  core->elock.unlock();
+  return count;
 }
 
 
@@ -1151,11 +1227,20 @@ bool Poller::abort() {
  * Ignore useless signals.
  */
 static void ignoresignal() {
+  _assert_(true);
   static bool first = true;
   if (first) {
     std::signal(SIGPIPE, SIG_IGN);
     first = false;
   }
+}
+
+
+/**
+ * Dummy signal handler.
+ */
+static void dummysighandler(int signum) {
+  _assert_(true);
 }
 
 

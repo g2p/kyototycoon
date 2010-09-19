@@ -48,10 +48,14 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Open the poller.  <a href="#a54cd96eaaef4bfe7e19251eef25d5f90"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1Poller.html#a3bf252ac43417551802f8051ae6d8a9c">close</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Close the poller.  <a href="#a3bf252ac43417551802f8051ae6d8a9c"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1Poller.html#a61cde77b2587fbd391b199436fcd277f">push</a> (<a class="el" href="classkyototycoon_1_1Pollable.html">Pollable</a> *event)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Register an I/O event.  <a href="#a61cde77b2587fbd391b199436fcd277f"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classkyototycoon_1_1Pollable.html">Pollable</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1Poller.html#af6d2454458b2013c69c95c5caa38c969">pop</a> ()</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Fetch and remove a notified I/O event.  <a href="#af6d2454458b2013c69c95c5caa38c969"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1Poller.html#ad5c0cf02313cec407df27e08490e7431">deposit</a> (<a class="el" href="classkyototycoon_1_1Pollable.html">Pollable</a> *event)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Add a pollable I/O event to the monitored list.  <a href="#ad5c0cf02313cec407df27e08490e7431"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1Poller.html#a84ac045b503e686313f45fe8dbe5d500">withdraw</a> (<a class="el" href="classkyototycoon_1_1Pollable.html">Pollable</a> *event)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Remove a pollable I/O from the monitored list.  <a href="#a84ac045b503e686313f45fe8dbe5d500"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classkyototycoon_1_1Pollable.html">Pollable</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1Poller.html#ae2ca9ad45051d4bfd3cef75ed90aa048">next</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Fetch the next notified I/O event.  <a href="#ae2ca9ad45051d4bfd3cef75ed90aa048"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1Poller.html#afceafa253a31c2b48e85ec3ed7b9ae5c">undo</a> (<a class="el" href="classkyototycoon_1_1Pollable.html">Pollable</a> *event)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Enable the next notification of a pollable event.  <a href="#afceafa253a31c2b48e85ec3ed7b9ae5c"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1Poller.html#a6cdc508ea3091fb386d073080c5ab9f8">wait</a> (double timeout=-1)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Wait one or more notifying events.  <a href="#a6cdc508ea3091fb386d073080c5ab9f8"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1Poller.html#a0cf6492d0e3fb0c8c227e98e43335e54">flush</a> ()</td></tr>
@@ -163,12 +167,12 @@
 
 </div>
 </div>
-<a class="anchor" id="a61cde77b2587fbd391b199436fcd277f"></a><!-- doxytag: member="kyototycoon::Poller::push" ref="a61cde77b2587fbd391b199436fcd277f" args="(Pollable *event)" -->
+<a class="anchor" id="ad5c0cf02313cec407df27e08490e7431"></a><!-- doxytag: member="kyototycoon::Poller::deposit" ref="ad5c0cf02313cec407df27e08490e7431" args="(Pollable *event)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool kyototycoon::Poller::push </td>
+          <td class="memname">bool kyototycoon::Poller::deposit </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classkyototycoon_1_1Pollable.html">Pollable</a> *&nbsp;</td>
           <td class="paramname"> <em>event</em></td>
@@ -179,10 +183,10 @@
 </div>
 <div class="memdoc">
 
-<p>Register an I/O event. </p>
+<p>Add a pollable I/O event to the monitored list. </p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
-    <tr><td valign="top"></td><td valign="top"><em>event</em>&nbsp;</td><td>an pollable event object. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>event</em>&nbsp;</td><td>the pollable event object. </td></tr>
   </table>
   </dd>
 </dl>
@@ -190,12 +194,39 @@
 
 </div>
 </div>
-<a class="anchor" id="af6d2454458b2013c69c95c5caa38c969"></a><!-- doxytag: member="kyototycoon::Poller::pop" ref="af6d2454458b2013c69c95c5caa38c969" args="()" -->
+<a class="anchor" id="a84ac045b503e686313f45fe8dbe5d500"></a><!-- doxytag: member="kyototycoon::Poller::withdraw" ref="a84ac045b503e686313f45fe8dbe5d500" args="(Pollable *event)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classkyototycoon_1_1Pollable.html">Pollable</a>* kyototycoon::Poller::pop </td>
+          <td class="memname">bool kyototycoon::Poller::withdraw </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classkyototycoon_1_1Pollable.html">Pollable</a> *&nbsp;</td>
+          <td class="paramname"> <em>event</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Remove a pollable I/O from the monitored list. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>event</em>&nbsp;</td><td>the pollable event object. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ae2ca9ad45051d4bfd3cef75ed90aa048"></a><!-- doxytag: member="kyototycoon::Poller::next" ref="ae2ca9ad45051d4bfd3cef75ed90aa048" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classkyototycoon_1_1Pollable.html">Pollable</a>* kyototycoon::Poller::next </td>
           <td>(</td>
           <td class="paramname"></td>
           <td>&nbsp;)&nbsp;</td>
@@ -205,8 +236,35 @@
 </div>
 <div class="memdoc">
 
-<p>Fetch and remove a notified I/O event. </p>
+<p>Fetch the next notified I/O event. </p>
 <dl class="return"><dt><b>Returns:</b></dt><dd>the event object, or NULL on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="afceafa253a31c2b48e85ec3ed7b9ae5c"></a><!-- doxytag: member="kyototycoon::Poller::undo" ref="afceafa253a31c2b48e85ec3ed7b9ae5c" args="(Pollable *event)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::Poller::undo </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classkyototycoon_1_1Pollable.html">Pollable</a> *&nbsp;</td>
+          <td class="paramname"> <em>event</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Enable the next notification of a pollable event. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>event</em>&nbsp;</td><td>the pollable event object. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
 
 </div>
 </div>
@@ -298,7 +356,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Sep 16 23:30:19 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Sun Sep 19 11:05:48 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

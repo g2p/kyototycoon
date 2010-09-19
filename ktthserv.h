@@ -72,10 +72,11 @@ public:
     virtual ~Worker() {}
     /**
      * Process each request.
+     * @param serv the server.
      * @param sess the session with the client.
      * @return true to reuse the session, or false to close the session.
      */
-    virtual bool process(Session* sess) = 0;
+    virtual bool process(ThreadedServer* serv, Session* sess) = 0;
   };
   /**
    * Interface to access each session data.
@@ -158,7 +159,7 @@ public:
    * Default constructor.
    */
   ThreadedServer() :
-    run_(false), expr_(), timeout_(0), worker_(NULL), thnum_(0), logger_(NULL), logkinds_(0),
+    run_(false), expr_(), timeout_(0), logger_(NULL), logkinds_(0), worker_(NULL), thnum_(0),
     sock_(), poll_(), queue_(this), sesscnt_(0) {
     _assert_(true);
   }
@@ -179,16 +180,6 @@ public:
     timeout_ = timeout;
   }
   /**
-   * Set the worker to process each request.
-   * @param worker the worker object.
-   * @param thnum the number of worker threads.
-   */
-  void set_worker(Worker* worker, size_t thnum = 1) {
-    _assert_(worker && thnum > 0 && thnum < kc::MEMMAXSIZ);
-    worker_ = worker;
-    thnum_ = thnum;
-  }
-  /**
    * Set the logger to process each log message.
    * @param logger the logger object.
    * @param kinds kinds of logged messages by bitwise-or: Logger::DEBUG for debugging,
@@ -199,6 +190,16 @@ public:
     _assert_(logger);
     logger_ = logger;
     logkinds_ = kinds;
+  }
+  /**
+   * Set the worker to process each request.
+   * @param worker the worker object.
+   * @param thnum the number of worker threads.
+   */
+  void set_worker(Worker* worker, size_t thnum = 1) {
+    _assert_(worker && thnum > 0 && thnum < kc::MEMMAXSIZ);
+    worker_ = worker;
+    thnum_ = thnum;
   }
   /**
    * Start the service.
@@ -232,7 +233,7 @@ public:
     log(Logger::SYSTEM, "listening server socket started: fd=%d", sock_.descriptor());
     bool err = false;
     sock_.set_event_flags(Pollable::EVINPUT);
-    if (!poll_.push(&sock_)) {
+    if (!poll_.deposit(&sock_)) {
       log(Logger::ERROR, "poller error: msg=%s", poll_.error());
       err = true;
     }
@@ -242,14 +243,14 @@ public:
     while (run_) {
       if (poll_.wait(0.1)) {
         Pollable* event;
-        while ((event = poll_.pop()) != NULL) {
+        while ((event = poll_.next()) != NULL) {
           if (event == &sock_) {
             Session* sess = new Session(++sesscnt_);
             sess->set_timeout(timeout_);
             if (sock_.accept(sess)) {
               log(Logger::INFO, "connected: expr=%s", sess->expression().c_str());
               sess->set_event_flags(Pollable::EVINPUT);
-              if (!poll_.push(sess)) {
+              if (!poll_.deposit(sess)) {
                 log(Logger::ERROR, "poller error: msg=%s", poll_.error());
                 err = true;
               }
@@ -258,7 +259,7 @@ public:
               err = true;
             }
             sock_.set_event_flags(Pollable::EVINPUT);
-            if (!poll_.push(&sock_)) {
+            if (!poll_.undo(&sock_)) {
               log(Logger::ERROR, "poller error: msg=%s", poll_.error());
               err = true;
             }
@@ -306,10 +307,14 @@ public:
     }
     if (poll_.flush()) {
       Pollable* event;
-      while ((event = poll_.pop()) != NULL) {
+      while ((event = poll_.next()) != NULL) {
         if (event == &sock_) continue;
         Session* sess = (Session*)event;
         log(Logger::INFO, "disconnecting: expr=%s", sess->expression().c_str());
+        if (!poll_.withdraw(sess)) {
+          log(Logger::ERROR, "poller error: msg=%s", poll_.error());
+          err = true;
+        }
         if (!sess->close()) {
           log(Logger::ERROR, "socket error: fd=%d msg=%s", sess->descriptor(), sess->error());
           err = true;
@@ -326,6 +331,36 @@ public:
       err = true;
     }
     return !err;
+  }
+  /**
+   * Log a message.
+   * @param kind the kind of the event.  Logger::DEBUG for debugging, Logger::INFO for normal
+   * information, Logger::SYSTEM for system information, and Logger::ERROR for fatal error.
+   * @param format the printf-like format string.  The conversion character `%' can be used with
+   * such flag characters as `s', `d', `o', `u', `x', `X', `c', `e', `E', `f', `g', `G', and `%'.
+   * @param ... used according to the format string.
+   */
+  void log(Logger::Kind kind, const char* format, ...) {
+    _assert_(format);
+    if (!logger_ || !(kind & logkinds_)) return;
+    std::string msg;
+    va_list ap;
+    va_start(ap, format);
+    kc::vstrprintf(&msg, format, ap);
+    va_end(ap);
+    logger_->log(kind, msg.c_str());
+  }
+  /**
+   * Log a message.
+   * @note Equal to the original Cursor::set_value method except that the last parameters is
+   * va_list.
+   */
+  void log_v(Logger::Kind kind, const char* format, va_list ap) {
+    _assert_(format);
+    if (!logger_ || !(kind & logkinds_)) return;
+    std::string msg;
+    kc::vstrprintf(&msg, format, ap);
+    logger_->log(kind, msg.c_str());
   }
 private:
   /**
@@ -354,16 +389,20 @@ private:
         serv_->log(Logger::INFO, "aborted a request: expr=%s", sess->expression().c_str());
       } else {
         sess->thid_ = mytask->thread_id();
-        keep = worker_->process(sess);
+        keep = worker_->process(serv_, sess);
       }
       if (keep) {
         sess->set_event_flags(Pollable::EVINPUT);
-        if (!serv_->poll_.push(sess)) {
+        if (!serv_->poll_.undo(sess)) {
           serv_->log(Logger::ERROR, "poller error: msg=%s", serv_->poll_.error());
           err_ = true;
         }
       } else {
         serv_->log(Logger::INFO, "disconnecting: expr=%s", sess->expression().c_str());
+        if (!serv_->poll_.withdraw(sess)) {
+          serv_->log(Logger::ERROR, "poller error: msg=%s", serv_->poll_.error());
+          err_ = true;
+        }
         if (!sess->close()) {
           serv_->log(Logger::ERROR, "socket error: msg=%s", sess->error());
           err_ = true;
@@ -386,19 +425,6 @@ private:
   private:
     Session* sess_;
   };
-  /**
-   * Log a message.
-   */
-  void log(Logger::Kind kind, const char* format, ...) {
-    _assert_(format);
-    if (!logger_ || !(kind & logkinds_)) return;
-    std::string msg;
-    va_list ap;
-    va_start(ap, format);
-    kc::vstrprintf(&msg, format, ap);
-    va_end(ap);
-    logger_->log(kind, msg.c_str());
-  }
   /** Dummy constructor to forbid the use. */
   ThreadedServer(const ThreadedServer&);
   /** Dummy Operator to forbid the use. */
@@ -409,14 +435,14 @@ private:
   std::string expr_;
   /** The timeout of each network operation. */
   double timeout_;
-  /** The worker operator. */
-  Worker* worker_;
-  /** The number of worker threads. */
-  size_t thnum_;
   /** The internal logger. */
   Logger* logger_;
   /** The kinds of logged messages. */
   uint32_t logkinds_;
+  /** The worker operator. */
+  Worker* worker_;
+  /** The number of worker threads. */
+  size_t thnum_;
   /** The server socket. */
   ServerSocket sock_;
   /** The event poller. */

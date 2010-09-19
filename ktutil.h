@@ -67,6 +67,26 @@ void urlbreak(const char* url, std::map<std::string, std::string>* elems);
 
 
 /**
+ * Escape meta characters in a string with the entity references of XML.
+ * @param str the string.
+ * @return the escaped string.
+ * @note Because the region of the return value is allocated with the the new[] operator, it
+ * should be released with the delete[] operator when it is no longer in use.
+ */
+char* xmlescape(const char* str);
+
+
+/**
+ * Unescape meta characters in a string with the entity references of XML.
+ * @param str the string.
+ * @return the unescaped string.
+ * @note Because the region of the return value is allocated with the the new[] operator, it
+ * should be released with the delete[] operator when it is no longer in use.
+ */
+char* xmlunescape(const char* str);
+
+
+/**
  * Capitalize letters of a string.
  * @param str the string to convert.
  * @return the string itself.
@@ -306,6 +326,92 @@ inline void urlbreak(const char* url, std::map<std::string, std::string>* elems)
     if (*file != '\0' && std::strcmp(file, ".") && std::strcmp(file, ".."))
       (*elems)["file"] = file;
   }
+}
+
+
+/**
+ * Escape meta characters in a string with the entity references of XML.
+ */
+inline char* xmlescape(const char* str) {
+  _assert_(str);
+  const char* rp = str;
+  size_t bsiz = 0;
+  while (*rp != '\0') {
+    switch (*rp) {
+      case '&': bsiz += 5; break;
+      case '<': bsiz += 4; break;
+      case '>': bsiz += 4; break;
+      case '"': bsiz += 6; break;
+      default:  bsiz++; break;
+    }
+    rp++;
+  }
+  char* buf = new char[bsiz+1];
+  char* wp = buf;
+  while (*str != '\0') {
+    switch (*str) {
+      case '&': {
+        std::memcpy(wp, "&amp;", 5);
+        wp += 5;
+        break;
+      }
+      case '<': {
+        std::memcpy(wp, "&lt;", 4);
+        wp += 4;
+        break;
+      }
+      case '>': {
+        std::memcpy(wp, "&gt;", 4);
+        wp += 4;
+        break;
+      }
+      case '"': {
+        std::memcpy(wp, "&quot;", 6);
+        wp += 6;
+        break;
+      }
+      default: {
+        *(wp++) = *str;
+        break;
+      }
+    }
+    str++;
+  }
+  *wp = '\0';
+  return buf;
+}
+
+
+/**
+ * Unescape meta characters in a string with the entity references of XML.
+ */
+inline char* xmlunescape(const char* str) {
+  _assert_(str);
+  char* buf = new char[std::strlen(str)+1];
+  char* wp = buf;
+  while (*str != '\0') {
+    if (*str == '&') {
+      if (kc::strfwm(str, "&amp;")) {
+        *(wp++) = '&';
+        str += 5;
+      } else if (kc::strfwm(str, "&lt;")) {
+        *(wp++) = '<';
+        str += 4;
+      } else if (kc::strfwm(str, "&gt;")) {
+        *(wp++) = '>';
+        str += 4;
+      } else if (kc::strfwm(str, "&quot;")) {
+        *(wp++) = '"';
+        str += 6;
+      } else {
+        *(wp++) = *(str++);
+      }
+    } else {
+      *(wp++) = *(str++);
+    }
+  }
+  *wp = '\0';
+  return buf;
 }
 
 

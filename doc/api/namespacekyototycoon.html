@@ -53,6 +53,10 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the C-style string value of a record in a string map.  <a href="#a7c223f25ea31736e64de5380c4864c74"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a6ac45374f36f35280d2d8203a5bcf253">urlbreak</a> (const char *url, std::map&lt; std::string, std::string &gt; *elems)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Break up a <a class="el" href="classkyototycoon_1_1URL.html" title="URL accessor.">URL</a> into elements.  <a href="#a6ac45374f36f35280d2d8203a5bcf253"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#ab3f2460ab78d21fffd715c54362547cd">xmlescape</a> (const char *str)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Escape meta characters in a string with the entity references of XML.  <a href="#ab3f2460ab78d21fffd715c54362547cd"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a11169346313e3145d208646f6afb4553">xmlunescape</a> (const char *str)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Unescape meta characters in a string with the entity references of XML.  <a href="#a11169346313e3145d208646f6afb4553"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#aff047ef8d15604042a8349d54f344353">strcapitalize</a> (char *str)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Capitalize letters of a string.  <a href="#aff047ef8d15604042a8349d54f344353"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#ae0f925395a82daba3c4c81a25840d1e2">getcalendar</a> (int64_t t, int32_t jl, int32_t *yearp=NULL, int32_t *monp=NULL, int32_t *dayp=NULL, int32_t *hourp=NULL, int32_t *minp=NULL, int32_t *secp=NULL)</td></tr>
@@ -67,6 +71,12 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the jet lag of the local time.  <a href="#addcd83afe401f04ab5ba63ab2be087b1"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#af684186e0557a36beadbc68e107225ae">dayofweek</a> (int32_t year, int32_t mon, int32_t day)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the day of week of a date.  <a href="#af684186e0557a36beadbc68e107225ae"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a7b6dcf8106e8f10d46e93ab3639a5188">getlocaltime</a> (time_t time, struct std::tm *result)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the local time of a time.  <a href="#a7b6dcf8106e8f10d46e93ab3639a5188"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a70fec37a906565ba8f6527741fa0d28a">getgmtime</a> (time_t time, struct std::tm *result)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the GMT local time of a time.  <a href="#a70fec37a906565ba8f6527741fa0d28a"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">time_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#aacada38d495bc6a4a9f9eeee9563e241">mkgmtime</a> (struct std::tm *tm)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Make the GMT from a time structure.  <a href="#aacada38d495bc6a4a9f9eeee9563e241"></a><br/></td></tr>
 <tr><td colspan="2"><h2>Variables</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">const char *const&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#adacdf98cae86752dc99be348a3e35cab">VERSION</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The package version.  <a href="#adacdf98cae86752dc99be348a3e35cab"></a><br/></td></tr>
@@ -177,6 +187,62 @@
   </dd>
 </dl>
 <dl class="note"><dt><b>Note:</b></dt><dd>Supported schema are HTTP, HTTPS, FTP, and FILE. Both of absolute <a class="el" href="classkyototycoon_1_1URL.html" title="URL accessor.">URL</a> and relative <a class="el" href="classkyototycoon_1_1URL.html" title="URL accessor.">URL</a> are supported. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ab3f2460ab78d21fffd715c54362547cd"></a><!-- doxytag: member="kyototycoon::xmlescape" ref="ab3f2460ab78d21fffd715c54362547cd" args="(const char *str)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char * kyototycoon::xmlescape </td>
+          <td>(</td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>str</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Escape meta characters in a string with the entity references of XML. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>str</em>&nbsp;</td><td>the string. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the escaped string. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>Because the region of the return value is allocated with the the new[] operator, it should be released with the delete[] operator when it is no longer in use. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a11169346313e3145d208646f6afb4553"></a><!-- doxytag: member="kyototycoon::xmlunescape" ref="a11169346313e3145d208646f6afb4553" args="(const char *str)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char * kyototycoon::xmlunescape </td>
+          <td>(</td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>str</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Unescape meta characters in a string with the entity references of XML. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>str</em>&nbsp;</td><td>the string. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the unescaped string. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>Because the region of the return value is allocated with the the new[] operator, it should be released with the delete[] operator when it is no longer in use. </dd></dl>
 
 </div>
 </div>
@@ -462,6 +528,107 @@
 
 </div>
 </div>
+<a class="anchor" id="a7b6dcf8106e8f10d46e93ab3639a5188"></a><!-- doxytag: member="kyototycoon::getlocaltime" ref="a7b6dcf8106e8f10d46e93ab3639a5188" args="(time_t time, struct std::tm *result)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::getlocaltime </td>
+          <td>(</td>
+          <td class="paramtype">time_t&nbsp;</td>
+          <td class="paramname"> <em>time</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct std::tm *&nbsp;</td>
+          <td class="paramname"> <em>result</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Get the local time of a time. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>time</em>&nbsp;</td><td>the time. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>result</em>&nbsp;</td><td>the resulb buffer. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a70fec37a906565ba8f6527741fa0d28a"></a><!-- doxytag: member="kyototycoon::getgmtime" ref="a70fec37a906565ba8f6527741fa0d28a" args="(time_t time, struct std::tm *result)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::getgmtime </td>
+          <td>(</td>
+          <td class="paramtype">time_t&nbsp;</td>
+          <td class="paramname"> <em>time</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct std::tm *&nbsp;</td>
+          <td class="paramname"> <em>result</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Get the GMT local time of a time. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>time</em>&nbsp;</td><td>the time. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>result</em>&nbsp;</td><td>the resulb buffer. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="aacada38d495bc6a4a9f9eeee9563e241"></a><!-- doxytag: member="kyototycoon::mkgmtime" ref="aacada38d495bc6a4a9f9eeee9563e241" args="(struct std::tm *tm)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">time_t kyototycoon::mkgmtime </td>
+          <td>(</td>
+          <td class="paramtype">struct std::tm *&nbsp;</td>
+          <td class="paramname"> <em>tm</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Make the GMT from a time structure. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>tm</em>&nbsp;</td><td>the pointer to the time structure. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the GMT. </dd></dl>
+
+</div>
+</div>
 <hr/><h2>Variable Documentation</h2>
 <a class="anchor" id="adacdf98cae86752dc99be348a3e35cab"></a><!-- doxytag: member="kyototycoon::VERSION" ref="adacdf98cae86752dc99be348a3e35cab" args="" -->
 <div class="memitem">
@@ -509,7 +676,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Sep 16 23:30:19 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Sun Sep 19 11:05:48 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

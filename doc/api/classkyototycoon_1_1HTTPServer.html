@@ -49,18 +49,29 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Default constructor.  <a href="#a789d71813ab963025bf37d6deac082d0"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPServer.html#acfb3c026774bce72ddacdc825b3383ca">~HTTPServer</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Destructor.  <a href="#acfb3c026774bce72ddacdc825b3383ca"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPServer.html#a09f6be07e86a9582722d253998846bcb">set_network</a> (const std::string &amp;expr, double timeout=-1)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the network configurations.  <a href="#a09f6be07e86a9582722d253998846bcb"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPServer.html#aa53c47940a9006bfe96c5e0a2bffa2e6">set_worker</a> (<a class="el" href="classkyototycoon_1_1HTTPServer_1_1Worker.html">Worker</a> *worker, size_t thnum=1)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the worker to process each request.  <a href="#aa53c47940a9006bfe96c5e0a2bffa2e6"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPServer.html#acbdc985ef93ced56e65bee7995ebac8b">set_network</a> (const std::string &amp;expr, double timeout=-1, const std::string &amp;name=&quot;&quot;)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the network configurations.  <a href="#acbdc985ef93ced56e65bee7995ebac8b"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPServer.html#ad311e5a7d3c4f68012527be34c3279d2">set_logger</a> (<a class="el" href="classkyototycoon_1_1HTTPServer_1_1Logger.html">Logger</a> *logger, uint32_t kinds=Logger::SYSTEM|Logger::ERROR)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the logger to process each log message.  <a href="#ad311e5a7d3c4f68012527be34c3279d2"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPServer.html#aa53c47940a9006bfe96c5e0a2bffa2e6">set_worker</a> (<a class="el" href="classkyototycoon_1_1HTTPServer_1_1Worker.html">Worker</a> *worker, size_t thnum=1)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the worker to process each request.  <a href="#aa53c47940a9006bfe96c5e0a2bffa2e6"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPServer.html#aad8e3a5be27eab5d5dd1c08badea8b6a">start</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Start the service.  <a href="#aad8e3a5be27eab5d5dd1c08badea8b6a"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPServer.html#a1cb2f161ab81a9b0003272c8c041a86b">stop</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Stop the service.  <a href="#a1cb2f161ab81a9b0003272c8c041a86b"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPServer.html#a83b3c2cfd42375e4516013b0b7aea607">finish</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Finish the service.  <a href="#a83b3c2cfd42375e4516013b0b7aea607"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPServer.html#abdc243e8a1850ddcf6ed91c178949da1">log</a> (<a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271">Logger::Kind</a> kind, const char *format,...)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Log a message.  <a href="#abdc243e8a1850ddcf6ed91c178949da1"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPServer.html#a163892c2af221b07c8a11353cb4c3a07">log_v</a> (<a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271">Logger::Kind</a> kind, const char *format, va_list ap)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Log a message.  <a href="#a163892c2af221b07c8a11353cb4c3a07"></a><br/></td></tr>
+<tr><td colspan="2"><h2>Static Public Member Functions</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">static const char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPServer.html#a134c85ba3089512fe1663a88c90ed692">status_name</a> (int32_t code)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the name of a status code.  <a href="#a134c85ba3089512fe1663a88c90ed692"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">static const char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPServer.html#a8a0326dc36c14cd9133c3463de093598">media_type</a> (const std::string &amp;url)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Guess the media type of a <a class="el" href="classkyototycoon_1_1URL.html" title="URL accessor.">URL</a>.  <a href="#a8a0326dc36c14cd9133c3463de093598"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">static std::string&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPServer.html#a167de25c86d58efa4ebf8f695badfca3">localize_path</a> (const std::string &amp;path)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Convert the path element of a <a class="el" href="classkyototycoon_1_1URL.html" title="URL accessor.">URL</a> into the local path.  <a href="#a167de25c86d58efa4ebf8f695badfca3"></a><br/></td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>HTTP server. </p>
@@ -104,7 +115,7 @@
 </div>
 </div>
 <hr/><h2>Member Function Documentation</h2>
-<a class="anchor" id="a09f6be07e86a9582722d253998846bcb"></a><!-- doxytag: member="kyototycoon::HTTPServer::set_network" ref="a09f6be07e86a9582722d253998846bcb" args="(const std::string &amp;expr, double timeout=&#45;1)" -->
+<a class="anchor" id="acbdc985ef93ced56e65bee7995ebac8b"></a><!-- doxytag: member="kyototycoon::HTTPServer::set_network" ref="acbdc985ef93ced56e65bee7995ebac8b" args="(const std::string &amp;expr, double timeout=&#45;1, const std::string &amp;name=&quot;&quot;)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -118,7 +129,13 @@
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&nbsp;</td>
-          <td class="paramname"> <em>timeout</em> = <code>-1</code></td><td>&nbsp;</td>
+          <td class="paramname"> <em>timeout</em> = <code>-1</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>name</em> = <code>&quot;&quot;</code></td><td>&nbsp;</td>
         </tr>
         <tr>
           <td></td>
@@ -134,42 +151,7 @@
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"></td><td valign="top"><em>expr</em>&nbsp;</td><td>an expression of the address and the port of the server. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>timeout</em>&nbsp;</td><td>the timeout of each network operation in seconds. If it is not more than 0, no timeout is specified. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a class="anchor" id="aa53c47940a9006bfe96c5e0a2bffa2e6"></a><!-- doxytag: member="kyototycoon::HTTPServer::set_worker" ref="aa53c47940a9006bfe96c5e0a2bffa2e6" args="(Worker *worker, size_t thnum=1)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void kyototycoon::HTTPServer::set_worker </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="classkyototycoon_1_1HTTPServer_1_1Worker.html">Worker</a> *&nbsp;</td>
-          <td class="paramname"> <em>worker</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&nbsp;</td>
-          <td class="paramname"> <em>thnum</em> = <code>1</code></td><td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td><td></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>Set the worker to process each request. </p>
-<dl><dt><b>Parameters:</b></dt><dd>
-  <table border="0" cellspacing="2" cellpadding="0">
-    <tr><td valign="top"></td><td valign="top"><em>worker</em>&nbsp;</td><td>the worker object. </td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>thnum</em>&nbsp;</td><td>the number of worker threads. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>name</em>&nbsp;</td><td>the name of the server. If it is an empty string, the host name is specified. </td></tr>
   </table>
   </dd>
 </dl>
@@ -206,6 +188,42 @@
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"></td><td valign="top"><em>logger</em>&nbsp;</td><td>the logger object. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>kinds</em>&nbsp;</td><td>kinds of logged messages by bitwise-or: <a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271a8db489b88d769443550d71b89623845a" title="normal information">Logger::DEBUG</a> for debugging, <a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271ab9e1f2799ea8f4111689956085b49276" title="normal information">Logger::INFO</a> for normal information, <a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271aa7ab8f8afa61fcac12f88cf708dc5341" title="system information">Logger::SYSTEM</a> for system information, and <a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271af4159e6ec5c2bc88e5981a6c446dd612" title="error">Logger::ERROR</a> for fatal error. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="aa53c47940a9006bfe96c5e0a2bffa2e6"></a><!-- doxytag: member="kyototycoon::HTTPServer::set_worker" ref="aa53c47940a9006bfe96c5e0a2bffa2e6" args="(Worker *worker, size_t thnum=1)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void kyototycoon::HTTPServer::set_worker </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classkyototycoon_1_1HTTPServer_1_1Worker.html">Worker</a> *&nbsp;</td>
+          <td class="paramname"> <em>worker</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&nbsp;</td>
+          <td class="paramname"> <em>thnum</em> = <code>1</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Set the worker to process each request. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>worker</em>&nbsp;</td><td>the worker object. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>thnum</em>&nbsp;</td><td>the number of worker threads. </td></tr>
   </table>
   </dd>
 </dl>
@@ -273,8 +291,162 @@
 
 </div>
 </div>
+<a class="anchor" id="abdc243e8a1850ddcf6ed91c178949da1"></a><!-- doxytag: member="kyototycoon::HTTPServer::log" ref="abdc243e8a1850ddcf6ed91c178949da1" args="(Logger::Kind kind, const char *format,...)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void kyototycoon::HTTPServer::log </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271">Logger::Kind</a>&nbsp;</td>
+          <td class="paramname"> <em>kind</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>format</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&nbsp;</td>
+          <td class="paramname"> <em>...</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Sep 16 23:30:19 2010 for Kyoto Tycoon by&nbsp;
+<div class="memdoc">
+
+<p>Log a message. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>kind</em>&nbsp;</td><td>the kind of the event. <a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271a8db489b88d769443550d71b89623845a" title="normal information">Logger::DEBUG</a> for debugging, <a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271ab9e1f2799ea8f4111689956085b49276" title="normal information">Logger::INFO</a> for normal information, <a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271aa7ab8f8afa61fcac12f88cf708dc5341" title="system information">Logger::SYSTEM</a> for system information, and <a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271af4159e6ec5c2bc88e5981a6c446dd612" title="error">Logger::ERROR</a> for fatal error. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>format</em>&nbsp;</td><td>the printf-like format string. The conversion character `' can be used with such flag characters as `s', `d', `o', `u', `x', `X', `c', `e', `E', `f', `g', `G', and `'. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>...</em>&nbsp;</td><td>used according to the format string. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a163892c2af221b07c8a11353cb4c3a07"></a><!-- doxytag: member="kyototycoon::HTTPServer::log_v" ref="a163892c2af221b07c8a11353cb4c3a07" args="(Logger::Kind kind, const char *format, va_list ap)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void kyototycoon::HTTPServer::log_v </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271">Logger::Kind</a>&nbsp;</td>
+          <td class="paramname"> <em>kind</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>format</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">va_list&nbsp;</td>
+          <td class="paramname"> <em>ap</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Log a message. </p>
+<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original Cursor::set_value method except that the last parameters is va_list. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a134c85ba3089512fe1663a88c90ed692"></a><!-- doxytag: member="kyototycoon::HTTPServer::status_name" ref="a134c85ba3089512fe1663a88c90ed692" args="(int32_t code)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">static const char* kyototycoon::HTTPServer::status_name </td>
+          <td>(</td>
+          <td class="paramtype">int32_t&nbsp;</td>
+          <td class="paramname"> <em>code</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [static]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Get the name of a status code. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the name of a status code. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a8a0326dc36c14cd9133c3463de093598"></a><!-- doxytag: member="kyototycoon::HTTPServer::media_type" ref="a8a0326dc36c14cd9133c3463de093598" args="(const std::string &amp;url)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">static const char* kyototycoon::HTTPServer::media_type </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>url</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [static]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Guess the media type of a <a class="el" href="classkyototycoon_1_1URL.html" title="URL accessor.">URL</a>. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>url</em>&nbsp;</td><td>the <a class="el" href="classkyototycoon_1_1URL.html" title="URL accessor.">URL</a>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the media type string, or NULL on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a167de25c86d58efa4ebf8f695badfca3"></a><!-- doxytag: member="kyototycoon::HTTPServer::localize_path" ref="a167de25c86d58efa4ebf8f695badfca3" args="(const std::string &amp;path)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">static std::string kyototycoon::HTTPServer::localize_path </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>path</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [static]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Convert the path element of a <a class="el" href="classkyototycoon_1_1URL.html" title="URL accessor.">URL</a> into the local path. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>path</em>&nbsp;</td><td>the path element of a <a class="el" href="classkyototycoon_1_1URL.html" title="URL accessor.">URL</a>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the local path. </dd></dl>
+
+</div>
+</div>
+</div>
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Sun Sep 19 11:05:48 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

@@ -18,6 +18,11 @@
 
 int main(int argc, char** argv) {
 
+  const char *type = kt::HTTPServer::media_type(argv[1]);
+  printf("type:%s\n", type ? type : "(null)");
+
+  return 0;
+
 
   kt::URL url(argv[1]);
   kt::HTTPClient ua;
@@ -26,9 +31,12 @@ int main(int argc, char** argv) {
   for (int i = 0; i < 10000; i++) {
     int32_t code = ua.fetch(url.path_query());
 
-    printf("%d:%d\n", i, code);
+    //printf("%d:%d\n", i, code);
 
-    if (code != 200) abort();
+    if (code != 200) {
+      printf("error:%d\n", code);
+      abort();
+    }
   }
   double etime = kc::time();
   printf("%f\n", etime - stime);

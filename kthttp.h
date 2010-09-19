@@ -424,7 +424,8 @@ public:
    * @param resbody a string to contain the entity body of the response.  If it is NULL, it is
    * ignored.
    * @param resheads a string map to contain the headers of the response.  If it is NULL, it is
-   * ignored.
+   * ignored.  Header names are converted into lower cases.  The empty key means the
+   * request-line.
    * @param reqbody a string which contains the entity body of the request.  If it is NULL, it
    * is ignored.
    * @param reqheads a string map which contains the headers of the request.  If it is NULL, it
@@ -604,7 +605,8 @@ public:
    * @param resbody a string to contain the entity body of the response.  If it is NULL, it is
    * ignored.
    * @param resheads a string map to contain the headers of the response.  If it is NULL, it is
-   * ignored.
+   * ignored.  Header names are converted into lower cases.  The empty key means the
+   * request-line.
    * @param reqbody a string which contains the entity body of the request.  If it is NULL, it
    * is ignored.
    * @param reqheads a string map which contains the headers of the request.  If it is NULL, it
@@ -665,39 +667,11 @@ private:
  */
 class HTTPServer {
 public:
-  class Worker;
   class Logger;
+  class Worker;
 private:
   class WorkerAdapter;
 public:
-  /**
-   * Interface to process each request.
-   */
-  class Worker {
-  public:
-    /**
-     * Destructor.
-     */
-    virtual ~Worker() {}
-    /**
-     * Process each request.
-     * @param pathquery the path and the query string of the resource.
-     * @param method the kind of the request methods.
-     * @param reqheads a string map which contains the headers of the request.
-     * @param reqbody a string which contains the entity body of the request.
-     * @param resheads a string map to contain the headers of the response.
-     * @param resbody a string to contain the entity body of the response.
-     * @param sessdata a string map to contain the session local data.
-     * @return the status code of the response.  If it is less than 1, internal server error is
-     * sent to the client and the connection is closed.
-     */
-    virtual int32_t process(const std::string& pathquery, HTTPClient::Method method,
-                            const std::map<std::string, std::string>& reqheads,
-                            const std::string& reqbody,
-                            std::map<std::string, std::string>& resheads,
-                            std::string& resbody,
-                            std::map<std::string, std::string>& sessdata) = 0;
-  };
   /**
    * Interface to log internal information and errors.
    */
@@ -709,9 +683,43 @@ public:
     virtual ~Logger() {}
   };
   /**
+   * Interface to process each request.
+   */
+  class Worker {
+  public:
+    /**
+     * Destructor.
+     */
+    virtual ~Worker() {}
+    /**
+     * Process each request.
+     * @param serv the server.
+     * @param path the path of the resource.
+     * @param method the kind of the request methods.
+     * @param reqheads a string map which contains the headers of the request.  Header names are
+     * converted into lower cases.  The empty key means the request-line.
+     * @param reqbody a string which contains the entity body of the request.
+     * @param resheads a string map to contain the headers of the response.
+     * @param resbody a string to contain the entity body of the response.
+     * @param misc a string map which contains miscellaneous information.  The key "expr" means
+     * the expression of the client socket.  "url" means the absolute URL.  "query" means the
+     * query string of the URL.
+     * @param sessdata a string map to contain the session local data.
+     * @return the status code of the response.  If it is less than 1, internal server error is
+     * sent to the client and the connection is closed.
+     */
+    virtual int32_t process(HTTPServer* serv, const std::string& path, HTTPClient::Method method,
+                            const std::map<std::string, std::string>& reqheads,
+                            const std::string& reqbody,
+                            std::map<std::string, std::string>& resheads,
+                            std::string& resbody,
+                            const std::map<std::string, std::string>& misc,
+                            std::map<std::string, std::string>& sessdata) = 0;
+  };
+  /**
    * Default constructor.
    */
-  HTTPServer() : serv_(), worker_() {
+  HTTPServer() : serv_(), name_(), worker_() {
     _assert_(true);
   }
   /**
@@ -725,20 +733,24 @@ public:
    * @param expr an expression of the address and the port of the server.
    * @param timeout the timeout of each network operation in seconds.  If it is not more than 0,
    * no timeout is specified.
+   * @param name the name of the server.  If it is an empty string, the host name is specified.
    */
-  void set_network(const std::string& expr, double timeout = -1) {
+  void set_network(const std::string& expr, double timeout = -1, const std::string& name = "") {
     _assert_(true);
     serv_.set_network(expr, timeout);
-  }
-  /**
-   * Set the worker to process each request.
-   * @param worker the worker object.
-   * @param thnum the number of worker threads.
-   */
-  void set_worker(Worker* worker, size_t thnum = 1) {
-    _assert_(true);
-    worker_.worker_ = worker;
-    serv_.set_worker(&worker_, thnum);
+    if (name.empty()) {
+      name_ = Socket::get_local_host_name();
+      if (name.empty()) name_ = "localhost";
+      const char* rp = std::strrchr(expr.c_str(), ':');
+      if (rp) {
+        rp++;
+        int32_t port = kc::atoi(rp);
+        if (port > 0 && port != 80 && !std::strchr(rp, '[') && !std::strchr(rp, ']') &&
+            !std::strchr(rp, '/')) kc::strprintf(&name_, ":%d", port);
+      }
+    } else {
+      name_ = name;
+    }
   }
   /**
    * Set the logger to process each log message.
@@ -750,6 +762,17 @@ public:
   void set_logger(Logger* logger, uint32_t kinds = Logger::SYSTEM | Logger::ERROR) {
     _assert_(true);
     serv_.set_logger(logger, kinds);
+  }
+  /**
+   * Set the worker to process each request.
+   * @param worker the worker object.
+   * @param thnum the number of worker threads.
+   */
+  void set_worker(Worker* worker, size_t thnum = 1) {
+    _assert_(true);
+    worker_.serv_ = this;
+    worker_.worker_ = worker;
+    serv_.set_worker(&worker_, thnum);
   }
   /**
    * Start the service.
@@ -776,6 +799,185 @@ public:
     _assert_(true);
     return serv_.finish();
   }
+  /**
+   * Log a message.
+   * @param kind the kind of the event.  Logger::DEBUG for debugging, Logger::INFO for normal
+   * information, Logger::SYSTEM for system information, and Logger::ERROR for fatal error.
+   * @param format the printf-like format string.  The conversion character `%' can be used with
+   * such flag characters as `s', `d', `o', `u', `x', `X', `c', `e', `E', `f', `g', `G', and `%'.
+   * @param ... used according to the format string.
+   */
+  void log(Logger::Kind kind, const char* format, ...) {
+    _assert_(format);
+    va_list ap;
+    va_start(ap, format);
+    serv_.log_v(kind, format, ap);
+    va_end(ap);
+  }
+  /**
+   * Log a message.
+   * @note Equal to the original Cursor::set_value method except that the last parameters is
+   * va_list.
+   */
+  void log_v(Logger::Kind kind, const char* format, va_list ap) {
+    _assert_(format);
+    serv_.log_v(kind, format, ap);
+  }
+  /**
+   * Get the name of a status code.
+   * @return the name of a status code.
+   */
+  static const char* status_name(int32_t code) {
+    _assert_(true);
+    switch (code) {
+      case 100: return "Continue";
+      case 101: return "Switching Protocols";
+      case 102: return "Processing";
+      case 200: return "OK";
+      case 201: return "Created";
+      case 202: return "Accepted";
+      case 203: return "Non-Authoritative Information";
+      case 204: return "No Content";
+      case 205: return "Reset Content";
+      case 206: return "Partial Content";
+      case 207: return "Multi-Status";
+      case 300: return "Multiple Choices";
+      case 301: return "Moved Permanently";
+      case 302: return "Found";
+      case 303: return "See Other";
+      case 304: return "Not Modified";
+      case 305: return "Use Proxy";
+      case 307: return "Temporary Redirect";
+      case 400: return "Bad Request";
+      case 401: return "Unauthorized";
+      case 402: return "Payment Required";
+      case 403: return "Forbidden";
+      case 404: return "Not Found";
+      case 405: return "Method Not Allowed";
+      case 406: return "Not Acceptable";
+      case 407: return "Proxy Authentication Required";
+      case 408: return "Request Timeout";
+      case 409: return "Conflict";
+      case 410: return "Gone";
+      case 411: return "Length Required";
+      case 412: return "Precondition Failed";
+      case 413: return "Request Entity Too Large";
+      case 414: return "Request-URI Too Long";
+      case 415: return "Unsupported Media Type";
+      case 416: return "Requested Range Not Satisfiable";
+      case 417: return "Expectation Failed";
+      case 422: return "Unprocessable Entity";
+      case 423: return "Locked";
+      case 424: return "Failed Dependency";
+      case 426: return "Upgrade Required";
+      case 500: return "Internal Server Error";
+      case 501: return "Not Implemented";
+      case 502: return "Bad Gateway";
+      case 503: return "Service Unavailable";
+      case 504: return "Gateway Timeout";
+      case 505: return "HTTP Version Not Supported";
+      case 506: return "Variant Also Negotiates";
+      case 507: return "Insufficient Storage";
+      case 509: return "Bandwidth Limit Exceeded";
+      case 510: return "Not Extended";
+    }
+    if (code < 100) return "Unknown Status";
+    if (code < 200) return "Unknown Informational Status";
+    if (code < 300) return "Unknown Success Status";
+    if (code < 400) return "Unknown Redirection Status";
+    if (code < 500) return "Unknown Client Error Status";
+    if (code < 600) return "Unknown Server Error Status";
+    return "Unknown Status";
+  }
+  /**
+   * Guess the media type of a URL.
+   * @param url the URL.
+   * @return the media type string, or NULL on failure.
+   */
+  static const char* media_type(const std::string& url) {
+    static const char* types[] = {
+      "txt", "text/plain", "text", "text/plain", "asc", "text/plain",
+      "c", "text/plain", "h", "text/plain", "s", "text/plain",
+      "cc", "text/plain", "cxx", "text/plain", "cpp", "text/plain",
+      "html", "text/html", "htm", "text/html",
+      "xml", "application/xml",
+      "xhtml", "application/xml+xhtml",
+      "tar", "application/x-tar",
+      "gz", "application/x-gzip",
+      "bz2", "application/x-bzip2",
+      "zip", "application/zip",
+      "xz", "application/octet-stream", "lzma", "application/octet-stream",
+      "lzo", "application/octet-stream", "lzh", "application/octet-stream",
+      "o", "application/octet-stream", "so", "application/octet-stream",
+      "a", "application/octet-stream", "exe", "application/octet-stream",
+      "pdf", "application/pdf",
+      "ps", "application/postscript",
+      "doc", "application/msword",
+      "xls", "application/vnd.ms-excel",
+      "ppt", "application/ms-powerpoint",
+      "swf", "application/x-shockwave-flash",
+      "png", "image/png",
+      "jpg", "image/jpeg", "jpeg", "image/jpeg",
+      "gif", "image/gif",
+      "bmp", "image/bmp",
+      "tif", "image/tiff", "tiff", "image/tiff",
+      "svg", "image/xml+svg",
+      "au", "audio/basic", "snd", "audio/basic",
+      "mid", "audio/midi", "midi", "audio/midi",
+      "mp3", "audio/mpeg", "mp2", "audio/mpeg",
+      "wav", "audio/x-wav",
+      "mpg", "video/mpeg", "mpeg", "video/mpeg",
+      "mp4", "video/mp4", "mpg4", "video/mp4",
+      "mov", "video/quicktime", "qt", "video/quicktime",
+      NULL
+    };
+    const char* rp = url.c_str();
+    const char* pv = std::strrchr(rp, '/');
+    if (pv) rp = pv + 1;
+    pv = std::strrchr(rp, '.');
+    if (pv) {
+      rp = pv + 1;
+      for (int32_t i = 0; types[i]; i += 2) {
+        if (!kc::stricmp(rp, types[i])) return types[i+1];
+      }
+    }
+    return NULL;
+  }
+  /**
+   * Convert the path element of a URL into the local path.
+   * @param path the path element of a URL.
+   * @return the local path.
+   */
+  static std::string localize_path(const std::string& path) {
+    _assert_(true);
+    const std::string& npath = path;
+    std::vector<std::string> elems, nelems;
+    kc::strsplit(npath, '/', &elems);
+    std::vector<std::string>::iterator it = elems.begin();
+    std::vector<std::string>::iterator itend = elems.end();
+    while (it != itend) {
+      if (*it == "..") {
+        if (!nelems.empty()) nelems.pop_back();
+      } else if (!it->empty() && *it != ".") {
+        size_t zsiz;
+        char* zbuf = kc::urldecode(it->c_str(), &zsiz);
+        if (zsiz > 0 && zbuf[0] != '\0' && !std::strchr(zbuf, kc::File::PATHCHR) &&
+            std::strcmp(zbuf, kc::File::CDIRSTR) && std::strcmp(zbuf, kc::File::PDIRSTR))
+          nelems.push_back(zbuf);
+        delete[] zbuf;
+      }
+      it++;
+    }
+    std::string rpath;
+    it = nelems.begin();
+    itend = nelems.end();
+    while (it != itend) {
+      if (!rpath.empty()) rpath.append(kc::File::PATHSTR);
+      rpath.append(*it);
+      it++;
+    }
+    return rpath;
+  }
 private:
   /**
    * Adapter for the worker.
@@ -787,20 +989,31 @@ private:
       _assert_(true);
     }
   private:
-    bool process(ThreadedServer::Session* sess) {
+    bool process(ThreadedServer* serv, ThreadedServer::Session* sess) {
       _assert_(true);
+      std::map<std::string, std::string> misc;
+      misc["expr"] = sess->expression();
       char line[LINEBUFSIZ];
       if (!sess->receive_line(&line, sizeof(line))) return false;
-      HTTPClient::Method method;
       std::map<std::string, std::string> reqheads;
       reqheads[""] = line;
       char* pv = std::strchr(line, ' ');
       if (!pv) return false;
       *(pv++) = '\0';
-      char* pathquery = pv;
-      pv = std::strchr(pathquery, ' ');
+      char* tpath = pv;
+      pv = std::strchr(tpath, ' ');
       if (!pv) return false;
       *(pv++) = '\0';
+      std::string url;
+      kc::strprintf(&url, "http://%s%s", serv_->name_.c_str(), tpath);
+      misc["url"] = url;
+      char* query = std::strchr(tpath, '?');
+      if (query) {
+        *(query++) = '\0';
+        misc["query"] = query;
+      }
+      if (*tpath == '\0') return false;
+      std::string path = tpath;
       int32_t htver;
       if (!std::strcmp(pv, "HTTP/1.0")) {
         htver = 0;
@@ -809,6 +1022,7 @@ private:
       } else {
         return false;
       }
+      HTTPClient::Method method;
       if (!std::strcmp(line, "GET")) {
         method = HTTPClient::MGET;
       } else if (!std::strcmp(line, "HEAD")) {
@@ -908,28 +1122,19 @@ private:
       }
       std::string resbody;
       std::map<std::string, std::string> resheads;
-
-
       struct MapData : public ThreadedServer::Session::Data {
         std::map<std::string, std::string> map;
       };
-
       MapData* sessdata = (MapData*)sess->data();
-
       if (!sessdata) {
         sessdata = new MapData;
         sess->set_data(sessdata);
       }
-
-      int32_t code = worker_->process(pathquery, method, reqheads, reqbody, resheads, resbody,
-                                      sessdata->map);
+      int32_t code = worker_->process(serv_, path, method, reqheads, reqbody,
+                                      resheads, resbody, misc, sessdata->map);
       if (code > 0) {
-
-
-        send_error(sess, code, "love");
-
-
-
+        if (!send_result(sess, code, keep, path, method, reqheads, reqbody,
+                         resheads, resbody, misc)) keep = false;
       } else {
         send_error(sess, 500, "logic error");
         keep = false;
@@ -938,10 +1143,11 @@ private:
     }
     void send_error(ThreadedServer::Session* sess, int32_t code, const char* msg) {
       _assert_(sess && code > 0);
+      const char* name = status_name(code);
       std::string str;
-      kc::strprintf(&str, "%d %s (%s)\n", code, status_name(code), msg);
+      kc::strprintf(&str, "%d %s (%s)\n", code, name, msg);
       std::string data;
-      kc::strprintf(&data, "HTTP/1.1 %d Bad Request\r\n", code);
+      kc::strprintf(&data, "HTTP/1.1 %d %s\r\n", code, name);
       append_server_headers(&data);
       kc::strprintf(&data, "Connection: close\r\n");
       kc::strprintf(&data, "Content-Length: %d\r\n", (int)str.size());
@@ -950,6 +1156,41 @@ private:
       data.append(str);
       sess->send(data.data(), data.size());
     }
+    bool send_result(ThreadedServer::Session* sess, int32_t code, bool keep,
+                     const std::string& path, HTTPClient::Method method,
+                     const std::map<std::string, std::string>& reqheads,
+                     const std::string& reqbody,
+                     const std::map<std::string, std::string>& resheads,
+                     const std::string& resbody,
+                     const std::map<std::string, std::string>& misc) {
+      const char* name = status_name(code);
+      bool body = true;
+      if (method == HTTPClient::MHEAD || code == 304) body = false;
+      std::string data;
+      kc::strprintf(&data, "HTTP/1.1 %d %s\r\n", code, name);
+      append_server_headers(&data);
+      if (!keep) kc::strprintf(&data, "Connection: close\r\n");
+      if (body) kc::strprintf(&data, "Content-Length: %lld\r\n", (long long)resbody.size());
+      std::map<std::string, std::string>::const_iterator it = resheads.begin();
+      std::map<std::string, std::string>::const_iterator itend = resheads.end();
+      while (it != itend) {
+        char* name = kc::strdup(it->first.c_str());
+        char* value = kc::strdup(it->second.c_str());
+        kc::strnrmspc(name);
+        kc::strtolower(name);
+        kc::strnrmspc(value);
+        if (*name != '\0' && !std::strchr(name, ':') && !std::strchr(name, ' ')) {
+          strcapitalize(name);
+          kc::strprintf(&data, "%s: %s\r\n", name, value);
+        }
+        delete[] value;
+        delete[] name;
+        it++;
+      }
+      kc::strprintf(&data, "\r\n");
+      if (body) data.append(resbody);
+      return sess->send(data.data(), data.size());
+    }
     void append_server_headers(std::string* str) {
       _assert_(str);
       kc::strprintf(str, "Server: KyotoTycoon/%s\r\n", VERSION);
@@ -957,68 +1198,7 @@ private:
       datestrhttp(INT64_MAX, 0, buf);
       kc::strprintf(str, "Date: %s\r\n", buf);
     }
-    const char* status_name(int32_t code) {
-      _assert_(true);
-      switch (code) {
-        case 100: return "Continue";
-        case 101: return "Switching Protocols";
-        case 102: return "Processing";
-        case 200: return "OK";
-        case 201: return "Created";
-        case 202: return "Accepted";
-        case 203: return "Non-Authoritative Information";
-        case 204: return "No Content";
-        case 205: return "Reset Content";
-        case 206: return "Partial Content";
-        case 207: return "Multi-Status";
-        case 300: return "Multiple Choices";
-        case 301: return "Moved Permanently";
-        case 302: return "Found";
-        case 303: return "See Other";
-        case 304: return "Not Modified";
-        case 305: return "Use Proxy";
-        case 307: return "Temporary Redirect";
-        case 400: return "Bad Request";
-        case 401: return "Unauthorized";
-        case 402: return "Payment Required";
-        case 403: return "Forbidden";
-        case 404: return "Not Found";
-        case 405: return "Method Not Allowed";
-        case 406: return "Not Acceptable";
-        case 407: return "Proxy Authentication Required";
-        case 408: return "Request Timeout";
-        case 409: return "Conflict";
-        case 410: return "Gone";
-        case 411: return "Length Required";
-        case 412: return "Precondition Failed";
-        case 413: return "Request Entity Too Large";
-        case 414: return "Request-URI Too Long";
-        case 415: return "Unsupported Media Type";
-        case 416: return "Requested Range Not Satisfiable";
-        case 417: return "Expectation Failed";
-        case 422: return "Unprocessable Entity";
-        case 423: return "Locked";
-        case 424: return "Failed Dependency";
-        case 426: return "Upgrade Required";
-        case 500: return "Internal Server Error";
-        case 501: return "Not Implemented";
-        case 502: return "Bad Gateway";
-        case 503: return "Service Unavailable";
-        case 504: return "Gateway Timeout";
-        case 505: return "HTTP Version Not Supported";
-        case 506: return "Variant Also Negotiates";
-        case 507: return "Insufficient Storage";
-        case 509: return "Bandwidth Limit Exceeded";
-        case 510: return "Not Extended";
-      }
-      if (code < 100) return "Unknown Status";
-      if (code < 200) return "Unknown Informational Status";
-      if (code < 300) return "Unknown Success Status";
-      if (code < 400) return "Unknown Redirection Status";
-      if (code < 500) return "Unknown Client Error Status";
-      if (code < 600) return "Unknown Server Error Status";
-      return "Unknown Status";
-    }
+    HTTPServer* serv_;
     HTTPServer::Worker* worker_;
   };
   /** Dummy constructor to forbid the use. */
@@ -1027,6 +1207,8 @@ private:
   HTTPServer& operator =(const HTTPServer&);
   /** The internal server. */
   ThreadedServer serv_;
+  /** The server name. */
+  std::string name_;
   /** The adapter for worker. */
   WorkerAdapter worker_;
 };

@@ -26,6 +26,7 @@ namespace kyototycoon {                  // common namespace
  * Interface of poolable I/O event.
  */
 class Pollable {
+  friend class Poller;
 public:
   /**
    * Event flags.
@@ -35,6 +36,10 @@ public:
     EVOUTPUT = 1 << 1,                   ///< output
     EVEXCEPT = 1 << 2                    ///< exception
   };
+  /**
+   * Default constructor.
+   */
+  Pollable() : opq_(NULL) {}
   /**
    * Destructor.
    */
@@ -56,6 +61,13 @@ public:
    * @return the current event flags.
    */
   virtual uint32_t event_flags() = 0;
+private:
+  /** Dummy constructor to forbid the use. */
+  Pollable(const Pollable&);
+  /** Dummy Operator to forbid the use. */
+  Pollable& operator =(const Pollable&);
+  /** Opaque pointer. */
+  void* opq_;
 };
 
 
@@ -305,16 +317,28 @@ public:
    */
   bool close();
   /**
-   * Register an I/O event.
-   * @param event an pollable event object.
+   * Add a pollable I/O event to the monitored list.
+   * @param event the pollable event object.
    * @return true on success, or false on failure.
    */
-  bool push(Pollable* event);
+  bool deposit(Pollable* event);
   /**
-   * Fetch and remove a notified I/O event.
+   * Remove a pollable I/O from the monitored list.
+   * @param event the pollable event object.
+   * @return true on success, or false on failure.
+   */
+  bool withdraw(Pollable* event);
+  /**
+   * Fetch the next notified I/O event.
    * @return the event object, or NULL on failure.
    */
-  Pollable* pop();
+  Pollable* next();
+  /**
+   * Enable the next notification of a pollable event.
+   * @param event the pollable event object.
+   * @return true on success, or false on failure.
+   */
+  bool undo(Pollable* event);
   /**
    * Wait one or more notifying events.
    * @param timeout the timeout in seconds.  If it is not more than 0, no timeout is specified.

@@ -55,16 +55,20 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Destructor.  <a href="#a54b05994fb581ad74f9bcd194fd4a5e2"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ThreadedServer.html#a777ab18229924e1321f91ba864f48acf">set_network</a> (const std::string &amp;expr, double timeout=-1)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the network configurations.  <a href="#a777ab18229924e1321f91ba864f48acf"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ThreadedServer.html#ae8654f51748e8837401a7934deb872dd">set_worker</a> (<a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Worker.html">Worker</a> *worker, size_t thnum=1)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the worker to process each request.  <a href="#ae8654f51748e8837401a7934deb872dd"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ThreadedServer.html#a9b78a2e7826d583cd2877ab7fa48fee8">set_logger</a> (<a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html">Logger</a> *logger, uint32_t kinds=Logger::SYSTEM|Logger::ERROR)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the logger to process each log message.  <a href="#a9b78a2e7826d583cd2877ab7fa48fee8"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ThreadedServer.html#ae8654f51748e8837401a7934deb872dd">set_worker</a> (<a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Worker.html">Worker</a> *worker, size_t thnum=1)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the worker to process each request.  <a href="#ae8654f51748e8837401a7934deb872dd"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ThreadedServer.html#aa1ebc9660d182816d60495b449531319">start</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Start the service.  <a href="#aa1ebc9660d182816d60495b449531319"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ThreadedServer.html#a1130ff783c68a6654ea3c1631060ad34">stop</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Stop the service.  <a href="#a1130ff783c68a6654ea3c1631060ad34"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ThreadedServer.html#a3136d88ca8ea15d0d548d2147cf9af1e">finish</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Finish the service.  <a href="#a3136d88ca8ea15d0d548d2147cf9af1e"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ThreadedServer.html#a07cdbd865e687fc73378f57d9c468105">log</a> (<a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271">Logger::Kind</a> kind, const char *format,...)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Log a message.  <a href="#a07cdbd865e687fc73378f57d9c468105"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ThreadedServer.html#a033650b3b115902d9b1883e0a6ce8d3b">log_v</a> (<a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271">Logger::Kind</a> kind, const char *format, va_list ap)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Log a message.  <a href="#a033650b3b115902d9b1883e0a6ce8d3b"></a><br/></td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>Interface of poolable I/O event. </p>
@@ -144,42 +148,6 @@
 
 </div>
 </div>
-<a class="anchor" id="ae8654f51748e8837401a7934deb872dd"></a><!-- doxytag: member="kyototycoon::ThreadedServer::set_worker" ref="ae8654f51748e8837401a7934deb872dd" args="(Worker *worker, size_t thnum=1)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void kyototycoon::ThreadedServer::set_worker </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Worker.html">Worker</a> *&nbsp;</td>
-          <td class="paramname"> <em>worker</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&nbsp;</td>
-          <td class="paramname"> <em>thnum</em> = <code>1</code></td><td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td><td></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>Set the worker to process each request. </p>
-<dl><dt><b>Parameters:</b></dt><dd>
-  <table border="0" cellspacing="2" cellpadding="0">
-    <tr><td valign="top"></td><td valign="top"><em>worker</em>&nbsp;</td><td>the worker object. </td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>thnum</em>&nbsp;</td><td>the number of worker threads. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
 <a class="anchor" id="a9b78a2e7826d583cd2877ab7fa48fee8"></a><!-- doxytag: member="kyototycoon::ThreadedServer::set_logger" ref="a9b78a2e7826d583cd2877ab7fa48fee8" args="(Logger *logger, uint32_t kinds=Logger::SYSTEM|Logger::ERROR)" -->
 <div class="memitem">
 <div class="memproto">
@@ -210,6 +178,42 @@
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"></td><td valign="top"><em>logger</em>&nbsp;</td><td>the logger object. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>kinds</em>&nbsp;</td><td>kinds of logged messages by bitwise-or: <a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271a8db489b88d769443550d71b89623845a" title="normal information">Logger::DEBUG</a> for debugging, <a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271ab9e1f2799ea8f4111689956085b49276" title="normal information">Logger::INFO</a> for normal information, <a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271aa7ab8f8afa61fcac12f88cf708dc5341" title="system information">Logger::SYSTEM</a> for system information, and <a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271af4159e6ec5c2bc88e5981a6c446dd612" title="error">Logger::ERROR</a> for fatal error. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ae8654f51748e8837401a7934deb872dd"></a><!-- doxytag: member="kyototycoon::ThreadedServer::set_worker" ref="ae8654f51748e8837401a7934deb872dd" args="(Worker *worker, size_t thnum=1)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void kyototycoon::ThreadedServer::set_worker </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Worker.html">Worker</a> *&nbsp;</td>
+          <td class="paramname"> <em>worker</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&nbsp;</td>
+          <td class="paramname"> <em>thnum</em> = <code>1</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Set the worker to process each request. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>worker</em>&nbsp;</td><td>the worker object. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>thnum</em>&nbsp;</td><td>the number of worker threads. </td></tr>
   </table>
   </dd>
 </dl>
@@ -277,8 +281,87 @@
 
 </div>
 </div>
+<a class="anchor" id="a07cdbd865e687fc73378f57d9c468105"></a><!-- doxytag: member="kyototycoon::ThreadedServer::log" ref="a07cdbd865e687fc73378f57d9c468105" args="(Logger::Kind kind, const char *format,...)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void kyototycoon::ThreadedServer::log </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271">Logger::Kind</a>&nbsp;</td>
+          <td class="paramname"> <em>kind</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>format</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&nbsp;</td>
+          <td class="paramname"> <em>...</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Sep 16 23:30:19 2010 for Kyoto Tycoon by&nbsp;
+<div class="memdoc">
+
+<p>Log a message. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>kind</em>&nbsp;</td><td>the kind of the event. <a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271a8db489b88d769443550d71b89623845a" title="normal information">Logger::DEBUG</a> for debugging, <a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271ab9e1f2799ea8f4111689956085b49276" title="normal information">Logger::INFO</a> for normal information, <a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271aa7ab8f8afa61fcac12f88cf708dc5341" title="system information">Logger::SYSTEM</a> for system information, and <a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271af4159e6ec5c2bc88e5981a6c446dd612" title="error">Logger::ERROR</a> for fatal error. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>format</em>&nbsp;</td><td>the printf-like format string. The conversion character `' can be used with such flag characters as `s', `d', `o', `u', `x', `X', `c', `e', `E', `f', `g', `G', and `'. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>...</em>&nbsp;</td><td>used according to the format string. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a033650b3b115902d9b1883e0a6ce8d3b"></a><!-- doxytag: member="kyototycoon::ThreadedServer::log_v" ref="a033650b3b115902d9b1883e0a6ce8d3b" args="(Logger::Kind kind, const char *format, va_list ap)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void kyototycoon::ThreadedServer::log_v </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271">Logger::Kind</a>&nbsp;</td>
+          <td class="paramname"> <em>kind</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>format</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">va_list&nbsp;</td>
+          <td class="paramname"> <em>ap</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Log a message. </p>
+<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original Cursor::set_value method except that the last parameters is va_list. </dd></dl>
+
+</div>
+</div>
+</div>
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Sun Sep 19 11:05:48 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

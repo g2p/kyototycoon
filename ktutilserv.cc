@@ -32,9 +32,11 @@ static int32_t runecho(int argc, char** argv);
 static int32_t runmtecho(int argc, char** argv);
 static int32_t runhttp(int argc, char** argv);
 static int32_t procecho(const char* host, int32_t port, double tout);
-static int32_t procmtecho(const char* host, int32_t port, double tout, int32_t thnum);
+static int32_t procmtecho(const char* host, int32_t port, double tout, int32_t thnum,
+                          uint32_t loglv);
 static int32_t prochttp(const char* base,
-                        const char* host, int32_t port, double tout, int32_t thnum);
+                        const char* host, int32_t port, double tout, int32_t thnum,
+                        uint32_t loglv);
 
 
 // main routine
@@ -67,8 +69,10 @@ static void usage() {
   eprintf("\n");
   eprintf("usage:\n");
   eprintf("  %s echo [-host str] [-port num] [-tout num]\n", g_progname);
-  eprintf("  %s mtecho [-host str] [-port num] [-tout num] [-th num]\n", g_progname);
-  eprintf("  %s http [-host str] [-port num] [-tout num] [-th num] [basedir]\n", g_progname);
+  eprintf("  %s mtecho [-host str] [-port num] [-tout num] [-th num] [-li|-ls|-le|-lz]\n",
+          g_progname);
+  eprintf("  %s http [-host str] [-port num] [-tout num] [-th num] [-li|-ls|-le|-lz]"
+          " [basedir]\n", g_progname);
   eprintf("\n");
   std::exit(1);
 }
@@ -131,6 +135,7 @@ static int32_t runmtecho(int argc, char** argv) {
   int32_t port = DEFPORT;
   double tout = DEFTOUT;
   int32_t thnum = 1;
+  uint32_t loglv = UINT32_MAX;
   for (int32_t i = 2; i < argc; i++) {
     if (argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "-host")) {
@@ -145,6 +150,15 @@ static int32_t runmtecho(int argc, char** argv) {
       } else if (!std::strcmp(argv[i], "-th")) {
         if (++i >= argc) usage();
         thnum = kc::atof(argv[i]);
+      } else if (!std::strcmp(argv[i], "-li")) {
+        loglv = kt::ThreadedServer::Logger::INFO | kt::ThreadedServer::Logger::SYSTEM |
+          kt::ThreadedServer::Logger::ERROR;
+      } else if (!std::strcmp(argv[i], "-ls")) {
+        loglv = kt::ThreadedServer::Logger::SYSTEM | kt::ThreadedServer::Logger::ERROR;
+      } else if (!std::strcmp(argv[i], "-le")) {
+        loglv = kt::ThreadedServer::Logger::ERROR;
+      } else if (!std::strcmp(argv[i], "-lz")) {
+        loglv = 0;
       } else {
         usage();
       }
@@ -154,7 +168,7 @@ static int32_t runmtecho(int argc, char** argv) {
   }
   if (port < 1 || thnum < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
-  int32_t rv = procmtecho(host, port, tout, thnum);
+  int32_t rv = procmtecho(host, port, tout, thnum, loglv);
   return rv;
 }
 
@@ -166,6 +180,7 @@ static int32_t runhttp(int argc, char** argv) {
   int32_t port = DEFPORT;
   double tout = DEFTOUT;
   int32_t thnum = 1;
+  uint32_t loglv = UINT32_MAX;
   for (int32_t i = 2; i < argc; i++) {
     if (argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "-host")) {
@@ -180,6 +195,15 @@ static int32_t runhttp(int argc, char** argv) {
       } else if (!std::strcmp(argv[i], "-th")) {
         if (++i >= argc) usage();
         thnum = kc::atof(argv[i]);
+      } else if (!std::strcmp(argv[i], "-li")) {
+        loglv = kt::HTTPServer::Logger::INFO | kt::HTTPServer::Logger::SYSTEM |
+          kt::HTTPServer::Logger::ERROR;
+      } else if (!std::strcmp(argv[i], "-ls")) {
+        loglv = kt::HTTPServer::Logger::SYSTEM | kt::HTTPServer::Logger::ERROR;
+      } else if (!std::strcmp(argv[i], "-le")) {
+        loglv = kt::HTTPServer::Logger::ERROR;
+      } else if (!std::strcmp(argv[i], "-lz")) {
+        loglv = 0;
       } else {
         usage();
       }
@@ -191,7 +215,7 @@ static int32_t runhttp(int argc, char** argv) {
   }
   if (port < 1 || thnum < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
-  int32_t rv = prochttp(base, host, port, tout, thnum);
+  int32_t rv = prochttp(base, host, port, tout, thnum, loglv);
   return rv;
 }
 
@@ -222,22 +246,22 @@ static int32_t procecho(const char* host, int32_t port, double tout) {
   g_poller = &poll;
   iprintf("%s: started: %s\n", g_progname, serv.expression().c_str());
   serv.set_event_flags(kt::Pollable::EVINPUT);
-  if (!poll.push(&serv)) {
-    eprintf("%s: poller: push error: %s\n", g_progname, poll.error());
+  if (!poll.deposit(&serv)) {
+    eprintf("%s: poller: deposit error: %s\n", g_progname, poll.error());
     err = true;
   }
   while (g_servsock) {
     if (poll.wait()) {
       kt::Pollable* event;
-      while ((event = poll.pop()) != NULL) {
+      while ((event = poll.next()) != NULL) {
         if (event == &serv) {
           kt::Socket* sock = new kt::Socket;
           sock->set_timeout(tout);
           if (serv.accept(sock)) {
             iprintf("%s: connected: %s\n", g_progname, sock->expression().c_str());
             sock->set_event_flags(kt::Pollable::EVINPUT);
-            if (!poll.push(sock)) {
-              eprintf("%s: poller: push error: %s\n", g_progname, poll.error());
+            if (!poll.deposit(sock)) {
+              eprintf("%s: poller: deposit error: %s\n", g_progname, poll.error());
               err = true;
             }
           } else {
@@ -246,21 +270,25 @@ static int32_t procecho(const char* host, int32_t port, double tout) {
             delete[] sock;
           }
           serv.set_event_flags(kt::Pollable::EVINPUT);
-          if (!poll.push(&serv)) {
-            eprintf("%s: poller: push error: %s\n", g_progname, poll.error());
+          if (!poll.undo(&serv)) {
+            eprintf("%s: poller: undo error: %s\n", g_progname, poll.error());
             err = true;
           }
         } else {
           kt::Socket* sock = (kt::Socket*)event;
           char line[LINEBUFSIZ];
           if (sock->receive_line(line, sizeof(line))) {
-            iprintf("%s: [%s]: %s\n", g_progname, sock->expression().c_str(), line);
+            iprintf("%s: (%s): %s\n", g_progname, sock->expression().c_str(), line);
             if (!kc::stricmp(line, "/quit")) {
               if (!sock->printf("> Bye!\n")) {
                 eprintf("%s: socket: printf error: %s\n", g_progname, sock->error());
                 err = true;
               }
               iprintf("%s: closing: %s\n", g_progname, sock->expression().c_str());
+              if (!poll.withdraw(sock)) {
+                eprintf("%s: poller: withdraw error: %s\n", g_progname, poll.error());
+                err = true;
+              }
               if (!sock->close()) {
                 eprintf("%s: socket: close error: %s\n", g_progname, poll.error());
                 err = true;
@@ -272,13 +300,17 @@ static int32_t procecho(const char* host, int32_t port, double tout) {
                 err = true;
               }
               serv.set_event_flags(kt::Pollable::EVINPUT);
-              if (!poll.push(sock)) {
-                eprintf("%s: poller: push error: %s\n", g_progname, poll.error());
+              if (!poll.undo(sock)) {
+                eprintf("%s: poller: undo error: %s\n", g_progname, poll.error());
                 err = true;
               }
             }
           } else {
             iprintf("%s: closed: %s\n", g_progname, sock->expression().c_str());
+            if (!poll.withdraw(sock)) {
+              eprintf("%s: poller: withdraw error: %s\n", g_progname, poll.error());
+              err = true;
+            }
             if (!sock->close()) {
               eprintf("%s: socket: close error: %s\n", g_progname, poll.error());
               err = true;
@@ -295,10 +327,14 @@ static int32_t procecho(const char* host, int32_t port, double tout) {
   g_poller = NULL;
   if (poll.flush()) {
     kt::Pollable* event;
-    while ((event = poll.pop()) != NULL) {
+    while ((event = poll.next()) != NULL) {
       if (event != &serv) {
         kt::Socket* sock = (kt::Socket*)event;
         iprintf("%s: discarded: %s\n", g_progname, sock->expression().c_str());
+        if (!poll.withdraw(sock)) {
+          eprintf("%s: poller: withdraw error: %s\n", g_progname, poll.error());
+          err = true;
+        }
         if (!sock->close()) {
           eprintf("%s: socket: close error: %s\n", g_progname, poll.error());
           err = true;
@@ -324,7 +360,8 @@ static int32_t procecho(const char* host, int32_t port, double tout) {
 
 
 // perform mtecho command
-static int32_t procmtecho(const char* host, int32_t port, double tout, int32_t thnum) {
+static int32_t procmtecho(const char* host, int32_t port, double tout, int32_t thnum,
+                          uint32_t loglv) {
   std::string addr = "";
   if (host) {
     addr = kt::Socket::get_host_address(host);
@@ -335,9 +372,10 @@ static int32_t procmtecho(const char* host, int32_t port, double tout, int32_t t
   }
   std::string expr = kc::strprintf("%s:%d", addr.c_str(), port);
   kt::ThreadedServer serv;
+  kt::ThreadedServer::Logger* logger = stdlogger(g_progname, &std::cout);
   class Worker : public kt::ThreadedServer::Worker {
   private:
-    bool process(kt::ThreadedServer::Session* sess) {
+    bool process(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess) {
       bool keep = false;
       char line[1024];
       if (sess->receive_line(line, sizeof(line))) {
@@ -354,42 +392,43 @@ static int32_t procmtecho(const char* host, int32_t port, double tout, int32_t t
             sess->set_data(data);
             data->t = kc::time();
           }
-          iprintf("%s: [%s]: id=%llu thid=%u time=%lld msg=%s\n", g_progname,
-                  sess->expression().c_str(), (unsigned long long)sess->id(),
-                  (unsigned)sess->thread_id(), (long long)(kc::time() - data->t), line);
           sess->printf("> %s\n", line);
+          serv->log(kt::ThreadedServer::Logger::INFO, "(%s): id=%llu thid=%u time=%lld msg=%s",
+                    sess->expression().c_str(), (unsigned long long)sess->id(),
+                    (unsigned)sess->thread_id(), (long long)(kc::time() - data->t), line);
           keep = true;
         }
       }
       return keep;
     }
-  } worker;
-  kt::ThreadedServer::Logger* logger = stdlogger(g_progname, &std::cout);
+  };
+  Worker worker;
   bool err = false;
   serv.set_network(expr, tout);
+  serv.set_logger(logger, loglv);
   serv.set_worker(&worker, thnum);
-  serv.set_logger(logger, UINT32_MAX);
   g_thserv = &serv;
-  logger->log(kt::ThreadedServer::Logger::SYSTEM, "================ [START]");
+  serv.log(kt::ThreadedServer::Logger::SYSTEM, "================ [START]");
   if (serv.start()) {
     if (serv.finish()) err = true;
   } else {
     err = true;
   }
-  logger->log(kt::ThreadedServer::Logger::SYSTEM, "================ [FINISH]");
+  serv.log(kt::ThreadedServer::Logger::SYSTEM, "================ [FINISH]");
   return err ? 1 : 0;
 }
 
 
 // perform http command
 static int32_t prochttp(const char* base,
-                        const char* host, int32_t port, double tout, int32_t thnum) {
+                        const char* host, int32_t port, double tout, int32_t thnum,
+                        uint32_t loglv) {
   if (!base) base = kc::File::CDIRSTR;
-
-
-  // absolute path of the base directory
-
-
+  std::string baseabs = kc::File::absolute_path(base);
+  if (baseabs.empty()) {
+    eprintf("%s: %s: unknown directory\n", g_progname, base);
+    return 1;
+  }
   std::string addr = "";
   if (host) {
     addr = kt::Socket::get_host_address(host);
@@ -400,36 +439,120 @@ static int32_t prochttp(const char* base,
   }
   std::string expr = kc::strprintf("%s:%d", addr.c_str(), port);
   kt::HTTPServer serv;
+  kt::HTTPServer::Logger* logger = stdlogger(g_progname, &std::cout);
   class Worker : public kt::HTTPServer::Worker {
+  public:
+    Worker(const std::string& base) : base_(base) {}
   private:
-    int32_t process(const std::string& pathquery, kt::HTTPClient::Method method,
+    int32_t process(kt::HTTPServer* serv, const std::string& path, kt::HTTPClient::Method method,
                     const std::map<std::string, std::string>& reqheads,
                     const std::string& reqbody,
                     std::map<std::string, std::string>& resheads,
                     std::string& resbody,
+                    const std::map<std::string, std::string>& misc,
                     std::map<std::string, std::string>& sessdata) {
-
-
-
-
-      return 200;
-
-
+      const char* reqline = kt::strmapget(reqheads, "");
+      const char* expr = kt::strmapget(misc, "expr");
+      const char* url = kt::strmapget(misc, "url");
+      int32_t code = -1;
+      const std::string& lpath = kt::HTTPServer::localize_path(path);
+      std::string apath = base_ + (lpath.empty() ? "" : kc::File::PATHSTR) + lpath;
+      bool dir = kc::strbwm(path.c_str(), "/");
+      if (method == kt::HTTPClient::MGET) {
+        kc::File::Status sbuf;
+        if (kc::File::status(apath, &sbuf)) {
+          if (dir && sbuf.isdir) {
+            const std::string& ipath = apath + kc::File::PATHSTR + "index.html";
+            if (kc::File::status(ipath)) {
+              apath = ipath;
+              sbuf.isdir = false;
+            }
+          }
+          if (sbuf.isdir) {
+            if (dir) {
+              std::vector<std::string> files;
+              if (kc::File::read_directory(apath, &files)) {
+                code = 200;
+                resheads["content-type"] = "text/html";
+                kc::strprintf(&resbody, "<ul>\n");
+                kc::strprintf(&resbody, "<li><a href=\"./\">./</a></li>\n");
+                kc::strprintf(&resbody, "<li><a href=\"../\">../</a></li>\n");
+                kc::strprintf(&resbody, "</ul>\n");
+                kc::strprintf(&resbody, "<ul>\n");
+                std::sort(files.begin(), files.end());
+                std::vector<std::string>::iterator it = files.begin();
+                std::vector<std::string>::iterator itend = files.end();
+                while (it != itend) {
+                  if (*it != kc::File::CDIRSTR && *it != kc::File::PDIRSTR) {
+                    std::string cpath = apath + kc::File::PATHSTR + *it;
+                    if (kc::File::status(cpath, &sbuf)) {
+                      char* ubuf = kc::urlencode(it->data(), it->size());
+                      char* xstr = kt::xmlescape(it->c_str());
+                      const char* dsuf = sbuf.isdir ? "/" : "";
+                      kc::strprintf(&resbody, "<li><a href=\"%s%s\">%s%s</a></li>\n",
+                                    ubuf, dsuf, xstr, dsuf);
+                      delete[] xstr;
+                      delete[] ubuf;
+                    }
+                  }
+                  it++;
+                }
+                kc::strprintf(&resbody, "</ul>\n");
+              } else {
+                code = 403;
+                resheads["content-type"] = "text/plain";
+                kc::strprintf(&resbody, "%s\n", kt::HTTPServer::status_name(code));
+              }
+            } else {
+              code = 301;
+              resheads["content-type"] = "text/plain";
+              resheads["location"] = (url ? url : path) + '/';
+              kc::strprintf(&resbody, "%s\n", kt::HTTPServer::status_name(code));
+            }
+          } else {
+            int64_t size;
+            char* buf = kc::File::read_file(apath, &size, 256LL << 20);
+            if (buf) {
+              code = 200;
+              const char* type = kt::HTTPServer::media_type(path);
+              if (type) resheads["content-type"] = type;
+              resbody.append(buf, size);
+              delete[] buf;
+            } else {
+              code = 403;
+              resheads["content-type"] = "text/plain";
+              kc::strprintf(&resbody, "%s\n", kt::HTTPServer::status_name(code));
+            }
+          }
+        } else {
+          code = 404;
+          resheads["content-type"] = "text/plain";
+          kc::strprintf(&resbody, "%s\n", kt::HTTPServer::status_name(code));
+        }
+      } else {
+        code = 403;
+        resheads["content-type"] = "text/plain";
+        kc::strprintf(&resbody, "%s\n", kt::HTTPServer::status_name(code));
+      }
+      serv->log(kt::HTTPServer::Logger::INFO, "(%s): %s: %d",
+                expr ? expr : "-", reqline ? reqline : "-", code);
+      return code;
     }
-  } worker;
-  kt::HTTPServer::Logger* logger = stdlogger(g_progname, &std::cout);
+    std::string base_;
+  };
+  Worker worker(baseabs);
   bool err = false;
   serv.set_network(expr, tout);
+  serv.set_logger(logger, loglv);
   serv.set_worker(&worker, thnum);
-  serv.set_logger(logger, UINT32_MAX);
   g_httpserv = &serv;
-  logger->log(kt::ThreadedServer::Logger::SYSTEM, "================ [START]");
+  serv.log(kt::HTTPServer::Logger::SYSTEM, "================ [START]");
   if (serv.start()) {
     if (serv.finish()) err = true;
   } else {
     err = true;
   }
-  logger->log(kt::ThreadedServer::Logger::SYSTEM, "================ [FINISH]");
+  serv.log(kt::HTTPServer::Logger::SYSTEM, "================ [FINISH]");
   return err ? 1 : 0;
 }
 

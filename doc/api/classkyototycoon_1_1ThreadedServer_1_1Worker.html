@@ -40,8 +40,8 @@
 <tr><td colspan="2"><h2>Public Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Worker.html#a58e183ffcc6efba701208e0454628981">~Worker</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Destructor.  <a href="#a58e183ffcc6efba701208e0454628981"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">virtual bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Worker.html#afb00b7e93d3bbac514b2a66cdb354c77">process</a> (<a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Session.html">Session</a> *sess)=0</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Process each request.  <a href="#afb00b7e93d3bbac514b2a66cdb354c77"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Worker.html#a3c34ce8ba8b16c3cd47d4d500a3c5d8d">process</a> (<a class="el" href="classkyototycoon_1_1ThreadedServer.html">ThreadedServer</a> *serv, <a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Session.html">Session</a> *sess)=0</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Process each request.  <a href="#a3c34ce8ba8b16c3cd47d4d500a3c5d8d"></a><br/></td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>Interface to process each request. </p>
@@ -66,17 +66,26 @@
 </div>
 </div>
 <hr/><h2>Member Function Documentation</h2>
-<a class="anchor" id="afb00b7e93d3bbac514b2a66cdb354c77"></a><!-- doxytag: member="kyototycoon::ThreadedServer::Worker::process" ref="afb00b7e93d3bbac514b2a66cdb354c77" args="(Session *sess)=0" -->
+<a class="anchor" id="a3c34ce8ba8b16c3cd47d4d500a3c5d8d"></a><!-- doxytag: member="kyototycoon::ThreadedServer::Worker::process" ref="a3c34ce8ba8b16c3cd47d4d500a3c5d8d" args="(ThreadedServer *serv, Session *sess)=0" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname">virtual bool kyototycoon::ThreadedServer::Worker::process </td>
           <td>(</td>
+          <td class="paramtype"><a class="el" href="classkyototycoon_1_1ThreadedServer.html">ThreadedServer</a> *&nbsp;</td>
+          <td class="paramname"> <em>serv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype"><a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Session.html">Session</a> *&nbsp;</td>
-          <td class="paramname"> <em>sess</em></td>
-          <td>&nbsp;)&nbsp;</td>
-          <td><code> [pure virtual]</code></td>
+          <td class="paramname"> <em>sess</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td><code> [pure virtual]</code></td>
         </tr>
       </table>
 </div>
@@ -85,6 +94,7 @@
 <p>Process each request. </p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>serv</em>&nbsp;</td><td>the server. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>sess</em>&nbsp;</td><td>the session with the client. </td></tr>
   </table>
   </dd>
@@ -94,7 +104,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Sep 16 23:30:19 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Sun Sep 19 11:05:48 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>
