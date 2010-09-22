@@ -20,6 +20,7 @@
 #include <ktsocket.h>
 #include <ktthserv.h>
 #include <kthttp.h>
+#include <kttimeddb.h>
 
 namespace kc = kyotocabinet;
 namespace kt = kyototycoon;
@@ -55,6 +56,40 @@ void splitstr(const std::string& str, char delim, std::vector<std::string>* elem
 std::string unitnumstr(int64_t num);
 std::string unitnumstrbyte(int64_t num);
 kt::HTTPServer::Logger* stdlogger(const char* prefix, std::ostream* strm);
+void printdb(kc::BasicDB* db, bool px = false);
+
+
+// checker to show progress by printing dots
+class DotChecker : public kc::BasicDB::ProgressChecker {
+public:
+  explicit DotChecker(std::ostream* strm, int64_t freq) : strm_(strm), freq_(freq), cnt_(0) {}
+  int64_t count() {
+    return cnt_;
+  }
+private:
+  bool check(const char* name, const char* message, int64_t curcnt, int64_t allcnt) {
+    if (std::strcmp(message, "processing") || freq_ == 0) return true;
+    if (freq_ < 0) {
+      cnt_++;
+      if (cnt_ % -freq_ == 0) {
+        iputchar('.');
+        if (cnt_ % (-freq_ * 50) == 0) iprintf(" (%lld)\n", (long long)cnt_);
+      }
+    } else {
+      if (curcnt > cnt_) {
+        cnt_ = curcnt;
+        if (cnt_ % freq_ == 0) {
+          iputchar('.');
+          if (cnt_ % (freq_ * 50) == 0) iprintf(" (%lld)\n", (long long)cnt_);
+        }
+      }
+    }
+    return true;
+  }
+  std::ostream* strm_;
+  int64_t freq_;
+  int64_t cnt_;
+};
 
 
 // get the random seed
@@ -215,6 +250,26 @@ inline kt::HTTPServer::Logger* stdlogger(const char* prefix, std::ostream* strm)
   };
   static LoggerImpl logger(strm, prefix);
   return &logger;
+}
+
+
+// print all record of a database
+inline void printdb(kc::BasicDB* db, bool px) {
+  class Printer : public kc::DB::Visitor {
+  public:
+    explicit Printer(bool px) : px_(px) {}
+  private:
+    const char* visit_full(const char* kbuf, size_t ksiz,
+                           const char* vbuf, size_t vsiz, size_t* sp) {
+      printdata(kbuf, ksiz, px_);
+      iputchar('\t');
+      printdata(vbuf, vsiz, px_);
+      iputchar('\n');
+      return NOP;
+    }
+    bool px_;
+  } printer(px);
+  db->iterate(&printer, false);
 }
 
 

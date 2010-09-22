@@ -7,18 +7,18 @@
 #================================================================
 
 # Package name
-AC_INIT(kyototycoon, 0.0.7)
+AC_INIT(kyototycoon, 0.0.8)
 
 # Package information
 MYLIBVER=1
 MYLIBREV=1
 
 # Targets
-MYHEADERFILES="ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h"
+MYHEADERFILES="ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h kttimeddb.h"
 MYLIBRARYFILES="libkyototycoon.a"
-MYLIBOBJFILES="ktutil.o ktsocket.o ktthserv.o kthttp.o"
-MYCOMMANDFILES="ktutiltest ktutilmgr ktutilserv"
-MYMAN1FILES="ktutiltest.1 ktutilmgr.1 ktutilserv.1"
+MYLIBOBJFILES="ktutil.o ktsocket.o ktthserv.o kthttp.o kttimeddb.o"
+MYCOMMANDFILES="ktutiltest ktutilmgr ktutilserv kttimedtest kttimedmgr"
+MYMAN1FILES="ktutiltest.1 ktutilmgr.1 ktutilserv.1 kttimedtest.1 kttimedmgr.1"
 MYDOCUMENTFILES="COPYING ChangeLog doc kyototycoon.idl"
 MYPCFILES="kyototycoon.pc"
 

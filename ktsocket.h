@@ -39,7 +39,7 @@ public:
   /**
    * Default constructor.
    */
-  Pollable() : opq_(NULL) {}
+  explicit Pollable() : opq_(NULL) {}
   /**
    * Destructor.
    */

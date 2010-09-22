@@ -380,7 +380,7 @@ public:
   /**
    * Default constructor.
    */
-  HTTPClient() : sock_(), host_(""), port_(0) {
+  explicit HTTPClient() : sock_(), host_(""), port_(0) {
     _assert_(true);
   }
   /**
@@ -796,7 +796,7 @@ public:
   /**
    * Default constructor.
    */
-  HTTPServer() : serv_(), name_(), worker_() {
+  explicit HTTPServer() : serv_(), name_(), worker_() {
     _assert_(true);
   }
   /**

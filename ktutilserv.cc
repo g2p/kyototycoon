@@ -442,7 +442,7 @@ static int32_t prochttp(const char* base,
   kt::HTTPServer::Logger* logger = stdlogger(g_progname, &std::cout);
   class Worker : public kt::HTTPServer::Worker {
   public:
-    Worker(const std::string& base) : base_(base) {}
+    explicit Worker(const std::string& base) : base_(base) {}
   private:
     int32_t process(kt::HTTPServer* serv, kt::HTTPServer::Session* sess,
                     const std::string& path, kt::HTTPClient::Method method,

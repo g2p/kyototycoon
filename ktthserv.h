@@ -159,7 +159,7 @@ public:
   /**
    * Default constructor.
    */
-  ThreadedServer() :
+  explicit ThreadedServer() :
     run_(false), expr_(), timeout_(0), logger_(NULL), logkinds_(0), worker_(NULL), thnum_(0),
     sock_(), poll_(), queue_(this), sesscnt_(0) {
     _assert_(true);
