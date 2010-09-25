@@ -20,6 +20,7 @@
 #include <ktsocket.h>
 #include <ktthserv.h>
 #include <kthttp.h>
+#include <ktrpc.h>
 #include <kttimeddb.h>
 
 namespace kc = kyotocabinet;
@@ -52,10 +53,9 @@ void eprintf(const char* format, ...);
 void printversion();
 void printdata(const char* buf, int size, bool px);
 bool getline(std::istream* is, std::string* str);
-void splitstr(const std::string& str, char delim, std::vector<std::string>* elems);
 std::string unitnumstr(int64_t num);
 std::string unitnumstrbyte(int64_t num);
-kt::HTTPServer::Logger* stdlogger(const char* prefix, std::ostream* strm);
+kt::RPCServer::Logger* stdlogger(const char* prefix, std::ostream* strm);
 void printdb(kc::BasicDB* db, bool px = false);
 
 
@@ -229,18 +229,18 @@ inline std::string unitnumstrbyte(int64_t num) {
 
 
 // get the logger into the standard stream
-inline kt::HTTPServer::Logger* stdlogger(const char* prefix, std::ostream* strm) {
-  class LoggerImpl : public kt::HTTPServer::Logger {
+inline kt::RPCServer::Logger* stdlogger(const char* prefix, std::ostream* strm) {
+  class LoggerImpl : public kt::RPCServer::Logger {
   public:
     explicit LoggerImpl(std::ostream* strm, const char* prefix) :
       strm_(strm), prefix_(prefix) {}
     void log(Kind kind, const char* message) {
       const char* kstr = "MISC";
       switch (kind) {
-        case kt::HTTPServer::Logger::DEBUG: kstr = "DEBUG"; break;
-        case kt::HTTPServer::Logger::INFO: kstr = "INFO"; break;
-        case kt::HTTPServer::Logger::SYSTEM: kstr = "SYSTEM"; break;
-        case kt::HTTPServer::Logger::ERROR: kstr = "ERROR"; break;
+        case kt::RPCServer::Logger::DEBUG: kstr = "DEBUG"; break;
+        case kt::RPCServer::Logger::INFO: kstr = "INFO"; break;
+        case kt::RPCServer::Logger::SYSTEM: kstr = "SYSTEM"; break;
+        case kt::RPCServer::Logger::ERROR: kstr = "ERROR"; break;
       }
       *strm_ << prefix_ << ": [" << kstr << "]: " << message << std::endl;
     }

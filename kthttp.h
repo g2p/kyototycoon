@@ -28,8 +28,8 @@ namespace kyototycoon {                  // common namespace
  * Constants for implementation.
  */
 namespace {
-const int32_t LINEBUFSIZ = 8192;
-const int32_t RECVMAXSIZ = 1 << 30;
+const int32_t HTLINEBUFSIZ = 8192;       ///< size for a line buffer
+const int32_t HTRECVMAXSIZ = 1 << 30;    ///< maximum size of received data
 }
 
 
@@ -482,7 +482,7 @@ public:
       if (resbody) resbody->append("[sending data failed]");
       return -1;
     }
-    char line[LINEBUFSIZ];
+    char line[HTLINEBUFSIZ];
     if (!sock_.receive_line(line, sizeof(line))) {
       if (resbody) resbody->append("[receiving data failed]");
       return -1;
@@ -526,7 +526,7 @@ public:
     }
     if (method != MHEAD && code != 304) {
       if (clen >= 0) {
-        if (clen > RECVMAXSIZ) {
+        if (clen > HTRECVMAXSIZ) {
           if (resbody) resbody->append("[too large response]");
           return -1;
         }
@@ -539,7 +539,7 @@ public:
         if (resbody) resbody->append(body, clen);
         delete[] body;
       } else if (chunked) {
-        int64_t asiz = LINEBUFSIZ;
+        int64_t asiz = HTLINEBUFSIZ;
         char* body = (char*)kc::xmalloc(asiz);
         int64_t bsiz = 0;
         while (true) {
@@ -550,7 +550,7 @@ public:
           }
           if (*line == '\0') break;
           int64_t csiz = kc::atoih(line);
-          if (bsiz + csiz > RECVMAXSIZ) {
+          if (bsiz + csiz > HTRECVMAXSIZ) {
             if (resbody) resbody->append("[too large response]");
             kc::xfree(body);
             return -1;
@@ -575,13 +575,13 @@ public:
         if (resbody) resbody->append(body, bsiz);
         kc::xfree(body);
       } else {
-        int64_t asiz = LINEBUFSIZ;
+        int64_t asiz = HTLINEBUFSIZ;
         char* body = (char*)kc::xmalloc(asiz);
         int64_t bsiz = 0;
         while (true) {
           int32_t c = sock_.receive_byte();
           if (c < 0) break;
-          if (bsiz > RECVMAXSIZ - 1) {
+          if (bsiz > HTRECVMAXSIZ - 1) {
             if (resbody) resbody->append("[too large response]");
             kc::xfree(body);
             return -1;
@@ -787,7 +787,7 @@ public:
     /**
      * Destructor.
      */
-    ~Session() {
+    virtual ~Session() {
       _assert_(true);
     }
   private:
@@ -854,7 +854,7 @@ public:
   /**
    * Start the service.
    * @return true on success, or false on failure.
-   * @note This function blocks until the server stops by the ThreadedServer::stop method.
+   * @note This function blocks until the server stops by the HTTPServer::stop method.
    */
   bool start() {
     _assert_(true);
@@ -947,6 +947,7 @@ public:
       case 423: return "Locked";
       case 424: return "Failed Dependency";
       case 426: return "Upgrade Required";
+      case 450: return "Logical Inconsistency";
       case 500: return "Internal Server Error";
       case 501: return "Not Implemented";
       case 502: return "Bad Gateway";
@@ -1062,13 +1063,13 @@ private:
   class WorkerAdapter : public ThreadedServer::Worker {
     friend class HTTPServer;
   public:
-    WorkerAdapter() : worker_(NULL) {
+    WorkerAdapter() : serv_(NULL), worker_(NULL) {
       _assert_(true);
     }
   private:
     bool process(ThreadedServer* serv, ThreadedServer::Session* sess) {
       _assert_(true);
-      char line[LINEBUFSIZ];
+      char line[HTLINEBUFSIZ];
       if (!sess->receive_line(&line, sizeof(line))) return false;
       std::map<std::string, std::string> misc;
       std::map<std::string, std::string> reqheads;
@@ -1146,7 +1147,7 @@ private:
       if (method == HTTPClient::MPOST || method == HTTPClient::MPUT ||
           method == HTTPClient::MUNKNOWN) {
         if (clen >= 0) {
-          if (clen > RECVMAXSIZ) {
+          if (clen > HTRECVMAXSIZ) {
             send_error(sess, 413, "request entity too large");
             return false;
           }
@@ -1159,7 +1160,7 @@ private:
           reqbody.append(body, clen);
           delete[] body;
         } else if (chunked) {
-          int64_t asiz = LINEBUFSIZ;
+          int64_t asiz = HTLINEBUFSIZ;
           char* body = (char*)kc::xmalloc(asiz);
           int64_t bsiz = 0;
           while (true) {
@@ -1170,7 +1171,7 @@ private:
             }
             if (*line == '\0') break;
             int64_t csiz = kc::atoih(line);
-            if (bsiz + csiz > RECVMAXSIZ) {
+            if (bsiz + csiz > HTRECVMAXSIZ) {
               send_error(sess, 413, "request entity too large");
               kc::xfree(body);
               return false;
@@ -1201,6 +1202,8 @@ private:
       Session mysess(sess);
       int32_t code = worker_->process(serv_, &mysess, path, method, reqheads, reqbody,
                                       resheads, resbody, misc);
+      serv->log(Logger::INFO, "(%s): %s: %d",
+                sess->expression().c_str(), reqheads[""].c_str(), code);
       if (code > 0) {
         if (!send_result(sess, code, keep, path, method, reqheads, reqbody,
                          resheads, resbody, misc)) keep = false;

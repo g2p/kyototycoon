@@ -287,6 +287,21 @@ check-timed :
 	  "casket#type=kcf#zcomp=arc#zkey=mikio"
 
 
+check-heavy :
+	$(MAKE) check-timed-heavy
+
+
+check-timed-heavy :
+	$(RUNENV) ./kttimedtest order -th 1 -rnd -set 'casket.kch' 4000000
+	$(RUNENV) ./kttimedtest order -th 4 -rnd -set 'casket.kch' 1000000
+	$(RUNENV) ./kttimedtest order -th 4 -rnd -set 'casket.kch#dfunit=8' 1000000
+	$(RUNENV) kcpolymgr check -onr 'casket.kch'
+	$(RUNENV) ./kttimedtest order -th 1 -rnd -set 'casket.kct' 4000000
+	$(RUNENV) ./kttimedtest order -th 4 -rnd -set 'casket.kct' 1000000
+	$(RUNENV) ./kttimedtest order -th 4 -rnd -set 'casket.kct#dfunit=8' 1000000
+	$(RUNENV) kcpolymgr check -onr 'casket.kct'
+
+
 doc :
 	$(MAKE) docclean
 	mkdir -p doc/api
@@ -372,10 +387,12 @@ ktthserv.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h myconf.h
 
 kthttp.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h myconf.h
 
+ktrpc.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h myconf.h
+
 kttimeddb.o : ktcommon.h ktutil.h kttimeddb.h myconf.h
 
 ktutiltest.o ktutilmgr.o ktutilserv.o kttimedtest.o kttimedmgr.o : \
-  ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h kttimeddb.h cmdcommon.h
+  ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h kttimeddb.h cmdcommon.h
 
 
 

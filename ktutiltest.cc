@@ -19,6 +19,39 @@
 int main(int argc, char** argv) {
 
 
+  std::map<std::string, std::string> map;
+
+  /*
+  kt::tsvtomap(argv[1], &map);
+  kt::tsvmapdecode(&map, 'U');
+  */
+  kt::wwwformtomap(argv[1], &map);
+
+  for (std::map<std::string, std::string>::iterator it = map.begin(); it != map.end(); it++) {
+
+    printf("%s:%d  %s:%d\n",
+           it->first.c_str(), (int)it->first.size(), it->second.c_str(), (int)it->second.size());
+
+  }
+  std::string form;
+  kt::maptowwwform(map, &form);
+
+  std::cout << form << std::endl;
+
+  //printf("[%c]\n", kt::checkmapenc(map));
+
+
+
+
+
+
+  //str.clear();
+  //kt::maptotsv(map, &str);
+  //std::cout << "[" << str << "]" << std::endl;
+
+
+
+
 
   return 0;
 }

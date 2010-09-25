@@ -22,6 +22,7 @@ kt::ServerSocket *g_servsock;            // running server socket
 kt::Poller *g_poller;                    // running poller
 kt::ThreadedServer* g_thserv;            // running threaded server
 kt::HTTPServer* g_httpserv;              // running HTTP server
+kt::RPCServer* g_rpcserv;                // running RPC server
 
 
 // function prototypes
@@ -31,12 +32,15 @@ static void killserver(int signum);
 static int32_t runecho(int argc, char** argv);
 static int32_t runmtecho(int argc, char** argv);
 static int32_t runhttp(int argc, char** argv);
+static int32_t runrpc(int argc, char** argv);
 static int32_t procecho(const char* host, int32_t port, double tout);
 static int32_t procmtecho(const char* host, int32_t port, double tout, int32_t thnum,
                           uint32_t loglv);
 static int32_t prochttp(const char* base,
                         const char* host, int32_t port, double tout, int32_t thnum,
                         uint32_t loglv);
+static int32_t procrpc(const char* host, int32_t port, double tout, int32_t thnum,
+                       uint32_t loglv);
 
 
 // main routine
@@ -52,6 +56,8 @@ int main(int argc, char** argv) {
     rv = runmtecho(argc, argv);
   } else if (!std::strcmp(argv[1], "http")) {
     rv = runhttp(argc, argv);
+  } else if (!std::strcmp(argv[1], "rpc")) {
+    rv = runrpc(argc, argv);
   } else if (!std::strcmp(argv[1], "version") || !std::strcmp(argv[1], "--version")) {
     printversion();
     rv = 0;
@@ -73,6 +79,8 @@ static void usage() {
           g_progname);
   eprintf("  %s http [-host str] [-port num] [-tout num] [-th num] [-li|-ls|-le|-lz]"
           " [basedir]\n", g_progname);
+  eprintf("  %s rpc [-host str] [-port num] [-tout num] [-th num] [-li|-ls|-le|-lz]\n",
+          g_progname);
   eprintf("\n");
   std::exit(1);
 }
@@ -96,6 +104,10 @@ static void killserver(int signum) {
   if (g_httpserv) {
     g_httpserv->stop();
     g_httpserv = NULL;
+  }
+  if (g_rpcserv) {
+    g_rpcserv->stop();
+    g_rpcserv = NULL;
   }
 }
 
@@ -216,6 +228,50 @@ static int32_t runhttp(int argc, char** argv) {
   if (port < 1 || thnum < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
   int32_t rv = prochttp(base, host, port, tout, thnum, loglv);
+  return rv;
+}
+
+
+// parse arguments of rpc command
+static int32_t runrpc(int argc, char** argv) {
+  const char* host = NULL;
+  int32_t port = DEFPORT;
+  double tout = DEFTOUT;
+  int32_t thnum = 1;
+  uint32_t loglv = UINT32_MAX;
+  for (int32_t i = 2; i < argc; i++) {
+    if (argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "-host")) {
+        if (++i >= argc) usage();
+        host = argv[i];
+      } else if (!std::strcmp(argv[i], "-port")) {
+        if (++i >= argc) usage();
+        port = kc::atoi(argv[i]);
+      } else if (!std::strcmp(argv[i], "-tout")) {
+        if (++i >= argc) usage();
+        tout = kc::atof(argv[i]);
+      } else if (!std::strcmp(argv[i], "-th")) {
+        if (++i >= argc) usage();
+        thnum = kc::atof(argv[i]);
+      } else if (!std::strcmp(argv[i], "-li")) {
+        loglv = kt::RPCServer::Logger::INFO | kt::RPCServer::Logger::SYSTEM |
+          kt::RPCServer::Logger::ERROR;
+      } else if (!std::strcmp(argv[i], "-ls")) {
+        loglv = kt::RPCServer::Logger::SYSTEM | kt::RPCServer::Logger::ERROR;
+      } else if (!std::strcmp(argv[i], "-le")) {
+        loglv = kt::RPCServer::Logger::ERROR;
+      } else if (!std::strcmp(argv[i], "-lz")) {
+        loglv = 0;
+      } else {
+        usage();
+      }
+    } else {
+      usage();
+    }
+  }
+  if (port < 1 || thnum < 1) usage();
+  if (thnum > THREADMAX) thnum = THREADMAX;
+  int32_t rv = procrpc(host, port, tout, thnum, loglv);
   return rv;
 }
 
@@ -451,7 +507,6 @@ static int32_t prochttp(const char* base,
                     std::map<std::string, std::string>& resheads,
                     std::string& resbody,
                     const std::map<std::string, std::string>& misc) {
-      const char* reqline = kt::strmapget(reqheads, "");
       const char* url = kt::strmapget(misc, "url");
       int32_t code = -1;
       const std::string& lpath = kt::HTTPServer::localize_path(path);
@@ -533,8 +588,6 @@ static int32_t prochttp(const char* base,
         resheads["content-type"] = "text/plain";
         kc::strprintf(&resbody, "%s\n", kt::HTTPServer::status_name(code));
       }
-      serv->log(kt::HTTPServer::Logger::INFO, "(%s): %s: %d",
-                sess->expression().c_str(), reqline ? reqline : "-", code);
       return code;
     }
     std::string base_;
@@ -552,6 +605,52 @@ static int32_t prochttp(const char* base,
     err = true;
   }
   serv.log(kt::HTTPServer::Logger::SYSTEM, "================ [FINISH]");
+  return err ? 1 : 0;
+}
+
+
+// perform rpc command
+static int32_t procrpc(const char* host, int32_t port, double tout, int32_t thnum,
+                       uint32_t loglv) {
+  std::string addr = "";
+  if (host) {
+    addr = kt::Socket::get_host_address(host);
+    if (addr.empty()) {
+      eprintf("%s: %s: unknown host\n", g_progname, host);
+      return 1;
+    }
+  }
+  std::string expr = kc::strprintf("%s:%d", addr.c_str(), port);
+  kt::RPCServer serv;
+  kt::RPCServer::Logger* logger = stdlogger(g_progname, &std::cout);
+  class Worker : public kt::RPCServer::Worker {
+  private:
+    kt::RPCClient::ReturnValue process(kt::RPCServer* serv, kt::RPCServer::Session* sess,
+                                       const std::string& name,
+                                       const std::map<std::string, std::string>& inmap,
+                                       std::map<std::string, std::string>& outmap) {
+      std::map<std::string, std::string>::const_iterator it = inmap.begin();
+      std::map<std::string, std::string>::const_iterator itend = inmap.end();
+      while (it != itend) {
+        outmap[it->first] = it->second;
+        it++;
+      }
+      return kt::RPCClient::RVSUCCESS;
+    }
+  };
+  Worker worker;
+  bool err = false;
+  serv.set_network(expr, tout);
+  serv.set_logger(logger, loglv);
+  serv.set_worker(&worker, thnum);
+  g_rpcserv = &serv;
+  serv.log(kt::RPCServer::Logger::SYSTEM, "================ [START]");
+  if (serv.start()) {
+    if (serv.finish()) err = true;
+  } else {
+    err = true;
+  }
+  serv.log(kt::RPCServer::Logger::SYSTEM, "================ [FINISH]");
   return err ? 1 : 0;
 }
 

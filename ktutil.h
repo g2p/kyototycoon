@@ -87,6 +87,65 @@ char* xmlunescape(const char* str);
 
 
 /**
+ * Parse a www-form-urlencoded string and store each records into a map.
+ * @param str the source string.
+ * @param map the destination string map.
+ */
+void wwwformtomap(const std::string& str, std::map<std::string, std::string>* map);
+
+
+/**
+ * Serialize a string map into a www-form-urlencoded string.
+ * @param map the source string map.
+ * @param str the destination string.
+ */
+void maptowwwform(const std::map<std::string, std::string>& map, std::string* str);
+
+
+/**
+ * Parse a TSV string and store each records into a map.
+ * @param str the source string.
+ * @param map the destination string map.
+ */
+void tsvtomap(const std::string& str, std::map<std::string, std::string>* map);
+
+
+/**
+ * Serialize a string map into a TSV string.
+ * @param map the source string map.
+ * @param str the destination string.
+ */
+void maptotsv(const std::map<std::string, std::string>& map, std::string* str);
+
+
+/**
+ * Encode each record of a string map.
+ * @param map the string map.
+ * @param mode the encoding mode.  'B' for Base64 encoding, 'Q' for Quoted-printable encoding,
+ * 'U' for URL encoding.
+ */
+void tsvmapencode(std::map<std::string, std::string>* map, int32_t mode);
+
+
+/**
+ * Decode each record of a string map.
+ * @param map the string map.
+ * @param mode the encoding mode.  'B' for Base64 encoding, 'Q' for Quoted-printable encoding,
+ * 'U' for URL encoding.
+ */
+void tsvmapdecode(std::map<std::string, std::string>* map, int32_t mode);
+
+
+/**
+ * Check the best suited encoding of a string map.
+ * @param map the string map.
+ * @return the the best suited encoding.  0 for the raw format, 'B' for Base64 encoding, 'Q' for
+ * Quoted-printable encoding,
+ */
+int32_t checkmapenc(const std::map<std::string, std::string>& map);
+
+
+/**
  * Capitalize letters of a string.
  * @param str the string to convert.
  * @return the string itself.
@@ -412,6 +471,310 @@ inline char* xmlunescape(const char* str) {
   }
   *wp = '\0';
   return buf;
+}
+
+
+/**
+ * Parse a www-form-urlencoded string and store each records into a map.
+ */
+inline void wwwformtomap(const std::string& str, std::map<std::string, std::string>* map) {
+  _assert_(true);
+  const char* rp = str.data();
+  const char* pv = rp;
+  const char* ep = rp + str.size();
+  while(rp < ep){
+    if(*rp == '&' || *rp == ';'){
+      while(pv < rp && *pv > '\0' && *pv <= ' '){
+        pv++;
+      }
+      if(rp > pv){
+        size_t len = rp - pv;
+        char* rbuf = new char[len+1];
+        std::memcpy(rbuf, pv, len);
+        rbuf[len] = '\0';
+        char* sep = std::strchr(rbuf, '=');
+        const char* vp = "";
+        if(sep){
+          *(sep++) = '\0';
+          vp = sep;
+        }
+        size_t ksiz;
+        char* kbuf = kc::urldecode(rbuf, &ksiz);
+        size_t vsiz;
+        char* vbuf = kc::urldecode(vp, &vsiz);
+        std::string key(kbuf, ksiz);
+        std::string value(vbuf, vsiz);
+        (*map)[key] = value;
+        delete[] vbuf;
+        delete[] kbuf;
+        delete[] rbuf;
+      }
+      pv = rp + 1;
+    }
+    rp++;
+  }
+  while(pv < rp && *pv > '\0' && *pv <= ' '){
+    pv++;
+  }
+  if(rp > pv){
+    size_t len = rp - pv;
+    char* rbuf = new char[len+1];
+    std::memcpy(rbuf, pv, len);
+    rbuf[len] = '\0';
+    const char* vp = "";
+    char* sep = std::strchr(rbuf, '=');
+    if(sep){
+      *(sep++) = '\0';
+      vp = sep;
+    }
+    size_t ksiz;
+    char* kbuf = kc::urldecode(rbuf, &ksiz);
+    size_t vsiz;
+    char* vbuf = kc::urldecode(vp, &vsiz);
+    std::string key(kbuf, ksiz);
+    std::string value(vbuf, vsiz);
+    (*map)[key] = value;
+    delete[] vbuf;
+    delete[] kbuf;
+    delete[] rbuf;
+  }
+}
+
+
+/**
+ * Serialize a string map into a www-form-urlencoded string.
+ */
+inline void maptowwwform(const std::map<std::string, std::string>& map, std::string* str) {
+  _assert_(true);
+  std::map<std::string, std::string>::const_iterator it = map.begin();
+  std::map<std::string, std::string>::const_iterator itend = map.end();
+  str->reserve(UINT8_MAX);
+  it = map.begin();
+  while (it != itend) {
+    if (str->size() > 0) str->append("&");
+    char* zstr = kc::urlencode(it->first.data(), it->first.size());
+    str->append(zstr);
+    delete[] zstr;
+    str->append("=");
+    zstr = kc::urlencode(it->second.data(), it->second.size());
+    str->append(zstr);
+    delete[] zstr;
+    it++;
+  }
+}
+
+
+/**
+ * Parse a TSV string and store each records into a map.
+ */
+inline void tsvtomap(const std::string& str, std::map<std::string, std::string>* map) {
+  _assert_(true);
+  std::string::const_iterator it = str.begin();
+  std::string::const_iterator pv = it;
+  std::string field;
+  while (it != str.end()) {
+    if (*it == '\n') {
+      if (it > pv) {
+        std::string::const_iterator ev = it;
+        if (ev[-1] == '\r') ev--;
+        std::string::const_iterator rv = pv;
+        while (rv < ev) {
+          if (*rv == '\t') {
+            std::string name(pv, rv);
+            rv++;
+            std::string value(rv, ev);
+            (*map)[name] = value;
+            break;
+          }
+          rv++;
+        }
+      }
+      pv = it + 1;
+    }
+    it++;
+  }
+  if (it > pv) {
+    std::string::const_iterator ev = it;
+    if (ev[-1] == '\r') ev--;
+    std::string::const_iterator rv = pv;
+    while (rv < ev) {
+      if (*rv == '\t') {
+        std::string name(pv, rv);
+        rv++;
+        std::string value(rv, ev);
+        (*map)[name] = value;
+        break;
+      }
+      rv++;
+    }
+  }
+}
+
+
+/**
+ * Serialize a string map into a TSV string.
+ */
+inline void maptotsv(const std::map<std::string, std::string>& map, std::string* str) {
+  _assert_(true);
+  std::map<std::string, std::string>::const_iterator it = map.begin();
+  std::map<std::string, std::string>::const_iterator itend = map.end();
+  size_t size = 0;
+  while (it != itend) {
+    size += it->first.size() + it->second.size() + 2;
+    it++;
+  }
+  str->reserve(size);
+  it = map.begin();
+  while (it != itend) {
+    str->append(it->first);
+    str->append("\t");
+    str->append(it->second);
+    str->append("\n");
+    it++;
+  }
+}
+
+
+/**
+ * Encode each record of a string map.
+ */
+inline void tsvmapencode(std::map<std::string, std::string>* map, int32_t mode) {
+  _assert_(map);
+  std::map<std::string, std::string> nmap;
+  std::map<std::string, std::string>::iterator it = map->begin();
+  std::map<std::string, std::string>::iterator itend = map->end();
+  while (it != itend) {
+    char* kstr, *vstr;
+    switch (mode) {
+      case 'B': case 'b': {
+        kstr = kc::baseencode(it->first.data(), it->first.size());
+        vstr = kc::baseencode(it->second.data(), it->second.size());
+        break;
+      }
+      case 'Q': case 'q': {
+        kstr = kc::quoteencode(it->first.data(), it->first.size());
+        vstr = kc::quoteencode(it->second.data(), it->second.size());
+        break;
+      }
+      case 'U': case 'u': {
+        kstr = kc::urlencode(it->first.data(), it->first.size());
+        vstr = kc::urlencode(it->second.data(), it->second.size());
+        break;
+      }
+      default: {
+        kstr = NULL;
+        vstr = NULL;
+        break;
+      }
+    }
+    if (kstr && vstr) {
+      std::string key(kstr);
+      std::string value(vstr);
+      nmap[key] = value;
+    }
+    delete[] vstr;
+    delete[] kstr;
+    it++;
+  }
+  map->swap(nmap);
+}
+
+
+/**
+ * Decode each record of a string map.
+ */
+inline void tsvmapdecode(std::map<std::string, std::string>* map, int32_t mode) {
+  _assert_(map);
+  std::map<std::string, std::string> nmap;
+  std::map<std::string, std::string>::iterator it = map->begin();
+  std::map<std::string, std::string>::iterator itend = map->end();
+  while (it != itend) {
+    char* kbuf, *vbuf;
+    size_t ksiz, vsiz;
+    switch (mode) {
+      case 'B': case 'b': {
+        kbuf = kc::basedecode(it->first.c_str(), &ksiz);
+        vbuf = kc::basedecode(it->second.c_str(), &vsiz);
+        break;
+      }
+      case 'Q': case 'q': {
+        kbuf = kc::quotedecode(it->first.c_str(), &ksiz);
+        vbuf = kc::quotedecode(it->second.c_str(), &vsiz);
+        break;
+      }
+      case 'U': case 'u': {
+        kbuf = kc::urldecode(it->first.c_str(), &ksiz);
+        vbuf = kc::urldecode(it->second.c_str(), &vsiz);
+        break;
+      }
+      default: {
+        kbuf = NULL;
+        vbuf = NULL;
+        break;
+      }
+    }
+    if (kbuf && vbuf) {
+      std::string key(kbuf, ksiz);
+      std::string value(vbuf, vsiz);
+      nmap[key] = value;
+    }
+    delete[] vbuf;
+    delete[] kbuf;
+    it++;
+  }
+  map->swap(nmap);
+}
+
+
+/**
+ * Check the best suited encoding of a string map.
+ */
+inline int32_t checkmapenc(const std::map<std::string, std::string>& map) {
+  _assert_(true);
+  bool bin = false;
+  size_t blen = 0;
+  size_t ulen = 0;
+  std::map<std::string, std::string>::const_iterator it = map.begin();
+  std::map<std::string, std::string>::const_iterator itend = map.end();
+  while (it != itend) {
+    const char* buf = it->first.data();
+    size_t size = it->first.size();
+    if (size > UINT8_MAX) {
+      size = UINT8_MAX;
+      bin = true;
+    }
+    blen += size * 6 / 4 + 3;
+    for (size_t i = 0; i < size; i++) {
+      int32_t c = ((unsigned char*)buf)[i];
+      if (c < ' ' || c == 0x7f) bin = true;
+      if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+          (c >= '0' && c <= '9') || (c != '\0' && std::strchr("_-.!~*'()", c))) {
+        ulen++;
+      } else {
+        ulen += 3;
+      }
+    }
+    buf = it->second.data();
+    size = it->second.size();
+    if (size > UINT8_MAX) {
+      size = UINT8_MAX;
+      bin = true;
+    }
+    blen += size * 6 / 4 + 3;
+    for (size_t i = 0; i < size; i++) {
+      int32_t c = ((unsigned char*)buf)[i];
+      if (c < ' ' || c == 0x7f) bin = true;
+      if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+          (c >= '0' && c <= '9') || (c != '\0' && std::strchr("_-.!~*'()", c))) {
+        ulen++;
+      } else {
+        ulen += 3;
+      }
+    }
+    it++;
+  }
+  if (!bin) return 0;
+  return blen < ulen ? 'B' : 'U';
 }
 
 

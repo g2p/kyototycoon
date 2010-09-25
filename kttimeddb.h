@@ -1586,7 +1586,7 @@ private:
         if (ct_ <= xt) return NOP;
 
 
-        //std::cout << "expire: " << std::string(kbuf, ksiz) << ":" << (ct_ - xt) << ":" << std::endl;
+        //std::cout << "expire: " << std::string(kbuf, ksiz) << std::endl;
 
         return REMOVE;
       }
@@ -1598,7 +1598,9 @@ private:
       if (!xcur_->accept(&visitor, true, true)) {
         kc::BasicDB::Error::Code code = db_.error().code();
         if (code == kc::BasicDB::Error::INVALID || code == kc::BasicDB::Error::NOREC) {
-          printf("jump:%d  %ld\n", (int)db_.count(), (long)xsc_);
+
+          //printf("jump:%d  %ld\n", (int)db_.count(), (long)xsc_);
+
           xcur_->jump();
         } else {
           err = true;
