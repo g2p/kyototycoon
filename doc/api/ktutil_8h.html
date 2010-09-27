@@ -47,6 +47,20 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Escape meta characters in a string with the entity references of XML.  <a href="#ab3f2460ab78d21fffd715c54362547cd"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a11169346313e3145d208646f6afb4553">kyototycoon::xmlunescape</a> (const char *str)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Unescape meta characters in a string with the entity references of XML.  <a href="#a11169346313e3145d208646f6afb4553"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a51ba34f6b6711f07c02f3ba0e782c2b5">kyototycoon::wwwformtomap</a> (const std::string &amp;str, std::map&lt; std::string, std::string &gt; *map)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Parse a www-form-urlencoded string and store each records into a map.  <a href="#a51ba34f6b6711f07c02f3ba0e782c2b5"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#acea4a86ae2e44a506e6b0ebe44cd761c">kyototycoon::maptowwwform</a> (const std::map&lt; std::string, std::string &gt; &amp;map, std::string *str)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Serialize a string map into a www-form-urlencoded string.  <a href="#acea4a86ae2e44a506e6b0ebe44cd761c"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#ad38810f301b838fab6880377315827b9">kyototycoon::tsvtomap</a> (const std::string &amp;str, std::map&lt; std::string, std::string &gt; *map)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Parse a TSV string and store each records into a map.  <a href="#ad38810f301b838fab6880377315827b9"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a911909ae1363cedd2db7dad46d6c821a">kyototycoon::maptotsv</a> (const std::map&lt; std::string, std::string &gt; &amp;map, std::string *str)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Serialize a string map into a TSV string.  <a href="#a911909ae1363cedd2db7dad46d6c821a"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a646fcad970da491ffc6f4953bd4bec7e">kyototycoon::tsvmapencode</a> (std::map&lt; std::string, std::string &gt; *map, int32_t mode)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Encode each record of a string map.  <a href="#a646fcad970da491ffc6f4953bd4bec7e"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a40609df3cecfe149f0d09f4ca750644f">kyototycoon::tsvmapdecode</a> (std::map&lt; std::string, std::string &gt; *map, int32_t mode)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Decode each record of a string map.  <a href="#a40609df3cecfe149f0d09f4ca750644f"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#aa016a36936911f0dfb64863093b8a27b">kyototycoon::checkmapenc</a> (const std::map&lt; std::string, std::string &gt; &amp;map)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Check the best suited encoding of a string map.  <a href="#aa016a36936911f0dfb64863093b8a27b"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#aff047ef8d15604042a8349d54f344353">kyototycoon::strcapitalize</a> (char *str)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Capitalize letters of a string.  <a href="#aff047ef8d15604042a8349d54f344353"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#ae0f925395a82daba3c4c81a25840d1e2">kyototycoon::getcalendar</a> (int64_t t, int32_t jl, int32_t *yearp=NULL, int32_t *monp=NULL, int32_t *dayp=NULL, int32_t *hourp=NULL, int32_t *minp=NULL, int32_t *secp=NULL)</td></tr>
@@ -78,7 +92,7 @@
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>utility functions </p>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Sat Sep 25 16:08:47 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Sun Sep 26 01:58:30 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

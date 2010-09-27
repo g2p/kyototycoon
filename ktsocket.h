@@ -98,9 +98,10 @@ public:
   bool open(const std::string& expr);
   /**
    * Close the socket.
+   * @param grace true for graceful shutdown, or false for immediate disconnection.
    * @return true on success, or false on failure.
    */
-  bool close();
+  bool close(bool grace = true);
   /**
    * Send data.
    * @param buf the pointer to a data region to send.

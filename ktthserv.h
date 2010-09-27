@@ -52,7 +52,9 @@ public:
     /**
      * Destructor.
      */
-    virtual ~Logger() {}
+    virtual ~Logger() {
+      _assert_(true);
+    }
     /**
      * Process a log message.
      * @param kind the kind of the event.  Logger::DEBUG for debugging, Logger::INFO for normal
@@ -69,7 +71,9 @@ public:
     /**
      * Destructor.
      */
-    virtual ~Worker() {}
+    virtual ~Worker() {
+      _assert_(true);
+    }
     /**
      * Process each request.
      * @param serv the server.
@@ -323,6 +327,10 @@ public:
         delete sess;
       }
     } else {
+      log(Logger::ERROR, "poller error: msg=%s", poll_.error());
+      err = true;
+    }
+    if (!poll_.close()) {
       log(Logger::ERROR, "poller error: msg=%s", poll_.error());
       err = true;
     }

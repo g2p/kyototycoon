@@ -411,11 +411,12 @@ public:
   }
   /**
    * Close the connection.
+   * @param grace true for graceful shutdown, or false for immediate disconnection.
    * @return true on success, or false on failure.
    */
-  bool close() {
+  bool close(bool grace = true) {
     _assert_(true);
-    return sock_.close();
+    return sock_.close(grace);
   }
   /**
    * Fetch a resource.
@@ -681,7 +682,9 @@ public:
     /**
      * Destructor.
      */
-    virtual ~Logger() {}
+    virtual ~Logger() {
+      _assert_(true);
+    }
   };
   /**
    * Interface to process each request.
@@ -691,7 +694,9 @@ public:
     /**
      * Destructor.
      */
-    virtual ~Worker() {}
+    virtual ~Worker() {
+      _assert_(true);
+    }
     /**
      * Process each request.
      * @param serv the server.

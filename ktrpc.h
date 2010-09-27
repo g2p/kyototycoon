@@ -83,7 +83,9 @@ public:
     /**
      * Destructor.
      */
-    virtual ~Logger() {}
+    virtual ~Logger() {
+      _assert_(true);
+    }
   };
   /**
    * Interface to process each request.
@@ -93,7 +95,9 @@ public:
     /**
      * Destructor.
      */
-    virtual ~Worker() {}
+    virtual ~Worker() {
+      _assert_(true);
+    }
     /**
      * Process each request of RPC.
      * @param serv the server.

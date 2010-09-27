@@ -190,6 +190,19 @@ void datestrwww(int64_t t, int32_t jl, char* buf);
 
 
 /**
+ * Format a date as a string in W3CDTF with the fraction part.
+ * @param t the source time in seconds from the epoch.  If it is Not-a-Number, the current time
+ * is specified.
+ * @param jl the jet lag of a location in seconds.  If it is INT32_MAX, the local jet lag is
+ * specified.
+ * @param acr the accuracy of time by the number of columns of the fraction part.
+ * @param buf the pointer to the region into which the result string is written.  The size of
+ * the buffer should be equal to or more than 48 bytes.
+ */
+void datestrwww(double t, int32_t jl, int32_t acr, char* buf);
+
+
+/**
  * Format a date as a string in RFC 1123 format.
  * @param t the source time in seconds from the epoch.  If it is INT64_MAX, the current time is
  * specified.
@@ -482,19 +495,19 @@ inline void wwwformtomap(const std::string& str, std::map<std::string, std::stri
   const char* rp = str.data();
   const char* pv = rp;
   const char* ep = rp + str.size();
-  while(rp < ep){
-    if(*rp == '&' || *rp == ';'){
-      while(pv < rp && *pv > '\0' && *pv <= ' '){
+  while (rp < ep) {
+    if (*rp == '&' || *rp == ';') {
+      while (pv < rp && *pv > '\0' && *pv <= ' ') {
         pv++;
       }
-      if(rp > pv){
+      if (rp > pv) {
         size_t len = rp - pv;
         char* rbuf = new char[len+1];
         std::memcpy(rbuf, pv, len);
         rbuf[len] = '\0';
         char* sep = std::strchr(rbuf, '=');
         const char* vp = "";
-        if(sep){
+        if (sep) {
           *(sep++) = '\0';
           vp = sep;
         }
@@ -513,17 +526,17 @@ inline void wwwformtomap(const std::string& str, std::map<std::string, std::stri
     }
     rp++;
   }
-  while(pv < rp && *pv > '\0' && *pv <= ' '){
+  while (pv < rp && *pv > '\0' && *pv <= ' ') {
     pv++;
   }
-  if(rp > pv){
+  if (rp > pv) {
     size_t len = rp - pv;
     char* rbuf = new char[len+1];
     std::memcpy(rbuf, pv, len);
     rbuf[len] = '\0';
     const char* vp = "";
     char* sep = std::strchr(rbuf, '=');
-    if(sep){
+    if (sep) {
       *(sep++) = '\0';
       vp = sep;
     }

@@ -41,7 +41,9 @@
 <tr><td class="memItemLeft" align="right" valign="top">virtual&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCServer_1_1Worker.html#a276b5069580048c313075530bf8a5b1a">~Worker</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Destructor.  <a href="#a276b5069580048c313075530bf8a5b1a"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classkyototycoon_1_1RPCClient.html#a28ef084c8cd53f3ad35f98849df55336">RPCClient::ReturnValue</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCServer_1_1Worker.html#a7a9ace4529218c4632ff49024a83d6f2">process</a> (<a class="el" href="classkyototycoon_1_1RPCServer.html">RPCServer</a> *serv, <a class="el" href="classkyototycoon_1_1RPCServer_1_1Session.html">Session</a> *sess, const std::string &amp;name, const std::map&lt; std::string, std::string &gt; &amp;inmap, std::map&lt; std::string, std::string &gt; &amp;outmap)=0</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Process each request.  <a href="#a7a9ace4529218c4632ff49024a83d6f2"></a><br/></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Process each request of RPC.  <a href="#a7a9ace4529218c4632ff49024a83d6f2"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCServer_1_1Worker.html#a7f5602bb3868e83805fc49eb9e06bda4">process</a> (<a class="el" href="classkyototycoon_1_1HTTPServer.html">HTTPServer</a> *serv, <a class="el" href="classkyototycoon_1_1HTTPServer_1_1Session.html">HTTPServer::Session</a> *sess, const std::string &amp;path, <a class="el" href="classkyototycoon_1_1HTTPClient.html#aae547c07cce765679e5ab7808c748de7">HTTPClient::Method</a> method, const std::map&lt; std::string, std::string &gt; &amp;reqheads, const std::string &amp;reqbody, std::map&lt; std::string, std::string &gt; &amp;resheads, std::string &amp;resbody, const std::map&lt; std::string, std::string &gt; &amp;misc)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Process each request of the others.  <a href="#a7f5602bb3868e83805fc49eb9e06bda4"></a><br/></td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>Interface to process each request. </p>
@@ -109,7 +111,7 @@
 </div>
 <div class="memdoc">
 
-<p>Process each request. </p>
+<p>Process each request of RPC. </p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"></td><td valign="top"><em>serv</em>&nbsp;</td><td>the server. </td></tr>
@@ -124,8 +126,94 @@
 
 </div>
 </div>
+<a class="anchor" id="a7f5602bb3868e83805fc49eb9e06bda4"></a><!-- doxytag: member="kyototycoon::RPCServer::Worker::process" ref="a7f5602bb3868e83805fc49eb9e06bda4" args="(HTTPServer *serv, HTTPServer::Session *sess, const std::string &amp;path, HTTPClient::Method method, const std::map&lt; std::string, std::string &gt; &amp;reqheads, const std::string &amp;reqbody, std::map&lt; std::string, std::string &gt; &amp;resheads, std::string &amp;resbody, const std::map&lt; std::string, std::string &gt; &amp;misc)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual int32_t kyototycoon::RPCServer::Worker::process </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classkyototycoon_1_1HTTPServer.html">HTTPServer</a> *&nbsp;</td>
+          <td class="paramname"> <em>serv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classkyototycoon_1_1HTTPServer_1_1Session.html">HTTPServer::Session</a> *&nbsp;</td>
+          <td class="paramname"> <em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>path</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classkyototycoon_1_1HTTPClient.html#aae547c07cce765679e5ab7808c748de7">HTTPClient::Method</a>&nbsp;</td>
+          <td class="paramname"> <em>method</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::map&lt; std::string, std::string &gt; &amp;&nbsp;</td>
+          <td class="paramname"> <em>reqheads</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>reqbody</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::map&lt; std::string, std::string &gt; &amp;&nbsp;</td>
+          <td class="paramname"> <em>resheads</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>resbody</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::map&lt; std::string, std::string &gt; &amp;&nbsp;</td>
+          <td class="paramname"> <em>misc</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td><code> [virtual]</code></td>
+        </tr>
+      </table>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Sat Sep 25 16:08:47 2010 for Kyoto Tycoon by&nbsp;
+<div class="memdoc">
+
+<p>Process each request of the others. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>serv</em>&nbsp;</td><td>the server. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>sess</em>&nbsp;</td><td>the session with the client. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>path</em>&nbsp;</td><td>the path of the requested resource. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>method</em>&nbsp;</td><td>the kind of the request methods. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>reqheads</em>&nbsp;</td><td>a string map which contains the headers of the request. Header names are converted into lower cases. The empty key means the request-line. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>reqbody</em>&nbsp;</td><td>a string which contains the entity body of the request. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>resheads</em>&nbsp;</td><td>a string map to contain the headers of the response. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>resbody</em>&nbsp;</td><td>a string to contain the entity body of the response. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>misc</em>&nbsp;</td><td>a string map which contains miscellaneous information. "url" means the absolute <a class="el" href="classkyototycoon_1_1URL.html" title="URL accessor.">URL</a>. "query" means the query string of the <a class="el" href="classkyototycoon_1_1URL.html" title="URL accessor.">URL</a>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the status code of the response. If it is less than 1, internal server error is sent to the client and the connection is closed. </dd></dl>
+
+</div>
+</div>
+</div>
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Sun Sep 26 01:58:30 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

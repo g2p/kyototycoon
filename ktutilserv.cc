@@ -528,6 +528,8 @@ static int32_t prochttp(const char* base,
               if (kc::File::read_directory(apath, &files)) {
                 code = 200;
                 resheads["content-type"] = "text/html";
+                kc::strprintf(&resbody, "<html>\n");
+                kc::strprintf(&resbody, "<body>\n");
                 kc::strprintf(&resbody, "<ul>\n");
                 kc::strprintf(&resbody, "<li><a href=\"./\">./</a></li>\n");
                 kc::strprintf(&resbody, "<li><a href=\"../\">../</a></li>\n");
@@ -552,6 +554,8 @@ static int32_t prochttp(const char* base,
                   it++;
                 }
                 kc::strprintf(&resbody, "</ul>\n");
+                kc::strprintf(&resbody, "</body>\n");
+                kc::strprintf(&resbody, "</html>\n");
               } else {
                 code = 403;
                 resheads["content-type"] = "text/plain";

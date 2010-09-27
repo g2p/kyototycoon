@@ -26,7 +26,7 @@ static void usage();
 static int32_t rundate(int32_t argc, char** argv);
 static int32_t runhttp(int32_t argc, char** argv);
 static int32_t procdate(const char* str, int jl, bool wf, bool rf);
-static int32_t prochttp(const char* url, const char* file, kt::HTTPClient::Method meth,
+static int32_t prochttp(const char* url, kt::HTTPClient::Method meth, const char* body,
                         std::map<std::string, std::string>* reqheads,
                         std::map<std::string, std::string>* queries,
                         double tout, bool ph, int32_t ec);
@@ -100,8 +100,8 @@ static int32_t rundate(int32_t argc, char** argv) {
 // parse arguments of http command
 static int32_t runhttp(int32_t argc, char** argv) {
   const char* url = NULL;
-  const char* file = NULL;
   kt::HTTPClient::Method meth = kt::HTTPClient::MUNKNOWN;
+  const char* body = NULL;
   std::map<std::string, std::string> reqheads;
   std::map<std::string, std::string> queries;
   double tout = 0;
@@ -119,6 +119,9 @@ static int32_t runhttp(int32_t argc, char** argv) {
         meth = kt::HTTPClient::MPUT;
       } else if (!std::strcmp(argv[i], "-delete")) {
         meth = kt::HTTPClient::MDELETE;
+      } else if (!std::strcmp(argv[i], "-body")) {
+        if (++i >= argc) usage();
+        body = argv[i];
       } else if (!std::strcmp(argv[i], "-ah")) {
         if ((i += 2) >= argc) usage();
         char* name = kc::strdup(argv[i-1]);
@@ -142,14 +145,12 @@ static int32_t runhttp(int32_t argc, char** argv) {
       }
     } else if (!url) {
       url = argv[i];
-    } else if (!file) {
-      file = argv[i];
     } else {
       usage();
     }
   }
   if (!url) usage();
-  int32_t rv = prochttp(url, file, meth, &reqheads, &queries, tout, ph, ec);
+  int32_t rv = prochttp(url, meth, body, &reqheads, &queries, tout, ph, ec);
   return rv;
 }
 
@@ -174,21 +175,21 @@ static int32_t procdate(const char* str, int jl, bool wf, bool rf) {
 
 
 // perform http command
-static int32_t prochttp(const char* url, const char* file, kt::HTTPClient::Method meth,
+static int32_t prochttp(const char* url, kt::HTTPClient::Method meth, const char* body,
                         std::map<std::string, std::string>* reqheads,
                         std::map<std::string, std::string>* queries,
                         double tout, bool ph, int32_t ec) {
-  const char* istr = file && *file == '@' ? file + 1 : NULL;
+  const char* istr = body && *body == '@' ? body + 1 : NULL;
   std::istream *is;
   std::ifstream ifs;
   std::istringstream iss(istr ? istr : "");
-  if (file) {
+  if (body) {
     if (istr) {
       is = &iss;
     } else {
-      ifs.open(file, std::ios_base::in | std::ios_base::binary);
+      ifs.open(body, std::ios_base::in | std::ios_base::binary);
       if (!ifs) {
-        eprintf("%s: %s: open error\n", g_progname, file);
+        eprintf("%s: %s: open error\n", g_progname, body);
         return 1;
       }
       is = &ifs;
@@ -198,8 +199,8 @@ static int32_t prochttp(const char* url, const char* file, kt::HTTPClient::Metho
   }
   std::string urlstr = url;
   std::ostringstream oss;
-  bool body = file || meth == kt::HTTPClient::MPOST || meth == kt::HTTPClient::MPUT;
-  if (body) {
+  bool isbody = body || meth == kt::HTTPClient::MPOST || meth == kt::HTTPClient::MPUT;
+  if (isbody) {
     if (queries->empty()) {
       char c;
       while (is->get(c)) {
@@ -252,11 +253,11 @@ static int32_t prochttp(const char* url, const char* file, kt::HTTPClient::Metho
   }
   if (!kt::strmapget(*reqheads, "accept")) (*reqheads)["accept"] = "*/*";
   const std::string& ostr = oss.str();
-  const std::string* reqbody = body ? &ostr : NULL;
+  const std::string* reqbody = isbody ? &ostr : NULL;
   std::string resbody;
   std::map<std::string, std::string> resheads;
   if (meth == kt::HTTPClient::MUNKNOWN)
-    meth = body ? kt::HTTPClient::MPOST : kt::HTTPClient::MGET;
+    meth = isbody ? kt::HTTPClient::MPOST : kt::HTTPClient::MGET;
   bool err = false;
   int32_t code = kt::HTTPClient::fetch_once(urlstr, meth,
                                             &resbody, &resheads, reqbody, reqheads, tout);

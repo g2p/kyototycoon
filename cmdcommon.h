@@ -22,6 +22,7 @@
 #include <kthttp.h>
 #include <ktrpc.h>
 #include <kttimeddb.h>
+#include <ktremotedb.h>
 
 namespace kc = kyotocabinet;
 namespace kt = kyototycoon;

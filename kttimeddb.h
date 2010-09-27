@@ -558,7 +558,8 @@ public:
    * Default constructor.
    */
   explicit TimedDB() :
-    xlock_(), db_(), omode_(0), opts_(0), xcur_(NULL), xsc_(0) {
+    xlock_(), db_(), omode_(0), opts_(0), logger_(NULL), logkinds_(0),
+    xcur_(NULL), xsc_(0) {
     _assert_(true);
   }
   /**
@@ -567,7 +568,8 @@ public:
    * object is deleted automatically.
    */
   explicit TimedDB(kc::BasicDB* db) :
-    xlock_(), db_(db), omode_(0), opts_(0), xcur_(NULL), xsc_(0) {
+    xlock_(), db_(db), omode_(0), opts_(0), logger_(NULL), logkinds_(0),
+    xcur_(NULL), xsc_(0) {
     _assert_(true);
   }
   /**
@@ -612,8 +614,21 @@ public:
     kc::BasicDB* idb = db_.reveal_inner_db();
     if (idb) {
       const std::type_info& info = typeid(*idb);
-      if (info == typeid(kc::HashDB)) {
+      if (info == typeid(kc::ProtoHashDB)) {
+        kc::ProtoHashDB* phdb = (kc::ProtoHashDB*)idb;
+        if (logger_) phdb->tune_logger(logger_, logkinds_);
+      } else if (info == typeid(kc::ProtoTreeDB)) {
+        kc::ProtoTreeDB* ptdb = (kc::ProtoTreeDB*)idb;
+        if (logger_) ptdb->tune_logger(logger_, logkinds_);
+      } else if (info == typeid(kc::CacheDB)) {
+        kc::CacheDB* cdb = (kc::CacheDB*)idb;
+        if (logger_) cdb->tune_logger(logger_, logkinds_);
+      } else if (info == typeid(kc::GrassDB)) {
+        kc::GrassDB* gdb = (kc::GrassDB*)idb;
+        if (logger_) gdb->tune_logger(logger_, logkinds_);
+      } else if (info == typeid(kc::HashDB)) {
         kc::HashDB* hdb = (kc::HashDB*)idb;
+        if (logger_) hdb->tune_logger(logger_, logkinds_);
         char* opq = hdb->opaque();
         if (opq) {
           if (*(uint8_t*)opq == JDBMAGICDATA) {
@@ -626,6 +641,7 @@ public:
         }
       } else if (info == typeid(kc::TreeDB)) {
         kc::TreeDB* tdb = (kc::TreeDB*)idb;
+        if (logger_) tdb->tune_logger(logger_, logkinds_);
         char* opq = tdb->opaque();
         if (opq) {
           if (*(uint8_t*)opq == JDBMAGICDATA) {
@@ -638,6 +654,7 @@ public:
         }
       } else if (info == typeid(kc::DirDB)) {
         kc::DirDB* ddb = (kc::DirDB*)idb;
+        if (logger_) ddb->tune_logger(logger_, logkinds_);
         char* opq = ddb->opaque();
         if (opq) {
           if (*(uint8_t*)opq == JDBMAGICDATA) {
@@ -650,6 +667,7 @@ public:
         }
       } else if (info == typeid(kc::ForestDB)) {
         kc::ForestDB* fdb = (kc::ForestDB*)idb;
+        if (logger_) fdb->tune_logger(logger_, logkinds_);
         char* opq = fdb->opaque();
         if (opq) {
           if (*(uint8_t*)opq == JDBMAGICDATA) {
@@ -1487,6 +1505,23 @@ public:
     opts_ = opts;
     return true;
   }
+  /**
+   * Set the internal logger.
+   * @param logger the logger object.  The same as with kc::BasicDB.
+   * @param kinds kinds of logged messages by bitwise-or:  The same as with kc::BasicDB.
+   * @return true on success, or false on failure.
+   */
+  bool tune_logger(kc::BasicDB::Logger* logger,
+                   uint32_t kinds = kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR) {
+    _assert_(logger);
+    if (omode_ != 0) {
+      set_error(kc::BasicDB::Error::INVALID, "already opened");
+      return false;
+    }
+    logger_ = logger;
+    logkinds_ = kinds;
+    return true;
+  }
 private:
   /**
    * Visitor to handle records with time stamps.
@@ -1516,7 +1551,6 @@ private:
 
         // hoge
         //printf("expired:%ld:%ld\n", (long)ct_, (long)xt);
-        // set_error(NOREC
 
         size_t rsiz;
         const char* rbuf = visitor_->visit_empty(kbuf, ksiz, &rsiz, &xt);
@@ -1619,7 +1653,7 @@ private:
    * value is assigned.
    * @return the pointer to the result buffer.
    */
-  static char* make_record_value(const char* vbuf, size_t vsiz, int64_t xt, size_t *sp) {
+  static char* make_record_value(const char* vbuf, size_t vsiz, int64_t xt, size_t* sp) {
     _assert_(vbuf && vsiz <= kc::MEMMAXSIZ);
     size_t jsiz = vsiz + JDBXTWIDTH;
     char* jbuf = new char[jsiz];
@@ -1655,6 +1689,10 @@ private:
   uint32_t omode_;
   /** The options. */
   uint8_t opts_;
+  /** The internal logger. */
+  kc::BasicDB::Logger* logger_;
+  /** The kinds of logged messages. */
+  uint32_t logkinds_;
   /** The cursor for expiration. */
   kc::PolyDB::Cursor* xcur_;
   /** The score of expiration. */

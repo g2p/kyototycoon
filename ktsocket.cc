@@ -284,7 +284,7 @@ bool Socket::open(const std::string& expr) {
 /**
  * Close the socket.
  */
-bool Socket::close() {
+bool Socket::close(bool grace) {
   _assert_(true);
   SocketCore* core = (SocketCore*)opq_;
   if (core->fd < 1) {
@@ -297,20 +297,27 @@ bool Socket::close() {
     sockseterrmsg(core, "fcntl failed");
     err = true;
   }
-  double ct = kc::time();
-  while (true) {
-    int32_t rv = ::shutdown(core->fd, SHUT_RDWR);
-    if (rv == 0 || !checkerrnoretriable(errno)) break;
-    if (kc::time() > ct + core->timeout) {
-      sockseterrmsg(core, "operation timed out");
-      err = true;
-      break;
+  if (grace) {
+    double ct = kc::time();
+    while (true) {
+      int32_t rv = ::shutdown(core->fd, SHUT_RDWR);
+      if (rv == 0 || !checkerrnoretriable(errno)) break;
+      if (kc::time() > ct + core->timeout) {
+        sockseterrmsg(core, "operation timed out");
+        err = true;
+        break;
+      }
+      if (core->aborted) break;
+      if (!waitsocket(core->fd, 1, WAITTIME)) {
+        sockseterrmsg(core, "waitsocket failed");
+        break;
+      }
     }
-    if (core->aborted) break;
-    if (!waitsocket(core->fd, 1, WAITTIME)) {
-      sockseterrmsg(core, "waitsocket failed");
-      break;
-    }
+  } else {
+    struct ::linger optli;
+    optli.l_onoff = 1;
+    optli.l_linger = 0;
+    ::setsockopt(core->fd, SOL_SOCKET, SO_LINGER, (char*)&optli, sizeof(optli));
   }
   if (::close(core->fd) != 0) {
     sockseterrmsg(core, "close failed");

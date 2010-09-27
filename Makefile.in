@@ -379,6 +379,18 @@ kttimedmgr : kttimedmgr.o $(LIBRARYFILES)
 	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
 
 
+ktserver : ktserver.o $(LIBRARYFILES)
+	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
+
+
+ktremotetest : ktremotetest.o $(LIBRARYFILES)
+	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
+
+
+ktremotemgr : ktremotemgr.o $(LIBRARYFILES)
+	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
+
+
 ktutil.o : ktcommon.h ktutil.h myconf.h
 
 ktsocket.o : ktcommon.h ktutil.h ktsocket.h myconf.h
@@ -391,8 +403,11 @@ ktrpc.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h myconf.h
 
 kttimeddb.o : ktcommon.h ktutil.h kttimeddb.h myconf.h
 
-ktutiltest.o ktutilmgr.o ktutilserv.o kttimedtest.o kttimedmgr.o : \
-  ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h kttimeddb.h cmdcommon.h
+ktremotedb.o : ktcommon.h ktutil.h ktremotedb.h myconf.h
+
+ktutiltest.o ktutilmgr.o ktutilserv.o kttimedtest.o kttimedmgr.o \
+  ktserver.o ktremotetest.o ktremotemgr.o : \
+  ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h kttimeddb.h ktremotedb.h cmdcommon.h
 
 
 
