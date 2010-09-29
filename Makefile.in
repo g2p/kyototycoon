@@ -403,7 +403,8 @@ ktrpc.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h myconf.h
 
 kttimeddb.o : ktcommon.h ktutil.h kttimeddb.h myconf.h
 
-ktremotedb.o : ktcommon.h ktutil.h ktremotedb.h myconf.h
+ktremotedb.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h \
+  kttimeddb.h ktremotedb.h myconf.h
 
 ktutiltest.o ktutilmgr.o ktutilserv.o kttimedtest.o kttimedmgr.o \
   ktserver.o ktremotetest.o ktremotemgr.o : \

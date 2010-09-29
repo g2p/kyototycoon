@@ -25,11 +25,14 @@ int main(int argc, char** argv);
 static void usage();
 static int32_t rundate(int32_t argc, char** argv);
 static int32_t runhttp(int32_t argc, char** argv);
-static int32_t procdate(const char* str, int jl, bool wf, bool rf);
+static int32_t runrpc(int32_t argc, char** argv);
+static int32_t procdate(const char* str, int32_t jl, bool wf, bool rf);
 static int32_t prochttp(const char* url, kt::HTTPClient::Method meth, const char* body,
                         std::map<std::string, std::string>* reqheads,
                         std::map<std::string, std::string>* queries,
                         double tout, bool ph, int32_t ec);
+static int32_t procrpc(const char* proc, std::map<std::string, std::string>* params,
+                       const char* host, int32_t port, double tout, int32_t ienc, int32_t oenc);
 
 
 // main routine
@@ -42,6 +45,8 @@ int main(int argc, char** argv) {
     rv = rundate(argc, argv);
   } else if (!std::strcmp(argv[1], "http")) {
     rv = runhttp(argc, argv);
+  } else if (!std::strcmp(argv[1], "rpc")) {
+    rv = runrpc(argc, argv);
   } else if (!std::strcmp(argv[1], "version") || !std::strcmp(argv[1], "--version")) {
     printversion();
     rv = 0;
@@ -61,6 +66,8 @@ static void usage() {
   eprintf("  %s date [-ds str] [-jl num] [-wf] [-rf]\n", g_progname);
   eprintf("  %s http [-get|-head|-post|-put|-delete] [-ah name value] [-qs name value]"
           " [-tout num] [-ph] [-ec num] url [file]\n", g_progname);
+  eprintf("  %s rpc [-host str] [-port num] [-tout num] [-ienc str] [-oenc str]"
+          " proc [name value ...]\n", g_progname);
   eprintf("  %s version\n", g_progname);
   eprintf("\n");
   std::exit(1);
@@ -69,13 +76,16 @@ static void usage() {
 
 // parse arguments of date command
 static int32_t rundate(int32_t argc, char** argv) {
+  bool argbrk = false;
   const char* str = NULL;
   int32_t jl = INT_MAX;
   bool wf = false;
   bool rf = false;
   for (int32_t i = 2; i < argc; i++) {
-    if (argv[i][0] == '-') {
-      if (!std::strcmp(argv[i], "-ds")) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-ds")) {
         if (++i >= argc) usage();
         str = argv[i];
       } else if (!std::strcmp(argv[i], "-jl")) {
@@ -89,16 +99,18 @@ static int32_t rundate(int32_t argc, char** argv) {
         usage();
       }
     } else {
+      argbrk = true;
       usage();
     }
   }
-  int rv = procdate(str, jl, wf, rf);
+  int32_t rv = procdate(str, jl, wf, rf);
   return rv;
 }
 
 
 // parse arguments of http command
 static int32_t runhttp(int32_t argc, char** argv) {
+  bool argbrk = false;
   const char* url = NULL;
   kt::HTTPClient::Method meth = kt::HTTPClient::MUNKNOWN;
   const char* body = NULL;
@@ -108,8 +120,10 @@ static int32_t runhttp(int32_t argc, char** argv) {
   bool ph = false;
   int32_t ec = 0;
   for (int32_t i = 2; i < argc; i++) {
-    if (argv[i][0] == '-') {
-      if (!std::strcmp(argv[i], "-get")) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-get")) {
         meth = kt::HTTPClient::MGET;
       } else if (!std::strcmp(argv[i], "-head")) {
         meth = kt::HTTPClient::MHEAD;
@@ -144,6 +158,7 @@ static int32_t runhttp(int32_t argc, char** argv) {
         usage();
       }
     } else if (!url) {
+      argbrk = true;
       url = argv[i];
     } else {
       usage();
@@ -155,9 +170,54 @@ static int32_t runhttp(int32_t argc, char** argv) {
 }
 
 
+// parse arguments of rpc command
+static int32_t runrpc(int32_t argc, char** argv) {
+  bool argbrk = false;
+  const char* proc = NULL;
+  std::map<std::string, std::string> params;
+  const char* host = NULL;
+  int32_t port = kt::DEFPORT;
+  double tout = 0;
+  int32_t ienc = 0;
+  int32_t oenc = 0;
+  for (int32_t i = 2; i < argc; i++) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-host")) {
+        if (++i >= argc) usage();
+        host = argv[i];
+      } else if (!std::strcmp(argv[i], "-port")) {
+        if (++i >= argc) usage();
+        port = kc::atoi(argv[i]);
+      } else if (!std::strcmp(argv[i], "-tout")) {
+        if (++i >= argc) usage();
+        tout = kc::atof(argv[i]);
+      } else if (!std::strcmp(argv[i], "-ienc")) {
+        if (++i >= argc) usage();
+        ienc = argv[i][0];
+      } else if (!std::strcmp(argv[i], "-oenc")) {
+        if (++i >= argc) usage();
+        oenc = argv[i][0];
+      } else {
+        usage();
+      }
+    } else if (!proc) {
+      argbrk = true;
+      proc = argv[i];
+    } else {
+      if (++i >= argc) usage();
+      params[argv[i-1]] = argv[i];
+    }
+  }
+  if (!proc || port < 1) usage();
+  int32_t rv = procrpc(proc, &params, host, port, tout, ienc, oenc);
+  return rv;
+}
+
 
 // perform date command
-static int32_t procdate(const char* str, int jl, bool wf, bool rf) {
+static int32_t procdate(const char* str, int32_t jl, bool wf, bool rf) {
   int64_t t = str ? kt::strmktime(str) : std::time(NULL);
   if (wf) {
     char buf[48];
@@ -289,6 +349,55 @@ static int32_t prochttp(const char* url, kt::HTTPClient::Method meth, const char
     }
     if (!msg) msg = "unknown error";
     eprintf("%s: %s: error: %d: %s\n", g_progname, url, code, msg);
+  }
+  return err ? 1 : 0;
+}
+
+
+// perform http command
+static int32_t procrpc(const char* proc, std::map<std::string, std::string>* params,
+                       const char* host, int32_t port, double tout, int32_t ienc, int32_t oenc) {
+  std::string lhost = kt::Socket::get_local_host_name();
+  if (!host) {
+    if (lhost.empty()) {
+      eprintf("%s: getting the local host name failed", g_progname);
+      return 1;
+    }
+    host = lhost.c_str();
+  }
+  bool err = false;
+  kt::RPCClient rpc;
+  if (!rpc.open(host, port, tout)) {
+    eprintf("%s: opening the connection failed\n", g_progname);
+    return 1;
+  }
+  if (ienc != 0) kt::tsvmapdecode(params, ienc);
+  std::map<std::string, std::string> outmap;
+  kt::RPCClient::ReturnValue rv = rpc.call(proc, params, &outmap);
+  if (rv != kt::RPCClient::RVSUCCESS) err = true;
+  const char* name;
+  switch (rv) {
+    case kt::RPCClient::RVSUCCESS: name = "RVSUCCESS"; break;
+    case kt::RPCClient::RVEINVALID: name = "RVEINVALID"; break;
+    case kt::RPCClient::RVELOGIC: name = "RVELOGIC"; break;
+    case kt::RPCClient::RVEINTERNAL: name = "RVEINTERNAL"; break;
+    case kt::RPCClient::RVENETWORK: name = "RVENETWORK"; break;
+    default: name = "RVEMISC"; break;
+  }
+  iprintf("RV\t%d: %s\n", (int)rv, name);
+
+
+  if (oenc != 0) kt::tsvmapencode(&outmap, oenc);
+
+  std::map<std::string, std::string>::iterator it = outmap.begin();
+  std::map<std::string, std::string>::iterator itend = outmap.end();
+  while (it != itend) {
+    iprintf("%s\t%s\n", it->first.c_str(), it->second.c_str());
+    it++;
+  }
+  if (!rpc.close()) {
+    eprintf("%s: closing the connection failed\n", g_progname);
+    err = true;
   }
   return err ? 1 : 0;
 }

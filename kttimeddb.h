@@ -26,7 +26,6 @@ namespace kyototycoon {                  // common namespace
  */
 namespace {
 const uint8_t JDBMAGICDATA = 0xbb;       ///< magic data of the database type
-const int32_t JDBXTWIDTH = 5;            ///< width of the expiration time
 const int64_t JDBXTSCUNIT = 256;         ///< score unit of expiratoin
 const int64_t JDBXTREADFREQ = 8;         ///< inverse frequency of reading expiration
 const int64_t JDBXTITERFREQ = 4;         ///< inverse frequency of iterating expiration
@@ -51,6 +50,10 @@ public:
 private:
   class TimedVisitor;
 public:
+  /** The width of expiration time. */
+  static const int32_t XTWIDTH = 5;
+  /** The maximum number of expiration time. */
+  static const int64_t XTMAX = (1LL << (XTWIDTH * 8)) - 1;
   /**
    * Cursor to indicate a record.
    */
@@ -173,7 +176,7 @@ public:
      * @param vbuf the pointer to the value region.
      * @param vsiz the size of the value region.
      * @param xt the expiration time from now in seconds.  If it is negative, the absolute value
-     * is treated as the UNIX time of the expiration time.
+     * is treated as the epoch time.
      * @param step true to move the cursor to the next record, or false for no move.
      * @return true on success, or false on failure.
      */
@@ -558,8 +561,7 @@ public:
    * Default constructor.
    */
   explicit TimedDB() :
-    xlock_(), db_(), omode_(0), opts_(0), logger_(NULL), logkinds_(0),
-    xcur_(NULL), xsc_(0) {
+    xlock_(), db_(), omode_(0), opts_(0), xcur_(NULL), xsc_(0) {
     _assert_(true);
   }
   /**
@@ -568,8 +570,7 @@ public:
    * object is deleted automatically.
    */
   explicit TimedDB(kc::BasicDB* db) :
-    xlock_(), db_(db), omode_(0), opts_(0), logger_(NULL), logkinds_(0),
-    xcur_(NULL), xsc_(0) {
+    xlock_(), db_(db), omode_(0), opts_(0), xcur_(NULL), xsc_(0) {
     _assert_(true);
   }
   /**
@@ -614,21 +615,8 @@ public:
     kc::BasicDB* idb = db_.reveal_inner_db();
     if (idb) {
       const std::type_info& info = typeid(*idb);
-      if (info == typeid(kc::ProtoHashDB)) {
-        kc::ProtoHashDB* phdb = (kc::ProtoHashDB*)idb;
-        if (logger_) phdb->tune_logger(logger_, logkinds_);
-      } else if (info == typeid(kc::ProtoTreeDB)) {
-        kc::ProtoTreeDB* ptdb = (kc::ProtoTreeDB*)idb;
-        if (logger_) ptdb->tune_logger(logger_, logkinds_);
-      } else if (info == typeid(kc::CacheDB)) {
-        kc::CacheDB* cdb = (kc::CacheDB*)idb;
-        if (logger_) cdb->tune_logger(logger_, logkinds_);
-      } else if (info == typeid(kc::GrassDB)) {
-        kc::GrassDB* gdb = (kc::GrassDB*)idb;
-        if (logger_) gdb->tune_logger(logger_, logkinds_);
-      } else if (info == typeid(kc::HashDB)) {
+      if (info == typeid(kc::HashDB)) {
         kc::HashDB* hdb = (kc::HashDB*)idb;
-        if (logger_) hdb->tune_logger(logger_, logkinds_);
         char* opq = hdb->opaque();
         if (opq) {
           if (*(uint8_t*)opq == JDBMAGICDATA) {
@@ -641,7 +629,6 @@ public:
         }
       } else if (info == typeid(kc::TreeDB)) {
         kc::TreeDB* tdb = (kc::TreeDB*)idb;
-        if (logger_) tdb->tune_logger(logger_, logkinds_);
         char* opq = tdb->opaque();
         if (opq) {
           if (*(uint8_t*)opq == JDBMAGICDATA) {
@@ -654,7 +641,6 @@ public:
         }
       } else if (info == typeid(kc::DirDB)) {
         kc::DirDB* ddb = (kc::DirDB*)idb;
-        if (logger_) ddb->tune_logger(logger_, logkinds_);
         char* opq = ddb->opaque();
         if (opq) {
           if (*(uint8_t*)opq == JDBMAGICDATA) {
@@ -667,7 +653,6 @@ public:
         }
       } else if (info == typeid(kc::ForestDB)) {
         kc::ForestDB* fdb = (kc::ForestDB*)idb;
-        if (logger_) fdb->tune_logger(logger_, logkinds_);
         char* opq = fdb->opaque();
         if (opq) {
           if (*(uint8_t*)opq == JDBMAGICDATA) {
@@ -851,7 +836,7 @@ public:
    * @param vbuf the pointer to the value region.
    * @param vsiz the size of the value region.
    * @param xt the expiration time from now in seconds.  If it is negative, the absolute value
-   * is treated as the UNIX time of the expiration time.
+   * is treated as the epoch time.
    * @return true on success, or false on failure.
    * @note If no record corresponds to the key, a new record is created.  If the corresponding
    * record exists, the value is overwritten.
@@ -898,7 +883,7 @@ public:
    * @param vbuf the pointer to the value region.
    * @param vsiz the size of the value region.
    * @param xt the expiration time from now in seconds.  If it is negative, the absolute value
-   * is treated as the UNIX time of the expiration time.
+   * is treated as the epoch time.
    * @return true on success, or false on failure.
    * @note If no record corresponds to the key, a new record is created.  If the corresponding
    * record exists, the record is not modified and false is returned.
@@ -948,7 +933,7 @@ public:
    * @param vbuf the pointer to the value region.
    * @param vsiz the size of the value region.
    * @param xt the expiration time from now in seconds.  If it is negative, the absolute value
-   * is treated as the UNIX time of the expiration time.
+   * is treated as the epoch time.
    * @return true on success, or false on failure.
    * @note If no record corresponds to the key, no new record is created and false is returned.
    * If the corresponding record exists, the value is modified.
@@ -999,7 +984,7 @@ public:
    * @param vbuf the pointer to the value region.
    * @param vsiz the size of the value region.
    * @param xt the expiration time from now in seconds.  If it is negative, the absolute value
-   * is treated as the UNIX time of the expiration time.
+   * is treated as the epoch time.
    * @return true on success, or false on failure.
    * @note If no record corresponds to the key, a new record is created.  If the corresponding
    * record exists, the given value is appended at the end of the existing value.
@@ -1048,12 +1033,12 @@ public:
     return append(key.c_str(), key.size(), value.c_str(), value.size(), xt);
   }
   /**
-   * Add a number to the numeric value of a record.
+   * Add a number to the numeric integer value of a record.
    * @param kbuf the pointer to the key region.
    * @param ksiz the size of the key region.
    * @param num the additional number.
    * @param xt the expiration time from now in seconds.  If it is negative, the absolute value
-   * is treated as the UNIX time of the expiration time.
+   * is treated as the epoch time.
    * @return the result value, or INT64_MIN on failure.
    */
   int64_t increment(const char* kbuf, size_t ksiz, int64_t num, int64_t xt = INT64_MAX) {
@@ -1104,7 +1089,7 @@ public:
     return num;
   }
   /**
-   * Add a number to the numeric value of a record.
+   * Add a number to the numeric integer value of a record.
    * @note Equal to the original DB::increment method except that the parameter is std::string.
    */
   int64_t increment(const std::string& key, int64_t num, int64_t xt = INT64_MAX) {
@@ -1112,11 +1097,15 @@ public:
     return increment(key.c_str(), key.size(), num, xt);
   }
   /**
-   * Add a number to the numeric value of a record.
-   * @note Equal to the original DB::increment method except that the parameter and the return
-   * value are double.
+   * Add a number to the numeric double value of a record.
+   * @param kbuf the pointer to the key region.
+   * @param ksiz the size of the key region.
+   * @param num the additional number.
+   * @param xt the expiration time from now in seconds.  If it is negative, the absolute value
+   * is treated as the epoch time.
+   * @return the result value, or Not-a-number on failure.
    */
-  double increment(const char* kbuf, size_t ksiz, double num, int64_t xt = INT64_MAX) {
+  double increment_double(const char* kbuf, size_t ksiz, double num, int64_t xt = INT64_MAX) {
     _assert_(kbuf && ksiz <= kc::MEMMAXSIZ);
     class VisitorImpl : public Visitor {
     public:
@@ -1215,13 +1204,13 @@ public:
     return num;
   }
   /**
-   * Add a number to the numeric value of a record.
-   * @note Equal to the original DB::increment method except that the parameter is std::string
-   * and the return value is double.
+   * Add a number to the numeric double value of a record.
+   * @note Equal to the original DB::increment_double method except that the parameter is
+   * std::string.
    */
-  double increment(const std::string& key, double num, int64_t xt = INT64_MAX) {
+  double increment_double(const std::string& key, double num, int64_t xt = INT64_MAX) {
     _assert_(true);
-    return increment(key.c_str(), key.size(), num, xt);
+    return increment_double(key.c_str(), key.size(), num, xt);
   }
   /**
    * Perform compare-and-swap.
@@ -1232,7 +1221,7 @@ public:
    * @param nvbuf the pointer to the new value region.  NULL means that the record is removed.
    * @param nvsiz the size of new old value region.
    * @param xt the expiration time from now in seconds.  If it is negative, the absolute value
-   * is treated as the UNIX time of the expiration time.
+   * is treated as the epoch time.
    * @return true on success, or false on failure.
    */
   bool cas(const char* kbuf, size_t ksiz,
@@ -1514,13 +1503,7 @@ public:
   bool tune_logger(kc::BasicDB::Logger* logger,
                    uint32_t kinds = kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR) {
     _assert_(logger);
-    if (omode_ != 0) {
-      set_error(kc::BasicDB::Error::INVALID, "already opened");
-      return false;
-    }
-    logger_ = logger;
-    logkinds_ = kinds;
-    return true;
+    return db_.tune_logger(logger, kinds);
   }
 private:
   /**
@@ -1544,8 +1527,8 @@ private:
         int64_t xt = INT64_MAX;
         return visitor_->visit_full(kbuf, ksiz, vbuf, vsiz, sp, &xt);
       }
-      if (vsiz < (size_t)JDBXTWIDTH) return NOP;
-      int64_t xt = kc::readfixnum(vbuf, JDBXTWIDTH);
+      if (vsiz < (size_t)XTWIDTH) return NOP;
+      int64_t xt = kc::readfixnum(vbuf, XTWIDTH);
       if (ct_ > xt) {
         db_->set_error(kc::BasicDB::Error::NOREC, "no record (expired)");
 
@@ -1564,8 +1547,8 @@ private:
       // hoge
       //printf("ok\n");
 
-      vbuf += JDBXTWIDTH;
-      vsiz -= JDBXTWIDTH;
+      vbuf += XTWIDTH;
+      vsiz -= XTWIDTH;
       size_t rsiz;
       const char* rbuf = visitor_->visit_full(kbuf, ksiz, vbuf, vsiz, &rsiz, &xt);
       if (rbuf == TimedDB::Visitor::NOP) return NOP;
@@ -1612,11 +1595,11 @@ private:
     private:
       const char* visit_full(const char* kbuf, size_t ksiz,
                              const char* vbuf, size_t vsiz, size_t* sp) {
-        if (vsiz < (size_t)JDBXTWIDTH) return NOP;
+        if (vsiz < (size_t)XTWIDTH) return NOP;
 
         //std::cout << "scan: " << std::string(kbuf, ksiz) << std::endl;
 
-        int64_t xt = kc::readfixnum(vbuf, JDBXTWIDTH);
+        int64_t xt = kc::readfixnum(vbuf, XTWIDTH);
         if (ct_ <= xt) return NOP;
 
 
@@ -1655,10 +1638,10 @@ private:
    */
   static char* make_record_value(const char* vbuf, size_t vsiz, int64_t xt, size_t* sp) {
     _assert_(vbuf && vsiz <= kc::MEMMAXSIZ);
-    size_t jsiz = vsiz + JDBXTWIDTH;
+    size_t jsiz = vsiz + XTWIDTH;
     char* jbuf = new char[jsiz];
-    kc::writefixnum(jbuf, xt, JDBXTWIDTH);
-    std::memcpy(jbuf + JDBXTWIDTH, vbuf, vsiz);
+    kc::writefixnum(jbuf, xt, XTWIDTH);
+    std::memcpy(jbuf + XTWIDTH, vbuf, vsiz);
     *sp = jsiz;
     return jbuf;
   }
@@ -1677,8 +1660,7 @@ private:
       if (xt > INT64_MAX / 2) xt = INT64_MAX / 2;
       xt += ct;
     }
-    const int64_t max = (1LL << (JDBXTWIDTH * 8)) - 1;
-    if (xt > max) xt = max;
+    if (xt > XTMAX) xt = XTMAX;
     return xt;
   }
   /** The expiration cursor lock. */
@@ -1689,10 +1671,6 @@ private:
   uint32_t omode_;
   /** The options. */
   uint8_t opts_;
-  /** The internal logger. */
-  kc::BasicDB::Logger* logger_;
-  /** The kinds of logged messages. */
-  uint32_t logkinds_;
   /** The cursor for expiration. */
   kc::PolyDB::Cursor* xcur_;
   /** The score of expiration. */

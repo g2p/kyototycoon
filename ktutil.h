@@ -33,6 +33,10 @@ extern const int32_t LIBVER;
 extern const int32_t LIBREV;
 
 
+/** The default port number. */
+const int32_t DEFPORT = 1978;
+
+
 /**
  * Set the signal handler for termination signals.
  * @param handler the function pointer of the signal handler.
@@ -45,10 +49,21 @@ bool setkillsignalhandler(void (*handler)(int));
  * Get the C-style string value of a record in a string map.
  * @param map the target string map.
  * @param key the key.
+ * @param sp the pointer to the variable into which the size of the region of the return value
+ * is assigned.  If it is NULL, it is ignored.
  * @return the C-style string value of the corresponding record, or NULL if there is no
  * corresponding record.
  */
-const char* strmapget(const std::map<std::string, std::string>& map, const char* key);
+const char* strmapget(const std::map<std::string, std::string>& map, const char* key,
+                      size_t* sp = NULL);
+
+
+/**
+ * Print all records in a string map.
+ * @param map the target string map.
+ * @param strm the output stream.
+ */
+void printstrmap(const std::map<std::string, std::string>& map, std::ostream& strm = std::cout);
 
 
 /**
@@ -282,10 +297,27 @@ inline bool setkillsignalhandler(void (*handler)(int)) {
 /**
  * Get the C-style string value of a record in a string map.
  */
-inline const char* strmapget(const std::map<std::string, std::string>& map, const char* key) {
+inline const char* strmapget(const std::map<std::string, std::string>& map, const char* key,
+                             size_t* sp) {
   _assert_(key);
   std::map<std::string, std::string>::const_iterator it = map.find(key);
-  return it == map.end() ? NULL : it->second.c_str();
+  if (it == map.end()) return NULL;
+  if (sp) *sp = it->second.size();
+  return it->second.c_str();
+}
+
+
+/**
+ * Print all records in a string map.
+ */
+inline void printstrmap(const std::map<std::string, std::string>& map, std::ostream& strm) {
+  _assert_(true);
+  std::map<std::string, std::string>::const_iterator it = map.begin();
+  std::map<std::string, std::string>::const_iterator itend = map.end();
+  while (it != itend) {
+    strm << it->first << '\t' << it->second << std::endl;
+    it++;
+  }
 }
 
 

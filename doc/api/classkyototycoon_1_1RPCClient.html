@@ -38,19 +38,35 @@
 <p><a href="classkyototycoon_1_1RPCClient-members.html">List of all members.</a></p>
 <table border="0" cellpadding="0" cellspacing="0">
 <tr><td colspan="2"><h2>Public Types</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">enum &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCClient.html#a28ef084c8cd53f3ad35f98849df55336">ReturnValue</a> { <a class="el" href="classkyototycoon_1_1RPCClient.html#a28ef084c8cd53f3ad35f98849df55336a10b7aadcd5b1ead9f6086574b54a7682">RVSUCCESS</a>, 
+<tr><td class="memItemLeft" align="right" valign="top">enum &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCClient.html#a28ef084c8cd53f3ad35f98849df55336">ReturnValue</a> { <br/>
+&nbsp;&nbsp;<a class="el" href="classkyototycoon_1_1RPCClient.html#a28ef084c8cd53f3ad35f98849df55336a10b7aadcd5b1ead9f6086574b54a7682">RVSUCCESS</a>, 
 <a class="el" href="classkyototycoon_1_1RPCClient.html#a28ef084c8cd53f3ad35f98849df55336a58d960c3220402e0fd972fa27093dfed">RVEINVALID</a>, 
+<a class="el" href="classkyototycoon_1_1RPCClient.html#a28ef084c8cd53f3ad35f98849df55336a12c61851c7a1dceec3c4bc6bdd1d772e">RVELOGIC</a>, 
 <a class="el" href="classkyototycoon_1_1RPCClient.html#a28ef084c8cd53f3ad35f98849df55336aaf288b6ed293503bf4df79f07e32e568">RVEINTERNAL</a>, 
-<a class="el" href="classkyototycoon_1_1RPCClient.html#a28ef084c8cd53f3ad35f98849df55336a12c61851c7a1dceec3c4bc6bdd1d772e">RVELOGIC</a>
+<br/>
+&nbsp;&nbsp;<a class="el" href="classkyototycoon_1_1RPCClient.html#a28ef084c8cd53f3ad35f98849df55336a558520a5347d769eb9a7d63a8a2aaad8">RVENETWORK</a>, 
+<a class="el" href="classkyototycoon_1_1RPCClient.html#a28ef084c8cd53f3ad35f98849df55336a9b79a42a2b7ac19838ec919d1b0f285c">RVEMISC</a> =  15
+<br/>
  }</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><p>Return value. </p>
  <a href="classkyototycoon_1_1RPCClient.html#a28ef084c8cd53f3ad35f98849df55336">More...</a><br/></td></tr>
 <tr><td colspan="2"><h2>Public Member Functions</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCClient.html#a645bd538a899df77c832734761048355">RPCClient</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Default constructor.  <a href="#a645bd538a899df77c832734761048355"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCClient.html#aa1d08d59770f0573d28cbac8d25afe5d">~RPCClient</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Destructor.  <a href="#aa1d08d59770f0573d28cbac8d25afe5d"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCClient.html#aa20af5e813f2ae1b5baf1552b707be11">open</a> (const std::string &amp;host, int32_t port=<a class="el" href="namespacekyototycoon.html#aebd15b3b803e2e0d38f51c0385b66c43">DEFPORT</a>, double timeout=-1)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Open the connection.  <a href="#aa20af5e813f2ae1b5baf1552b707be11"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCClient.html#a44f2d820a8ad8edccdaa0241609a4c17">close</a> (bool grace=true)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Close the connection.  <a href="#a44f2d820a8ad8edccdaa0241609a4c17"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classkyototycoon_1_1RPCClient.html#a28ef084c8cd53f3ad35f98849df55336">ReturnValue</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCClient.html#a4c93f79bb8b5a834ad877e99af1727c1">call</a> (const std::string &amp;name, const std::map&lt; std::string, std::string &gt; *inmap=NULL, std::map&lt; std::string, std::string &gt; *outmap=NULL)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Call a remote procedure.  <a href="#a4c93f79bb8b5a834ad877e99af1727c1"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">const std::string&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCClient.html#ab34e788aacc6665a055d1728d54e9d8c">expression</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the expression of the socket.  <a href="#ab34e788aacc6665a055d1728d54e9d8c"></a><br/></td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>RPC client. </p>
+<dl class="note"><dt><b>Note:</b></dt><dd>Although all methods of this class are thread-safe, its instance does not have mutual exclusion mechanism. So, multiple threads must not share the same instance and they must use their own respective instances. </dd></dl>
 <hr/><h2>Member Enumeration Documentation</h2>
 <a class="anchor" id="a28ef084c8cd53f3ad35f98849df55336"></a><!-- doxytag: member="kyototycoon::RPCClient::ReturnValue" ref="a28ef084c8cd53f3ad35f98849df55336" args="" -->
 <div class="memitem">
@@ -71,11 +87,17 @@
 <tr><td valign="top"><em><a class="anchor" id="a28ef084c8cd53f3ad35f98849df55336a58d960c3220402e0fd972fa27093dfed"></a><!-- doxytag: member="RVEINVALID" ref="a28ef084c8cd53f3ad35f98849df55336a58d960c3220402e0fd972fa27093dfed" args="" -->RVEINVALID</em>&nbsp;</td><td>
 <p>invalid operation </p>
 </td></tr>
+<tr><td valign="top"><em><a class="anchor" id="a28ef084c8cd53f3ad35f98849df55336a12c61851c7a1dceec3c4bc6bdd1d772e"></a><!-- doxytag: member="RVELOGIC" ref="a28ef084c8cd53f3ad35f98849df55336a12c61851c7a1dceec3c4bc6bdd1d772e" args="" -->RVELOGIC</em>&nbsp;</td><td>
+<p>logical inconsistency </p>
+</td></tr>
 <tr><td valign="top"><em><a class="anchor" id="a28ef084c8cd53f3ad35f98849df55336aaf288b6ed293503bf4df79f07e32e568"></a><!-- doxytag: member="RVEINTERNAL" ref="a28ef084c8cd53f3ad35f98849df55336aaf288b6ed293503bf4df79f07e32e568" args="" -->RVEINTERNAL</em>&nbsp;</td><td>
 <p>internal error </p>
 </td></tr>
-<tr><td valign="top"><em><a class="anchor" id="a28ef084c8cd53f3ad35f98849df55336a12c61851c7a1dceec3c4bc6bdd1d772e"></a><!-- doxytag: member="RVELOGIC" ref="a28ef084c8cd53f3ad35f98849df55336a12c61851c7a1dceec3c4bc6bdd1d772e" args="" -->RVELOGIC</em>&nbsp;</td><td>
-<p>logical inconsistency </p>
+<tr><td valign="top"><em><a class="anchor" id="a28ef084c8cd53f3ad35f98849df55336a558520a5347d769eb9a7d63a8a2aaad8"></a><!-- doxytag: member="RVENETWORK" ref="a28ef084c8cd53f3ad35f98849df55336a558520a5347d769eb9a7d63a8a2aaad8" args="" -->RVENETWORK</em>&nbsp;</td><td>
+<p>network error </p>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" id="a28ef084c8cd53f3ad35f98849df55336a9b79a42a2b7ac19838ec919d1b0f285c"></a><!-- doxytag: member="RVEMISC" ref="a28ef084c8cd53f3ad35f98849df55336a9b79a42a2b7ac19838ec919d1b0f285c" args="" -->RVEMISC</em>&nbsp;</td><td>
+<p>miscellaneous error </p>
 </td></tr>
 </table>
 </dd>
@@ -83,7 +105,117 @@
 
 </div>
 </div>
+<hr/><h2>Constructor &amp; Destructor Documentation</h2>
+<a class="anchor" id="a645bd538a899df77c832734761048355"></a><!-- doxytag: member="kyototycoon::RPCClient::RPCClient" ref="a645bd538a899df77c832734761048355" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">kyototycoon::RPCClient::RPCClient </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Default constructor. </p>
+
+</div>
+</div>
+<a class="anchor" id="aa1d08d59770f0573d28cbac8d25afe5d"></a><!-- doxytag: member="kyototycoon::RPCClient::~RPCClient" ref="aa1d08d59770f0573d28cbac8d25afe5d" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">kyototycoon::RPCClient::~RPCClient </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Destructor. </p>
+
+</div>
+</div>
 <hr/><h2>Member Function Documentation</h2>
+<a class="anchor" id="aa20af5e813f2ae1b5baf1552b707be11"></a><!-- doxytag: member="kyototycoon::RPCClient::open" ref="aa20af5e813f2ae1b5baf1552b707be11" args="(const std::string &amp;host, int32_t port=DEFPORT, double timeout=&#45;1)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RPCClient::open </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>host</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t&nbsp;</td>
+          <td class="paramname"> <em>port</em> = <code><a class="el" href="namespacekyototycoon.html#aebd15b3b803e2e0d38f51c0385b66c43">DEFPORT</a></code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&nbsp;</td>
+          <td class="paramname"> <em>timeout</em> = <code>-1</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Open the connection. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>host</em>&nbsp;</td><td>the name or the address of the server. If it is an empty string, the local host is specified. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>port</em>&nbsp;</td><td>the port numger of the server. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>timeout</em>&nbsp;</td><td>the timeout of each operation in seconds. If it is not more than 0, no timeout is specified. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a44f2d820a8ad8edccdaa0241609a4c17"></a><!-- doxytag: member="kyototycoon::RPCClient::close" ref="a44f2d820a8ad8edccdaa0241609a4c17" args="(bool grace=true)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RPCClient::close </td>
+          <td>(</td>
+          <td class="paramtype">bool&nbsp;</td>
+          <td class="paramname"> <em>grace</em> = <code>true</code></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Close the connection. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>grace</em>&nbsp;</td><td>true for graceful shutdown, or false for immediate disconnection. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a4c93f79bb8b5a834ad877e99af1727c1"></a><!-- doxytag: member="kyototycoon::RPCClient::call" ref="a4c93f79bb8b5a834ad877e99af1727c1" args="(const std::string &amp;name, const std::map&lt; std::string, std::string &gt; *inmap=NULL, std::map&lt; std::string, std::string &gt; *outmap=NULL)" -->
 <div class="memitem">
 <div class="memproto">
@@ -120,7 +252,7 @@
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"></td><td valign="top"><em>name</em>&nbsp;</td><td>the name of the procecude. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>inmap</em>&nbsp;</td><td>a string map which contains the input of the procedure. If it is NULL, it is ignored. </td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>outmap</em>&nbsp;</td><td>a string map to contain the input parameters. If it is NULL, it is ignored. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>outmap</em>&nbsp;</td><td>a string map to contain the output parameters. If it is NULL, it is ignored. </td></tr>
   </table>
   </dd>
 </dl>
@@ -128,8 +260,28 @@
 
 </div>
 </div>
+<a class="anchor" id="ab34e788aacc6665a055d1728d54e9d8c"></a><!-- doxytag: member="kyototycoon::RPCClient::expression" ref="ab34e788aacc6665a055d1728d54e9d8c" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::string kyototycoon::RPCClient::expression </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Sun Sep 26 01:58:30 2010 for Kyoto Tycoon by&nbsp;
+<div class="memdoc">
+
+<p>Get the expression of the socket. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the expression of the socket or an empty string on failure. </dd></dl>
+
+</div>
+</div>
+</div>
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Sep 29 21:25:31 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

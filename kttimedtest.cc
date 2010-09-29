@@ -128,6 +128,7 @@ static void dbmetaprint(kt::TimedDB* db, bool verbose) {
 
 // parse arguments of order command
 static int32_t runorder(int argc, char** argv) {
+  bool argbrk = false;
   const char* path = NULL;
   const char* rstr = NULL;
   int32_t thnum = 1;
@@ -137,8 +138,10 @@ static int32_t runorder(int argc, char** argv) {
   int32_t oflags = 0;
   int32_t opts = 0;
   for (int32_t i = 2; i < argc; i++) {
-    if (!path && argv[i][0] == '-') {
-      if (!std::strcmp(argv[i], "-th")) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-th")) {
         if (++i >= argc) usage();
         thnum = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-rnd")) {
@@ -171,6 +174,7 @@ static int32_t runorder(int argc, char** argv) {
         usage();
       }
     } else if (!path) {
+      argbrk = false;
       path = argv[i];
     } else if (!rstr) {
       rstr = argv[i];
@@ -189,6 +193,7 @@ static int32_t runorder(int argc, char** argv) {
 
 // parse arguments of queue command
 static int32_t runqueue(int argc, char** argv) {
+  bool argbrk = false;
   const char* path = NULL;
   const char* rstr = NULL;
   int32_t thnum = 1;
@@ -197,8 +202,10 @@ static int32_t runqueue(int argc, char** argv) {
   int32_t oflags = 0;
   int32_t opts = 0;
   for (int32_t i = 2; i < argc; i++) {
-    if (!path && argv[i][0] == '-') {
-      if (!std::strcmp(argv[i], "-th")) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-th")) {
         if (++i >= argc) usage();
         thnum = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-it")) {
@@ -222,6 +229,7 @@ static int32_t runqueue(int argc, char** argv) {
         usage();
       }
     } else if (!path) {
+      argbrk = false;
       path = argv[i];
     } else if (!rstr) {
       rstr = argv[i];
@@ -240,6 +248,7 @@ static int32_t runqueue(int argc, char** argv) {
 
 // parse arguments of wicked command
 static int32_t runwicked(int argc, char** argv) {
+  bool argbrk = false;
   const char* path = NULL;
   const char* rstr = NULL;
   int32_t thnum = 1;
@@ -247,8 +256,10 @@ static int32_t runwicked(int argc, char** argv) {
   int32_t oflags = 0;
   int32_t opts = 0;
   for (int32_t i = 2; i < argc; i++) {
-    if (!path && argv[i][0] == '-') {
-      if (!std::strcmp(argv[i], "-th")) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-th")) {
         if (++i >= argc) usage();
         thnum = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-it")) {
@@ -270,6 +281,7 @@ static int32_t runwicked(int argc, char** argv) {
         usage();
       }
     } else if (!path) {
+      argbrk = false;
       path = argv[i];
     } else if (!rstr) {
       rstr = argv[i];
@@ -288,6 +300,7 @@ static int32_t runwicked(int argc, char** argv) {
 
 // parse arguments of tran command
 static int32_t runtran(int argc, char** argv) {
+  bool argbrk = false;
   const char* path = NULL;
   const char* rstr = NULL;
   int32_t thnum = 1;
@@ -296,8 +309,10 @@ static int32_t runtran(int argc, char** argv) {
   int32_t oflags = 0;
   int32_t opts = 0;
   for (int32_t i = 2; i < argc; i++) {
-    if (!path && argv[i][0] == '-') {
-      if (!std::strcmp(argv[i], "-th")) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-th")) {
         if (++i >= argc) usage();
         thnum = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-it")) {
@@ -321,6 +336,7 @@ static int32_t runtran(int argc, char** argv) {
         usage();
       }
     } else if (!path) {
+      argbrk = false;
       path = argv[i];
     } else if (!rstr) {
       rstr = argv[i];
@@ -339,11 +355,15 @@ static int32_t runtran(int argc, char** argv) {
 
 // parse arguments of misc command
 static int32_t runmisc(int argc, char** argv) {
+  bool argbrk = false;
   const char* path = NULL;
   for (int32_t i = 2; i < argc; i++) {
-    if (!path && argv[i][0] == '-') {
-      usage();
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else      usage();
     } else if (!path) {
+      argbrk = false;
       path = argv[i];
     } else {
       usage();
@@ -1016,7 +1036,7 @@ static int32_t procorder(const char* path, int64_t rnum, int32_t thnum, bool rnd
       dberrprint(&db, __LINE__, "DB::end_transaction");
       err = true;
     }
-    if (visitoriterator.cnt() != cnt) {
+    if (!rnd && visitoriterator.cnt() != cnt) {
       dberrprint(&db, __LINE__, "DB::iterate");
       err = true;
     }

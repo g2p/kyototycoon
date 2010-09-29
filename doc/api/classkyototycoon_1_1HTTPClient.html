@@ -55,10 +55,10 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Default constructor.  <a href="#a4aa598c3e8b328cd63ef2f1ea802a458"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPClient.html#a80a9595ab5a9b7a1b131fd5989854b10">~HTTPClient</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Destructor.  <a href="#a80a9595ab5a9b7a1b131fd5989854b10"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPClient.html#a0e993c14bbca54e22b78dd959a84a6d1">open</a> (const std::string &amp;host, uint32_t port=80, double timeout=-1)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Open the connection.  <a href="#a0e993c14bbca54e22b78dd959a84a6d1"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPClient.html#ad3b4e0fe048e5af797776b5b042e40e2">close</a> ()</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Close the connection.  <a href="#ad3b4e0fe048e5af797776b5b042e40e2"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPClient.html#aa307b171cd6f8d27bfcc1dacd8837b97">open</a> (const std::string &amp;host, int32_t port=80, double timeout=-1)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Open the connection.  <a href="#aa307b171cd6f8d27bfcc1dacd8837b97"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPClient.html#adbc23114f173a7180aa5a09296f4cb0a">close</a> (bool grace=true)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Close the connection.  <a href="#adbc23114f173a7180aa5a09296f4cb0a"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPClient.html#a91efd388b16cdf59ae3e982ea402d5ba">fetch</a> (const std::string &amp;pathquery, <a class="el" href="classkyototycoon_1_1HTTPClient.html#aae547c07cce765679e5ab7808c748de7">Method</a> method=MGET, std::string *resbody=NULL, std::map&lt; std::string, std::string &gt; *resheads=NULL, const std::string *reqbody=NULL, const std::map&lt; std::string, std::string &gt; *reqheads=NULL)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Fetch a resource.  <a href="#a91efd388b16cdf59ae3e982ea402d5ba"></a><br/></td></tr>
 <tr><td colspan="2"><h2>Static Public Member Functions</h2></td></tr>
@@ -67,6 +67,7 @@
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>HTTP client. </p>
+<dl class="note"><dt><b>Note:</b></dt><dd>Although all methods of this class are thread-safe, its instance does not have mutual exclusion mechanism. So, multiple threads must not share the same instance and they must use their own respective instances. </dd></dl>
 <hr/><h2>Member Enumeration Documentation</h2>
 <a class="anchor" id="aae547c07cce765679e5ab7808c748de7"></a><!-- doxytag: member="kyototycoon::HTTPClient::Method" ref="aae547c07cce765679e5ab7808c748de7" args="" -->
 <div class="memitem">
@@ -145,7 +146,7 @@
 </div>
 </div>
 <hr/><h2>Member Function Documentation</h2>
-<a class="anchor" id="a0e993c14bbca54e22b78dd959a84a6d1"></a><!-- doxytag: member="kyototycoon::HTTPClient::open" ref="a0e993c14bbca54e22b78dd959a84a6d1" args="(const std::string &amp;host, uint32_t port=80, double timeout=&#45;1)" -->
+<a class="anchor" id="aa307b171cd6f8d27bfcc1dacd8837b97"></a><!-- doxytag: member="kyototycoon::HTTPClient::open" ref="aa307b171cd6f8d27bfcc1dacd8837b97" args="(const std::string &amp;host, int32_t port=80, double timeout=&#45;1)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -158,7 +159,7 @@
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">uint32_t&nbsp;</td>
+          <td class="paramtype">int32_t&nbsp;</td>
           <td class="paramname"> <em>port</em> = <code>80</code>, </td>
         </tr>
         <tr>
@@ -179,7 +180,7 @@
 <p>Open the connection. </p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
-    <tr><td valign="top"></td><td valign="top"><em>host</em>&nbsp;</td><td>the name or the address of the server. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>host</em>&nbsp;</td><td>the name or the address of the server. If it is an empty string, the local host is specified. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>port</em>&nbsp;</td><td>the port numger of the server. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>timeout</em>&nbsp;</td><td>the timeout of each operation in seconds. If it is not more than 0, no timeout is specified. </td></tr>
   </table>
@@ -189,14 +190,15 @@
 
 </div>
 </div>
-<a class="anchor" id="ad3b4e0fe048e5af797776b5b042e40e2"></a><!-- doxytag: member="kyototycoon::HTTPClient::close" ref="ad3b4e0fe048e5af797776b5b042e40e2" args="()" -->
+<a class="anchor" id="adbc23114f173a7180aa5a09296f4cb0a"></a><!-- doxytag: member="kyototycoon::HTTPClient::close" ref="adbc23114f173a7180aa5a09296f4cb0a" args="(bool grace=true)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname">bool kyototycoon::HTTPClient::close </td>
           <td>(</td>
-          <td class="paramname"></td>
+          <td class="paramtype">bool&nbsp;</td>
+          <td class="paramname"> <em>grace</em> = <code>true</code></td>
           <td>&nbsp;)&nbsp;</td>
           <td></td>
         </tr>
@@ -205,6 +207,12 @@
 <div class="memdoc">
 
 <p>Close the connection. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>grace</em>&nbsp;</td><td>true for graceful shutdown, or false for immediate disconnection. </td></tr>
+  </table>
+  </dd>
+</dl>
 <dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
 
 </div>
@@ -347,7 +355,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Sun Sep 26 01:58:30 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Sep 29 21:25:31 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

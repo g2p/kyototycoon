@@ -95,7 +95,7 @@ public:
   /**
    * Set the port number.
    */
-  void set_port(uint32_t port) {
+  void set_port(int32_t port) {
     _assert_(true);
     port_ = port;
   }
@@ -139,7 +139,7 @@ public:
       if (!authority_.empty()) kc::strprintf(&expr, "%s@", authority_.c_str());
       if (!host_.empty()) {
         kc::strprintf(&expr, "%s", host_.c_str());
-        if (port_ > 0 && port_ != default_port(scheme_)) kc::strprintf(&expr, ":%u", port_);
+        if (port_ > 0 && port_ != default_port(scheme_)) kc::strprintf(&expr, ":%d", port_);
       }
     }
     kc::strprintf(&expr, "%s", path_.c_str());
@@ -175,7 +175,7 @@ public:
    * Get the port number.
    * @return the port number.
    */
-  uint32_t port() {
+  int32_t port() {
     _assert_(true);
     return port_;
   }
@@ -333,7 +333,7 @@ private:
    * Get the default port of a scheme.
    * @param scheme the scheme.
    */
-  uint32_t default_port(const std::string& scheme) {
+  int32_t default_port(const std::string& scheme) {
     if (scheme == "http") return 80;
     if (scheme == "https") return 443;
     if (scheme == "ftp") return 21;
@@ -349,7 +349,7 @@ private:
   /** The host name. */
   std::string host_;
   /** The port number. */
-  uint32_t port_;
+  int32_t port_;
   /** The autority information. */
   std::string authority_;
   /** The path. */
@@ -363,6 +363,9 @@ private:
 
 /**
  * HTTP client.
+ * @note Although all methods of this class are thread-safe, its instance does not have mutual
+ * exclusion mechanism.  So, multiple threads must not share the same instance and they must use
+ * their own respective instances.
  */
 class HTTPClient {
 public:
@@ -391,19 +394,21 @@ public:
   }
   /**
    * Open the connection.
-   * @param host the name or the address of the server.
+   * @param host the name or the address of the server.  If it is an empty string, the local host
+   * is specified.
    * @param port the port numger of the server.
    * @param timeout the timeout of each operation in seconds.  If it is not more than 0, no
    * timeout is specified.
    * @return true on success, or false on failure.
    */
-  bool open(const std::string& host, uint32_t port = 80, double timeout = -1) {
+  bool open(const std::string& host, int32_t port = 80, double timeout = -1) {
     _assert_(true);
-    const std::string& addr = Socket::get_host_address(host);
-    if (addr.empty()) return false;
+    const std::string& thost = host.empty() ? Socket::get_local_host_name() : host;
+    const std::string& addr = Socket::get_host_address(thost);
+    if (addr.empty() || port < 1) return false;
     std::string expr;
-    kc::strprintf(&expr, "%s:%u", addr.c_str(), port);
-    sock_.set_timeout(timeout);
+    kc::strprintf(&expr, "%s:%d", addr.c_str(), port);
+    if (timeout > 0) sock_.set_timeout(timeout);
     if (!sock_.open(expr)) return false;
     host_ = host;
     port_ = port;
@@ -456,7 +461,7 @@ public:
     }
     kc::strprintf(&request, "%s %s HTTP/1.1\r\n", mstr, pathquery.c_str());
     kc::strprintf(&request, "Host: %s", host_.c_str());
-    if (port_ != 80) kc::strprintf(&request, ":%u", port_);
+    if (port_ != 80) kc::strprintf(&request, ":%d", port_);
     kc::strprintf(&request, "\r\n");
     if (reqbody) kc::strprintf(&request, "Content-Length: %lld\r\n", (long long)reqbody->size());
     if (reqheads) {
@@ -659,7 +664,7 @@ private:
   /** The host name of the server. */
   std::string host_;
   /** The port number of the server. */
-  uint32_t port_;
+  int32_t port_;
 };
 
 
@@ -819,7 +824,7 @@ public:
    */
   void set_network(const std::string& expr, double timeout = -1, const std::string& name = "") {
     _assert_(true);
-    serv_.set_network(expr, timeout);
+    if (timeout > 0) serv_.set_network(expr, timeout);
     if (name.empty()) {
       name_ = Socket::get_local_host_name();
       if (name.empty()) name_ = "localhost";

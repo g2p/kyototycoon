@@ -251,7 +251,7 @@ public:
         while ((event = poll_.next()) != NULL) {
           if (event == &sock_) {
             Session* sess = new Session(++sesscnt_);
-            sess->set_timeout(timeout_);
+            if (timeout_ > 0) sess->set_timeout(timeout_);
             if (sock_.accept(sess)) {
               log(Logger::INFO, "connected: expr=%s", sess->expression().c_str());
               sess->set_event_flags(Pollable::EVINPUT);

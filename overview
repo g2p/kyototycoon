@@ -4,7 +4,9 @@
 
 @section Introduction
 
-I love you.
+The following class the most important.
+
+@li kyototycoon::RemoteDB -- common interface of concrete databases
 
 */
 

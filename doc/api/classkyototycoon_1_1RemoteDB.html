@@ -34,13 +34,1179 @@
 <a href="#_details">More...</a></p>
 
 <p><code>#include &lt;ktremotedb.h&gt;</code></p>
+
+<p><a href="classkyototycoon_1_1RemoteDB-members.html">List of all members.</a></p>
 <table border="0" cellpadding="0" cellspacing="0">
+<tr><td colspan="2"><h2>Classes</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Error.html">Error</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Error.html" title="Error data.">Error</a> data.  <a href="classkyototycoon_1_1RemoteDB_1_1Error.html#_details">More...</a><br/></td></tr>
+<tr><td colspan="2"><h2>Public Member Functions</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#aaa57bff29d1a075db1e5a170a034bc99">RemoteDB</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Default constructor.  <a href="#aaa57bff29d1a075db1e5a170a034bc99"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a0a77b1abb6d7bf9572d997c147820889">~RemoteDB</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Destructor.  <a href="#a0a77b1abb6d7bf9572d997c147820889"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Error.html">Error</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a5b22c48e3a3a060950ef0bc3baf0a809">error</a> () const </td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the last happened error code.  <a href="#a5b22c48e3a3a060950ef0bc3baf0a809"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a08f2314a62af09137aecf2d4d6a1dbaf">open</a> (const std::string &amp;host=&quot;&quot;, int32_t port=<a class="el" href="namespacekyototycoon.html#aebd15b3b803e2e0d38f51c0385b66c43">DEFPORT</a>, double timeout=-1)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Open the connection.  <a href="#a08f2314a62af09137aecf2d4d6a1dbaf"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ae440d3dd2e4e0696138c10e015b4d375">close</a> (bool grace=true)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Close the connection.  <a href="#ae440d3dd2e4e0696138c10e015b4d375"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#afe7f55262f393a650ff6c5eee2d0b305">report</a> (std::map&lt; std::string, std::string &gt; *strmap)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the report of the server information.  <a href="#afe7f55262f393a650ff6c5eee2d0b305"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a4fe09abd9cbaf886c7c11696ce2437ad">status</a> (std::map&lt; std::string, std::string &gt; *strmap)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the miscellaneous status information.  <a href="#a4fe09abd9cbaf886c7c11696ce2437ad"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a875c26b9bd91299054e22f4f427b0e5e">clear</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Remove all records.  <a href="#a875c26b9bd91299054e22f4f427b0e5e"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#aa4a89aeeae5b46e32ed19b3ccd474926">count</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the number of records.  <a href="#aa4a89aeeae5b46e32ed19b3ccd474926"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a6a97eb363476b16a6c092c77e301a6b2">size</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the size of the database file.  <a href="#a6a97eb363476b16a6c092c77e301a6b2"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a6716a1a7581cc98453061998133de309">set</a> (const char *kbuf, size_t ksiz, const char *vbuf, size_t vsiz, int64_t xt=INT64_MAX)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the value of a record.  <a href="#a6716a1a7581cc98453061998133de309"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a00151ff60c06755fb603f5a393d60e1c">set</a> (const std::string &amp;key, const std::string &amp;value, int64_t xt=INT64_MAX)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the value of a record.  <a href="#a00151ff60c06755fb603f5a393d60e1c"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ab0e70d699dd6cd173ed6071dfb137cfc">add</a> (const char *kbuf, size_t ksiz, const char *vbuf, size_t vsiz, int64_t xt=INT64_MAX)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Add a record.  <a href="#ab0e70d699dd6cd173ed6071dfb137cfc"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a9b1607d1235deb8a9b6c0fffd754cd44">add</a> (const std::string &amp;key, const std::string &amp;value, int64_t xt=INT64_MAX)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the value of a record.  <a href="#a9b1607d1235deb8a9b6c0fffd754cd44"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ad3f6ace5dfbd3e1f306b22baa0524bfa">replace</a> (const char *kbuf, size_t ksiz, const char *vbuf, size_t vsiz, int64_t xt=INT64_MAX)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Replace the value of a record.  <a href="#ad3f6ace5dfbd3e1f306b22baa0524bfa"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#abbfa38060724c851e643946095fe265c">replace</a> (const std::string &amp;key, const std::string &amp;value, int64_t xt=INT64_MAX)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Replace the value of a record.  <a href="#abbfa38060724c851e643946095fe265c"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ae08a5c5455d0119174878062c61a40d0">append</a> (const char *kbuf, size_t ksiz, const char *vbuf, size_t vsiz, int64_t xt=INT64_MAX)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Append the value of a record.  <a href="#ae08a5c5455d0119174878062c61a40d0"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a3eabec8c47826508900f1cacae51313c">append</a> (const std::string &amp;key, const std::string &amp;value, int64_t xt=INT64_MAX)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the value of a record.  <a href="#a3eabec8c47826508900f1cacae51313c"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a943fcf1211b982d62ecf98cd3088c337">increment</a> (const char *kbuf, size_t ksiz, int64_t num, int64_t xt=INT64_MAX)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Add a number to the numeric integer value of a record.  <a href="#a943fcf1211b982d62ecf98cd3088c337"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#afc7629bdb7456dcd6ac398b90c176e3f">increment</a> (const std::string &amp;key, int64_t num, int64_t xt=INT64_MAX)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Add a number to the numeric integer value of a record.  <a href="#afc7629bdb7456dcd6ac398b90c176e3f"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">double&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a6874656520d656eeb3524fed9861fd13">increment_double</a> (const char *kbuf, size_t ksiz, double num, int64_t xt=INT64_MAX)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Add a number to the numeric double value of a record.  <a href="#a6874656520d656eeb3524fed9861fd13"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">double&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#af5b0625595a1fb8932707795db9b9b74">increment_double</a> (const std::string &amp;key, double num, int64_t xt=INT64_MAX)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Add a number to the numeric double value of a record.  <a href="#af5b0625595a1fb8932707795db9b9b74"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#acc6789d5df5e6b08b27520a33d24c067">cas</a> (const char *kbuf, size_t ksiz, const char *ovbuf, size_t ovsiz, const char *nvbuf, size_t nvsiz, int64_t xt=INT64_MAX)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Perform compare-and-swap.  <a href="#acc6789d5df5e6b08b27520a33d24c067"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ac9cd8c114fc429636afd9cdff722a465">cas</a> (const std::string &amp;key, const std::string &amp;ovalue, const std::string &amp;nvalue, int64_t xt=INT64_MAX)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Perform compare-and-swap.  <a href="#ac9cd8c114fc429636afd9cdff722a465"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ad0939c0c7134d8d98077b49e13ba3342">remove</a> (const char *kbuf, size_t ksiz)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Remove a record.  <a href="#ad0939c0c7134d8d98077b49e13ba3342"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a13262eeac1f407d4bd9ac1a4d3d2ac3a">remove</a> (const std::string &amp;key)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Remove a record.  <a href="#a13262eeac1f407d4bd9ac1a4d3d2ac3a"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#acd063776b8998ab74365b76d64c65fd5">get</a> (const char *kbuf, size_t ksiz, size_t *sp, int64_t *xtp=NULL)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieve the value of a record.  <a href="#acd063776b8998ab74365b76d64c65fd5"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">std::string *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#af2043152498cfa4ced04cc92673b2aa0">get</a> (const std::string &amp;key, int64_t *xtp=NULL)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieve the value of a record.  <a href="#af2043152498cfa4ced04cc92673b2aa0"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ace5ab87b94e584ed121a7df5bb7b0eef">set_target</a> (const std::string &amp;expr)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the target database.  <a href="#ace5ab87b94e584ed121a7df5bb7b0eef"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">const std::string&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ad43e50e8ad87e7220b476158fa7ef190">expression</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the expression of the socket.  <a href="#ad43e50e8ad87e7220b476158fa7ef190"></a><br/></td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>Remote database. </p>
-<dl class="note"><dt><b>Note:</b></dt><dd>This class is a concrete class to access remote database servers. This class can be inherited but overwriting methods is forbidden. Before every database operation, it is necessary to call the RemoteDB::open method in order to connect to a database server. To avoid resource starvation it is important to close every database file by the RemoteDB::close method when the connection is no longer in use. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>This class is a concrete class to access remote database servers. This class can be inherited but overwriting methods is forbidden. Before every database operation, it is necessary to call the <a class="el" href="classkyototycoon_1_1RemoteDB.html#a08f2314a62af09137aecf2d4d6a1dbaf" title="Open the connection.">RemoteDB::open</a> method in order to connect to a database server. To avoid resource starvation it is important to close every database file by the <a class="el" href="classkyototycoon_1_1RemoteDB.html#ae440d3dd2e4e0696138c10e015b4d375" title="Close the connection.">RemoteDB::close</a> method when the connection is no longer in use. Although all methods of this class are thread-safe, its instance does not have mutual exclusion mechanism. So, multiple threads must not share the same instance and they must use their own respective instances. </dd></dl>
+<hr/><h2>Constructor &amp; Destructor Documentation</h2>
+<a class="anchor" id="aaa57bff29d1a075db1e5a170a034bc99"></a><!-- doxytag: member="kyototycoon::RemoteDB::RemoteDB" ref="aaa57bff29d1a075db1e5a170a034bc99" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">kyototycoon::RemoteDB::RemoteDB </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [explicit]</code></td>
+        </tr>
+      </table>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Sun Sep 26 01:58:30 2010 for Kyoto Tycoon by&nbsp;
+<div class="memdoc">
+
+<p>Default constructor. </p>
+
+</div>
+</div>
+<a class="anchor" id="a0a77b1abb6d7bf9572d997c147820889"></a><!-- doxytag: member="kyototycoon::RemoteDB::~RemoteDB" ref="a0a77b1abb6d7bf9572d997c147820889" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual kyototycoon::RemoteDB::~RemoteDB </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [virtual]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Destructor. </p>
+
+</div>
+</div>
+<hr/><h2>Member Function Documentation</h2>
+<a class="anchor" id="a5b22c48e3a3a060950ef0bc3baf0a809"></a><!-- doxytag: member="kyototycoon::RemoteDB::error" ref="a5b22c48e3a3a060950ef0bc3baf0a809" args="() const " -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Error.html">Error</a> kyototycoon::RemoteDB::error </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Get the last happened error code. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the last happened error code. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a08f2314a62af09137aecf2d4d6a1dbaf"></a><!-- doxytag: member="kyototycoon::RemoteDB::open" ref="a08f2314a62af09137aecf2d4d6a1dbaf" args="(const std::string &amp;host=&quot;&quot;, int32_t port=DEFPORT, double timeout=&#45;1)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::open </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>host</em> = <code>&quot;&quot;</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t&nbsp;</td>
+          <td class="paramname"> <em>port</em> = <code><a class="el" href="namespacekyototycoon.html#aebd15b3b803e2e0d38f51c0385b66c43">DEFPORT</a></code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&nbsp;</td>
+          <td class="paramname"> <em>timeout</em> = <code>-1</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Open the connection. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>host</em>&nbsp;</td><td>the name or the address of the server. If it is an empty string, the local host is specified. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>port</em>&nbsp;</td><td>the port numger of the server. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>timeout</em>&nbsp;</td><td>the timeout of each operation in seconds. If it is not more than 0, no timeout is specified. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ae440d3dd2e4e0696138c10e015b4d375"></a><!-- doxytag: member="kyototycoon::RemoteDB::close" ref="ae440d3dd2e4e0696138c10e015b4d375" args="(bool grace=true)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::close </td>
+          <td>(</td>
+          <td class="paramtype">bool&nbsp;</td>
+          <td class="paramname"> <em>grace</em> = <code>true</code></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Close the connection. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>grace</em>&nbsp;</td><td>true for graceful shutdown, or false for immediate disconnection. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="afe7f55262f393a650ff6c5eee2d0b305"></a><!-- doxytag: member="kyototycoon::RemoteDB::report" ref="afe7f55262f393a650ff6c5eee2d0b305" args="(std::map&lt; std::string, std::string &gt; *strmap)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::report </td>
+          <td>(</td>
+          <td class="paramtype">std::map&lt; std::string, std::string &gt; *&nbsp;</td>
+          <td class="paramname"> <em>strmap</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Get the report of the server information. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>strmap</em>&nbsp;</td><td>a string map to contain the result. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a4fe09abd9cbaf886c7c11696ce2437ad"></a><!-- doxytag: member="kyototycoon::RemoteDB::status" ref="a4fe09abd9cbaf886c7c11696ce2437ad" args="(std::map&lt; std::string, std::string &gt; *strmap)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::status </td>
+          <td>(</td>
+          <td class="paramtype">std::map&lt; std::string, std::string &gt; *&nbsp;</td>
+          <td class="paramname"> <em>strmap</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Get the miscellaneous status information. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>strmap</em>&nbsp;</td><td>a string map to contain the result. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a875c26b9bd91299054e22f4f427b0e5e"></a><!-- doxytag: member="kyototycoon::RemoteDB::clear" ref="a875c26b9bd91299054e22f4f427b0e5e" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::clear </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Remove all records. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="aa4a89aeeae5b46e32ed19b3ccd474926"></a><!-- doxytag: member="kyototycoon::RemoteDB::count" ref="aa4a89aeeae5b46e32ed19b3ccd474926" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t kyototycoon::RemoteDB::count </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Get the number of records. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the number of records, or -1 on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a6a97eb363476b16a6c092c77e301a6b2"></a><!-- doxytag: member="kyototycoon::RemoteDB::size" ref="a6a97eb363476b16a6c092c77e301a6b2" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t kyototycoon::RemoteDB::size </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Get the size of the database file. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the size of the database file in bytes, or -1 on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a6716a1a7581cc98453061998133de309"></a><!-- doxytag: member="kyototycoon::RemoteDB::set" ref="a6716a1a7581cc98453061998133de309" args="(const char *kbuf, size_t ksiz, const char *vbuf, size_t vsiz, int64_t xt=INT64_MAX)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::set </td>
+          <td>(</td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>kbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&nbsp;</td>
+          <td class="paramname"> <em>ksiz</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>vbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&nbsp;</td>
+          <td class="paramname"> <em>vsiz</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Set the value of a record. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>kbuf</em>&nbsp;</td><td>the pointer to the key region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>ksiz</em>&nbsp;</td><td>the size of the key region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>vbuf</em>&nbsp;</td><td>the pointer to the value region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>vsiz</em>&nbsp;</td><td>the size of the value region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>xt</em>&nbsp;</td><td>the expiration time from now in seconds. If it is negative, the absolute value is treated as the epoch time. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>If no record corresponds to the key, a new record is created. If the corresponding record exists, the value is overwritten. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a00151ff60c06755fb603f5a393d60e1c"></a><!-- doxytag: member="kyototycoon::RemoteDB::set" ref="a00151ff60c06755fb603f5a393d60e1c" args="(const std::string &amp;key, const std::string &amp;value, int64_t xt=INT64_MAX)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::set </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Set the value of a record. </p>
+<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original DB::set method except that the parameters are std::string. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ab0e70d699dd6cd173ed6071dfb137cfc"></a><!-- doxytag: member="kyototycoon::RemoteDB::add" ref="ab0e70d699dd6cd173ed6071dfb137cfc" args="(const char *kbuf, size_t ksiz, const char *vbuf, size_t vsiz, int64_t xt=INT64_MAX)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::add </td>
+          <td>(</td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>kbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&nbsp;</td>
+          <td class="paramname"> <em>ksiz</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>vbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&nbsp;</td>
+          <td class="paramname"> <em>vsiz</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Add a record. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>kbuf</em>&nbsp;</td><td>the pointer to the key region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>ksiz</em>&nbsp;</td><td>the size of the key region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>vbuf</em>&nbsp;</td><td>the pointer to the value region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>vsiz</em>&nbsp;</td><td>the size of the value region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>xt</em>&nbsp;</td><td>the expiration time from now in seconds. If it is negative, the absolute value is treated as the epoch time. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>If no record corresponds to the key, a new record is created. If the corresponding record exists, the record is not modified and false is returned. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a9b1607d1235deb8a9b6c0fffd754cd44"></a><!-- doxytag: member="kyototycoon::RemoteDB::add" ref="a9b1607d1235deb8a9b6c0fffd754cd44" args="(const std::string &amp;key, const std::string &amp;value, int64_t xt=INT64_MAX)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::add </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Set the value of a record. </p>
+<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original DB::add method except that the parameters are std::string. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ad3f6ace5dfbd3e1f306b22baa0524bfa"></a><!-- doxytag: member="kyototycoon::RemoteDB::replace" ref="ad3f6ace5dfbd3e1f306b22baa0524bfa" args="(const char *kbuf, size_t ksiz, const char *vbuf, size_t vsiz, int64_t xt=INT64_MAX)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::replace </td>
+          <td>(</td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>kbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&nbsp;</td>
+          <td class="paramname"> <em>ksiz</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>vbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&nbsp;</td>
+          <td class="paramname"> <em>vsiz</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Replace the value of a record. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>kbuf</em>&nbsp;</td><td>the pointer to the key region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>ksiz</em>&nbsp;</td><td>the size of the key region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>vbuf</em>&nbsp;</td><td>the pointer to the value region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>vsiz</em>&nbsp;</td><td>the size of the value region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>xt</em>&nbsp;</td><td>the expiration time from now in seconds. If it is negative, the absolute value is treated as the epoch time. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>If no record corresponds to the key, no new record is created and false is returned. If the corresponding record exists, the value is modified. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="abbfa38060724c851e643946095fe265c"></a><!-- doxytag: member="kyototycoon::RemoteDB::replace" ref="abbfa38060724c851e643946095fe265c" args="(const std::string &amp;key, const std::string &amp;value, int64_t xt=INT64_MAX)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::replace </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Replace the value of a record. </p>
+<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original DB::replace method except that the parameters are std::string. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ae08a5c5455d0119174878062c61a40d0"></a><!-- doxytag: member="kyototycoon::RemoteDB::append" ref="ae08a5c5455d0119174878062c61a40d0" args="(const char *kbuf, size_t ksiz, const char *vbuf, size_t vsiz, int64_t xt=INT64_MAX)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::append </td>
+          <td>(</td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>kbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&nbsp;</td>
+          <td class="paramname"> <em>ksiz</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>vbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&nbsp;</td>
+          <td class="paramname"> <em>vsiz</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Append the value of a record. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>kbuf</em>&nbsp;</td><td>the pointer to the key region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>ksiz</em>&nbsp;</td><td>the size of the key region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>vbuf</em>&nbsp;</td><td>the pointer to the value region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>vsiz</em>&nbsp;</td><td>the size of the value region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>xt</em>&nbsp;</td><td>the expiration time from now in seconds. If it is negative, the absolute value is treated as the epoch time. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>If no record corresponds to the key, a new record is created. If the corresponding record exists, the given value is appended at the end of the existing value. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a3eabec8c47826508900f1cacae51313c"></a><!-- doxytag: member="kyototycoon::RemoteDB::append" ref="a3eabec8c47826508900f1cacae51313c" args="(const std::string &amp;key, const std::string &amp;value, int64_t xt=INT64_MAX)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::append </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Set the value of a record. </p>
+<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original DB::append method except that the parameters are std::string. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a943fcf1211b982d62ecf98cd3088c337"></a><!-- doxytag: member="kyototycoon::RemoteDB::increment" ref="a943fcf1211b982d62ecf98cd3088c337" args="(const char *kbuf, size_t ksiz, int64_t num, int64_t xt=INT64_MAX)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t kyototycoon::RemoteDB::increment </td>
+          <td>(</td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>kbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&nbsp;</td>
+          <td class="paramname"> <em>ksiz</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>num</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Add a number to the numeric integer value of a record. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>kbuf</em>&nbsp;</td><td>the pointer to the key region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>ksiz</em>&nbsp;</td><td>the size of the key region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>num</em>&nbsp;</td><td>the additional number. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>xt</em>&nbsp;</td><td>the expiration time from now in seconds. If it is negative, the absolute value is treated as the epoch time. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the result value, or INT64_MIN on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="afc7629bdb7456dcd6ac398b90c176e3f"></a><!-- doxytag: member="kyototycoon::RemoteDB::increment" ref="afc7629bdb7456dcd6ac398b90c176e3f" args="(const std::string &amp;key, int64_t num, int64_t xt=INT64_MAX)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t kyototycoon::RemoteDB::increment </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>num</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Add a number to the numeric integer value of a record. </p>
+<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original DB::increment method except that the parameter is std::string. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a6874656520d656eeb3524fed9861fd13"></a><!-- doxytag: member="kyototycoon::RemoteDB::increment_double" ref="a6874656520d656eeb3524fed9861fd13" args="(const char *kbuf, size_t ksiz, double num, int64_t xt=INT64_MAX)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double kyototycoon::RemoteDB::increment_double </td>
+          <td>(</td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>kbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&nbsp;</td>
+          <td class="paramname"> <em>ksiz</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&nbsp;</td>
+          <td class="paramname"> <em>num</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Add a number to the numeric double value of a record. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>kbuf</em>&nbsp;</td><td>the pointer to the key region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>ksiz</em>&nbsp;</td><td>the size of the key region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>num</em>&nbsp;</td><td>the additional number. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>xt</em>&nbsp;</td><td>the expiration time from now in seconds. If it is negative, the absolute value is treated as the epoch time. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the result value, or Not-a-number on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="af5b0625595a1fb8932707795db9b9b74"></a><!-- doxytag: member="kyototycoon::RemoteDB::increment_double" ref="af5b0625595a1fb8932707795db9b9b74" args="(const std::string &amp;key, double num, int64_t xt=INT64_MAX)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double kyototycoon::RemoteDB::increment_double </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&nbsp;</td>
+          <td class="paramname"> <em>num</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Add a number to the numeric double value of a record. </p>
+<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original DB::increment_double method except that the parameter is std::string. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="acc6789d5df5e6b08b27520a33d24c067"></a><!-- doxytag: member="kyototycoon::RemoteDB::cas" ref="acc6789d5df5e6b08b27520a33d24c067" args="(const char *kbuf, size_t ksiz, const char *ovbuf, size_t ovsiz, const char *nvbuf, size_t nvsiz, int64_t xt=INT64_MAX)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::cas </td>
+          <td>(</td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>kbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&nbsp;</td>
+          <td class="paramname"> <em>ksiz</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>ovbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&nbsp;</td>
+          <td class="paramname"> <em>ovsiz</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>nvbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&nbsp;</td>
+          <td class="paramname"> <em>nvsiz</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Perform compare-and-swap. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>kbuf</em>&nbsp;</td><td>the pointer to the key region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>ksiz</em>&nbsp;</td><td>the size of the key region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>ovbuf</em>&nbsp;</td><td>the pointer to the old value region. NULL means that no record corresponds. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>ovsiz</em>&nbsp;</td><td>the size of the old value region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>nvbuf</em>&nbsp;</td><td>the pointer to the new value region. NULL means that the record is removed. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>nvsiz</em>&nbsp;</td><td>the size of new old value region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>xt</em>&nbsp;</td><td>the expiration time from now in seconds. If it is negative, the absolute value is treated as the epoch time. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ac9cd8c114fc429636afd9cdff722a465"></a><!-- doxytag: member="kyototycoon::RemoteDB::cas" ref="ac9cd8c114fc429636afd9cdff722a465" args="(const std::string &amp;key, const std::string &amp;ovalue, const std::string &amp;nvalue, int64_t xt=INT64_MAX)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::cas </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>ovalue</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>nvalue</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Perform compare-and-swap. </p>
+<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original DB::cas method except that the parameters are std::string. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ad0939c0c7134d8d98077b49e13ba3342"></a><!-- doxytag: member="kyototycoon::RemoteDB::remove" ref="ad0939c0c7134d8d98077b49e13ba3342" args="(const char *kbuf, size_t ksiz)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::remove </td>
+          <td>(</td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>kbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&nbsp;</td>
+          <td class="paramname"> <em>ksiz</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Remove a record. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>kbuf</em>&nbsp;</td><td>the pointer to the key region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>ksiz</em>&nbsp;</td><td>the size of the key region. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>If no record corresponds to the key, false is returned. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a13262eeac1f407d4bd9ac1a4d3d2ac3a"></a><!-- doxytag: member="kyototycoon::RemoteDB::remove" ref="a13262eeac1f407d4bd9ac1a4d3d2ac3a" args="(const std::string &amp;key)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::remove </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>key</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Remove a record. </p>
+<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original DB::remove method except that the parameter is std::string. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="acd063776b8998ab74365b76d64c65fd5"></a><!-- doxytag: member="kyototycoon::RemoteDB::get" ref="acd063776b8998ab74365b76d64c65fd5" args="(const char *kbuf, size_t ksiz, size_t *sp, int64_t *xtp=NULL)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* kyototycoon::RemoteDB::get </td>
+          <td>(</td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>kbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&nbsp;</td>
+          <td class="paramname"> <em>ksiz</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t *&nbsp;</td>
+          <td class="paramname"> <em>sp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t *&nbsp;</td>
+          <td class="paramname"> <em>xtp</em> = <code>NULL</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Retrieve the value of a record. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>kbuf</em>&nbsp;</td><td>the pointer to the key region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>ksiz</em>&nbsp;</td><td>the size of the key region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>sp</em>&nbsp;</td><td>the pointer to the variable into which the size of the region of the return value is assigned. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>xtp</em>&nbsp;</td><td>the pointer to the variable into which the expiration time from now in seconds is assigned. If it is NULL, it is ignored. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the pointer to the value region of the corresponding record, or NULL on failure. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>If no record corresponds to the key, NULL is returned. Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a C-style string. Because the region of the return value is allocated with the the new[] operator, it should be released with the delete[] operator when it is no longer in use. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="af2043152498cfa4ced04cc92673b2aa0"></a><!-- doxytag: member="kyototycoon::RemoteDB::get" ref="af2043152498cfa4ced04cc92673b2aa0" args="(const std::string &amp;key, int64_t *xtp=NULL)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string* kyototycoon::RemoteDB::get </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t *&nbsp;</td>
+          <td class="paramname"> <em>xtp</em> = <code>NULL</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Retrieve the value of a record. </p>
+<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original DB::get method except that the parameter and the return value are std::string. The return value should be deleted explicitly by the caller. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ace5ab87b94e584ed121a7df5bb7b0eef"></a><!-- doxytag: member="kyototycoon::RemoteDB::set_target" ref="ace5ab87b94e584ed121a7df5bb7b0eef" args="(const std::string &amp;expr)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void kyototycoon::RemoteDB::set_target </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>expr</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Set the target database. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>expr</em>&nbsp;</td><td>the expression of the target database. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ad43e50e8ad87e7220b476158fa7ef190"></a><!-- doxytag: member="kyototycoon::RemoteDB::expression" ref="ad43e50e8ad87e7220b476158fa7ef190" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::string kyototycoon::RemoteDB::expression </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Get the expression of the socket. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the expression of the socket or an empty string on failure. </dd></dl>
+
+</div>
+</div>
+</div>
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Sep 29 21:25:31 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

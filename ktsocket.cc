@@ -25,7 +25,6 @@ namespace kyototycoon {                  // common namespace
 namespace {
 const int32_t NAMEBUFSIZ = 256;
 const int32_t IOBUFSIZ = 4096;
-const int32_t DEFPORT = 1978;
 const double WAITTIME = 0.1;
 const int32_t RECVMAXSIZ = 1 << 30;
 }

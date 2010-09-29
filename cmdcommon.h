@@ -33,8 +33,8 @@ const int32_t THREADMAX = 64;            // maximum number of threads
 const size_t RECBUFSIZ = 64;             // buffer size for a record
 const size_t RECBUFSIZL = 1024;          // buffer size for a long record
 const size_t LINEBUFSIZ = 8192;          // buffer size for a line
-const int32_t DEFPORT = 1978;            // default port number
 const double DEFTOUT = 30;               // default timeout
+const double DEFTHNUM = 4;               // default number of threads
 
 
 // global variables
@@ -52,7 +52,7 @@ void iprintf(const char* format, ...);
 void iputchar(char c);
 void eprintf(const char* format, ...);
 void printversion();
-void printdata(const char* buf, int size, bool px);
+void printdata(const char* buf, int32_t size, bool px);
 bool getline(std::istream* is, std::string* str);
 std::string unitnumstr(int64_t num);
 std::string unitnumstrbyte(int64_t num);
@@ -160,7 +160,7 @@ inline void printversion() {
 
 
 // print record data
-inline void printdata(const char* buf, int size, bool px) {
+inline void printdata(const char* buf, int32_t size, bool px) {
   size_t cnt = 0;
   char numbuf[kc::NUMBUFSIZ];
   while (size-- > 0) {

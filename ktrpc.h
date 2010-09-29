@@ -37,7 +37,10 @@ const char RPCTSVMATTR[] = "colenc";     ///< encoding attribute of TSV
 
 
 /**
- * RPC client
+ * RPC client.
+ * @note Although all methods of this class are thread-safe, its instance does not have mutual
+ * exclusion mechanism.  So, multiple threads must not share the same instance and they must use
+ * their own respective instances.
  */
 class RPCClient {
 public:
@@ -47,20 +50,166 @@ public:
   enum ReturnValue {
     RVSUCCESS,                           ///< success
     RVEINVALID,                          ///< invalid operation
+    RVELOGIC,                            ///< logical inconsistency
     RVEINTERNAL,                         ///< internal error
-    RVELOGIC                             ///< logical inconsistency
+    RVENETWORK,                          ///< network error
+    RVEMISC = 15                         ///< miscellaneous error
   };
+  /**
+   * Default constructor.
+   */
+  RPCClient() : ua_(), host_(), port_(0), timeout_(0), open_(false), alive_(false) {
+    _assert_(true);
+  }
+  /**
+   * Destructor.
+   */
+  ~RPCClient() {
+    _assert_(true);
+    if (open_) close();
+  }
+  /**
+   * Open the connection.
+   * @param host the name or the address of the server.  If it is an empty string, the local host
+   * is specified.
+   * @param port the port numger of the server.
+   * @param timeout the timeout of each operation in seconds.  If it is not more than 0, no
+   * timeout is specified.
+   * @return true on success, or false on failure.
+   */
+  bool open(const std::string& host, int32_t port = DEFPORT, double timeout = -1) {
+    _assert_(true);
+    if (open_ || port < 1) return false;
+    if (!ua_.open(host, port, timeout)) return false;
+    host_ = host;
+    port_ = port;
+    timeout_ = timeout;
+    open_ = true;
+    alive_ = true;
+    return true;
+  }
+  /**
+   * Close the connection.
+   * @param grace true for graceful shutdown, or false for immediate disconnection.
+   * @return true on success, or false on failure.
+   */
+  bool close(bool grace = true) {
+    _assert_(true);
+    if (!open_) return false;
+    bool err = false;
+    if (alive_ && !ua_.close(grace)) err = true;
+    return !err;
+  }
   /**
    * Call a remote procedure.
    * @param name the name of the procecude.
    * @param inmap a string map which contains the input of the procedure.  If it is NULL, it is
    * ignored.
-   * @param outmap a string map to contain the input parameters.  If it is NULL, it is ignored.
+   * @param outmap a string map to contain the output parameters.  If it is NULL, it is ignored.
    * @return the return value of the procedure.
    */
   ReturnValue call(const std::string& name,
                    const std::map<std::string, std::string>* inmap = NULL,
-                   std::map<std::string, std::string>* outmap = NULL);
+                   std::map<std::string, std::string>* outmap = NULL) {
+    _assert_(true);
+    if (outmap) outmap->clear();
+    if (!open_) return RVENETWORK;
+    if (!alive_ && !ua_.open(host_, port_, timeout_)) return RVENETWORK;
+    alive_ = true;
+    std::string pathquery = RPCPATHPREFIX;
+    char* zstr = kc::urlencode(name.data(), name.size());
+    pathquery.append(zstr);
+    delete[] zstr;
+    std::map<std::string, std::string> reqheads;
+    std::string reqbody;
+    if (inmap) {
+      std::map<std::string, std::string> tmap;
+      tmap.insert(inmap->begin(), inmap->end());
+      int32_t enc = checkmapenc(tmap);
+      std::string outtype = RPCTSVMTYPE;
+      switch (enc) {
+        case 'B': kc::strprintf(&outtype, "; %s=B", RPCTSVMATTR); break;
+        case 'Q': kc::strprintf(&outtype, "; %s=Q", RPCTSVMATTR); break;
+        case 'U': kc::strprintf(&outtype, "; %s=U", RPCTSVMATTR); break;
+      }
+      reqheads["content-type"] = outtype;
+      if (enc != 0) tsvmapencode(&tmap, enc);
+      maptotsv(tmap, &reqbody);
+    }
+    std::map<std::string, std::string> resheads;
+    std::string resbody;
+    int32_t code = ua_.fetch(pathquery, HTTPClient::MPOST, &resbody, &resheads,
+                             &reqbody, &reqheads);
+    if (outmap) {
+      const char* rp = strmapget(resheads, "content-type");
+      if (rp) {
+        if (kc::strifwm(rp, RPCFORMMTYPE)) {
+          wwwformtomap(resbody.c_str(), outmap);
+        } else if (kc::strifwm(rp, RPCTSVMTYPE)) {
+          rp += sizeof(RPCTSVMTYPE) - 1;
+          int32_t enc = 0;
+          while (*rp != '\0') {
+            while (*rp == ' ' || *rp == ';') {
+              rp++;
+            }
+            if (kc::strifwm(rp, RPCTSVMATTR) && rp[sizeof(RPCTSVMATTR)-1] == '=') {
+              rp += sizeof(RPCTSVMATTR);
+              if (*rp == '"') rp++;
+              switch (*rp) {
+                case 'b': case 'B': enc = 'B'; break;
+                case 'q': case 'Q': enc = 'Q'; break;
+                case 'u': case 'U': enc = 'U'; break;
+              }
+            }
+            while (*rp != '\0' && *rp != ' ' && *rp != ';') {
+              rp++;
+            }
+          }
+          tsvtomap(resbody, outmap);
+          if (enc != 0) tsvmapdecode(outmap, enc);
+        }
+      }
+    }
+    ReturnValue rv;
+    if (code < 1) {
+      rv = RVENETWORK;
+    } else if (code >= 200 && code < 300) {
+      rv = RVSUCCESS;
+    } else if (code >= 400 && code < 450) {
+      rv = RVEINVALID;
+    } else if (code >= 450 && code < 500) {
+      rv = RVELOGIC;
+    } else if (code >= 500 && code < 600) {
+      rv = RVEINTERNAL;
+    } else {
+      rv = RVEMISC;
+    }
+    return rv;
+  }
+  /**
+   * Get the expression of the socket.
+   * @return the expression of the socket or an empty string on failure.
+   */
+  const std::string expression() {
+    _assert_(true);
+    if (!open_) return "";
+    std::string expr;
+    kc::strprintf(&expr, "%s:%d", host_.c_str(), port_);
+    return expr;
+  }
+private:
+  /** The HTTP client. */
+  HTTPClient ua_;
+  /** The host name of the server. */
+  std::string host_;
+  /** The port numer of the server. */
+  uint32_t port_;
+  /** The timeout. */
+  double timeout_;
+  /** The open flag. */
+  bool open_;
+  /** The alive flag. */
+  bool alive_;
 };
 
 
@@ -331,6 +480,10 @@ private:
         return worker_->process(serv, sess, path, method, reqheads, reqbody,
                                 resheads, resbody, misc);
       name += sizeof(RPCPATHPREFIX) - 1;
+      size_t zsiz;
+      char* zbuf = kc::urldecode(name, &zsiz);
+      std::string rawname(zbuf, zsiz);
+      delete[] zbuf;
       std::map<std::string, std::string> inmap;
       const char* rp = strmapget(misc, "query");
       if (rp) wwwformtomap(rp, &inmap);
@@ -364,20 +517,20 @@ private:
       }
       std::map<std::string, std::string> outmap;
       Session mysess(sess);
-      RPCClient::ReturnValue rv = worker_->process(serv_, &mysess, name, inmap, outmap);
+      RPCClient::ReturnValue rv = worker_->process(serv_, &mysess, rawname, inmap, outmap);
       int32_t code = -1;
       switch (rv) {
         case RPCClient::RVSUCCESS: code = 200; break;
         case RPCClient::RVEINVALID: code = 400; break;
-        case RPCClient::RVEINTERNAL: code = 500; break;
         case RPCClient::RVELOGIC: code = 450; break;
+        default: code = 500; break;
       }
       int32_t enc = checkmapenc(outmap);
       std::string outtype = RPCTSVMTYPE;
       switch (enc) {
-        case 'B': outtype.append("; colenc=B"); break;
-        case 'Q': outtype.append("; colenc=Q"); break;
-        case 'U': outtype.append("; colenc=U"); break;
+        case 'B': kc::strprintf(&outtype, "; %s=B", RPCTSVMATTR); break;
+        case 'Q': kc::strprintf(&outtype, "; %s=Q", RPCTSVMATTR); break;
+        case 'U': kc::strprintf(&outtype, "; %s=U", RPCTSVMATTR); break;
       }
       resheads["content-type"] = outtype;
       if (enc != 0) tsvmapencode(&outmap, enc);

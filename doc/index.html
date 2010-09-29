@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<meta http-equiv="Content-Script-Type" content="text/javascript" />
+<meta name="author" content="FAL Labs" />
+<meta name="keywords" content="Kyoto Tycoon, kyototycoon, database, DBM" />
+<meta name="description" content="homepage of Kyoto Tycoon" />
+<link rel="contents" href="./" />
+<link rel="stylesheet" href="common.css" />
+<link rel="icon" href="icon16.png" />
+<link rev="made" href="mailto:info@fallabs.com" />
+<title>Kyoto Tycoon: a persistent cache server</title>
+<script type="text/javascript">function startup() {
+  if (!navigator) return;
+  var lang = navigator.language;
+  if (!lang) lang = navigator.browserLanguage;
+  if (!lang) lang = navigator.userLanguage;
+  if (lang != "ja") return;
+  var elem = document.getElementById("headline");
+  if (!elem) return;
+  var now = new Date();
+  if ((now.getFullYear() + now.getMonth() + now.getDate() + now.getHours()) % 4 == 0) {
+    var label = "";
+    switch ((now.getDate() + now.getMinutes()) % 16) {
+      case 0: label = "絶対可憐キャッシュサーバ"; break;
+      case 2: label = "テラマチ電脳組"; break;
+      case 4: label = "西大路大君"; break;
+      case 6: label = "千本大君"; break;
+      case 8: label = "堀川大君"; break;
+      case 10: label = "烏丸大君"; break;
+      case 12: label = "河原町大君"; break;
+      case 14: label = "東大路大君"; break;
+    }
+    var text = "永続的隠匿記憶給仕器";
+    if (label.length == 0) {
+      label = "京都大君";
+      var num = Math.floor(now.getTime() / 10000);
+      if (num % 2 == 0) {
+        num = Math.floor(num / 2);
+        var texts = [ "丸竹夷二押御池", "姉三六角蛸錦", "四綾仏高松万五条",
+                      "雪駄せったちゃらちゃら魚の棚", "六条三哲とおりすぎ",
+                      "七条こえれば八九条", "十条東寺でとどめさす" ];
+        text = texts[num%texts.length];
+      }
+    }
+    elem.firstChild.nodeValue = label + ": " + text;
+  }
+}
+</script>
+</head>
+
+<body onload="startup();">
+
+<h1 id="headline">Kyoto Tycoon: a persistent cache server</h1>
+
+<div class="note">Copyright (C) 2009-2010 FAL Labs</div>
+<div class="note">Last Update: Sat, 17 Apr 2010 01:28:52 +0900</div>
+
+<hr />
+
+<h2 id="overview">Overview</h2>
+
+<p>Kyoto Tycoon is a lightweight database server with auto expiration mechanism, which is useful to handle cache data of various applications.</p>
+
+<hr />
+
+<h2 id="documents">Documents</h2>
+
+<p>The following are documents of Kyoto Tycoon.  They are contained also in the source package.</p>
+
+<ul>
+<li><a href="api/">API Documents of the core library (C/C++)</a></li>
+</ul>
+
+<hr />
+
+<h2 id="packages">Packages</h2>
+
+<p>The following are the source packages of Kyoto Tycoon.  As for binary packages, see the site of each distributor.</p>
+
+<ul>
+<li><a href="pkg/">Source Packages of the core library (C/C++)</a></li>
+</ul>
+
+<hr />
+
+<h2 id="tutorial">Tutorial</h2>
+
+<p>Bacause Kyoto Tycoon uses Kyoto Cabinet, install KC beforehand.  Then, install KT.</p>
+
+<pre>$ tar zxvf kyototycoon-x.y.z.tar.gz
+$ cd kyototycoon-x.y.z.tar.gz
+$ ./configure
+$ make
+$ make check
+$ sudo make install
+</pre>
+
+<p>Run the server.  To stop it, input Ctrl-C on the terminal.</p>
+
+<pre>$ ktserver
+</pre>
+
+<p>Access the server from another terminal.</p>
+
+<pre>
+$ ktremotemgr set foo bar         # store a record
+$ ktremotemgr get foo             # retrieve it
+$ ktremotemgr set -xt 10 foo bar  # store again with the expiration time
+
+# wait for 10 seconds or more
+
+$ ktremotemgr get foo             # the record will be expired
+</pre>
+
+<hr />
+
+<h2 id="information">Information</h2>
+
+<p>Kyoto Tycoon was written and is maintained by <a href="http://fallabs.com/">FAL Labs</a>.  You can contact the author by e-mail to `info@fallabs.com'.</p>
+
+<hr />
+
+</body>
+
+</html>
+
+<!-- END OF FILE -->

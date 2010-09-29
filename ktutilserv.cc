@@ -35,12 +35,12 @@ static int32_t runhttp(int argc, char** argv);
 static int32_t runrpc(int argc, char** argv);
 static int32_t procecho(const char* host, int32_t port, double tout);
 static int32_t procmtecho(const char* host, int32_t port, double tout, int32_t thnum,
-                          uint32_t loglv);
+                          uint32_t logkinds);
 static int32_t prochttp(const char* base,
                         const char* host, int32_t port, double tout, int32_t thnum,
-                        uint32_t loglv);
+                        uint32_t logkinds);
 static int32_t procrpc(const char* host, int32_t port, double tout, int32_t thnum,
-                       uint32_t loglv);
+                       uint32_t logkinds);
 
 
 // main routine
@@ -114,12 +114,15 @@ static void killserver(int signum) {
 
 // parse arguments of echo command
 static int32_t runecho(int argc, char** argv) {
+  bool argbrk = false;
   const char* host = NULL;
-  int32_t port = DEFPORT;
+  int32_t port = kt::DEFPORT;
   double tout = DEFTOUT;
   for (int32_t i = 2; i < argc; i++) {
-    if (argv[i][0] == '-') {
-      if (!std::strcmp(argv[i], "-host")) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-host")) {
         if (++i >= argc) usage();
         host = argv[i];
       } else if (!std::strcmp(argv[i], "-port")) {
@@ -132,6 +135,7 @@ static int32_t runecho(int argc, char** argv) {
         usage();
       }
     } else {
+      argbrk = true;
       usage();
     }
   }
@@ -143,14 +147,17 @@ static int32_t runecho(int argc, char** argv) {
 
 // parse arguments of mtecho command
 static int32_t runmtecho(int argc, char** argv) {
+  bool argbrk = false;
   const char* host = NULL;
-  int32_t port = DEFPORT;
+  int32_t port = kt::DEFPORT;
   double tout = DEFTOUT;
-  int32_t thnum = 1;
-  uint32_t loglv = UINT32_MAX;
+  int32_t thnum = DEFTHNUM;
+  uint32_t logkinds = UINT32_MAX;
   for (int32_t i = 2; i < argc; i++) {
-    if (argv[i][0] == '-') {
-      if (!std::strcmp(argv[i], "-host")) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-host")) {
         if (++i >= argc) usage();
         host = argv[i];
       } else if (!std::strcmp(argv[i], "-port")) {
@@ -163,39 +170,43 @@ static int32_t runmtecho(int argc, char** argv) {
         if (++i >= argc) usage();
         thnum = kc::atof(argv[i]);
       } else if (!std::strcmp(argv[i], "-li")) {
-        loglv = kt::ThreadedServer::Logger::INFO | kt::ThreadedServer::Logger::SYSTEM |
+        logkinds = kt::ThreadedServer::Logger::INFO | kt::ThreadedServer::Logger::SYSTEM |
           kt::ThreadedServer::Logger::ERROR;
       } else if (!std::strcmp(argv[i], "-ls")) {
-        loglv = kt::ThreadedServer::Logger::SYSTEM | kt::ThreadedServer::Logger::ERROR;
+        logkinds = kt::ThreadedServer::Logger::SYSTEM | kt::ThreadedServer::Logger::ERROR;
       } else if (!std::strcmp(argv[i], "-le")) {
-        loglv = kt::ThreadedServer::Logger::ERROR;
+        logkinds = kt::ThreadedServer::Logger::ERROR;
       } else if (!std::strcmp(argv[i], "-lz")) {
-        loglv = 0;
+        logkinds = 0;
       } else {
         usage();
       }
     } else {
+      argbrk = true;
       usage();
     }
   }
   if (port < 1 || thnum < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
-  int32_t rv = procmtecho(host, port, tout, thnum, loglv);
+  int32_t rv = procmtecho(host, port, tout, thnum, logkinds);
   return rv;
 }
 
 
 // parse arguments of http command
 static int32_t runhttp(int argc, char** argv) {
+  bool argbrk = false;
   const char* host = NULL;
   const char* base = NULL;
-  int32_t port = DEFPORT;
+  int32_t port = kt::DEFPORT;
   double tout = DEFTOUT;
-  int32_t thnum = 1;
-  uint32_t loglv = UINT32_MAX;
+  int32_t thnum = DEFTHNUM;
+  uint32_t logkinds = UINT32_MAX;
   for (int32_t i = 2; i < argc; i++) {
-    if (argv[i][0] == '-') {
-      if (!std::strcmp(argv[i], "-host")) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-host")) {
         if (++i >= argc) usage();
         host = argv[i];
       } else if (!std::strcmp(argv[i], "-port")) {
@@ -208,18 +219,19 @@ static int32_t runhttp(int argc, char** argv) {
         if (++i >= argc) usage();
         thnum = kc::atof(argv[i]);
       } else if (!std::strcmp(argv[i], "-li")) {
-        loglv = kt::HTTPServer::Logger::INFO | kt::HTTPServer::Logger::SYSTEM |
+        logkinds = kt::HTTPServer::Logger::INFO | kt::HTTPServer::Logger::SYSTEM |
           kt::HTTPServer::Logger::ERROR;
       } else if (!std::strcmp(argv[i], "-ls")) {
-        loglv = kt::HTTPServer::Logger::SYSTEM | kt::HTTPServer::Logger::ERROR;
+        logkinds = kt::HTTPServer::Logger::SYSTEM | kt::HTTPServer::Logger::ERROR;
       } else if (!std::strcmp(argv[i], "-le")) {
-        loglv = kt::HTTPServer::Logger::ERROR;
+        logkinds = kt::HTTPServer::Logger::ERROR;
       } else if (!std::strcmp(argv[i], "-lz")) {
-        loglv = 0;
+        logkinds = 0;
       } else {
         usage();
       }
     } else if (!base) {
+      argbrk = true;
       base = argv[i];
     } else {
       usage();
@@ -227,21 +239,24 @@ static int32_t runhttp(int argc, char** argv) {
   }
   if (port < 1 || thnum < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
-  int32_t rv = prochttp(base, host, port, tout, thnum, loglv);
+  int32_t rv = prochttp(base, host, port, tout, thnum, logkinds);
   return rv;
 }
 
 
 // parse arguments of rpc command
 static int32_t runrpc(int argc, char** argv) {
+  bool argbrk = false;
   const char* host = NULL;
-  int32_t port = DEFPORT;
+  int32_t port = kt::DEFPORT;
   double tout = DEFTOUT;
-  int32_t thnum = 1;
-  uint32_t loglv = UINT32_MAX;
+  int32_t thnum = DEFTHNUM;
+  uint32_t logkinds = UINT32_MAX;
   for (int32_t i = 2; i < argc; i++) {
-    if (argv[i][0] == '-') {
-      if (!std::strcmp(argv[i], "-host")) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-host")) {
         if (++i >= argc) usage();
         host = argv[i];
       } else if (!std::strcmp(argv[i], "-port")) {
@@ -254,24 +269,25 @@ static int32_t runrpc(int argc, char** argv) {
         if (++i >= argc) usage();
         thnum = kc::atof(argv[i]);
       } else if (!std::strcmp(argv[i], "-li")) {
-        loglv = kt::RPCServer::Logger::INFO | kt::RPCServer::Logger::SYSTEM |
+        logkinds = kt::RPCServer::Logger::INFO | kt::RPCServer::Logger::SYSTEM |
           kt::RPCServer::Logger::ERROR;
       } else if (!std::strcmp(argv[i], "-ls")) {
-        loglv = kt::RPCServer::Logger::SYSTEM | kt::RPCServer::Logger::ERROR;
+        logkinds = kt::RPCServer::Logger::SYSTEM | kt::RPCServer::Logger::ERROR;
       } else if (!std::strcmp(argv[i], "-le")) {
-        loglv = kt::RPCServer::Logger::ERROR;
+        logkinds = kt::RPCServer::Logger::ERROR;
       } else if (!std::strcmp(argv[i], "-lz")) {
-        loglv = 0;
+        logkinds = 0;
       } else {
         usage();
       }
     } else {
+      argbrk = true;
       usage();
     }
   }
   if (port < 1 || thnum < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
-  int32_t rv = procrpc(host, port, tout, thnum, loglv);
+  int32_t rv = procrpc(host, port, tout, thnum, logkinds);
   return rv;
 }
 
@@ -417,7 +433,7 @@ static int32_t procecho(const char* host, int32_t port, double tout) {
 
 // perform mtecho command
 static int32_t procmtecho(const char* host, int32_t port, double tout, int32_t thnum,
-                          uint32_t loglv) {
+                          uint32_t logkinds) {
   std::string addr = "";
   if (host) {
     addr = kt::Socket::get_host_address(host);
@@ -461,7 +477,7 @@ static int32_t procmtecho(const char* host, int32_t port, double tout, int32_t t
   Worker worker;
   bool err = false;
   serv.set_network(expr, tout);
-  serv.set_logger(logger, loglv);
+  serv.set_logger(logger, logkinds);
   serv.set_worker(&worker, thnum);
   g_thserv = &serv;
   serv.log(kt::ThreadedServer::Logger::SYSTEM, "================ [START]");
@@ -478,7 +494,7 @@ static int32_t procmtecho(const char* host, int32_t port, double tout, int32_t t
 // perform http command
 static int32_t prochttp(const char* base,
                         const char* host, int32_t port, double tout, int32_t thnum,
-                        uint32_t loglv) {
+                        uint32_t logkinds) {
   if (!base) base = kc::File::CDIRSTR;
   std::string baseabs = kc::File::absolute_path(base);
   if (baseabs.empty()) {
@@ -599,7 +615,7 @@ static int32_t prochttp(const char* base,
   Worker worker(baseabs);
   bool err = false;
   serv.set_network(expr, tout);
-  serv.set_logger(logger, loglv);
+  serv.set_logger(logger, logkinds);
   serv.set_worker(&worker, thnum);
   g_httpserv = &serv;
   serv.log(kt::HTTPServer::Logger::SYSTEM, "================ [START]");
@@ -615,7 +631,7 @@ static int32_t prochttp(const char* base,
 
 // perform rpc command
 static int32_t procrpc(const char* host, int32_t port, double tout, int32_t thnum,
-                       uint32_t loglv) {
+                       uint32_t logkinds) {
   std::string addr = "";
   if (host) {
     addr = kt::Socket::get_host_address(host);
@@ -633,19 +649,14 @@ static int32_t procrpc(const char* host, int32_t port, double tout, int32_t thnu
                                        const std::string& name,
                                        const std::map<std::string, std::string>& inmap,
                                        std::map<std::string, std::string>& outmap) {
-      std::map<std::string, std::string>::const_iterator it = inmap.begin();
-      std::map<std::string, std::string>::const_iterator itend = inmap.end();
-      while (it != itend) {
-        outmap[it->first] = it->second;
-        it++;
-      }
+      outmap.insert(inmap.begin(), inmap.end());
       return kt::RPCClient::RVSUCCESS;
     }
   };
   Worker worker;
   bool err = false;
   serv.set_network(expr, tout);
-  serv.set_logger(logger, loglv);
+  serv.set_logger(logger, logkinds);
   serv.set_worker(&worker, thnum);
   g_rpcserv = &serv;
   serv.log(kt::RPCServer::Logger::SYSTEM, "================ [START]");
