@@ -246,7 +246,7 @@ bool Socket::open(const std::string& expr) {
   }
   double ct = kc::time();
   while (true) {
-    if (::connect(fd, (struct sockaddr*)&sain, sizeof(sain)) == 0) break;
+    if (::connect(fd, (struct sockaddr*)&sain, sizeof(sain)) == 0 || errno == EISCONN) break;
     if (!checkerrnoretriable(errno)) {
       sockseterrmsg(core, "connect failed");
       ::close(fd);
@@ -1048,15 +1048,15 @@ bool Poller::wait(double timeout) {
   core->hits.clear();
   ::sigset_t sigmask;
   struct ::sigaction sa;
-  ::sigemptyset(&sigmask);
-  ::sigaddset(&sigmask, SIGUSR2);
+  sigemptyset(&sigmask);
+  sigaddset(&sigmask, SIGUSR2);
   ::pthread_sigmask(SIG_BLOCK, &sigmask, NULL);
   sa.sa_flags = 0;
   sa.sa_handler = dummysighandler;
-  ::sigemptyset(&sa.sa_mask);
+  sigemptyset(&sa.sa_mask);
   ::sigaction(SIGUSR2, &sa, NULL);
   ::sigset_t empmask;
-  ::sigemptyset(&empmask);
+  sigemptyset(&empmask);
   double ct = kc::time();
   while (true) {
     core->elock.lock();

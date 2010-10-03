@@ -64,7 +64,7 @@ public:
      * Constructor.
      * @param db the container database object.
      */
-    explicit Cursor(TimedDB* db) : db_(db), cur_(NULL) {
+    explicit Cursor(TimedDB* db) : db_(db), cur_(NULL), back_(false) {
       _assert_(db);
       cur_ = db_->db_.cursor();
     }
@@ -81,6 +81,7 @@ public:
      */
     bool jump() {
       _assert_(true);
+      back_ = false;
       return cur_->jump();
     }
     /**
@@ -91,6 +92,7 @@ public:
      */
     bool jump(const char* kbuf, size_t ksiz) {
       _assert_(kbuf && ksiz <= kc::MEMMAXSIZ);
+      back_ = false;
       return cur_->jump(kbuf, ksiz);
     }
     /**
@@ -109,6 +111,7 @@ public:
      */
     bool jump_back() {
       _assert_(true);
+      back_ = true;
       return cur_->jump_back();
     }
     /**
@@ -121,6 +124,7 @@ public:
      */
     bool jump_back(const char* kbuf, size_t ksiz) {
       _assert_(kbuf && ksiz <= kc::MEMMAXSIZ);
+      back_ = true;
       return cur_->jump_back(kbuf, ksiz);
     }
     /**
@@ -138,6 +142,7 @@ public:
      */
     bool step() {
       _assert_(true);
+      back_ = false;
       return cur_->step();
     }
     /**
@@ -148,6 +153,7 @@ public:
      */
     bool step_back() {
       _assert_(true);
+      back_ = true;
       return cur_->step_back();
     }
     /**
@@ -163,8 +169,21 @@ public:
       _assert_(visitor);
       bool err = false;
       int64_t ct = std::time(NULL);
-      TimedVisitor myvisitor(db_, visitor, ct);
-      if (!cur_->accept(&myvisitor, writable, step)) err = true;
+      while (true) {
+        TimedVisitor myvisitor(db_, visitor, ct, true);
+        if (!cur_->accept(&myvisitor, writable, step)) {
+          err = true;
+          break;
+        }
+        if (myvisitor.again()) {
+          if (!step && !(back_ ? cur_->step_back() : cur_->step())) {
+            err = true;
+            break;
+          }
+          continue;
+        }
+        break;
+      }
       if (db_->xcur_) {
         int64_t xtsc = writable ? JDBXTSCUNIT : JDBXTSCUNIT / JDBXTREADFREQ;
         if (!db_->expire_records(xtsc)) err = true;
@@ -501,6 +520,8 @@ public:
     TimedDB* db_;
     /** The inner cursor. */
     kc::BasicDB::Cursor* cur_;
+    /** The backward flag. */
+    bool back_;
   };
   /**
    * Interface to access a record.
@@ -705,7 +726,7 @@ public:
     _assert_(kbuf && ksiz <= kc::MEMMAXSIZ && visitor);
     bool err = false;
     int64_t ct = std::time(NULL);
-    TimedVisitor myvisitor(this, visitor, ct);
+    TimedVisitor myvisitor(this, visitor, ct, false);
     if (!db_.accept(kbuf, ksiz, &myvisitor, writable)) err = true;
     if (xcur_) {
       int64_t xtsc = writable ? JDBXTSCUNIT : JDBXTSCUNIT / JDBXTREADFREQ;
@@ -726,7 +747,7 @@ public:
     _assert_(visitor);
     bool err = false;
     int64_t ct = std::time(NULL);
-    TimedVisitor myvisitor(this, visitor, ct);
+    TimedVisitor myvisitor(this, visitor, ct, true);
     if (!db_.iterate(&myvisitor, writable, checker)) err = true;
     if (xcur_) {
       int64_t count = db_.count();
@@ -1511,13 +1532,17 @@ private:
    */
   class TimedVisitor : public kc::BasicDB::Visitor {
   public:
-    TimedVisitor(TimedDB* db, TimedDB::Visitor* visitor, int64_t ct) :
-      db_(db), visitor_(visitor), ct_(ct), jbuf_(NULL) {
+    TimedVisitor(TimedDB* db, TimedDB::Visitor* visitor, int64_t ct, bool isiter) :
+      db_(db), visitor_(visitor), ct_(ct), isiter_(isiter), jbuf_(NULL), again_(false) {
       _assert_(db && visitor && ct >= 0);
     }
     ~TimedVisitor() {
       _assert_(true);
       delete[] jbuf_;
+    }
+    bool again() {
+      _assert_(true);
+      return again_;
     }
   private:
     const char* visit_full(const char* kbuf, size_t ksiz,
@@ -1530,11 +1555,11 @@ private:
       if (vsiz < (size_t)XTWIDTH) return NOP;
       int64_t xt = kc::readfixnum(vbuf, XTWIDTH);
       if (ct_ > xt) {
+        if (isiter_) {
+          again_ = true;
+          return NOP;
+        }
         db_->set_error(kc::BasicDB::Error::NOREC, "no record (expired)");
-
-        // hoge
-        //printf("expired:%ld:%ld\n", (long)ct_, (long)xt);
-
         size_t rsiz;
         const char* rbuf = visitor_->visit_empty(kbuf, ksiz, &rsiz, &xt);
         if (rbuf == TimedDB::Visitor::NOP) return NOP;
@@ -1543,10 +1568,6 @@ private:
         jbuf_ = make_record_value(rbuf, rsiz, xt, sp);
         return jbuf_;
       }
-
-      // hoge
-      //printf("ok\n");
-
       vbuf += XTWIDTH;
       vsiz -= XTWIDTH;
       size_t rsiz;
@@ -1574,7 +1595,9 @@ private:
     TimedDB* db_;
     TimedDB::Visitor* visitor_;
     int64_t ct_;
+    bool isiter_;
     char* jbuf_;
+    bool again_;
   };
   /**
    * Remove expired records.
@@ -1596,15 +1619,8 @@ private:
       const char* visit_full(const char* kbuf, size_t ksiz,
                              const char* vbuf, size_t vsiz, size_t* sp) {
         if (vsiz < (size_t)XTWIDTH) return NOP;
-
-        //std::cout << "scan: " << std::string(kbuf, ksiz) << std::endl;
-
         int64_t xt = kc::readfixnum(vbuf, XTWIDTH);
         if (ct_ <= xt) return NOP;
-
-
-        //std::cout << "expire: " << std::string(kbuf, ksiz) << std::endl;
-
         return REMOVE;
       }
       int64_t ct_;
@@ -1615,9 +1631,6 @@ private:
       if (!xcur_->accept(&visitor, true, true)) {
         kc::BasicDB::Error::Code code = db_.error().code();
         if (code == kc::BasicDB::Error::INVALID || code == kc::BasicDB::Error::NOREC) {
-
-          //printf("jump:%d  %ld\n", (int)db_.count(), (long)xsc_);
-
           xcur_->jump();
         } else {
           err = true;

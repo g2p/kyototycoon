@@ -61,13 +61,17 @@
 <h1 id="headline">Kyoto Tycoon: a persistent cache server</h1>
 
 <div class="note">Copyright (C) 2009-2010 FAL Labs</div>
-<div class="note">Last Update: Sat, 17 Apr 2010 01:28:52 +0900</div>
+<div class="note">Last Update: Sun, 03 Oct 2010 21:36:09 +0900</div>
 
 <hr />
 
 <h2 id="overview">Overview</h2>
 
-<p>Kyoto Tycoon is a lightweight database server with auto expiration mechanism, which is useful to handle cache data of various applications.</p>
+<p>Kyoto Tycoon is a lightweight database server with auto expiration mechanism, which is useful to handle cache data of various applications.  Kyoto Tycoon is also a package of network interface to the DBM called Kyoto Cabinet.  Though the DBM has high performance and high concurrency, you might bother in case that multiple processes share the same database, or remote processes access the database.  Thus, Kyoto Tycoon is provided for concurrent and remote connections to Kyoto Cabinet.  Kyoto Tycoon is composed of the server process managing multiple databases and its access library for client applications.</p>
+
+<p>The network protocol between the server and clients is HTTP so that you can write client applications and client libraries in almost all popular languages.  Both of RESTful-style interface by the GET, HEAD, PUT, DELETE methods and RPC-style inteface by the POST method are supported.  The server can handle more than 10 thousand connections at the same time because it uses modern I/O event notification facilities such as "epoll" and "kqueue" of underlying systems.</p>
+
+<p>The server program of Kyoto Tycoon is written in the C++ language.  It is available on platforms which have API conforming to C++03 with the TR1 library extensions.  Kyoto Tycoon is a free software licensed under the GNU General Public License.</p>
 
 <hr />
 
@@ -76,6 +80,8 @@
 <p>The following are documents of Kyoto Tycoon.  They are contained also in the source package.</p>
 
 <ul>
+<li><a href="spex.html">Fundamental Specifications</a></li>
+<li><a href="command.html">Specifications of Command Line Utilities</a></li>
 <li><a href="api/">API Documents of the core library (C/C++)</a></li>
 </ul>
 
@@ -88,37 +94,6 @@
 <ul>
 <li><a href="pkg/">Source Packages of the core library (C/C++)</a></li>
 </ul>
-
-<hr />
-
-<h2 id="tutorial">Tutorial</h2>
-
-<p>Bacause Kyoto Tycoon uses Kyoto Cabinet, install KC beforehand.  Then, install KT.</p>
-
-<pre>$ tar zxvf kyototycoon-x.y.z.tar.gz
-$ cd kyototycoon-x.y.z.tar.gz
-$ ./configure
-$ make
-$ make check
-$ sudo make install
-</pre>
-
-<p>Run the server.  To stop it, input Ctrl-C on the terminal.</p>
-
-<pre>$ ktserver
-</pre>
-
-<p>Access the server from another terminal.</p>
-
-<pre>
-$ ktremotemgr set foo bar         # store a record
-$ ktremotemgr get foo             # retrieve it
-$ ktremotemgr set -xt 10 foo bar  # store again with the expiration time
-
-# wait for 10 seconds or more
-
-$ ktremotemgr get foo             # the record will be expired
-</pre>
 
 <hr />
 

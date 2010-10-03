@@ -38,6 +38,8 @@
 <p><a href="classkyototycoon_1_1RemoteDB-members.html">List of all members.</a></p>
 <table border="0" cellpadding="0" cellspacing="0">
 <tr><td colspan="2"><h2>Classes</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html">Cursor</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html" title="Cursor to indicate a record.">Cursor</a> to indicate a record.  <a href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#_details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Error.html">Error</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Error.html" title="Error data.">Error</a> data.  <a href="classkyototycoon_1_1RemoteDB_1_1Error.html#_details">More...</a><br/></td></tr>
 <tr><td colspan="2"><h2>Public Member Functions</h2></td></tr>
@@ -101,6 +103,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the target database.  <a href="#ace5ab87b94e584ed121a7df5bb7b0eef"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">const std::string&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ad43e50e8ad87e7220b476158fa7ef190">expression</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the expression of the socket.  <a href="#ad43e50e8ad87e7220b476158fa7ef190"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html">Cursor</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ae64153e9e304d6b178ad7daa502bbfe3">cursor</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Create a cursor object.  <a href="#ae64153e9e304d6b178ad7daa502bbfe3"></a><br/></td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>Remote database. </p>
@@ -1205,8 +1209,29 @@
 
 </div>
 </div>
+<a class="anchor" id="ae64153e9e304d6b178ad7daa502bbfe3"></a><!-- doxytag: member="kyototycoon::RemoteDB::cursor" ref="ae64153e9e304d6b178ad7daa502bbfe3" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html">Cursor</a>* kyototycoon::RemoteDB::cursor </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Sep 29 21:25:31 2010 for Kyoto Tycoon by&nbsp;
+<div class="memdoc">
+
+<p>Create a cursor object. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the return value is the created cursor object. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>Because the object of the return value is allocated by the constructor, it should be released with the delete operator when it is no longer in use. </dd></dl>
+
+</div>
+</div>
+</div>
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Mon Oct 4 00:25:30 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

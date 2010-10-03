@@ -1,5 +1,5 @@
 /*************************************************************************************************
- * The server implementations to test miscellaneous utilities
+ * The testing implementations using the server tool kit
  *                                                               Copyright (C) 2009-2010 FAL Labs
  * This file is part of Kyoto Tycoon.
  * This program is free software: you can redistribute it and/or modify it under the terms of
@@ -70,8 +70,7 @@ int main(int argc, char** argv) {
 
 // print the usage and exit
 static void usage() {
-  eprintf("%s: command line interface of miscellaneous utilities of Kyoto Tycoon\n",
-          g_progname);
+  eprintf("%s: testing implementations using the server tool kit\n", g_progname);
   eprintf("\n");
   eprintf("usage:\n");
   eprintf("  %s echo [-host str] [-port num] [-tout num]\n", g_progname);

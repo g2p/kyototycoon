@@ -1,12 +1,82 @@
 /**
 
-@mainpage Kyoto Tycoon: a cache server based on Kyoto Cabinet
+@mainpage Kyoto Tycoon: a persistent cache server
 
 @section Introduction
 
-The following class the most important.
+Kyoto Tycoon is a lightweight database server with auto expiration mechanism, which is useful to handle cache data of various applications.  Kyoto Tycoon is also a package of network interface to the DBM called Kyoto Cabinet.  Though the DBM has high performance and high concurrency, you might bother in case that multiple processes share the same database, or remote processes access the database.  Thus, Kyoto Tycoon is provided for concurrent and remote connections to Kyoto Cabinet.  Kyoto Tycoon is composed of the server process managing multiple databases and its access library for client applications.
 
-@li kyototycoon::RemoteDB -- common interface of concrete databases
+The network protocol between the server and clients is HTTP so that you can write client applications and client libraries in almost all popular languages.  Both of RESTful-style interface by the GET, HEAD, PUT, DELETE methods and RPC-style inteface by the POST method are supported.  The server can handle more than 10 thousand connections at the same time because it uses modern I/O event notification facilities such as "epoll" and "kqueue" of underlying systems.
+
+The following classes are the most important.  If you are interested in writing applications of Kyoto Tycoon, all you have to learn is how to use the remote database interface.
+
+@li kyototycoon::RemoteDB -- remote database interface
+
+@li kyototycoon::TimedDB -- database implementation with record expiration mechanism
+@li kyototycoon::RPCClient -- utilities to implement your own RPC client
+@li kyototycoon::RPCServer -- utilities to implement your own RPC server
+@li kyototycoon::HTTPClient -- utilities to implement your own HTTP client
+@li kyototycoon::HTTPServer -- utilities to implement your own HTTP server
+@li kyototycoon::ThreadedServer -- utilities to implement your own TCP server
+@li kyototycoon::Poller -- abstraction of system-independent event notification mechanism
+@li kyototycoon::Socket -- abstraction of system-independent client socket mechanism
+@li kyototycoon::ServerSocket -- abstraction of system-independent server socket mechanism
+
+@section Example
+
+The following code is an example to use a remote database.
+
+@code
+#include <ktremotedb.h>
+
+using namespace std;
+using namespace kyototycoon;
+
+// main routine
+int main(int argc, char** argv) {
+
+  // create the database object
+  RemoteDB db;
+
+  // open the database
+  if (!db.open()) {
+    cerr << "open error: " << db.error().name() << endl;
+  }
+
+  // store records
+  if (!db.set("foo", "hop") ||
+      !db.set("bar", "step") ||
+      !db.set("baz", "jump")) {
+    cerr << "set error: " << db.error().name() << endl;
+  }
+
+  // retrieve a record
+  string* value = db.get("foo");
+  if (value) {
+    cout << *value << endl;
+    delete value;
+  } else {
+    cerr << "get error: " << db.error().name() << endl;
+  }
+
+  // traverse records
+  RemoteDB::Cursor* cur = db.cursor();
+  cur->jump();
+  pair<string, string>* rec;
+  while ((rec = cur->get_pair(NULL, true)) != NULL) {
+    cout << rec->first << ":" << rec->second << endl;
+    delete rec;
+  }
+  delete cur;
+
+  // close the database
+  if (!db.close()) {
+    cerr << "close error: " << db.error().name() << endl;
+  }
+
+  return 0;
+}
+@endcode
 
 */
 
@@ -22,4 +92,8 @@ namespace kyototycoon {}
  * @file ktutil.h       utility functions
  * @file ktsocket.h     network functions
  * @file ktthserv.h     threaded server
+ * @file kthttp.h       HTTP utilities
+ * @file ktrpc.h        RPC utilities
+ * @file kttimeddb.h    timed database
+ * @file ktremotedb.h   remote database
  */

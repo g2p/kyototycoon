@@ -64,7 +64,8 @@ static void usage() {
   eprintf("%s: test cases of the remote database of Kyoto Tycoon\n", g_progname);
   eprintf("\n");
   eprintf("usage:\n");
-  eprintf("  %s order [-th num] [-rnd] [-host str] [-port num] [-tout num] rnum\n", g_progname);
+  eprintf("  %s order [-th num] [-rnd] [-set|-get|-rem|-etc]"
+          " [-host str] [-port num] [-tout num] rnum\n", g_progname);
   eprintf("\n");
   std::exit(1);
 }
@@ -72,7 +73,7 @@ static void usage() {
 
 // print the error message of a database
 static void dberrprint(kt::RemoteDB* db, int32_t line, const char* func) {
-  kt::RemoteDB::Error err = db->error();
+  const kt::RemoteDB::Error& err = db->error();
   iprintf("%s: %d: %s: %s: %d: %s: %s\n",
           g_progname, line, func, db->expression().c_str(),
           err.code(), err.name(), err.message());
@@ -169,6 +170,10 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
       dberrprint(dbs + i, __LINE__, "DB::open");
       err = true;
     }
+  }
+  if (!dbs[0].clear()) {
+    dberrprint(dbs, __LINE__, "DB::clear");
+    err = true;
   }
   double etime = kc::time();
   iprintf("time: %.3f\n", etime - stime);
@@ -398,6 +403,118 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
     }
     etime = kc::time();
     dbmetaprint(dbs, mode == 'g');
+    iprintf("time: %.3f\n", etime - stime);
+  }
+  if (mode == 'e') {
+    iprintf("traversing the database by the outer cursor:\n");
+    stime = kc::time();
+    class Worker : public kc::Thread {
+    public:
+      Worker() : id_(0), rnum_(0), thnum_(0), rnd_(false), db_(NULL), err_(false) {}
+      void setparams(int32_t id, int64_t rnum, int32_t thnum, bool rnd, kt::RemoteDB* db) {
+        id_ = id;
+        rnum_ = rnum;
+        thnum_ = thnum;
+        rnd_ = rnd;
+        db_ = db;
+      }
+      bool error() {
+        return err_;
+      }
+    private:
+      void run() {
+        kt::RemoteDB::Cursor* cur = db_->cursor();
+        if (!cur->jump() && cur->error() != kt::RemoteDB::Error::LOGIC) {
+          dberrprint(db_, __LINE__, "Cursor::jump");
+          err_ = true;
+        }
+        int64_t cnt = 0;
+        const char* kbuf;
+        size_t ksiz;
+        while ((kbuf = cur->get_key(&ksiz)) != NULL) {
+          cnt++;
+          if (rnd_) {
+            switch (myrand(5)) {
+              case 0: {
+                char vbuf[RECBUFSIZ];
+                size_t vsiz = std::sprintf(vbuf, "%lld", cnt);
+                if (!cur->set_value(vbuf, vsiz, myrand(600) + 1, myrand(2) == 0) &&
+                    cur->error() != kt::RemoteDB::Error::LOGIC) {
+                  dberrprint(db_, __LINE__, "Cursor::set_value");
+                  err_ = true;
+                }
+                break;
+              }
+              case 1: {
+                if (!cur->remove() && cur->error() != kt::RemoteDB::Error::LOGIC) {
+                  dberrprint(db_, __LINE__, "Cursor::remove");
+                  err_ = true;
+                }
+                break;
+              }
+              case 2: {
+                size_t rsiz, vsiz;
+                const char* vbuf;
+                int64_t xt;
+                char* rbuf = cur->get(&rsiz, &vbuf, &vsiz, &xt, myrand(2) == 0);
+                if (rbuf ) {
+                  delete[] rbuf;
+                } else if (cur->error() != kt::RemoteDB::Error::LOGIC) {
+                  dberrprint(db_, __LINE__, "Cursor::et");
+                  err_ = true;
+                }
+                break;
+              }
+            }
+          } else {
+            size_t vsiz;
+            char* vbuf = cur->get_value(&vsiz);
+            if (vbuf) {
+              delete[] vbuf;
+            } else {
+              dberrprint(db_, __LINE__, "Cursor::get_value");
+              err_ = true;
+            }
+          }
+          delete[] kbuf;
+          if (!cur->step() && cur->error() != kt::RemoteDB::Error::LOGIC) {
+            dberrprint(db_, __LINE__, "Cursor::step");
+            err_ = true;
+          }
+          if (id_ < 1 && rnum_ > 250 && cnt % (rnum_ / 250) == 0) {
+            iputchar('.');
+            if (cnt == rnum_ || cnt % (rnum_ / 10) == 0) iprintf(" (%08lld)\n", (long long)cnt);
+          }
+        }
+        if (cur->error() != kt::RemoteDB::Error::LOGIC) {
+          dberrprint(db_, __LINE__, "Cursor::get_key");
+          err_ = true;
+        }
+        if (!rnd_ && cnt != db_->count()) {
+          dberrprint(db_, __LINE__, "Cursor::get_key");
+          err_ = true;
+        }
+        if (id_ < 1) iprintf(" (end)\n");
+        delete cur;
+      }
+      int32_t id_;
+      int64_t rnum_;
+      int32_t thnum_;
+      bool rnd_;
+      kt::RemoteDB* db_;
+      bool err_;
+    };
+    Worker workers[THREADMAX];
+    for (int32_t i = 0; i < thnum; i++) {
+      workers[i].setparams(i, rnum, thnum, rnd, dbs + i);
+      workers[i].start();
+    }
+    for (int32_t i = 0; i < thnum; i++) {
+      workers[i].join();
+      if (workers[i].error()) err = true;
+    }
+    etime = kc::time();
+    dbmetaprint(dbs, false);
     iprintf("time: %.3f\n", etime - stime);
   }
   if (mode == 0 || mode == 'r' || mode == 'e') {

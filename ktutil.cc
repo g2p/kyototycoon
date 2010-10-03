@@ -32,6 +32,53 @@ const int32_t LIBREV = _KT_LIBREV;
 
 
 /**
+ * Set the signal handler for termination signals.
+ */
+bool setkillsignalhandler(void (*handler)(int)) {
+  _assert_(handler);
+  bool err = false;
+  if (std::signal(SIGTERM, handler) == SIG_ERR) err = true;
+  if (std::signal(SIGINT, handler) == SIG_ERR) err = true;
+  if (std::signal(SIGHUP, handler) == SIG_ERR) err = true;
+  return !err;
+}
+
+
+/**
+ * Switch the process into the background.
+ */
+bool daemonize() {
+  _assert_(true);
+  std::fflush(stdout);
+  std::fflush(stderr);
+  switch (::fork()) {
+    case -1: return false;
+    case 0: break;
+    default: ::_exit(0);
+  }
+  if (::setsid() == -1) return false;
+  switch (::fork()) {
+    case -1: return false;
+    case 0: break;
+    default: ::_exit(0);
+  }
+  ::umask(0);
+  if (::chdir("/") == -1) return false;
+  ::close(0);
+  ::close(1);
+  ::close(2);
+  int32_t fd = ::open("/dev/null", O_RDWR, 0);
+  if (fd != -1){
+    ::dup2(fd, 0);
+    ::dup2(fd, 1);
+    ::dup2(fd, 2);
+    if (fd > 2) ::close(fd);
+  }
+  return true;
+}
+
+
+/**
  * Get the Gregorian calendar of a time.
  */
 void getcalendar(int64_t t, int32_t jl,

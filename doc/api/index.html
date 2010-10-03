@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
-<title>Kyoto Tycoon: Kyoto Tycoon: a cache server based on Kyoto Cabinet</title>
+<title>Kyoto Tycoon: Kyoto Tycoon: a persistent cache server</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <link href="doxygen.css" rel="stylesheet" type="text/css"/>
 </head>
@@ -19,14 +19,79 @@
   </div>
 </div>
 <div class="contents">
-<h1>Kyoto Tycoon: a cache server based on Kyoto Cabinet </h1><h2><a class="anchor" id="Introduction">
+<h1>Kyoto Tycoon: a persistent cache server </h1><h2><a class="anchor" id="Introduction">
 Introduction</a></h2>
-<p>The following class the most important.</p>
+<p>Kyoto Tycoon is a lightweight database server with auto expiration mechanism, which is useful to handle cache data of various applications. Kyoto Tycoon is also a package of network interface to the DBM called Kyoto Cabinet. Though the DBM has high performance and high concurrency, you might bother in case that multiple processes share the same database, or remote processes access the database. Thus, Kyoto Tycoon is provided for concurrent and remote connections to Kyoto Cabinet. Kyoto Tycoon is composed of the server process managing multiple databases and its access library for client applications.</p>
+<p>The network protocol between the server and clients is HTTP so that you can write client applications and client libraries in almost all popular languages. Both of RESTful-style interface by the GET, HEAD, PUT, DELETE methods and RPC-style inteface by the POST method are supported. The server can handle more than 10 thousand connections at the same time because it uses modern I/O event notification facilities such as "epoll" and "kqueue" of underlying systems.</p>
+<p>The following classes are the most important. If you are interested in writing applications of Kyoto Tycoon, all you have to learn is how to use the remote database interface.</p>
 <ul>
-<li><a class="el" href="classkyototycoon_1_1RemoteDB.html" title="Remote database.">kyototycoon::RemoteDB</a> -- common interface of concrete databases </li>
+<li><a class="el" href="classkyototycoon_1_1RemoteDB.html" title="Remote database.">kyototycoon::RemoteDB</a> -- remote database interface</li>
 </ul>
-</div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Sep 29 21:25:31 2010 for Kyoto Tycoon by&nbsp;
+<ul>
+<li><a class="el" href="classkyototycoon_1_1TimedDB.html" title="Timed database.">kyototycoon::TimedDB</a> -- database implementation with record expiration mechanism </li>
+<li><a class="el" href="classkyototycoon_1_1RPCClient.html" title="RPC client.">kyototycoon::RPCClient</a> -- utilities to implement your own RPC client </li>
+<li><a class="el" href="classkyototycoon_1_1RPCServer.html" title="RPC server.">kyototycoon::RPCServer</a> -- utilities to implement your own RPC server </li>
+<li><a class="el" href="classkyototycoon_1_1HTTPClient.html" title="HTTP client.">kyototycoon::HTTPClient</a> -- utilities to implement your own HTTP client </li>
+<li><a class="el" href="classkyototycoon_1_1HTTPServer.html" title="HTTP server.">kyototycoon::HTTPServer</a> -- utilities to implement your own HTTP server </li>
+<li><a class="el" href="classkyototycoon_1_1ThreadedServer.html" title="Interface of poolable I/O event.">kyototycoon::ThreadedServer</a> -- utilities to implement your own TCP server </li>
+<li><a class="el" href="classkyototycoon_1_1Poller.html" title="I/O event notification.">kyototycoon::Poller</a> -- abstraction of system-independent event notification mechanism </li>
+<li><a class="el" href="classkyototycoon_1_1Socket.html" title="Network stream abstraction based on TCP/IP.">kyototycoon::Socket</a> -- abstraction of system-independent client socket mechanism </li>
+<li><a class="el" href="classkyototycoon_1_1ServerSocket.html" title="Network server abstraction based on TCP/IP.">kyototycoon::ServerSocket</a> -- abstraction of system-independent server socket mechanism</li>
+</ul>
+<h2><a class="anchor" id="Example">
+Example</a></h2>
+<p>The following code is an example to use a remote database.</p>
+<div class="fragment"><pre class="fragment"><span class="preprocessor">#include &lt;<a class="code" href="ktremotedb_8h.html" title="remote database">ktremotedb.h</a>&gt;</span>
+
+<span class="keyword">using namespace </span>std;
+<span class="keyword">using namespace </span>kyototycoon;
+
+<span class="comment">// main routine</span>
+<span class="keywordtype">int</span> main(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span>** argv) {
+
+  <span class="comment">// create the database object</span>
+  RemoteDB db;
+
+  <span class="comment">// open the database</span>
+  <span class="keywordflow">if</span> (!db.open()) {
+    cerr &lt;&lt; <span class="stringliteral">&quot;open error: &quot;</span> &lt;&lt; db.error().name() &lt;&lt; endl;
+  }
+
+  <span class="comment">// store records</span>
+  <span class="keywordflow">if</span> (!db.set(<span class="stringliteral">&quot;foo&quot;</span>, <span class="stringliteral">&quot;hop&quot;</span>) ||
+      !db.set(<span class="stringliteral">&quot;bar&quot;</span>, <span class="stringliteral">&quot;step&quot;</span>) ||
+      !db.set(<span class="stringliteral">&quot;baz&quot;</span>, <span class="stringliteral">&quot;jump&quot;</span>)) {
+    cerr &lt;&lt; <span class="stringliteral">&quot;set error: &quot;</span> &lt;&lt; db.error().name() &lt;&lt; endl;
+  }
+
+  <span class="comment">// retrieve a record</span>
+  <span class="keywordtype">string</span>* value = db.get(<span class="stringliteral">&quot;foo&quot;</span>);
+  <span class="keywordflow">if</span> (value) {
+    cout &lt;&lt; *value &lt;&lt; endl;
+    <span class="keyword">delete</span> value;
+  } <span class="keywordflow">else</span> {
+    cerr &lt;&lt; <span class="stringliteral">&quot;get error: &quot;</span> &lt;&lt; db.error().name() &lt;&lt; endl;
+  }
+
+  <span class="comment">// traverse records</span>
+  RemoteDB::Cursor* cur = db.cursor();
+  cur-&gt;jump();
+  pair&lt;string, string&gt;* rec;
+  <span class="keywordflow">while</span> ((rec = cur-&gt;get_pair(NULL, <span class="keyword">true</span>)) != NULL) {
+    cout &lt;&lt; rec-&gt;first &lt;&lt; <span class="stringliteral">&quot;:&quot;</span> &lt;&lt; rec-&gt;second &lt;&lt; endl;
+    <span class="keyword">delete</span> rec;
+  }
+  <span class="keyword">delete</span> cur;
+
+  <span class="comment">// close the database</span>
+  <span class="keywordflow">if</span> (!db.close()) {
+    cerr &lt;&lt; <span class="stringliteral">&quot;close error: &quot;</span> &lt;&lt; db.error().name() &lt;&lt; endl;
+  }
+
+  <span class="keywordflow">return</span> 0;
+}
+</pre></div> </div>
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Mon Oct 4 00:25:30 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

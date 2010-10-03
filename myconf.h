@@ -26,71 +26,71 @@
 #if defined(__linux__)
 
 #define _SYS_LINUX_
-#define _KC_SYSNAME    "Linux"
+#define _KT_SYSNAME    "Linux"
 
 #elif defined(__FreeBSD__)
 
 #define _SYS_FREEBSD_
-#define _KC_SYSNAME    "FreeBSD"
+#define _KT_SYSNAME    "FreeBSD"
 
 #elif defined(__NetBSD__)
 
 #define _SYS_NETBSD_
-#define _KC_SYSNAME    "NetBSD"
+#define _KT_SYSNAME    "NetBSD"
 
 #elif defined(__OpenBSD__)
 
 #define _SYS_OPENBSD_
-#define _KC_SYSNAME    "OpenBSD"
+#define _KT_SYSNAME    "OpenBSD"
 
 #elif defined(__sun__) || defined(__sun)
 
 #define _SYS_SUNOS_
-#define _KC_SYSNAME    "SunOS"
+#define _KT_SYSNAME    "SunOS"
 
 #elif defined(__hpux)
 
 #define _SYS_HPUX_
-#define _KC_SYSNAME    "HP-UX"
+#define _KT_SYSNAME    "HP-UX"
 
 #elif defined(__osf)
 
 #define _SYS_TRU64_
-#define _KC_SYSNAME    "Tru64"
+#define _KT_SYSNAME    "Tru64"
 
 #elif defined(_AIX)
 
 #define _SYS_AIX_
-#define _KC_SYSNAME    "AIX"
+#define _KT_SYSNAME    "AIX"
 
 #elif defined(__APPLE__) && defined(__MACH__)
 
 #define _SYS_MACOSX_
-#define _KC_SYSNAME    "Mac OS X"
+#define _KT_SYSNAME    "Mac OS X"
 
 #elif defined(_MSC_VER)
 
 #define _SYS_MSVC_
-#define _KC_SYSNAME    "Windows (VC++)"
+#define _KT_SYSNAME    "Windows (VC++)"
 
 #elif defined(_WIN32)
 
 #define _SYS_MINGW_
-#define _KC_SYSNAME    "Windows (MinGW)"
+#define _KT_SYSNAME    "Windows (MinGW)"
 
 #elif defined(__CYGWIN__)
 
 #define _SYS_CYGWIN_
-#define _KC_SYSNAME    "Windows (Cygwin)"
+#define _KT_SYSNAME    "Windows (Cygwin)"
 
 #else
 
 #define _SYS_GENERIC_
-#define _KC_SYSNAME    "Generic"
+#define _KT_SYSNAME    "Generic"
 
 #endif
 
-#define _KT_VERSION    "0.6.0"
+#define _KT_VERSION    "0.6.5"
 #define _KT_LIBVER     1
 #define _KT_LIBREV     1
 

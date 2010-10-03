@@ -26,6 +26,7 @@ static void usage();
 static int32_t rundate(int32_t argc, char** argv);
 static int32_t runhttp(int32_t argc, char** argv);
 static int32_t runrpc(int32_t argc, char** argv);
+static int32_t runconf(int argc, char** argv);
 static int32_t procdate(const char* str, int32_t jl, bool wf, bool rf);
 static int32_t prochttp(const char* url, kt::HTTPClient::Method meth, const char* body,
                         std::map<std::string, std::string>* reqheads,
@@ -33,6 +34,7 @@ static int32_t prochttp(const char* url, kt::HTTPClient::Method meth, const char
                         double tout, bool ph, int32_t ec);
 static int32_t procrpc(const char* proc, std::map<std::string, std::string>* params,
                        const char* host, int32_t port, double tout, int32_t ienc, int32_t oenc);
+static int32_t procconf(int32_t mode);
 
 
 // main routine
@@ -47,6 +49,8 @@ int main(int argc, char** argv) {
     rv = runhttp(argc, argv);
   } else if (!std::strcmp(argv[1], "rpc")) {
     rv = runrpc(argc, argv);
+  } else if (!std::strcmp(argv[1], "conf")) {
+    rv = runconf(argc, argv);
   } else if (!std::strcmp(argv[1], "version") || !std::strcmp(argv[1], "--version")) {
     printversion();
     rv = 0;
@@ -64,10 +68,11 @@ static void usage() {
   eprintf("\n");
   eprintf("usage:\n");
   eprintf("  %s date [-ds str] [-jl num] [-wf] [-rf]\n", g_progname);
-  eprintf("  %s http [-get|-head|-post|-put|-delete] [-ah name value] [-qs name value]"
-          " [-tout num] [-ph] [-ec num] url [file]\n", g_progname);
+  eprintf("  %s http [-get|-head|-post|-put|-delete] [-body file] [-ah name value]"
+          " [-qs name value] [-tout num] [-ph] [-ec num] url\n", g_progname);
   eprintf("  %s rpc [-host str] [-port num] [-tout num] [-ienc str] [-oenc str]"
           " proc [name value ...]\n", g_progname);
+  eprintf("  %s conf [-v|-i|-l|-p]\n", g_progname);
   eprintf("  %s version\n", g_progname);
   eprintf("\n");
   std::exit(1);
@@ -212,6 +217,35 @@ static int32_t runrpc(int32_t argc, char** argv) {
   }
   if (!proc || port < 1) usage();
   int32_t rv = procrpc(proc, &params, host, port, tout, ienc, oenc);
+  return rv;
+}
+
+
+// parse arguments of conf command
+static int32_t runconf(int argc, char** argv) {
+  bool argbrk = false;
+  int32_t mode = 0;
+  for (int32_t i = 2; i < argc; i++) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-v")) {
+        mode = 'v';
+      } else if (!std::strcmp(argv[i], "-i")) {
+        mode = 'i';
+      } else if (!std::strcmp(argv[i], "-l")) {
+        mode = 'l';
+      } else if (!std::strcmp(argv[i], "-p")) {
+        mode = 'p';
+      } else {
+        usage();
+      }
+    } else {
+      argbrk = true;
+      usage();
+    }
+  }
+  int32_t rv = procconf(mode);
   return rv;
 }
 
@@ -400,6 +434,46 @@ static int32_t procrpc(const char* proc, std::map<std::string, std::string>* par
     err = true;
   }
   return err ? 1 : 0;
+}
+
+
+// perform conf command
+static int32_t procconf(int32_t mode) {
+  switch (mode) {
+    case 'v': {
+      iprintf("%s\n", kt::VERSION);
+      break;
+    }
+    case 'i': {
+      iprintf("%s\n", _KT_APPINC);
+      break;
+    }
+    case 'l': {
+      iprintf("%s\n", _KT_APPLIBS);
+      break;
+    }
+    case 'p': {
+      iprintf("%s\n", _KT_BINDIR);
+      break;
+    }
+    default: {
+      iprintf("VERSION: %s\n", kt::VERSION);
+      iprintf("LIBVER: %d\n", kt::LIBVER);
+      iprintf("LIBREV: %d\n", kt::LIBREV);
+      iprintf("SYSNAME: %s\n", kc::SYSNAME);
+      if (std::strcmp(_KT_PREFIX, "*")) {
+        iprintf("prefix: %s\n", _KT_PREFIX);
+        iprintf("includedir: %s\n", _KT_INCLUDEDIR);
+        iprintf("libdir: %s\n", _KT_LIBDIR);
+        iprintf("bindir: %s\n", _KT_BINDIR);
+        iprintf("libexecdir: %s\n", _KT_LIBEXECDIR);
+        iprintf("appinc: %s\n", _KT_APPINC);
+        iprintf("applibs: %s\n", _KT_APPLIBS);
+      }
+      break;
+    }
+  }
+  return 0;
 }
 
 

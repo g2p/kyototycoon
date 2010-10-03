@@ -114,7 +114,7 @@ static void usage() {
 
 // print error message of database
 static void dberrprint(kt::TimedDB* db, const char* info) {
-  kc::BasicDB::Error err = db->error();
+  const kc::BasicDB::Error& err = db->error();
   eprintf("%s: %s: %s: %d: %s: %s\n",
           g_progname, info, db->path().c_str(), err.code(), err.name(), err.message());
 }
@@ -703,9 +703,9 @@ static int32_t procset(const char* path, const char* kbuf, size_t ksiz,
       break;
     }
     case 'd': {
-      double onum = db.increment(kbuf, ksiz, kc::atof(vbuf), xt);
+      double onum = db.increment_double(kbuf, ksiz, kc::atof(vbuf), xt);
       if (kc::chknan(onum)) {
-        dberrprint(&db, "DB::increment failed");
+        dberrprint(&db, "DB::increment_double failed");
         err = true;
       } else {
         iprintf("%f\n", onum);

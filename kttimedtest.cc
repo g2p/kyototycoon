@@ -99,7 +99,7 @@ static void usage() {
 
 // print the error message of a database
 static void dberrprint(kt::TimedDB* db, int32_t line, const char* func) {
-  kc::BasicDB::Error err = db->error();
+  const kc::BasicDB::Error& err = db->error();
   iprintf("%s: %d: %s: %s: %d: %s: %s\n",
           g_progname, line, func, db->path().c_str(), err.code(), err.name(), err.message());
 }
@@ -1630,17 +1630,18 @@ static int32_t procwicked(const char* path, int64_t rnum, int32_t thnum, int32_t
             vbuf = lbuf_;
             vsiz = myrand(RECBUFSIZL) / (myrand(5) + 1);
           }
+          int64_t xt = myrand(600);
           do {
             switch (myrand(10)) {
               case 0: {
-                if (!db_->set(kbuf, ksiz, vbuf, vsiz)) {
+                if (!db_->set(kbuf, ksiz, vbuf, vsiz, xt)) {
                   dberrprint(db_, __LINE__, "DB::set");
                   err_ = true;
                 }
                 break;
               }
               case 1: {
-                if (!db_->add(kbuf, ksiz, vbuf, vsiz) &&
+                if (!db_->add(kbuf, ksiz, vbuf, vsiz, xt) &&
                     db_->error() != kc::BasicDB::Error::DUPREC) {
                   dberrprint(db_, __LINE__, "DB::add");
                   err_ = true;
@@ -1648,7 +1649,7 @@ static int32_t procwicked(const char* path, int64_t rnum, int32_t thnum, int32_t
                 break;
               }
               case 2: {
-                if (!db_->replace(kbuf, ksiz, vbuf, vsiz) &&
+                if (!db_->replace(kbuf, ksiz, vbuf, vsiz, xt) &&
                     db_->error() != kc::BasicDB::Error::NOREC) {
                   dberrprint(db_, __LINE__, "DB::replace");
                   err_ = true;
@@ -1656,7 +1657,7 @@ static int32_t procwicked(const char* path, int64_t rnum, int32_t thnum, int32_t
                 break;
               }
               case 3: {
-                if (!db_->append(kbuf, ksiz, vbuf, vsiz)) {
+                if (!db_->append(kbuf, ksiz, vbuf, vsiz, xt)) {
                   dberrprint(db_, __LINE__, "DB::append");
                   err_ = true;
                 }
@@ -1665,23 +1666,23 @@ static int32_t procwicked(const char* path, int64_t rnum, int32_t thnum, int32_t
               case 4: {
                 if (myrand(2) == 0) {
                   int64_t num = myrand(rnum_);
-                  if (db_->increment(kbuf, ksiz, num) == INT64_MIN &&
+                  if (db_->increment(kbuf, ksiz, num, xt) == INT64_MIN &&
                       db_->error() != kc::BasicDB::Error::LOGIC) {
                     dberrprint(db_, __LINE__, "DB::increment");
                     err_ = true;
                   }
                 } else {
                   double num = myrand(rnum_ * 10) / (myrand(rnum_) + 1.0);
-                  if (kc::chknan(db_->increment(kbuf, ksiz, num)) &&
+                  if (kc::chknan(db_->increment_double(kbuf, ksiz, num, xt)) &&
                       db_->error() != kc::BasicDB::Error::LOGIC) {
-                    dberrprint(db_, __LINE__, "DB::increment");
+                    dberrprint(db_, __LINE__, "DB::increment_double");
                     err_ = true;
                   }
                 }
                 break;
               }
               case 5: {
-                if (!db_->cas(kbuf, ksiz, kbuf, ksiz, vbuf, vsiz) &&
+                if (!db_->cas(kbuf, ksiz, kbuf, ksiz, vbuf, vsiz, xt) &&
                     db_->error() != kc::BasicDB::Error::LOGIC) {
                   dberrprint(db_, __LINE__, "DB::cas");
                   err_ = true;

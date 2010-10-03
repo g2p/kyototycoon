@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Language" content="en" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<meta name="author" content="FAL Labs" />
+<meta name="keywords" content="Kyoto Tycoon, kyototycoon, database, DBM" />
+<meta name="description" content="Specifications of command line utilities" />
+<link rel="contents" href="./" />
+<link rel="stylesheet" href="common.css" />
+<link rel="icon" href="icon16.png" />
+<link rev="made" href="mailto:info@fallabs.com" />
+<title>Specificatoins of Command Line Utilities of Kyoto Tycoon</title>
+</head>
+
+<body>
+
+<h1 id="headline">Specificatoins of Command Line Utilities of Kyoto Tycoon</h1>
+
+<div class="note">Copyright (C) 2009-2010 FAL Labs</div>
+<div class="note">Last Update: Sun, 03 Oct 2010 21:36:09 +0900</div>
+
+<hr />
+
+<p>This document describes how to use command line utilities.  They are useful to manage database contents and to test the library and its applications.</p>
+
+<ol>
+<li><a href="#ktserver">ktserver</a> : to run the database server.</li>
+<li><a href="#ktutiltest">ktutiltest</a> : to test the utility functions.</li>
+<li><a href="#ktutilmgr">ktutilmgr</a> : miscellaneous utilities.</li>
+<li><a href="#ktutilserv">ktutilserv</a> : to test the server tool kit.</li>
+<li><a href="#kttimedtest">kctimedtest</a> : to test the timed database.</li>
+<li><a href="#kttimedmgr">kctimedmgr</a> : to manage the timed database.</li>
+<li><a href="#ktremotetest">ktremotetest</a> : to test the remote database.</li>
+<li><a href="#ktremotemgr">ktremotemgr</a> : to manage the remote database.</li>
+</ol>
+
+<hr />
+
+<h2 id="ktserver">ktserver</h2>
+
+<p>The command `<code>ktserver</code>' runs the server managing database instances.  This command is used in the following format.  `<var>db</var>' specifies a database name which is a polymorphic database of Kyoto Cabinet.  If no database is specified, an unnamed on-memory database is opened.</p>
+
+<dl class="api">
+<dt><code>ktserver [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-th <var>num</var>] [-log <var>file</var>] [-li|-ls|-le|-lz] [-ord] [-oat|-oas|-onl|-otl|-onr] [-tp] [-dmn] [-pid <var>file</var>] [<var>db</var>...]</code></dt>
+</dl>
+
+<p>Options feature the following.</p>
+
+<ul class="options">
+<li><code>-host <var>str</var></code> : specifies the host name of the server.</li>
+<li><code>-port <var>num</var></code> : specifies the port number of the server.</li>
+<li><code>-tout <var>num</var></code> : specifies the timeout in seconds.</li>
+<li><code>-th <var>num</var></code> : specifies the number of worker threads.  By default, it is 4.</li>
+<li><code>-log <var>file</var></code> : specifies the path of the log file.  By default, logs are written into the standard output.</li>
+<li><code>-li</code> : sets the logging level "INFO".</li>
+<li><code>-ls</code> : sets the logging level "SYSTEM".</li>
+<li><code>-le</code> : sets the logging level "ERROR".</li>
+<li><code>-lz</code> : sets the logging level "NONE".</li>
+<li><code>-ord</code> : opens the database as a reader.</li>
+<li><code>-oat</code> : opens the database with the auto transaction option.</li>
+<li><code>-oas</code> : opens the database with the auto synchronization option.</li>
+<li><code>-onl</code> : opens the database with the no locking option.</li>
+<li><code>-otl</code> : opens the database with the try locking option.</li>
+<li><code>-onr</code> : opens the database with the no auto repair option.</li>
+<li><code>-tp</code> : disables expiration.</li>
+<li><code>-dmn</code> : switches to a daemon process.</li>
+<li><code>-pid</code> : specifies the file to contain the process ID to send signals by.</li>
+</ul>
+
+<p>This command returns 0 on success, another on failure.</p>
+
+<p>To finish the server process running on foreground, input `<code>Ctrl-C</code>' on the terminal.  To finish the server process running as a daemon, send a termination signal such as SIGTERM by the `<code>kill</code>' command.  If a daemon process catches SIGHUP, the server restarts and the log file is re-opened.  Because thr current directory of a daemon process is changed to the root directory, paths of related files should be described as their absolute paths.</p>
+
+<hr />
+
+<h2 id="ktutiltest">ktutiltest</h2>
+
+<p>The command `<code>ktutiltest</code>' is a utility for facility test and performance test of the utility functions.  This command is used in the following format.  `<var>url</var>' specifies the target URL.  `<var>rnum</var>' specifies the number of iterations.  `<var>proc</var>' specifies the name of the procedure to call.  `<var>name</var>' and `<var>value</var>' specify a pair of the key and the value of an input parameter.</p>
+
+<dl class="api">
+<dt><code>ktutiltest http [-th <var>num</var>] [-get|-head|-post|-put|-delete] [-body <var>file</var>] [-ah <var>name</var> <var>value</var>] [-qs <var>name</var> <var>value</var>] [-tout <var>num</var>] [-ka] <var>url</var> <var>rnum</var></code></dt>
+<dd>Performs test of HTTP sessions.</dd>
+<dt><code>ktutiltest rpc [-th <var>num</var>] [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] proc <var>rnum</var> [<var>name</var> <var>value</var> ...]</code></dt>
+<dd>Performs test of RPC sessions.</dd>
+</dl>
+
+<p>Options feature the following.</p>
+
+<ul class="options">
+<li><code>-th <var>num</var></code> : specifies the number of worker threads.</li>
+<li><code>-get</code> : uses the GET method.</li>
+<li><code>-head</code> : uses the HEAD method.</li>
+<li><code>-post</code> : uses the POST method.</li>
+<li><code>-put</code> : uses the PUT method.</li>
+<li><code>-delete</code> : uses the DELETE method.</li>
+<li><code>-body <var>file</var></code> : sends the entity body of the content the file.</li>
+<li><code>-ah <var>name</var> <var>value</var></code> : adds an HTTP header.</li>
+<li><code>-qs <var>name</var> <var>value</var></code> : adds a key/value pair to the query string.</li>
+<li><code>-tout <var>num</var></code> : specifies the timeout in seconds.</li>
+<li><code>-ka</code> : use keep-alive connection.</li>
+<li><code>-host <var>str</var></code> : specifies the host name of the server.</li>
+<li><code>-port <var>num</var></code> : specifies the port number of the server.</li>
+</ul>
+
+<p>This command returns 0 on success, another on failure.</p>
+
+<hr />
+
+<h2 id="ktutilmgr">ktutilmgr</h2>
+
+<p>The command `<code>ktutilmgr</code>' is a tool of miscellaneous utilities, and to show the configuration.  This command is used in the following format.  `<var>url</var>' specifies the target URL.  `<var>proc</var>' specifies the name of the procedure to call.  `<var>name</var>' and `<var>value</var>' specify a pair of the key and the value of an input parameter.</p>
+
+<dl class="api">
+<dt><code>ktutilmgr date [-ds <var>str</var>] [-jl <var>num</var>] [-wf] [-rf]</code></dt>
+<dd>Prints date information.  By default, prints the current UNIX time.</dd>
+<dt><code>ktutilmgr http [-get|-head|-post|-put|-delete] [-body <var>file</var>] [-ah <var>name</var> <var>value</var>] [-qs <var>name</var> <var>value</var>] [-tout <var>num</var>] [-ph] [-ec <var>num</var>] <var>url</var></code></dt>
+<dd>Performs an HTTP session.</dd>
+<dt><code>ktutilmgr rpc [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-ienc <var>str</var>] [-oenc <var>str</var>] <var>proc</var> [<var>name</var> <var>value</var> ...]</code></dt>
+<dd>Performs an RPC session.</dd>
+<dt><code>ktutilmgr conf [-v|-i|-l|-p]</code></dt>
+<dd>Shows the configuration of Kyoto Tycoon.</dd>
+<dt><code>ktutilmgr version</code></dt>
+<dd>Shows the version information of Kyoto Tycoon.</dd>
+</dl>
+
+<p>Options feature the following.</p>
+
+<ul class="options">
+<li><code>-ds <var>str</var></code> : specifies the datetime string.</li>
+<li><code>-jl <var>num</var></code> : specifies the jet lag.</li>
+<li><code>-wf</code> : formats the output in W3CDTF.</li>
+<li><code>-rf</code> : formats the output in RFC 1123 format.</li>
+<li><code>-get</code> : uses the GET method.</li>
+<li><code>-head</code> : uses the HEAD method.</li>
+<li><code>-post</code> : uses the POST method.</li>
+<li><code>-put</code> : uses the PUT method.</li>
+<li><code>-delete</code> : uses the DELETE method.</li>
+<li><code>-body <var>file</var></code> : sends the entity body of the content the file.</li>
+<li><code>-ah <var>name</var> <var>value</var></code> : adds an HTTP header.</li>
+<li><code>-qs <var>name</var> <var>value</var></code> : adds a key/value pair to the query string.</li>
+<li><code>-tout <var>num</var></code> : specifies the timeout in seconds.</li>
+<li><code>-ph</code> : prints response headers.</li>
+<li><code>-ec <var>num</var></code> : reports error if the response code is not the same as the expected.</li>
+<li><code>-host <var>str</var></code> : specifies the host name of the server.</li>
+<li><code>-port <var>num</var></code> : specifies the port number of the server.</li>
+<li><code>-ienc <var>str</var></code> : specifies the encoding of the input data.</li>
+<li><code>-oenc <var>str</var></code> : specifies the encoding of the output data.</li>
+<li><code>-v</code> : show the version number of Kyoto Tycoon.</li>
+<li><code>-i</code> : show options to include the headers of Tokyo Tycoon.</li>
+<li><code>-l</code> : show options to link the library of Tokyo Tycoon.</li>
+<li><code>-p</code> : show the directory path of the commands.</li>
+</ul>
+
+<p>This command returns 0 on success, another on failure.</p>
+
+<hr />
+
+<h2 id="ktutilserv">ktutilserv</h2>
+
+<p>The command `<code>ktutilserv</code>' is a utility for facility test and performance test of the server tool kit.  This command is used in the following format.  `<var>basedir</var>' specifies the document root directory.</p>
+
+<dl class="api">
+<dt><code>ktutilserv echo [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>]</code></dt>
+<dd>Runs the single-threaded echo server.</dd>
+<dt><code>ktutilserv mtecho [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-th <var>num</var>] [-li|-ls|-le|-lz]</code></dt>
+<dd>Runs the multi-threaded echo server.</dd>
+<dt><code>ktutilserv http [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-th <var>num</var>] [-li|-ls|-le|-lz] [<var>basedir</var>]</code></dt>
+<dd>Runs the HTTP server.</dd>
+<dt><code>ktutilserv rpc [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-th <var>num</var>] [-li|-ls|-le|-lz]</code></dt>
+<dd>Runs the RPC server.</dd>
+</dl>
+
+<p>Options feature the following.</p>
+
+<ul class="options">
+<li><code>-host <var>str</var></code> : specifies the host name of the server.</li>
+<li><code>-port <var>num</var></code> : specifies the port number of the server.</li>
+<li><code>-tout <var>num</var></code> : specifies the timeout in seconds.</li>
+<li><code>-th <var>num</var></code> : specifies the number of worker threads.  By default, it is 4.</li>
+<li><code>-li</code> : sets the logging level "INFO".</li>
+<li><code>-ls</code> : sets the logging level "SYSTEM".</li>
+<li><code>-le</code> : sets the logging level "ERROR".</li>
+<li><code>-lz</code> : sets the logging level "NONE".</li>
+</ul>
+
+<hr />
+
+<h2 id="kttimedtest">kttimedtest</h2>
+
+<p>The command `<code>kttimedtest</code>' is a utility for facility test and performance test of the timed database.  This command is used in the following format.  `<var>path</var>' specifies the path of a database file.  `<var>rnum</var>' specifies the number of iterations.</p>
+
+<dl class="api">
+<dt><code>kttimedtest order [-th <var>num</var>] [-rnd] [-set|-get|-getw|-rem|-etc] [-tran] [-oat|-onl|-onl|-otl|-onr] [-tp] <var>path</var> <var>rnum</var></code></dt>
+<dd>Performs in-order tests.</dd>
+<dt><code>kttimedtest queue [-th <var>num</var>] [-it <var>num</var>] [-rnd] [-oat|-onl|-onl|-otl|-onr] [-tp] <var>path</var> <var>rnum</var></code></dt>
+<dd>Performs queuing operations.</dd>
+<dt><code>kttimedtest wicked [-th <var>num</var>] [-it <var>num</var>] [-oat|-onl|-onl|-otl|-onr] [-tp] <var>path</var> <var>rnum</var></code></dt>
+<dd>Performs mixed operations selected at random.</dd>
+<dt><code>kttimedtest tran [-th <var>num</var>] [-it <var>num</var>] [-hard] [-oat|-onl|-onl|-otl|-onr] [-tp] <var>path</var> <var>rnum</var></code></dt>
+<dd>Performs test of transaction.</dd>
+<dt><code>kttimedtest misc <var>path</var></code></dt>
+<dd>Performs miscellaneous tests.</dd>
+</dl>
+
+<p>Options feature the following.</p>
+
+<ul class="options">
+<li><code>-th <var>num</var></code> : specifies the number of worker threads.</li>
+<li><code>-rnd</code> : performs random test.</li>
+<li><code>-set</code> : performs setting operation only.</li>
+<li><code>-get</code> : performs getting operation only.</li>
+<li><code>-getw</code> : performs getting with a buffer operation only.</li>
+<li><code>-rem</code> : performs removing operation only.</li>
+<li><code>-etc</code> : performs miscellaneous operations.</li>
+<li><code>-tran</code> : performs transaction.</li>
+<li><code>-oat</code> : opens the database with the auto transaction option.</li>
+<li><code>-oas</code> : opens the database with the auto synchronization option.</li>
+<li><code>-onl</code> : opens the database with the no locking option.</li>
+<li><code>-otl</code> : opens the database with the try locking option.</li>
+<li><code>-onr</code> : opens the database with the no auto repair option.</li>
+<li><code>-tp</code> : disables expiration.</li>
+<li><code>-it <var>num</var></code> : specifies the number of repetition.</li>
+<li><code>-hard</code> : performs physical synchronization.</li>
+</ul>
+
+<p>This command returns 0 on success, another on failure.</p>
+
+<hr />
+
+<h2 id="kttimedmgr">kttimedmgr</h2>
+
+<p>The command `<code>kttimedmgr</code>' is a utility for test and debugging of the timed database and its applications.  `<var>path</var>' specifies the path of a database file.  `<var>key</var>' specifies the key of a record.  `<var>value</var>' specifies the value of a record.  `<var>file</var>' specifies the input/output file.</p>
+
+<dl class="api">
+<dt><code>kttimedmgr create [-otr] [-onl|-otl|-onr] [-tp] <var>path</var></code></dt>
+<dd>Creates a database file.</dd>
+<dt><code>kttimedmgr inform [-onl|-otl|-onr] [-st] <var>path</var></code></dt>
+<dd>Prints status information.</dd>
+<dt><code>kttimedmgr set [-onl|-otl|-onr] [-add|-app|-rep|-inci|-incd] [-sx] <var>path</var> <var>key</var> <var>value</var></code></dt>
+<dd>Stores a record.</dd>
+<dt><code>kttimedmgr remove [-onl|-otl|-onr] [-sx] <var>path</var> <var>key</var></code></dt>
+<dd>Removes a record.</dd>
+<dt><code>kttimedmgr get [-onl|-otl|-onr] [-sx] [-px] [-pz] <var>path</var> <var>key</var></code></dt>
+<dd>Prints the value of a record.</dd>
+<dt><code>kttimedmgr list [-onl|-otl|-onr] [-des] [-max <var>num</var>] [-sx] [-pv] [-px] <var>path</var> [<var>key</var>]</code></dt>
+<dd>Prints keys of all records, separated by line feeds.</dd>
+<dt><code>kttimedmgr import [-onl|-otl|-onr] [-sx] <var>path</var> [<var>file</var>]</code></dt>
+<dd>Imports records from a TSV file.</dd>
+<dt><code>kttimedmgr copy [-onl|-otl|-onr] <var>path</var> <var>file</var></code></dt>
+<dd>Copy the whole database.</dd>
+<dt><code>kttimedmgr dump [-onl|-otl|-onr] <var>path</var> [<var>file</var>]</code></dt>
+<dd>Dump records into a snapshot file.</dd>
+<dt><code>kttimedmgr load [-otr] [-onl|-otl|-onr] <var>path</var> [<var>file</var>]</code></dt>
+<dd>Load records from a snapshot file.</dd>
+<dt><code>kttimedmgr check [-onl|-otl|-onr] <var>path</var></code></dt>
+<dd>Checks consistency.</dd>
+</dl>
+
+<p>Options feature the following.</p>
+
+<ul class="options">
+<li><code>-otr</code> : opens the database with the truncation option.</li>
+<li><code>-onl</code> : opens the database with the no locking option.</li>
+<li><code>-otl</code> : opens the database with the try locking option.</li>
+<li><code>-onr</code> : opens the database with the no auto repair option.</li>
+<li><code>-tp</code> : disables expiration.</li>
+<li><code>-st</code> : prints miscellaneous information.</li>
+<li><code>-add</code> : performs adding operation.</li>
+<li><code>-app</code> : performs appending operation.</li>
+<li><code>-rep</code> : performs replacing operation.</li>
+<li><code>-inci</code> : performs integer increment operation.</li>
+<li><code>-incd</code> : performs real number increment operation.</li>
+<li><code>-sx</code> : the input data is evaluated as a hexadecimal data string.</li>
+<li><code>-px</code> : the output data is converted into a hexadecimal data string.</li>
+<li><code>-pt</code> : prints the expiration time also.</li>
+<li><code>-pz</code> : does not append line feed at the end of the output.</li>
+<li><code>-des</code> : visits records in descending order.</li>
+<li><code>-max <var>num</var></code> : specifies the maximum number of shown records.</li>
+<li><code>-pv</code> : prints values of records also.</li>
+</ul>
+
+<p>This command returns 0 on success, another on failure.</p>
+
+<hr />
+
+<h2 id="ktremotetest">ktremotetest</h2>
+
+<p>The command `<code>ktremotetest</code>' is a utility for facility test and performance test of the remote database.  This command is used in the following format.  `<var>rnum</var>' specifies the number of iterations.</p>
+
+<dl class="api">
+<dt><code>ktremotetest order [-th <var>num</var>] [-rnd] [-set|-get|-rem|-etc] [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] <var>path</var> <var>rnum</var></code></dt>
+<dd>Performs in-order tests.</dd>
+</dl>
+
+<p>Options feature the following.</p>
+
+<ul class="options">
+<li><code>-th <var>num</var></code> : specifies the number of worker threads.</li>
+<li><code>-rnd</code> : performs random test.</li>
+<li><code>-set</code> : performs setting operation only.</li>
+<li><code>-get</code> : performs getting operation only.</li>
+<li><code>-rem</code> : performs removing operation only.</li>
+<li><code>-etc</code> : performs miscellaneous operations.</li>
+<li><code>-host <var>str</var></code> : specifies the host name of the server.</li>
+<li><code>-port <var>num</var></code> : specifies the port number of the server.</li>
+<li><code>-tout <var>num</var></code> : specifies the timeout in seconds.</li>
+</ul>
+
+<p>This command returns 0 on success, another on failure.</p>
+
+<hr />
+
+<h2 id="ktremotemgr">ktremotemgr</h2>
+
+<p>The command `<code>ktremotedmgr</code>' is a utility for test and debugging of the remote database and its applications.  `<var>key</var>' specifies the key of a record.  `<var>value</var>' specifies the value of a record.</p>
+
+<dl class="api">
+<dt><code>ktremotemgr report [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>]</code></dt>
+<dd>Prints statistics of the server.</dd>
+<dt><code>ktremotemgr inform [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-db <var>str</var>] [-st]</code></dt>
+<dd>Prints status information of a database.</dd>
+<dt><code>ktremotemgr clear [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-db <var>str</var>]</code></dt>
+<dd>Remove all records of a database.</dd>
+<dt><code>ktremotemgr set [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-db <var>str</var>] [-add|-rep|-app|-inci|-incd] [-sx] [-xt <var>num</var>] <var>key</var> <var>value</var></code></dt>
+<dd>Stores a record.</dd>
+<dt><code>ktremotemgr remove [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-db <var>str</var>] [-sx] <var>key</var></code></dt>
+<dd>Removes a record.</dd>
+<dt><code>ktremotemgr get [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-db <var>str</var>] [-sx] [-px] [-pt] [-pz] <var>key</var></code></dt>
+<dd>Prints the value of a record.</dd>
+<dt><code>ktremotemgr list [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-db <var>str</var>] [-des] [-max <var>num</var>] [-sx] [-pv] [-px] [-pt] [<var>key</var>]</code></dt>
+<dd>Prints keys of all records, separated by line feeds.</dd>
+</dl>
+
+<p>Options feature the following.</p>
+
+<ul class="options">
+<li><code>-host <var>str</var></code> : specifies the host name of the server.</li>
+<li><code>-port <var>num</var></code> : specifies the port number of the server.</li>
+<li><code>-tout <var>num</var></code> : specifies the timeout in seconds.</li>
+<li><code>-db <var>str</var></code> : specifies the target database.</li>
+<li><code>-st</code> : prints miscellaneous information.</li>
+<li><code>-add</code> : performs adding operation.</li>
+<li><code>-app</code> : performs appending operation.</li>
+<li><code>-rep</code> : performs replacing operation.</li>
+<li><code>-inci</code> : performs integer increment operation.</li>
+<li><code>-incd</code> : performs real number increment operation.</li>
+<li><code>-sx</code> : the input data is evaluated as a hexadecimal data string.</li>
+<li><code>-xt <var>num</var></code> : specifies the expiration time.</li>
+<li><code>-px</code> : the output data is converted into a hexadecimal data string.</li>
+<li><code>-pt</code> : prints the expiration time also.</li>
+<li><code>-pz</code> : does not append line feed at the end of the output.</li>
+<li><code>-des</code> : visits records in descending order.</li>
+<li><code>-max <var>num</var></code> : specifies the maximum number of shown records.</li>
+<li><code>-pv</code> : prints values of records also.</li>
+</ul>
+
+<p>This command returns 0 on success, another on failure.</p>
+
+<hr />
+
+</body>
+
+</html>
+
+<!-- END OF FILE -->

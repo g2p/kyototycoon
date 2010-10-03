@@ -46,6 +46,13 @@ bool setkillsignalhandler(void (*handler)(int));
 
 
 /**
+ * Switch the process into the background.
+ * @return true on success, or false on failure.
+ */
+bool daemonize();
+
+
+/**
  * Get the C-style string value of a record in a string map.
  * @param map the target string map.
  * @param key the key.
@@ -279,19 +286,6 @@ bool getgmtime(time_t time, struct std::tm* result);
  * @return the GMT.
  */
 time_t mkgmtime(struct std::tm *tm);
-
-
-/**
- * Set the signal handler for termination signals.
- */
-inline bool setkillsignalhandler(void (*handler)(int)) {
-  _assert_(handler);
-  bool err = false;
-  if (std::signal(SIGTERM, handler) == SIG_ERR) err = true;
-  if (std::signal(SIGINT, handler) == SIG_ERR) err = true;
-  if (std::signal(SIGHUP, handler) == SIG_ERR) err = true;
-  return !err;
-}
 
 
 /**
