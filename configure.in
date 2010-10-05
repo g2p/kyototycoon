@@ -7,11 +7,11 @@
 #================================================================
 
 # Package name
-AC_INIT(kyototycoon, 0.6.5)
+AC_INIT(kyototycoon, 0.7.0)
 
 # Package information
 MYLIBVER=1
-MYLIBREV=1
+MYLIBREV=2
 
 # Targets
 MYHEADERFILES="ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h"

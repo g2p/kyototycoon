@@ -454,7 +454,7 @@ public:
   private:
     /**
      * Set the parameter of the target cursor.
-     * @param inmap the string map to contain the output parameters.
+     * @param inmap the string map to contain the input parameters.
      */
     void set_cur_param(std::map<std::string, std::string>& inmap) {
       _assert_(true);
@@ -479,6 +479,7 @@ public:
      */
     enum Code {
       SUCCESS = RPCClient::RVSUCCESS,    ///< success
+      NOIMPL = RPCClient::RVENOIMPL,     ///< not implemented
       INVALID = RPCClient::RVEINVALID,   ///< invalid operation
       LOGIC = RPCClient::RVELOGIC,       ///< logical inconsistency
       INTERNAL = RPCClient::RVEINTERNAL, ///< internal error
@@ -555,6 +556,7 @@ public:
       _assert_(true);
       switch (code) {
         case SUCCESS: return "success";
+        case NOIMPL: return "not implemented";
         case INVALID: return "invalid operation";
         case LOGIC: return "logical inconsistency";
         case INTERNAL: return "internal error";
@@ -690,6 +692,28 @@ public:
     set_db_param(inmap);
     std::map<std::string, std::string> outmap;
     RPCClient::ReturnValue rv = rpc_.call("clear", &inmap, &outmap);
+    if (rv != RPCClient::RVSUCCESS) {
+      set_rpc_error(rv, outmap);
+      return false;
+    }
+    return true;
+  }
+  /**
+   * Synchronize updated contents with the file and the device.
+   * @param hard true for physical synchronization with the device, or false for logical
+   * synchronization with the file system.
+   * @param command the command name to process the database file.  If it is an empty string, no
+   * postprocessing is performed.
+   * @return true on success, or false on failure.
+   */
+  bool synchronize(bool hard, const std::string& command = "") {
+    _assert_(true);
+    std::map<std::string, std::string> inmap;
+    set_db_param(inmap);
+    if (hard) inmap["hard"] = "";
+    if (!command.empty()) inmap["command"] = command;
+    std::map<std::string, std::string> outmap;
+    RPCClient::ReturnValue rv = rpc_.call("synchronize", &inmap, &outmap);
     if (rv != RPCClient::RVSUCCESS) {
       set_rpc_error(rv, outmap);
       return false;
@@ -1081,6 +1105,112 @@ public:
     return value;
   }
   /**
+   * Store records at once.
+   * @param recs the records to store.
+   * @param xt the expiration time from now in seconds.  If it is negative, the absolute value
+   * is treated as the epoch time.
+   * @return the number of stored records, or -1 on failure.
+   */
+  int64_t set_bulk(const std::map<std::string, std::string>& recs, int64_t xt = INT64_MAX) {
+    _assert_(true);
+    std::map<std::string, std::string> inmap;
+    set_db_param(inmap);
+    if (xt < TimedDB::XTMAX) kc::strprintf(&inmap["xt"], "%lld", (long long)xt);
+    std::map<std::string, std::string>::const_iterator it = recs.begin();
+    std::map<std::string, std::string>::const_iterator itend = recs.end();
+    while (it != itend) {
+      std::string key = "_";
+      key.append(it->first);
+      inmap[key] = it->second;
+      it++;
+    }
+    std::map<std::string, std::string> outmap;
+    RPCClient::ReturnValue rv = rpc_.call("set_bulk", &inmap, &outmap);
+    if (rv != RPCClient::RVSUCCESS) {
+      set_rpc_error(rv, outmap);
+      return -1;
+    }
+    const char* rp = strmapget(outmap, "num");
+    if (!rp) {
+      set_error(RPCClient::RVELOGIC, "no information");
+      return -1;
+    }
+    return kc::atoi(rp);
+  }
+  /**
+   * Store records at once.
+   * @param keys the keys of the records to remove.
+   * @return the number of removed records, or -1 on failure.
+   */
+  int64_t remove_bulk(const std::vector<std::string>& keys) {
+    _assert_(true);
+    std::map<std::string, std::string> inmap;
+    set_db_param(inmap);
+    std::vector<std::string>::const_iterator it = keys.begin();
+    std::vector<std::string>::const_iterator itend = keys.end();
+    while (it != itend) {
+      std::string key = "_";
+      key.append(*it);
+      inmap[key] = "";
+      it++;
+    }
+    std::map<std::string, std::string> outmap;
+    RPCClient::ReturnValue rv = rpc_.call("remove_bulk", &inmap, &outmap);
+    if (rv != RPCClient::RVSUCCESS) {
+      set_rpc_error(rv, outmap);
+      return -1;
+    }
+    const char* rp = strmapget(outmap, "num");
+    if (!rp) {
+      set_error(RPCClient::RVELOGIC, "no information");
+      return -1;
+    }
+    return kc::atoi(rp);
+  }
+  /**
+   * Retrieve records at once.
+   * @param keys the keys of the records to retrieve.
+   * @param recs a string map to contain the retrieved records.
+   * @return the number of retrieved records, or -1 on failure.
+   */
+  int64_t get_bulk(const std::vector<std::string>& keys,
+                   std::map<std::string, std::string>* recs) {
+    _assert_(true);
+    std::map<std::string, std::string> inmap;
+    set_db_param(inmap);
+    std::vector<std::string>::const_iterator it = keys.begin();
+    std::vector<std::string>::const_iterator itend = keys.end();
+    while (it != itend) {
+      std::string key = "_";
+      key.append(*it);
+      inmap[key] = "";
+      it++;
+    }
+    std::map<std::string, std::string> outmap;
+    RPCClient::ReturnValue rv = rpc_.call("get_bulk", &inmap, &outmap);
+    if (rv != RPCClient::RVSUCCESS) {
+      set_rpc_error(rv, outmap);
+      return -1;
+    }
+    std::map<std::string, std::string>::const_iterator oit = outmap.begin();
+    std::map<std::string, std::string>::const_iterator oitend = outmap.end();
+    while (oit != oitend) {
+      const char* kbuf = oit->first.data();
+      size_t ksiz = oit->first.size();
+      if (ksiz > 0 && *kbuf == '_') {
+        std::string key(kbuf + 1, ksiz - 1);
+        (*recs)[key] = oit->second;
+      }
+      oit++;
+    }
+    const char* rp = strmapget(outmap, "num");
+    if (!rp) {
+      set_error(RPCClient::RVELOGIC, "no information");
+      return -1;
+    }
+    return kc::atoi(rp);
+  }
+  /**
    * Set the target database.
    * @param expr the expression of the target database.
    */
@@ -1109,7 +1239,7 @@ public:
 private:
   /**
    * Set the parameter of the target database.
-   * @param inmap the string map to contain the output parameters.
+   * @param inmap the string map to contain the input parameters.
    */
   void set_db_param(std::map<std::string, std::string>& inmap) {
     _assert_(true);

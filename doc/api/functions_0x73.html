@@ -85,6 +85,9 @@ Here is a list of all documented class members with links to the class documenta
 <li>set_authority()
 : <a class="el" href="classkyototycoon_1_1URL.html#a686faaa7891b345330ec448a3fe6cd75">kyototycoon::URL</a>
 </li>
+<li>set_bulk()
+: <a class="el" href="classkyototycoon_1_1RemoteDB.html#a1161ea013456fee682bbe2a7494f419d">kyototycoon::RemoteDB</a>
+</li>
 <li>set_data()
 : <a class="el" href="classkyototycoon_1_1HTTPServer_1_1Session.html#a74cbd8cd6068f1b51e80bff527b3bb91">kyototycoon::HTTPServer::Session</a>
 , <a class="el" href="classkyototycoon_1_1RPCServer_1_1Session.html#afeab2ae2992695e66b1664508b220e38">kyototycoon::RPCServer::Session</a>
@@ -94,9 +97,9 @@ Here is a list of all documented class members with links to the class documenta
 : <a class="el" href="classkyototycoon_1_1TimedDB.html#afb75c17440f2c757cec611de16903262">kyototycoon::TimedDB</a>
 </li>
 <li>set_event_flags()
-: <a class="el" href="classkyototycoon_1_1Socket.html#ace27aaffeeee28d20341d14b010aa1fa">kyototycoon::Socket</a>
+: <a class="el" href="classkyototycoon_1_1Pollable.html#ad7a6359553dea9d43bf7f2e4a6f0dd05">kyototycoon::Pollable</a>
+, <a class="el" href="classkyototycoon_1_1Socket.html#ace27aaffeeee28d20341d14b010aa1fa">kyototycoon::Socket</a>
 , <a class="el" href="classkyototycoon_1_1ServerSocket.html#a442931a1cd1d4ee28b10c75a45f1b676">kyototycoon::ServerSocket</a>
-, <a class="el" href="classkyototycoon_1_1Pollable.html#ad7a6359553dea9d43bf7f2e4a6f0dd05">kyototycoon::Pollable</a>
 </li>
 <li>set_expression()
 : <a class="el" href="classkyototycoon_1_1URL.html#a9150a22d1be58f9aa9e8b05297a8b901">kyototycoon::URL</a>
@@ -145,9 +148,9 @@ Here is a list of all documented class members with links to the class documenta
 , <a class="el" href="classkyototycoon_1_1TimedDB_1_1Cursor.html#a2c4b27f93bcc6ebd7003cc31bbeaffec">kyototycoon::TimedDB::Cursor</a>
 </li>
 <li>set_worker()
-: <a class="el" href="classkyototycoon_1_1HTTPServer.html#aa53c47940a9006bfe96c5e0a2bffa2e6">kyototycoon::HTTPServer</a>
-, <a class="el" href="classkyototycoon_1_1RPCServer.html#a107b98376d38a6d36927414c353ba108">kyototycoon::RPCServer</a>
+: <a class="el" href="classkyototycoon_1_1RPCServer.html#a107b98376d38a6d36927414c353ba108">kyototycoon::RPCServer</a>
 , <a class="el" href="classkyototycoon_1_1ThreadedServer.html#ae8654f51748e8837401a7934deb872dd">kyototycoon::ThreadedServer</a>
+, <a class="el" href="classkyototycoon_1_1HTTPServer.html#aa53c47940a9006bfe96c5e0a2bffa2e6">kyototycoon::HTTPServer</a>
 </li>
 <li>size()
 : <a class="el" href="classkyototycoon_1_1RemoteDB.html#a6a97eb363476b16a6c092c77e301a6b2">kyototycoon::RemoteDB</a>
@@ -158,12 +161,12 @@ Here is a list of all documented class members with links to the class documenta
 </li>
 <li>start()
 : <a class="el" href="classkyototycoon_1_1HTTPServer.html#aad8e3a5be27eab5d5dd1c08badea8b6a">kyototycoon::HTTPServer</a>
-, <a class="el" href="classkyototycoon_1_1ThreadedServer.html#aa1ebc9660d182816d60495b449531319">kyototycoon::ThreadedServer</a>
 , <a class="el" href="classkyototycoon_1_1RPCServer.html#a2b13e3a090337ab70f49bae4779273f3">kyototycoon::RPCServer</a>
+, <a class="el" href="classkyototycoon_1_1ThreadedServer.html#aa1ebc9660d182816d60495b449531319">kyototycoon::ThreadedServer</a>
 </li>
 <li>status()
-: <a class="el" href="classkyototycoon_1_1TimedDB.html#a8571c77d47d52ff422a36716a0bc18ee">kyototycoon::TimedDB</a>
-, <a class="el" href="classkyototycoon_1_1RemoteDB.html#a4fe09abd9cbaf886c7c11696ce2437ad">kyototycoon::RemoteDB</a>
+: <a class="el" href="classkyototycoon_1_1RemoteDB.html#a4fe09abd9cbaf886c7c11696ce2437ad">kyototycoon::RemoteDB</a>
+, <a class="el" href="classkyototycoon_1_1TimedDB.html#a8571c77d47d52ff422a36716a0bc18ee">kyototycoon::TimedDB</a>
 </li>
 <li>status_name()
 : <a class="el" href="classkyototycoon_1_1HTTPServer.html#a134c85ba3089512fe1663a88c90ed692">kyototycoon::HTTPServer</a>
@@ -185,14 +188,15 @@ Here is a list of all documented class members with links to the class documenta
 : <a class="el" href="classkyototycoon_1_1RemoteDB_1_1Error.html#a4961417351ac2376325f43d8b954d6caae513f789959c61ba25f27f6ad55dcf5f">kyototycoon::RemoteDB::Error</a>
 </li>
 <li>synchronize()
-: <a class="el" href="classkyototycoon_1_1TimedDB.html#a1f3c628337cd4d3b7e457e427bb9f2c9">kyototycoon::TimedDB</a>
+: <a class="el" href="classkyototycoon_1_1RemoteDB.html#a1fb44adce660105693d08bf97c583b6f">kyototycoon::RemoteDB</a>
+, <a class="el" href="classkyototycoon_1_1TimedDB.html#a1f3c628337cd4d3b7e457e427bb9f2c9">kyototycoon::TimedDB</a>
 </li>
 <li>SYSTEM
 : <a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271aa7ab8f8afa61fcac12f88cf708dc5341">kyototycoon::ThreadedServer::Logger</a>
 </li>
 </ul>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Mon Oct 4 00:25:30 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Oct 5 14:03:01 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

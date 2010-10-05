@@ -57,6 +57,10 @@
 <tr><td colspan="2"><h2>Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a9ab27b9ecf56eedb045b412ef741d40e">setkillsignalhandler</a> (void(*handler)(int))</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the signal handler for termination signals.  <a href="#a9ab27b9ecf56eedb045b412ef741d40e"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a791aec71410ad2b074df7feabbec456d">daemonize</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Switch the process into the background.  <a href="#a791aec71410ad2b074df7feabbec456d"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a70791cacbe8ac12208603e2830f02829">executecommand</a> (const std::vector&lt; std::string &gt; &amp;args)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Execute a shell command.  <a href="#a70791cacbe8ac12208603e2830f02829"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">const char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#afebb6449b5a8fa42e288b1699db0a1f2">strmapget</a> (const std::map&lt; std::string, std::string &gt; &amp;map, const char *key, size_t *sp=NULL)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the C-style string value of a record in a string map.  <a href="#afebb6449b5a8fa42e288b1699db0a1f2"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a236d0f15d1768d661b6e147d04a10f69">printstrmap</a> (const std::map&lt; std::string, std::string &gt; &amp;map, std::ostream &amp;strm=std::cout)</td></tr>
@@ -141,6 +145,54 @@
   </dd>
 </dl>
 <dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a791aec71410ad2b074df7feabbec456d"></a><!-- doxytag: member="kyototycoon::daemonize" ref="a791aec71410ad2b074df7feabbec456d" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::daemonize </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Switch the process into the background. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a70791cacbe8ac12208603e2830f02829"></a><!-- doxytag: member="kyototycoon::executecommand" ref="a70791cacbe8ac12208603e2830f02829" args="(const std::vector&lt; std::string &gt; &amp;args)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int32_t kyototycoon::executecommand </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&nbsp;</td>
+          <td class="paramname"> <em>args</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Execute a shell command. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>args</em>&nbsp;</td><td>an array of the command name and its arguments. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the exit code of the command or `INT32_MIN' on failure. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>The command name and the arguments are quoted and meta characters are escaped. </dd></dl>
 
 </div>
 </div>
@@ -1055,7 +1107,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Mon Oct 4 00:25:30 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Oct 5 14:03:01 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

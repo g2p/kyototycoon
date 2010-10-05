@@ -59,6 +59,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the miscellaneous status information.  <a href="#a4fe09abd9cbaf886c7c11696ce2437ad"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a875c26b9bd91299054e22f4f427b0e5e">clear</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Remove all records.  <a href="#a875c26b9bd91299054e22f4f427b0e5e"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a1fb44adce660105693d08bf97c583b6f">synchronize</a> (bool hard, const std::string &amp;command=&quot;&quot;)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Synchronize updated contents with the file and the device.  <a href="#a1fb44adce660105693d08bf97c583b6f"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#aa4a89aeeae5b46e32ed19b3ccd474926">count</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the number of records.  <a href="#aa4a89aeeae5b46e32ed19b3ccd474926"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a6a97eb363476b16a6c092c77e301a6b2">size</a> ()</td></tr>
@@ -99,6 +101,12 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieve the value of a record.  <a href="#acd063776b8998ab74365b76d64c65fd5"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">std::string *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#af2043152498cfa4ced04cc92673b2aa0">get</a> (const std::string &amp;key, int64_t *xtp=NULL)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieve the value of a record.  <a href="#af2043152498cfa4ced04cc92673b2aa0"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a1161ea013456fee682bbe2a7494f419d">set_bulk</a> (const std::map&lt; std::string, std::string &gt; &amp;recs, int64_t xt=INT64_MAX)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Store records at once.  <a href="#a1161ea013456fee682bbe2a7494f419d"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a105a1db7b9296d73e0ce250e22983fae">remove_bulk</a> (const std::vector&lt; std::string &gt; &amp;keys)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Store records at once.  <a href="#a105a1db7b9296d73e0ce250e22983fae"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a47595399f3e4eedc0913bfd2549be80e">get_bulk</a> (const std::vector&lt; std::string &gt; &amp;keys, std::map&lt; std::string, std::string &gt; *recs)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieve records at once.  <a href="#a47595399f3e4eedc0913bfd2549be80e"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ace5ab87b94e584ed121a7df5bb7b0eef">set_target</a> (const std::string &amp;expr)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the target database.  <a href="#ace5ab87b94e584ed121a7df5bb7b0eef"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">const std::string&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ad43e50e8ad87e7220b476158fa7ef190">expression</a> ()</td></tr>
@@ -310,6 +318,43 @@
 <div class="memdoc">
 
 <p>Remove all records. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a1fb44adce660105693d08bf97c583b6f"></a><!-- doxytag: member="kyototycoon::RemoteDB::synchronize" ref="a1fb44adce660105693d08bf97c583b6f" args="(bool hard, const std::string &amp;command=&quot;&quot;)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::synchronize </td>
+          <td>(</td>
+          <td class="paramtype">bool&nbsp;</td>
+          <td class="paramname"> <em>hard</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>command</em> = <code>&quot;&quot;</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Synchronize updated contents with the file and the device. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>hard</em>&nbsp;</td><td>true for physical synchronization with the device, or false for logical synchronization with the file system. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>command</em>&nbsp;</td><td>the command name to process the database file. If it is an empty string, no postprocessing is performed. </td></tr>
+  </table>
+  </dd>
+</dl>
 <dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
 
 </div>
@@ -1163,6 +1208,107 @@
 
 </div>
 </div>
+<a class="anchor" id="a1161ea013456fee682bbe2a7494f419d"></a><!-- doxytag: member="kyototycoon::RemoteDB::set_bulk" ref="a1161ea013456fee682bbe2a7494f419d" args="(const std::map&lt; std::string, std::string &gt; &amp;recs, int64_t xt=INT64_MAX)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t kyototycoon::RemoteDB::set_bulk </td>
+          <td>(</td>
+          <td class="paramtype">const std::map&lt; std::string, std::string &gt; &amp;&nbsp;</td>
+          <td class="paramname"> <em>recs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Store records at once. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>recs</em>&nbsp;</td><td>the records to store. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>xt</em>&nbsp;</td><td>the expiration time from now in seconds. If it is negative, the absolute value is treated as the epoch time. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the number of stored records, or -1 on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a105a1db7b9296d73e0ce250e22983fae"></a><!-- doxytag: member="kyototycoon::RemoteDB::remove_bulk" ref="a105a1db7b9296d73e0ce250e22983fae" args="(const std::vector&lt; std::string &gt; &amp;keys)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t kyototycoon::RemoteDB::remove_bulk </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&nbsp;</td>
+          <td class="paramname"> <em>keys</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Store records at once. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>keys</em>&nbsp;</td><td>the keys of the records to remove. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the number of removed records, or -1 on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a47595399f3e4eedc0913bfd2549be80e"></a><!-- doxytag: member="kyototycoon::RemoteDB::get_bulk" ref="a47595399f3e4eedc0913bfd2549be80e" args="(const std::vector&lt; std::string &gt; &amp;keys, std::map&lt; std::string, std::string &gt; *recs)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t kyototycoon::RemoteDB::get_bulk </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&nbsp;</td>
+          <td class="paramname"> <em>keys</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::map&lt; std::string, std::string &gt; *&nbsp;</td>
+          <td class="paramname"> <em>recs</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Retrieve records at once. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>keys</em>&nbsp;</td><td>the keys of the records to retrieve. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>recs</em>&nbsp;</td><td>a string map to contain the retrieved records. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the number of retrieved records, or -1 on failure. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ace5ab87b94e584ed121a7df5bb7b0eef"></a><!-- doxytag: member="kyototycoon::RemoteDB::set_target" ref="ace5ab87b94e584ed121a7df5bb7b0eef" args="(const std::string &amp;expr)" -->
 <div class="memitem">
 <div class="memproto">
@@ -1231,7 +1377,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Mon Oct 4 00:25:30 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Oct 5 14:03:01 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

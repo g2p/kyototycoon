@@ -1,3 +1,17 @@
+2010-10-03  Mikio Hirabayashi  <info@fallabs.com>
+
+	* ktrpc.h (RPIClient::NOIMPL): new constant.
+
+	* ktremotedb.h (RemoteDB::bulk_set, RemoteDB::bulk_get): new functions.
+
+	* ktserver.cc (Worker::do_bulk_set, Worker::do_bulk_get): new functions.
+
+	* ktserver.cc (Worker::do_synchronize): new function.
+
+	* ktremotetest (runwicked, procwicked): new functions.
+
+	- Release: 0.7.0
+
 2010-09-06  Mikio Hirabayashi  <info@fallabs.com>
 
 	- The initial version.

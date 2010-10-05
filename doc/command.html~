@@ -328,8 +328,6 @@
 <dd>Prints status information of a database.</dd>
 <dt><code>ktremotemgr clear [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-db <var>str</var>]</code></dt>
 <dd>Remove all records of a database.</dd>
-<dt><code>ktremotemgr sync [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-db <var>str</var>] [-hard] [-cmd <var>str</var>]</code></dt>
-<dd>Synchronize updated contents with the file and the device.</p>
 <dt><code>ktremotemgr set [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-db <var>str</var>] [-add|-rep|-app|-inci|-incd] [-sx] [-xt <var>num</var>] <var>key</var> <var>value</var></code></dt>
 <dd>Stores a record.</dd>
 <dt><code>ktremotemgr remove [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-db <var>str</var>] [-sx] <var>key</var></code></dt>
@@ -348,8 +346,6 @@
 <li><code>-tout <var>num</var></code> : specifies the timeout in seconds.</li>
 <li><code>-db <var>str</var></code> : specifies the target database.</li>
 <li><code>-st</code> : prints miscellaneous information.</li>
-<li><code>-hard</code> : performs physical synchronization with the device.</li>
-<li><code>-cmd <var>str</var></code> : specifies an outer command for postprocessing.</li>
 <li><code>-add</code> : performs adding operation.</li>
 <li><code>-app</code> : performs appending operation.</li>
 <li><code>-rep</code> : performs replacing operation.</li>

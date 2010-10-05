@@ -49,6 +49,7 @@ public:
    */
   enum ReturnValue {
     RVSUCCESS,                           ///< success
+    RVENOIMPL,                           ///< not implemented
     RVEINVALID,                          ///< invalid operation
     RVELOGIC,                            ///< logical inconsistency
     RVEINTERNAL,                         ///< internal error
@@ -175,12 +176,18 @@ public:
       rv = RVENETWORK;
     } else if (code >= 200 && code < 300) {
       rv = RVSUCCESS;
-    } else if (code >= 400 && code < 450) {
-      rv = RVEINVALID;
-    } else if (code >= 450 && code < 500) {
-      rv = RVELOGIC;
+    } else if (code >= 400 && code < 500) {
+      if (code >= 450) {
+        rv = RVELOGIC;
+      } else {
+        rv = RVEINVALID;
+      }
     } else if (code >= 500 && code < 600) {
-      rv = RVEINTERNAL;
+      if (code == 501) {
+        rv = RVENOIMPL;
+      } else {
+        rv = RVEINTERNAL;
+      }
     } else {
       rv = RVEMISC;
     }
@@ -522,6 +529,7 @@ private:
       switch (rv) {
         case RPCClient::RVSUCCESS: code = 200; break;
         case RPCClient::RVEINVALID: code = 400; break;
+        case RPCClient::RVENOIMPL: code = 501; break;
         case RPCClient::RVELOGIC: code = 450; break;
         default: code = 500; break;
       }

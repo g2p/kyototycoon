@@ -53,6 +53,15 @@ bool daemonize();
 
 
 /**
+ * Execute a shell command.
+ * @param args an array of the command name and its arguments.
+ * @return the exit code of the command or `INT32_MIN' on failure.
+ * @note The command name and the arguments are quoted and meta characters are escaped.
+ */
+int32_t executecommand(const std::vector<std::string>& args);
+
+
+/**
  * Get the C-style string value of a record in a string map.
  * @param map the target string map.
  * @param key the key.

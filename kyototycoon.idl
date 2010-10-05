@@ -17,6 +17,87 @@
  * namespace of Kyoto Tycoon
  */
 module kyototycoon {
+  //----------------------------------------------------------------
+  // prediction
+  //----------------------------------------------------------------
+  interface List;
+  interface Map;
+  interface Error;
+  interface Cursor;
+  interface DB;
+  //----------------------------------------------------------------
+  // list of strings (substituted by the native mechanism)
+  //----------------------------------------------------------------
+  interface List {
+    string get(in long index);
+  };
+  //----------------------------------------------------------------
+  // map of strings (substituted by the native mechanism)
+  //----------------------------------------------------------------
+  interface Map {
+    string get(in string key);
+  };
+  //----------------------------------------------------------------
+  // error information
+  //----------------------------------------------------------------
+  interface Error {
+    const long SUCCESS = 0;
+    const long NOIMPL = 1;
+    const long INVALID  = 2;
+    const long LOGIC = 3;
+    const long INTERNAL = 4;
+    const long NETWORK = 5;
+    const long EMISC = 15;
+    long code();
+    string name();
+    string message();
+  };
+  //----------------------------------------------------------------
+  // cursor
+  //----------------------------------------------------------------
+  interface Cursor {
+    boolean set_value(in string value, in boolean step);
+    boolean remove();
+    string get_key(in boolean step);
+    string get_value(in boolean step);
+    boolean jump();
+    boolean jump_(in string key);
+    boolean jump_back();
+    boolean jump_back_(in string key);
+    boolean step();
+    boolean step_back();
+    DB db();
+    Error error();
+  };
+  //----------------------------------------------------------------
+  // common database operations
+  //----------------------------------------------------------------
+  interface DB {
+    Error error();
+    boolean open(in string host, in long port, in double timeout);
+    boolean close();
+    Map report();
+    Map play_script(in Map args);
+    Map status();
+    boolean clear();
+    long long count();
+    long long size();
+    boolean set(in string key, in string value);
+    boolean add(in string key, in string value);
+    boolean replace(in string key, in string value);
+    boolean append(in string key, in string value);
+    long increment(in string key, in long num);
+    double increment_double(in string key, in double num);
+    boolean cas(in string key, in string oval, in string nval);
+    boolean remove(in string key);
+    string get(in string key);
+    bool set_bulk(in Map recs);
+    bool remove_bulk(in List keys);
+    Map get_bulk(in List keys);
+    void set_target(in string expr);
+    string expression();
+    Cursor cursor();
+  };
 };
 
 

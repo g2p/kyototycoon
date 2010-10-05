@@ -68,13 +68,53 @@ bool daemonize() {
   ::close(1);
   ::close(2);
   int32_t fd = ::open("/dev/null", O_RDWR, 0);
-  if (fd != -1){
+  if (fd != -1) {
     ::dup2(fd, 0);
     ::dup2(fd, 1);
     ::dup2(fd, 2);
     if (fd > 2) ::close(fd);
   }
   return true;
+}
+
+
+/**
+ * Execute a shell command.
+ */
+int32_t executecommand(const std::vector<std::string>& args) {
+  _assert_(true);
+  if (args.empty()) return -1;
+  std::string phrase;
+  for (size_t i = 0; i < args.size(); i++) {
+    const char* rp = args[i].c_str();
+    char* token = new char[args[i].size() * 2 + 1];
+    char* wp = token;
+    while (*rp != '\0') {
+      switch (*rp) {
+        case '"': case '\\': case '$': case '`': {
+          *(wp++) = '\\';
+          *(wp++) = *rp;
+          break;
+        }
+        default: {
+          *(wp++) = *rp;
+          break;
+        }
+      }
+      rp++;
+    }
+    *wp = '\0';
+    if (!phrase.empty()) phrase.append(" ");
+    kc::strprintf(&phrase, "\"%s\"", token);
+    delete[] token;
+  }
+  int32_t rv = std::system(phrase.c_str());
+  if (WIFEXITED(rv)) {
+    rv = WEXITSTATUS(rv);
+  } else {
+    rv = INT_MAX;
+  }
+  return rv;
 }
 
 

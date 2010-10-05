@@ -33,6 +33,7 @@
 <li><a href="#introduction">Introduction</a></li>
 <li><a href="#installation">Installation</a></li>
 <li><a href="#tutorial">Tutorial</a></li>
+<li><a href="#tips">Tips and Hacks</a></li>
 <li><a href="#license">License</a></li>
 </ol>
 
@@ -235,7 +236,7 @@ $ curl -X DELETE "http://localhost:1978/japan"
 
 <h3 id="tutorial_expiration">Expiration of Records</h3>
 
-<p>One of the most important feature of Kyoto Tycoon is expiration mechanism of records.  That is, you can specify the expiration time when inserting a record.  The record is automatically deleted after the current time exceeds the expiration time.</p>
+<p>One of the most important features of Kyoto Tycoon is expiration mechanism of records.  That is, you can specify the expiration time when inserting a record.  The record is automatically deleted after the current time exceeds the expiration time.</p>
 
 <p>To insert a record which will be expired one minute after, execute the following command.</p>
 
@@ -384,6 +385,61 @@ while ((rec = cur.get_pair(true)) != NULL) {
 </pre>
 
 <p>Please see the <a href="api/">the API documents</a> for detail.  Writing your own sample application is the best way to learn this library.  <a href="command.html">The specifications of command line utilities</a> is also useful.</p>
+
+<hr />
+
+<h2 id="tips">Tips and Hacks</h2>
+
+<p>This section describes tips and hacks to use Kyoto Tycoon.</p>
+
+<h3 id="tips_typicalserver">Typical Server Setting</h3>
+
+<p>On the assumption that you runs the server of Kyoto Tycoon on an machine with 16GB main memory and stores 10 million records into a file hash database, the following setting is suggested.</p>
+
+<pre>$ ktserver -port 1978 -tout 10 \
+  -log /var/data/ktserver.log -ls \
+  -dmn -pid /var/data/ktserver.pid \
+  '/var/data/casket.kch#bnum=20000000#msiz=12g#dfunit=8'
+</pre>
+
+<p>To improve performance, the bucket number of the hash table by the "bnum" parameter should be two times or more of the number of records.  The size of mapped memory by the "msiz" parameter should be largest as far as the main memory is available.  The unit number of auto defragmentation by the "dfunit" parameter should be about 8 which means every eight detected fragmentations causes a series of auto defragmentation steps.  If you want more high availability at the cost of performance, using auto transaction by the "-oat" option is a good idea.  For detail about database tuning, see <a href="http://fallabs.com/kyotocabinet/spex.html#tips">the tips of Kyoto Cabinet</a>.</p>
+
+<p>The option "-dmn" switches the process into the background, which is called daemon.  To stop or restart a daemon process, the PID files should be specified by the "-pid" parameter.  The PID file contains the process ID by which you can send signals.</p>
+
+<p>By default, verbose log messages are output and printed into the standard output.  For usual use case, the "-ls" option which filters them is suggested.  The "-log" option specifies the file to store log messages.</p>
+
+<p>To stop the above daemon process, execute the following command.</p>
+
+<pre>$ kill -TERM `cat /var/data/ktserver.pid`
+</pre>
+
+<p>To rotate the log file of the above daemon process, execute the following command.</p>
+
+<pre>$ mv -f /var/data/ktserver.log /var/data/ktserver.log.`date '+%Y%M%d%H%M%S'`
+$ kill -HUP `cat /var/data/ktserver.pid`
+</pre>
+
+<h3 id="tips_hotbackup">Hot Backup</h3>
+
+<p>You can make backup files while the server is running, which is called "hot backup".  To do it, prepare the following shell script beforehand and save it as "/ktbin/dbbackup".  It must have exetutable permissions.</p>
+
+<pre>#! /bin/sh
+srcfile="$1"
+destfile="$1.`date '+%Y%M%d%H%M%S'`"
+cp -f "$srcfile" "$destfile"
+</pre>
+
+<p>Run the server specifiying the command search path "/ktbin".</p>
+
+<pre>$ ktserver -cmd /ktbin casket.kch
+</pre>
+
+<p>When you want to make a backup file, execute the following command to call the backup script.</p>
+
+<pre>$ ktremotemgr sync -cmd dbbackup
+</pre>
+
+<p>The "sync" sub command of the client utility makes the database synchronize, which means dirty buffers on memory are written into the database file.  If the "-cmd" option is specified, an outer command is executed with one argument which is the path of the database file.  You can call arbitrary scripts other than the above sample.  Using "snapshot" mechanism of the underlying operating system is a good idea to shorten the time to make a backup file.</p>
 
 <hr />
 

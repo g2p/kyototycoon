@@ -28,6 +28,7 @@ static void dberrprint(kt::RemoteDB* db, const char* info);
 static int32_t runreport(int argc, char** argv);
 static int32_t runinform(int argc, char** argv);
 static int32_t runclear(int argc, char** argv);
+static int32_t runsync(int argc, char** argv);
 static int32_t runset(int argc, char** argv);
 static int32_t runremove(int argc, char** argv);
 static int32_t runget(int argc, char** argv);
@@ -36,6 +37,8 @@ static int32_t procreport(const char* host, int32_t port, double tout);
 static int32_t procinform(const char* host, int32_t port, double tout, const char* dbexpr,
                           bool st);
 static int32_t procclear(const char* host, int32_t port, double tout, const char* dbexpr);
+static int32_t procsync(const char* host, int32_t port, double tout, const char* dbexpr,
+                        bool hard, const char* cmd);
 static int32_t procset(const char* kbuf, size_t ksiz, const char* vbuf, size_t vsiz,
                        const char* host, int32_t port, double tout, const char* dbexpr,
                        int32_t mode, int64_t xt);
@@ -61,6 +64,8 @@ int main(int argc, char** argv) {
     rv = runinform(argc, argv);
   } else if (!std::strcmp(argv[1], "clear")) {
     rv = runclear(argc, argv);
+  } else if (!std::strcmp(argv[1], "sync")) {
+    rv = runsync(argc, argv);
   } else if (!std::strcmp(argv[1], "set")) {
     rv = runset(argc, argv);
   } else if (!std::strcmp(argv[1], "remove")) {
@@ -86,6 +91,8 @@ static void usage() {
   eprintf("  %s report [-host str] [-port num] [-tout num]\n", g_progname);
   eprintf("  %s inform [-host str] [-port num] [-tout num] [-db str] [-st]\n", g_progname);
   eprintf("  %s clear [-host str] [-port num] [-tout num] [-db str]\n", g_progname);
+  eprintf("  %s sync [-host str] [-port num] [-tout num] [-db str] [-hard] [-cmd str]\n",
+          g_progname);
   eprintf("  %s set [-host str] [-port num] [-tout num] [-db str] [-add|-rep|-app|-inci|-incd]"
           " [-sx] [-xt num] key value\n", g_progname);
   eprintf("  %s remove [-host str] [-port num] [-tout num] [-db str] [-sx] key\n", g_progname);
@@ -209,6 +216,49 @@ static int32_t runclear(int argc, char** argv) {
     }
   }
   int32_t rv = procclear(host, port, tout, dbexpr);
+  return rv;
+}
+
+
+// parse arguments of sync command
+static int32_t runsync(int argc, char** argv) {
+  bool argbrk = false;
+  const char* host = "";
+  int32_t port = kt::DEFPORT;
+  double tout = 0;
+  const char* dbexpr = NULL;
+  bool hard = false;
+  const char* cmd = "";
+  for (int32_t i = 2; i < argc; i++) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-host")) {
+        if (++i >= argc) usage();
+        host = argv[i];
+      } else if (!std::strcmp(argv[i], "-port")) {
+        if (++i >= argc) usage();
+        port = kc::atoi(argv[i]);
+      } else if (!std::strcmp(argv[i], "-tout")) {
+        if (++i >= argc) usage();
+        tout = kc::atof(argv[i]);
+      } else if (!std::strcmp(argv[i], "-db")) {
+        if (++i >= argc) usage();
+        dbexpr = argv[i];
+      } else if (!std::strcmp(argv[i], "-hard")) {
+        hard = true;
+      } else if (!std::strcmp(argv[i], "-cmd")) {
+        if (++i >= argc) usage();
+        cmd = argv[i];
+      } else {
+        usage();
+      }
+    } else {
+      argbrk = true;
+      usage();
+    }
+  }
+  int32_t rv = procsync(host, port, tout, dbexpr, hard, cmd);
   return rv;
 }
 
@@ -492,7 +542,7 @@ static int32_t procreport(const char* host, int32_t port, double tout) {
     std::map<std::string, std::string>::iterator itend = status.end();
     while (it != itend) {
       iprintf("%s: %s\n", it->first.c_str(), it->second.c_str());
-        it++;
+      it++;
     }
   } else {
     dberrprint(&db, "DB::status failed");
@@ -552,6 +602,28 @@ static int32_t procclear(const char* host, int32_t port, double tout, const char
   bool err = false;
   if (!db.clear()) {
     dberrprint(&db, "DB::clear failed");
+    err = true;
+  }
+  if (!db.close()) {
+    dberrprint(&db, "DB::close failed");
+    err = true;
+  }
+  return err ? 1 : 0;
+}
+
+
+// perform sync command
+static int32_t procsync(const char* host, int32_t port, double tout, const char* dbexpr,
+                        bool hard, const char* cmd) {
+  kt::RemoteDB db;
+  if (!db.open(host, port, tout)) {
+    dberrprint(&db, "DB::open failed");
+    return 1;
+  }
+  if (dbexpr) db.set_target(dbexpr);
+  bool err = false;
+  if (!db.synchronize(hard, cmd)) {
+    dberrprint(&db, "DB::synchronize failed");
     err = true;
   }
   if (!db.close()) {
@@ -696,8 +768,6 @@ static int32_t proclist(const char* kbuf, size_t ksiz,
   if (dbexpr) db.set_target(dbexpr);
   bool err = false;
   if (max < 0) max = INT64_MAX;
-
-
   kt::RemoteDB::Cursor cur(&db);
   if (des) {
     if (kbuf) {
@@ -732,9 +802,6 @@ static int32_t proclist(const char* kbuf, size_t ksiz,
         }
         break;
       }
-
-
-
       cur.step_back();
       max--;
     }

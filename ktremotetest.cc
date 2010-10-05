@@ -29,8 +29,11 @@ static void usage();
 static void dberrprint(kt::RemoteDB* db, int32_t line, const char* func);
 static void dbmetaprint(kt::RemoteDB* db, bool verbose);
 static int32_t runorder(int argc, char** argv);
+static int32_t runwicked(int argc, char** argv);
 static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
                          const char* host, int32_t port, double tout);
+static int32_t procwicked(int64_t rnum, int32_t thnum, int32_t itnum,
+                          const char* host, int32_t port, double tout);
 
 
 // main routine
@@ -45,6 +48,8 @@ int main(int argc, char** argv) {
   int32_t rv = 0;
   if (!std::strcmp(argv[1], "order")) {
     rv = runorder(argc, argv);
+  } else if (!std::strcmp(argv[1], "wicked")) {
+    rv = runwicked(argc, argv);
   } else {
     usage();
   }
@@ -66,6 +71,8 @@ static void usage() {
   eprintf("usage:\n");
   eprintf("  %s order [-th num] [-rnd] [-set|-get|-rem|-etc]"
           " [-host str] [-port num] [-tout num] rnum\n", g_progname);
+  eprintf("  %s wicked [-th num] [-it num] [-host str] [-port num] [-tout num] rnum\n",
+          g_progname);
   eprintf("\n");
   std::exit(1);
 }
@@ -156,7 +163,54 @@ static int32_t runorder(int argc, char** argv) {
 }
 
 
-// perform rpc command
+// parse arguments of wicked command
+static int32_t runwicked(int argc, char** argv) {
+  bool argbrk = false;
+  const char* rstr = NULL;
+  int32_t thnum = 1;
+  int32_t itnum = 1;
+  const char* host = "";
+  int32_t port = kt::DEFPORT;
+  double tout = 0;
+  for (int32_t i = 2; i < argc; i++) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-th")) {
+        if (++i >= argc) usage();
+        thnum = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-it")) {
+        if (++i >= argc) usage();
+        itnum = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-host")) {
+        if (++i >= argc) usage();
+        host = argv[i];
+      } else if (!std::strcmp(argv[i], "-port")) {
+        if (++i >= argc) usage();
+        port = kc::atoi(argv[i]);
+      } else if (!std::strcmp(argv[i], "-tout")) {
+        if (++i >= argc) usage();
+        tout = kc::atof(argv[i]);
+      } else {
+        usage();
+      }
+    } else if (!rstr) {
+      argbrk = false;
+      rstr = argv[i];
+    } else {
+      usage();
+    }
+  }
+  if (!rstr) usage();
+  int64_t rnum = kc::atoix(rstr);
+  if (rnum < 1 || thnum < 1) usage();
+  if (thnum > THREADMAX) thnum = THREADMAX;
+  int32_t rv = procwicked(rnum, thnum, itnum, host, port, tout);
+  return rv;
+}
+
+
+// perform order command
 static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
                          const char* host, int32_t port, double tout) {
   iprintf("<In-order Test>\n  seed=%u  rnum=%lld  thnum=%d  rnd=%d  mode=%d  host=%s  port=%d"
@@ -437,7 +491,7 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
             switch (myrand(5)) {
               case 0: {
                 char vbuf[RECBUFSIZ];
-                size_t vsiz = std::sprintf(vbuf, "%lld", cnt);
+                size_t vsiz = std::sprintf(vbuf, "%lld", (long long)cnt);
                 if (!cur->set_value(vbuf, vsiz, myrand(600) + 1, myrand(2) == 0) &&
                     cur->error() != kt::RemoteDB::Error::LOGIC) {
                   dberrprint(db_, __LINE__, "Cursor::set_value");
@@ -586,6 +640,303 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
   etime = kc::time();
   iprintf("time: %.3f\n", etime - stime);
   delete[] dbs;
+  iprintf("%s\n\n", err ? "error" : "ok");
+  return err ? 1 : 0;
+}
+
+
+// perform wicked command
+static int32_t procwicked(int64_t rnum, int32_t thnum, int32_t itnum,
+                          const char* host, int32_t port, double tout) {
+  iprintf("<Wicked Test>\n  seed=%u  rnum=%lld  thnum=%d  itnum=%d  host=%s  port=%d"
+          "  tout=%f\n\n", g_randseed, (long long)rnum, thnum, itnum, host, port, tout);
+  bool err = false;
+  for (int32_t itcnt = 1; itcnt <= itnum; itcnt++) {
+    if (itnum > 1) iprintf("iteration %d:\n", itcnt);
+    double stime = kc::time();
+    kt::RemoteDB* dbs = new kt::RemoteDB[thnum];
+    for (int32_t i = 0; i < thnum; i++) {
+      if (!dbs[i].open(host, port, tout)) {
+        dberrprint(dbs + i, __LINE__, "DB::open");
+        err = true;
+      }
+    }
+    class ThreadWicked : public kc::Thread {
+    public:
+      void setparams(int32_t id, kt::RemoteDB* db, int64_t rnum, int32_t thnum,
+                     const char* lbuf) {
+        id_ = id;
+        db_ = db;
+        rnum_ = rnum;
+        thnum_ = thnum;
+        lbuf_ = lbuf;
+        err_ = false;
+      }
+      bool error() {
+        return err_;
+      }
+      void run() {
+        kt::RemoteDB::Cursor* cur = db_->cursor();
+        int64_t range = rnum_ * thnum_ / 2;
+        for (int64_t i = 1; !err_ && i <= rnum_; i++) {
+          char kbuf[RECBUFSIZ];
+          size_t ksiz = std::sprintf(kbuf, "%lld", (long long)(myrand(range) + 1));
+          if (myrand(1000) == 0) {
+            ksiz = myrand(RECBUFSIZ) + 1;
+            if (myrand(2) == 0) {
+              for (size_t j = 0; j < ksiz; j++) {
+                kbuf[j] = j;
+              }
+            } else {
+              for (size_t j = 0; j < ksiz; j++) {
+                kbuf[j] = myrand(256);
+              }
+            }
+          }
+          const char* vbuf = kbuf;
+          size_t vsiz = ksiz;
+          if (myrand(10) == 0) {
+            vbuf = lbuf_;
+            vsiz = myrand(RECBUFSIZL) / (myrand(5) + 1);
+          }
+          int64_t xt = myrand(600);
+          do {
+            switch (myrand(16)) {
+              case 0: {
+                if (!db_->set(kbuf, ksiz, vbuf, vsiz, xt)) {
+                  dberrprint(db_, __LINE__, "DB::set");
+                  err_ = true;
+                }
+                break;
+              }
+              case 1: {
+                if (!db_->add(kbuf, ksiz, vbuf, vsiz, xt) &&
+                    db_->error() != kt::RemoteDB::Error::LOGIC) {
+                  dberrprint(db_, __LINE__, "DB::add");
+                  err_ = true;
+                }
+                break;
+              }
+              case 2: {
+                if (!db_->replace(kbuf, ksiz, vbuf, vsiz, xt) &&
+                    db_->error() != kt::RemoteDB::Error::LOGIC) {
+                  dberrprint(db_, __LINE__, "DB::replace");
+                  err_ = true;
+                }
+                break;
+              }
+              case 3: {
+                if (!db_->append(kbuf, ksiz, vbuf, vsiz, xt)) {
+                  dberrprint(db_, __LINE__, "DB::append");
+                  err_ = true;
+                }
+                break;
+              }
+              case 4: {
+                if (myrand(2) == 0) {
+                  int64_t num = myrand(rnum_);
+                  if (db_->increment(kbuf, ksiz, num, xt) == INT64_MIN &&
+                      db_->error() != kt::RemoteDB::Error::LOGIC) {
+                    dberrprint(db_, __LINE__, "DB::increment");
+                    err_ = true;
+                  }
+                } else {
+                  double num = myrand(rnum_ * 10) / (myrand(rnum_) + 1.0);
+                  if (kc::chknan(db_->increment_double(kbuf, ksiz, num, xt)) &&
+                      db_->error() != kt::RemoteDB::Error::LOGIC) {
+                    dberrprint(db_, __LINE__, "DB::increment_double");
+                    err_ = true;
+                  }
+                }
+                break;
+              }
+              case 5: {
+                if (!db_->cas(kbuf, ksiz, kbuf, ksiz, vbuf, vsiz, xt) &&
+                    db_->error() != kt::RemoteDB::Error::LOGIC) {
+                  dberrprint(db_, __LINE__, "DB::cas");
+                  err_ = true;
+                }
+                break;
+              }
+              case 6: {
+                if (!db_->remove(kbuf, ksiz) &&
+                    db_->error() != kt::RemoteDB::Error::LOGIC) {
+                  dberrprint(db_, __LINE__, "DB::remove");
+                  err_ = true;
+                }
+                break;
+              }
+              case 7: {
+                if (myrand(10) == 0) {
+                  if (myrand(4) == 0) {
+                    if (!cur->jump_back(kbuf, ksiz) &&
+                        db_->error() != kt::RemoteDB::Error::NOIMPL &&
+                        db_->error() != kt::RemoteDB::Error::LOGIC) {
+                      dberrprint(db_, __LINE__, "Cursor::jump_back");
+                      err_ = true;
+                    }
+                  } else {
+                    if (!cur->jump(kbuf, ksiz) &&
+                        db_->error() != kt::RemoteDB::Error::LOGIC) {
+                      dberrprint(db_, __LINE__, "Cursor::jump");
+                      err_ = true;
+                    }
+                  }
+                } else {
+                  /*
+                  class VisitorImpl : public kt::RemoteDB::Visitor {
+                  public:
+                    explicit VisitorImpl(const char* lbuf) : lbuf_(lbuf) {}
+                  private:
+                    const char* visit_full(const char* kbuf, size_t ksiz,
+                                           const char* vbuf, size_t vsiz,
+                                           size_t* sp, int64_t* xtp) {
+                      const char* rv = NOP;
+                      switch (myrand(3)) {
+                        case 0: {
+                          rv = lbuf_;
+                          *sp = myrand(RECBUFSIZL) / (myrand(5) + 1);
+                          *xtp = myrand(100) + 1;
+                          break;
+                        }
+                        case 1: {
+                          rv = REMOVE;
+                          break;
+                        }
+                      }
+                      return rv;
+                    }
+                    const char* lbuf_;
+                  } visitor(lbuf_);
+                  if (!cur->accept(&visitor, true, myrand(2) == 0) &&
+                      db_->error() != kt::RemoteDB::Error::LOGIC) {
+                    dberrprint(db_, __LINE__, "Cursor::accept");
+                    err_ = true;
+                  }
+                  */
+
+                  if (myrand(5) > 0 && !cur->step() &&
+                      db_->error() != kt::RemoteDB::Error::LOGIC) {
+                    dberrprint(db_, __LINE__, "Cursor::step");
+                    err_ = true;
+                  }
+                }
+                break;
+              }
+
+
+              case 8: {
+                std::map<std::string, std::string> recs;
+                int32_t num = myrand(4);
+                for (int32_t i = 0; i < num; i++) {
+                  ksiz = std::sprintf(kbuf, "%lld", (long long)(myrand(range) + 1));
+                  std::string key(kbuf, ksiz);
+                  recs[key] = std::string(vbuf, vsiz);
+                }
+                if (db_->set_bulk(recs, xt) != (int64_t)recs.size()) {
+                  dberrprint(db_, __LINE__, "DB::set_bulk");
+                  err_ = true;
+                }
+                break;
+              }
+              case 9: {
+                std::vector<std::string> keys;
+                int32_t num = myrand(4);
+                for (int32_t i = 0; i < num; i++) {
+                  ksiz = std::sprintf(kbuf, "%lld", (long long)(myrand(range) + 1));
+                  keys.push_back(std::string(kbuf, ksiz));
+                }
+                if (db_->remove_bulk(keys) < 0) {
+                  dberrprint(db_, __LINE__, "DB::remove_bulk");
+                  err_ = true;
+                }
+                break;
+              }
+              case 10: {
+                std::vector<std::string> keys;
+                int32_t num = myrand(4);
+                for (int32_t i = 0; i < num; i++) {
+                  ksiz = std::sprintf(kbuf, "%lld", (long long)(myrand(range) + 1));
+                  keys.push_back(std::string(kbuf, ksiz));
+                }
+                std::map<std::string, std::string> recs;
+                if (db_->get_bulk(keys, &recs) < 0) {
+                  dberrprint(db_, __LINE__, "DB::get_bulk");
+                  err_ = true;
+                }
+                break;
+              }
+              default: {
+                size_t rsiz;
+                char* rbuf = db_->get(kbuf, ksiz, &rsiz);
+                if (rbuf) {
+                  delete[] rbuf;
+                } else if (db_->error() != kt::RemoteDB::Error::LOGIC) {
+                  dberrprint(db_, __LINE__, "DB::get");
+                  err_ = true;
+                }
+                break;
+              }
+            }
+          } while (myrand(100) == 0);
+          if (i == rnum_ / 2) {
+            if (myrand(thnum_ * 4) == 0 && !db_->clear()) {
+              dberrprint(db_, __LINE__, "DB::clear");
+              err_ = true;
+            } else {
+
+              /*
+              class SyncProcessor : public kt::RemoteDB::FileProcessor {
+              private:
+                bool process(const std::string& path, int64_t count, int64_t size) {
+                  yield();
+                  return true;
+                }
+              } syncprocessor;
+              if (!db_->synchronize(false, &syncprocessor)) {
+                dberrprint(db_, __LINE__, "DB::synchronize");
+                err_ = true;
+              }
+              */
+
+            }
+          }
+          if (id_ < 1 && rnum_ > 250 && i % (rnum_ / 250) == 0) {
+            iputchar('.');
+            if (i == rnum_ || i % (rnum_ / 10) == 0) iprintf(" (%08lld)\n", (long long)i);
+          }
+        }
+        delete cur;
+      }
+    private:
+      int32_t id_;
+      kt::RemoteDB* db_;
+      int64_t rnum_;
+      int32_t thnum_;
+      const char* lbuf_;
+      bool err_;
+    };
+    char lbuf[RECBUFSIZL];
+    std::memset(lbuf, '*', sizeof(lbuf));
+    ThreadWicked threads[THREADMAX];
+    for (int32_t i = 0; i < thnum; i++) {
+      threads[i].setparams(i, dbs + i, rnum, thnum, lbuf);
+      threads[i].start();
+    }
+    for (int32_t i = 0; i < thnum; i++) {
+      threads[i].join();
+      if (threads[i].error()) err = true;
+    }
+    dbmetaprint(dbs, itcnt == itnum);
+    for (int32_t i = 0; i < thnum; i++) {
+      if (!dbs[i].close()) {
+        dberrprint(dbs + i, __LINE__, "DB::close");
+        err = true;
+      }
+    }
+    delete[] dbs;
+    iprintf("time: %.3f\n", kc::time() - stime);
+  }
   iprintf("%s\n\n", err ? "error" : "ok");
   return err ? 1 : 0;
 }
