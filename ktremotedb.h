@@ -664,6 +664,19 @@ public:
     return true;
   }
   /**
+   * Call a procedure of the script language extension.
+   * @param name the name of the procedure to call.
+   * @param params a string map containing the input parameters.
+   * @param result a string map to contain the output data.
+   * @return true on success, or false on failure.
+   */
+  bool play_script(const std::string& name, const std::map<std::string, std::string>& params,
+                   std::map<std::string, std::string>* result) {
+    _assert_(true);
+    set_error(RPCClient::RVENOIMPL, "not implemented");
+    return false;
+  }
+  /**
    * Get the miscellaneous status information.
    * @param strmap a string map to contain the result.
    * @return true on success, or false on failure.

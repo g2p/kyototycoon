@@ -55,6 +55,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Close the connection.  <a href="#ae440d3dd2e4e0696138c10e015b4d375"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#afe7f55262f393a650ff6c5eee2d0b305">report</a> (std::map&lt; std::string, std::string &gt; *strmap)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the report of the server information.  <a href="#afe7f55262f393a650ff6c5eee2d0b305"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#af194333ba1637669dc8fbd8b9d271434">play_script</a> (const std::string &amp;name, const std::map&lt; std::string, std::string &gt; &amp;params, std::map&lt; std::string, std::string &gt; *result)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Call a procedure of the script language extension.  <a href="#af194333ba1637669dc8fbd8b9d271434"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a4fe09abd9cbaf886c7c11696ce2437ad">status</a> (std::map&lt; std::string, std::string &gt; *strmap)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the miscellaneous status information.  <a href="#a4fe09abd9cbaf886c7c11696ce2437ad"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a875c26b9bd91299054e22f4f427b0e5e">clear</a> ()</td></tr>
@@ -268,6 +270,50 @@
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"></td><td valign="top"><em>strmap</em>&nbsp;</td><td>a string map to contain the result. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="af194333ba1637669dc8fbd8b9d271434"></a><!-- doxytag: member="kyototycoon::RemoteDB::play_script" ref="af194333ba1637669dc8fbd8b9d271434" args="(const std::string &amp;name, const std::map&lt; std::string, std::string &gt; &amp;params, std::map&lt; std::string, std::string &gt; *result)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::play_script </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::map&lt; std::string, std::string &gt; &amp;&nbsp;</td>
+          <td class="paramname"> <em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::map&lt; std::string, std::string &gt; *&nbsp;</td>
+          <td class="paramname"> <em>result</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Call a procedure of the script language extension. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>name</em>&nbsp;</td><td>the name of the procedure to call. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>params</em>&nbsp;</td><td>a string map containing the input parameters. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>result</em>&nbsp;</td><td>a string map to contain the output data. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1377,7 +1423,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Oct 5 14:03:01 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Oct 6 02:02:36 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

@@ -145,11 +145,11 @@ private:
       }
     }
     kt::TimedDB* db = dbidx >= 0 && dbidx < dbnum_ ? dbs_ + dbidx : NULL;
-    int64_t curid = 0;
+    int64_t curid = -1;
     rp = kt::strmapget(inmap, "CUR");
-    if (rp && *rp != '\0') curid = kc::atoi(rp);
+    if (rp && *rp >= '0' && *rp <= '9') curid = kc::atoi(rp);
     kt::TimedDB::Cursor* cur = NULL;
-    if (curid > 0) {
+    if (curid >= 0) {
       SLS* sls = SLS::create(sess);
       std::map<int64_t, kt::TimedDB::Cursor*>::iterator it = sls->curs_.find(curid);
       if (it == sls->curs_.end()) {
@@ -235,26 +235,34 @@ private:
                   std::map<std::string, std::string>& resheads,
                   std::string& resbody,
                   const std::map<std::string, std::string>& misc) {
+    const char* pstr = path.c_str();
+    if (*pstr == '/') pstr++;
     int32_t dbidx = 0;
-    const char* rp = kt::strmapget(reqheads, "x-kt-db");
-    if (rp && *rp != '\0') {
-      dbidx = -1;
-      if (*rp >= '0' && *rp <= '9') {
-        dbidx = kc::atoi(rp);
-      } else {
-        std::map<std::string, int32_t>::const_iterator it = dbmap_.find(rp);
-        if (it != dbmap_.end()) dbidx = it->second;
+    const char* rp = std::strchr(pstr, '/');
+    if (rp) {
+      std::string dbexpr(pstr, rp - pstr);
+      pstr = rp + 1;
+      if (*pstr == '/') pstr++;
+      size_t desiz;
+      char* destr = kc::urldecode(dbexpr.c_str(), &desiz);
+      if (*destr != '\0') {
+        dbidx = -1;
+        if (*destr >= '0' && *destr <= '9') {
+          dbidx = kc::atoi(destr);
+        } else {
+          std::map<std::string, int32_t>::const_iterator it = dbmap_.find(destr);
+          if (it != dbmap_.end()) dbidx = it->second;
+        }
       }
+      delete[] destr;
     }
     if (dbidx < 0 || dbidx >= dbnum_) {
       resbody.append("no such database\n");
       return 400;
     }
     kt::TimedDB* db = dbs_ + dbidx;
-    const char* kstr = path.c_str();
-    if (*kstr == '/') kstr++;
     size_t ksiz;
-    const char* kbuf = kc::urldecode(kstr, &ksiz);
+    char* kbuf = kc::urldecode(pstr, &ksiz);
     int32_t code;
     switch (method) {
       case kt::HTTPClient::MGET: {
