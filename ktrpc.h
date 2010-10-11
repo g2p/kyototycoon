@@ -293,6 +293,13 @@ public:
       _assert_(serv && sess);
       return 501;
     }
+    /**
+     * Process each idle event.
+     * @param serv the server.
+     */
+    virtual void process_idle(RPCServer* serv) {
+      _assert_(serv);
+    }
   };
   /**
    * Interface to log internal information and errors.
@@ -464,6 +471,13 @@ public:
     _assert_(format);
     serv_.log_v(kind, format, ap);
   }
+  /**
+   * Reveal the internal server.
+   * @return the internal server.
+   */
+  HTTPServer* reveal_core() {
+    return &serv_;
+  }
 private:
   /**
    * Adapter for the worker.
@@ -528,8 +542,8 @@ private:
       int32_t code = -1;
       switch (rv) {
         case RPCClient::RVSUCCESS: code = 200; break;
-        case RPCClient::RVEINVALID: code = 400; break;
         case RPCClient::RVENOIMPL: code = 501; break;
+        case RPCClient::RVEINVALID: code = 400; break;
         case RPCClient::RVELOGIC: code = 450; break;
         default: code = 500; break;
       }
@@ -544,6 +558,9 @@ private:
       if (enc != 0) tsvmapencode(&outmap, enc);
       maptotsv(outmap, &resbody);
       return code;
+    }
+    void process_idle(HTTPServer* serv) {
+      worker_->process_idle(serv_);
     }
     RPCServer* serv_;
     RPCServer::Worker* worker_;

@@ -185,6 +185,13 @@ char* strcapitalize(char* str);
 
 
 /**
+ * Check a string is composed of alphabets or numbers only.
+ * @return true if it is composed of alphabets or numbers only, or false if not.
+ */
+bool strisalnum(const char* str);
+
+
+/**
  * Get the Gregorian calendar of a time.
  * @param t the source time in seconds from the epoch.  If it is INT64_MAX, the current time is
  * specified.
@@ -840,6 +847,21 @@ inline char* strcapitalize(char* str) {
   }
   return str;
 }
+
+
+/**
+ * Check a string is composed of alphabets or numbers only.
+ */
+inline bool strisalnum(const char* str) {
+  _assert_(str);
+  while (*str != '\0') {
+    if (!(*str >= 'a' && *str <= 'z') && !(*str >= 'A' && *str <= 'Z') &&
+        !(*str >= '0' && *str <= '9')) return false;
+    str++;
+  }
+  return true;
+}
+
 
 
 }                                        // common namespace

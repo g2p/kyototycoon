@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="common.css" />
 <link rel="icon" href="icon16.png" />
 <link rev="made" href="mailto:info@fallabs.com" />
-<title>Fundamental Specifications of Kyoto Tycoon Version 1</title>
+<title>Kyoto Tycoon: a persistent cache server</title>
 </head>
 
 <body>
@@ -47,6 +47,8 @@
 <p>The server features high concurrency due to thread-pool modeled implementation and the epoll/kqueue mechanism of the modern Linux/*BSD kernel.  It can handle more than 10 thousand connections at the same time.  Because such system-specific features as epoll/kqueue are encapsulated and abstracted as the same interface, Kyoto Tycoon has high portability and works almost all UNIX-like systems and Windows.</p>
 
 <p>The server and its clients communicate with each other by HTTP.  So, you can write client applications and client libraries in almost all popular languages.  Both of RESTful-style interface by the GET, HEAD, PUT, DELETE methods and RPC-style inteface by the POST method are supported.  The RPC-style interface is based on the protocol called TSV-RPC.  The entity bodies of the request and the response are text data formatted as tab-separated-values so that parsing them is very easy.</p>
+
+<p>The server can embed Lua, a lightweight script language.  Even if you cannot find any built-in operation matching your requirement among the client API of Kyoto Tycoon, you can define arbitrary operations by defining functions in Lua.  The API for Lua scripts provides full set of database operations of Kyoto Cabinet including visitor, cursor, and transaction mechanisms.</p>
 
 <p>The server program of Kyoto Tycoon is written in the C++ language.  It is available on platforms which have API conforming to C++03 with the TR1 library extensions.  Kyoto Tycoon is a free software licensed under the GNU General Public License.  You can write client applications which are not under control of our license, by making them just communicate with the server by HTTP without using the core library.</p>
 
@@ -136,7 +138,8 @@
 <li><code>--enable-devel</code> : build for development.  Enable debugging symbols, perform optimization, and perform dynamic linking.</li>
 <li><code>--enable-profile</code> : build for profiling.  Enable profiling symbols, perform optimization, and perform dynamic linking.</li>
 <li><code>--enable-static</code> : build by static linking.</li>
-<li><code>--disable-shared</code> :  avoid to build shared libraries.</li>
+<li><code>--disable-shared</code> : avoid to build shared libraries.</li>
+<li><code>--enable-lua</code> : enable the scripting extension by Lua.</li>
 </ul>
 
 <p>`<code>--prefix</code>' and other options are also available as with usual UNIX software packages.  If you want to install Kyoto Tycoon under `<code>/usr</code>' not `<code>/usr/local</code>', specify `<code>--prefix=/usr</code>'.  As well, the library search path does not include `<code>/usr/local/lib</code>', it is necessary to set the environment variable `<code>LD_LIBRARY_PATH</code>' to include `<code>/usr/local/lib</code>' before running applications of Kyoto Tycoon.</p>
@@ -262,6 +265,9 @@ ktremotemgr: DB::get failed: :1978: 2: logical inconsistency: DB: 7: no record: 
 $ curl "http://localhost:1978/rpc/get?key=japan"
 value   tokyo
 xt      1286109204
+$ sleep 60
+$ curl "http://localhost:1978/rpc/get?key=japan"
+ERROR   DB: 7: no record: no record
 </pre>
 
 <h3 id="tutorial_kctremoteex">Sample Application of the Remote Database</h3>
@@ -385,7 +391,40 @@ while ((rec = cur.get_pair(true)) != NULL) {
 }
 </pre>
 
-<p>Please see the <a href="api/">the API documents</a> for detail.  Writing your own sample application is the best way to learn this library.  <a href="command.html">The specifications of command line utilities</a> is also useful.</p>
+<p>Please see the <a href="api/">the API documents</a> for detail.  Writing your own sample application is the best way to learn this library.</p>
+
+<h3 id="tutorial_script">Scripting Extension</h3>
+
+<p>If you configured Kyoto Tycoon with the "--enable-lua" option, the scripting extension by Lua is available.  The following is an example code to define a simple operation to store a record.</p>
+
+<pre>kt = __kyototycoon__
+db = kt.db
+
+function set(inmap, outmap)
+   local key = inmap.key
+   local value = inmap.value
+   if not key or not value then
+      return kt.RVEINVALID
+   end
+   local xt = inmap.xt
+   if not db:set(key, value, xt) then
+      return kt.RVEINTERNAL
+   end
+   return kt.RVSUCCESS
+end
+</pre>
+
+<p>If you save the above code as "test.lua", you can embed the operation by stating the server as the following.</p>
+
+<pre>$ ktserver -scr test.lua
+</pre>
+
+<p>To call the operation, execute the following command.</p>
+
+<pre>$ ktremotemgr script -arg key japan -arg value japan -arg xt 60 set
+</pre>
+
+<p>See the specification of <a href="luadoc/">the scripting extension</a> for more detail.</p>
 
 <hr />
 
@@ -441,6 +480,14 @@ cp -f "$srcfile" "$destfile"
 </pre>
 
 <p>The "sync" sub command of the client utility makes the database synchronize, which means dirty buffers on memory are written into the database file.  If the "-cmd" option is specified, an outer command is executed with one argument which is the path of the database file.  You can call arbitrary scripts other than the above sample.  Using "snapshot" mechanism of the underlying operating system is a good idea to shorten the time to make a backup file.</p>
+
+<h3 id="tips_expiration">Inside Expiration</h3>
+
+<p>The timed database is a database type of wrapper of the polymorphic database of Kyoto Cabinet.  The value of each record in the timed database has the 5 bytes prefix to contain the expiration time in seconds from the epoch.  When a database operation accesses a record, the current time and the expiration time of the record is compared.  If the former is larger, the record is regarded as expired.</p>
+
+<p>In order to eliminate or reuse regions of expired records, the timed database has an implicit cursor called "GC cursor".  Every several updating operations have the GC cursor scan the database gradually.  If a scanned record has been expired, the record is removed and its region is registered to the reusable list.  When the GC cursor reaches the end of the database, the tail end unused regions are discarded and the size of the database file is reduced.</p>
+
+<p>If you use Kyoto Tycoon for data storage not for cache, create the database with the "-tp" option to disable the GC cursor and omit the time stamp region of each record, for the sake of time and space efficiency.  Note that the "-tp" option works when creating a database and it does not work for existing databases.</p>
 
 <hr />
 
@@ -595,9 +642,9 @@ key     mikio
 <dl>
 <dt><code>/rpc/play_script</code></dt>
 <dd>Call a procedure of the script language extension.</dd>
-<dd>input: <code>_name</code>: the name of the procedure to call.</dd>
-<dd>input: (optional): arbitrary records.</dd>
-<dd>output: (optional): arbitrary records.</dd>
+<dd>input: <code>name</code>: the name of the procedure to call.</dd>
+<dd>input: (optional): arbitrary records whose keys trail the character "_".</dd>
+<dd>output: (optional): arbitrary keys which trail the character "_".</dd>
 <dd>status code: 200, 450 (arbitrary logical error).</dd>
 </dl>
 
@@ -632,8 +679,8 @@ key     mikio
 <dd>Set the value of a record.</dd>
 <dd>input: <code>DB</code>: (optional): the database identifier.</dd>
 <dd>input: <code>key</code>: the key of the record.</dd>
-<dd>input: <code>value</code>: the key of the record.</dd>
-<dd>input: <code>xt</code>: (optional): the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.</dd>
+<dd>input: <code>value</code>: the value of the record.</dd>
+<dd>input: <code>xt</code>: (optional): the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.  If it is omitted, no expiration time is specified.</dd>
 <dd>status code: 200.</dd>
 </dl>
 
@@ -642,8 +689,8 @@ key     mikio
 <dd>Add a record.</dd>
 <dd>input: <code>DB</code>: (optional): the database identifier.</dd>
 <dd>input: <code>key</code>: the key of the record.</dd>
-<dd>input: <code>value</code>: the key of the record.</dd>
-<dd>input: <code>xt</code>: (optional): the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.</dd>
+<dd>input: <code>value</code>: the value of the record.</dd>
+<dd>input: <code>xt</code>: (optional): the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.  If it is omitted, no expiration time is specified.</dd>
 <dd>status code: 200, 450 (existing record was detected).</dd>
 </dl>
 
@@ -652,8 +699,8 @@ key     mikio
 <dd>Replace the value of a record.</dd>
 <dd>input: <code>DB</code>: (optional): the database identifier.</dd>
 <dd>input: <code>key</code>: the key of the record.</dd>
-<dd>input: <code>value</code>: the key of the record.</dd>
-<dd>input: <code>xt</code>: (optional): the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.</dd>
+<dd>input: <code>value</code>: the value of the record.</dd>
+<dd>input: <code>xt</code>: (optional): the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.  If it is omitted, no expiration time is specified.</dd>
 <dd>status code: 200, 450 (no record was corresponding).</dd>
 </dl>
 
@@ -662,8 +709,8 @@ key     mikio
 <dd>Append the value of a record.</dd>
 <dd>input: <code>DB</code>: (optional): the database identifier.</dd>
 <dd>input: <code>key</code>: the key of the record.</dd>
-<dd>input: <code>value</code>: the key of the record.</dd>
-<dd>input: <code>xt</code>: (optional): the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.</dd>
+<dd>input: <code>value</code>: the value of the record.</dd>
+<dd>input: <code>xt</code>: (optional): the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.  If it is omitted, no expiration time is specified.</dd>
 <dd>status code: 200.</dd>
 </dl>
 
@@ -673,8 +720,8 @@ key     mikio
 <dd>input: <code>DB</code>: (optional): the database identifier.</dd>
 <dd>input: <code>key</code>: the key of the record.</dd>
 <dd>input: <code>num</code>: the additional number.</dd>
-<dd>input: <code>xt</code>: (optional): the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.</dd>
-<dd>output: <code>num</code>: (optional): the result value.</dd>
+<dd>input: <code>xt</code>: (optional): the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.  If it is omitted, no expiration time is specified.</dd>
+<dd>output: <code>num</code>: the result value.</dd>
 <dd>status code: 200, 450 (the existing record was not compatible).</dd>
 </dl>
 
@@ -684,8 +731,8 @@ key     mikio
 <dd>input: <code>DB</code>: (optional): the database identifier.</dd>
 <dd>input: <code>key</code>: the key of the record.</dd>
 <dd>input: <code>num</code>: the additional number.</dd>
-<dd>input: <code>xt</code>: (optional): the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.</dd>
-<dd>output: <code>num</code>: (optional): the result value.</dd>
+<dd>input: <code>xt</code>: (optional): the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.  If it is omitted, no expiration time is specified.</dd>
+<dd>output: <code>num</code>: the result value.</dd>
 <dd>status code: 200, 450 (the existing record was not compatible).</dd>
 </dl>
 
@@ -696,7 +743,7 @@ key     mikio
 <dd>input: <code>key</code>: the key of the record.</dd>
 <dd>input: <code>oval</code>: (optional): the old value.  If it is omittted, no record is meant.</dd>
 <dd>input: <code>nval</code>: (optional): the new value.  If it is omittted, the record is removed.</dd>
-<dd>input: <code>xt</code>: (optional): the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.</dd>
+<dd>input: <code>xt</code>: (optional): the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.  If it is omitted, no expiration time is specified.</dd>
 <dd>status code: 200, 450 (the old value assumption was failed).</dd>
 </dl>
 
@@ -722,8 +769,8 @@ key     mikio
 <dt><code>/rpc/set_bulk</code></dt>
 <dd>Store records at once.</dd>
 <dd>input: <code>DB</code>: (optional): the database identifier.</dd>
-<dd>input: <code>xt</code>: (optional): the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.</dd>
-<dd>input: (optional):: arbitrary records whose keys trail the character "_".</dd>
+<dd>input: <code>xt</code>: (optional): the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.  If it is omitted, no expiration time is specified.</dd>
+<dd>input: (optional): arbitrary records whose keys trail the character "_".</dd>
 <dd>output: <code>num</code>: the number of stored reocrds.</dd>
 <dd>status code: 200.</dd>
 </dl>
@@ -732,7 +779,7 @@ key     mikio
 <dt><code>/rpc/remove_bulk</code></dt>
 <dd>Store records at once.</dd>
 <dd>input: <code>DB</code>: (optional): the database identifier.</dd>
-<dd>input: (optional):: arbitrary keys which trail the character "_".</dd>
+<dd>input: (optional): arbitrary keys which trail the character "_".</dd>
 <dd>output: <code>num</code>: the number of removed reocrds.</dd>
 <dd>status code: 200.</dd>
 </dl>
@@ -741,9 +788,17 @@ key     mikio
 <dt><code>/rpc/get_bulk</code></dt>
 <dd>Retrieve records at once.</dd>
 <dd>input: <code>DB</code>: (optional): the database identifier.</dd>
-<dd>input: (optional):: arbitrary keys which trail "_".</dd>
+<dd>input: (optional): arbitrary keys which trail "_".</dd>
 <dd>output: <code>num</code>: the number of retrieved reocrds.</dd>
-<dd>output: (optional):: arbitrary keys which trail the character "_".</dd>
+<dd>output: (optional): arbitrary keys which trail the character "_".</dd>
+<dd>status code: 200.</dd>
+</dl>
+
+<dl>
+<dt><code>/rpc/vacuum</code></dt>
+<dd>Scan the database and eliminate regions of expired records.</dd>
+<dd>input: <code>DB</code>: (optional): the database identifier.</dd>
+<dd>input: <code>step</code>: (optional): the number of steps.  If it is omitted or not more than 0, the whole region is scanned.</dd>
 <dd>status code: 200.</dd>
 </dl>
 
@@ -783,8 +838,9 @@ key     mikio
 <dt><code>/rpc/cur_set_value</code></dt>
 <dd>Set the value of the current record.</dd>
 <dd>input: <code>CUR</code>: the cursor identifier.</dd>
-<dd>input: <code>step</code>: (optional): to move the cursor to the next record.</dd>
-<dd>input: <code>xt</code>: (optional): the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.</dd>
+<dd>input: <code>value</code>: the value of the record.</dd>
+<dd>input: <code>step</code>: (optional): to move the cursor to the next record.  If it is omitted, the cursor stays at the current record.</dd>
+<dd>input: <code>xt</code>: (optional): the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.  If it is omitted, no expiration time is specified.</dd>
 <dd>status code: 200, 450 (cursor is invalidated).</dd>
 </dl>
 
@@ -799,7 +855,7 @@ key     mikio
 <dt><code>/rpc/cur_get_key</code></dt>
 <dd>Get the key of the current record.</dd>
 <dd>input: <code>CUR</code>: the cursor identifier.</dd>
-<dd>input: <code>step</code>: (optional): to move the cursor to the next record.</dd>
+<dd>input: <code>step</code>: (optional): to move the cursor to the next record.  If it is omitted, the cursor stays at the current record.</dd>
 <dd>status code: 200, 450 (cursor is invalidated).</dd>
 </dl>
 
@@ -807,7 +863,7 @@ key     mikio
 <dt><code>/rpc/cur_get_value</code></dt>
 <dd>Get the value of the current record.</dd>
 <dd>input: <code>CUR</code>: the cursor identifier.</dd>
-<dd>input: <code>step</code>: (optional): to move the cursor to the next record.</dd>
+<dd>input: <code>step</code>: (optional): to move the cursor to the next record.  If it is omitted, the cursor stays at the current record.</dd>
 <dd>status code: 200, 450 (cursor is invalidated).</dd>
 </dl>
 
@@ -815,7 +871,7 @@ key     mikio
 <dt><code>/rpc/cur_get</code></dt>
 <dd>Get a pair of the key and the value of the current record.</dd>
 <dd>input: <code>CUR</code>: the cursor identifier.</dd>
-<dd>input: <code>step</code>: (optional): to move the cursor to the next record.</dd>
+<dd>input: <code>step</code>: (optional): to move the cursor to the next record.  If it is omitted, the cursor stays at the current record.</dd>
 <dd>output: <code>xt</code>: (optional): the absolute expiration time.  If it is omitted, there is no expiration time.</dd>
 <dd>status code: 200, 450 (cursor is invalidated).</dd>
 </dl>
@@ -870,6 +926,8 @@ key     mikio
 <p>The space efficiency of RESTful-style interface is superior to the one of RPC-style interface because the entity body does not have any data structure and no encoding is needed.</p>
 
 <p>The path of the URL in the request line must be encoded by URL encoding.  If the path begins with "/", the character is ignored and the trailing string is decoded.  Moreover, if the path includes "/" in the middle, the segment before the middle "/" is treated as the database identifier and the next segment is decoded as the key.  For example, the record whose key is "I love you" in the database "words.kch" is expressed "/words.kch/I%20love%20you" in the request line.</p>
+
+<p>The format of date strings by the "X-Kt-Xt" header is the RFC 1123 date format of GMT.  The server understands the W3CDTF format, the RFC 822 (1123) format, and the decimal integer of seconds from the epoch.</p>
 
 <hr />
 

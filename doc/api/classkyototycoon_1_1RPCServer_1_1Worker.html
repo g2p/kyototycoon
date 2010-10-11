@@ -44,6 +44,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Process each request of RPC.  <a href="#a7a9ace4529218c4632ff49024a83d6f2"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCServer_1_1Worker.html#a7f5602bb3868e83805fc49eb9e06bda4">process</a> (<a class="el" href="classkyototycoon_1_1HTTPServer.html">HTTPServer</a> *serv, <a class="el" href="classkyototycoon_1_1HTTPServer_1_1Session.html">HTTPServer::Session</a> *sess, const std::string &amp;path, <a class="el" href="classkyototycoon_1_1HTTPClient.html#aae547c07cce765679e5ab7808c748de7">HTTPClient::Method</a> method, const std::map&lt; std::string, std::string &gt; &amp;reqheads, const std::string &amp;reqbody, std::map&lt; std::string, std::string &gt; &amp;resheads, std::string &amp;resbody, const std::map&lt; std::string, std::string &gt; &amp;misc)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Process each request of the others.  <a href="#a7f5602bb3868e83805fc49eb9e06bda4"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCServer_1_1Worker.html#af4b6a736ad8fcd8b31c4449196d16ea3">process_idle</a> (<a class="el" href="classkyototycoon_1_1RPCServer.html">RPCServer</a> *serv)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Process each idle event.  <a href="#af4b6a736ad8fcd8b31c4449196d16ea3"></a><br/></td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>Interface to process each request. </p>
@@ -212,8 +214,34 @@
 
 </div>
 </div>
+<a class="anchor" id="af4b6a736ad8fcd8b31c4449196d16ea3"></a><!-- doxytag: member="kyototycoon::RPCServer::Worker::process_idle" ref="af4b6a736ad8fcd8b31c4449196d16ea3" args="(RPCServer *serv)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void kyototycoon::RPCServer::Worker::process_idle </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classkyototycoon_1_1RPCServer.html">RPCServer</a> *&nbsp;</td>
+          <td class="paramname"> <em>serv</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [virtual]</code></td>
+        </tr>
+      </table>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Oct 6 02:02:37 2010 for Kyoto Tycoon by&nbsp;
+<div class="memdoc">
+
+<p>Process each idle event. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>serv</em>&nbsp;</td><td>the server. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+</div>
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Mon Oct 11 12:40:20 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

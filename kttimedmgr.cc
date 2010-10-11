@@ -35,6 +35,7 @@ static int32_t runimport(int argc, char** argv);
 static int32_t runcopy(int argc, char** argv);
 static int32_t rundump(int argc, char** argv);
 static int32_t runload(int argc, char** argv);
+static int32_t runvacuum(int argc, char** argv);
 static int32_t runcheck(int argc, char** argv);
 static int32_t proccreate(const char* path, int32_t oflags, int32_t opts);
 static int32_t procinform(const char* path, int32_t oflags, bool st);
@@ -45,10 +46,12 @@ static int32_t procget(const char* path, const char* kbuf, size_t ksiz,
                        int32_t oflags, bool px, bool pt, bool pz);
 static int32_t proclist(const char* path, const char*kbuf, size_t ksiz, int32_t oflags,
                         bool des, int64_t max, bool pv, bool px, bool pt);
-static int32_t procimport(const char* path, const char* file, int32_t oflags, bool sx);
+static int32_t procimport(const char* path, const char* file, int32_t oflags,
+                          bool sx, int64_t xt);
 static int32_t proccopy(const char* path, const char* file, int32_t oflags);
 static int32_t procdump(const char* path, const char* file, int32_t oflags);
 static int32_t procload(const char* path, const char* file, int32_t oflags);
+static int32_t procvacuum(const char* path, int32_t oflags);
 static int32_t proccheck(const char* path, int32_t oflags);
 
 
@@ -78,6 +81,8 @@ int main(int argc, char** argv) {
     rv = rundump(argc, argv);
   } else if (!std::strcmp(argv[1], "load")) {
     rv = runload(argc, argv);
+  } else if (!std::strcmp(argv[1], "vacuum")) {
+    rv = runvacuum(argc, argv);
   } else if (!std::strcmp(argv[1], "check")) {
     rv = runcheck(argc, argv);
   } else if (!std::strcmp(argv[1], "version") || !std::strcmp(argv[1], "--version")) {
@@ -102,10 +107,11 @@ static void usage() {
   eprintf("  %s get [-onl|-otl|-onr] [-sx] [-px] [-pt] [-pz] path key\n", g_progname);
   eprintf("  %s list [-onl|-otl|-onr] [-des] [-max num] [-sx] [-pv] [-px] [-pt] path [key]\n",
           g_progname);
-  eprintf("  %s import [-onl|-otl|-onr] [-sx] path [file]\n", g_progname);
+  eprintf("  %s import [-onl|-otl|-onr] [-sx] [-xt num] path [file]\n", g_progname);
   eprintf("  %s copy [-onl|-otl|-onr] path file\n", g_progname);
   eprintf("  %s dump [-onl|-otl|-onr] path [file]\n", g_progname);
   eprintf("  %s load [-otr] [-onl|-otl|-onr] path [file]\n", g_progname);
+  eprintf("  %s vacuum [-onl|-otl|-onr] path\n", g_progname);
   eprintf("  %s check [-onl|-otl|-onr] path\n", g_progname);
   eprintf("\n");
   std::exit(1);
@@ -439,6 +445,7 @@ static int32_t runimport(int argc, char** argv) {
   const char* file = NULL;
   int32_t oflags = 0;
   bool sx = false;
+  int64_t xt = INT64_MAX;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -451,6 +458,9 @@ static int32_t runimport(int argc, char** argv) {
         oflags |= kc::BasicDB::ONOREPAIR;
       } else if (!std::strcmp(argv[i], "-sx")) {
         sx = true;
+      } else if (!std::strcmp(argv[i], "-xt")) {
+        if (++i >= argc) usage();
+        xt = kc::atoix(argv[i]);
       } else {
         usage();
       }
@@ -464,7 +474,7 @@ static int32_t runimport(int argc, char** argv) {
     }
   }
   if (!path) usage();
-  int32_t rv = procimport(path, file, oflags, sx);
+  int32_t rv = procimport(path, file, oflags, sx, xt);
   return rv;
 }
 
@@ -569,6 +579,37 @@ static int32_t runload(int argc, char** argv) {
   }
   if (!path) usage();
   int32_t rv = procload(path, file, oflags);
+  return rv;
+}
+
+
+// parse arguments of vacuum command
+static int32_t runvacuum(int argc, char** argv) {
+  bool argbrk = false;
+  const char* path = NULL;
+  int32_t oflags = 0;
+  for (int32_t i = 2; i < argc; i++) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-onl")) {
+        oflags |= kc::BasicDB::ONOLOCK;
+      } else if (!std::strcmp(argv[i], "-otl")) {
+        oflags |= kc::BasicDB::OTRYLOCK;
+      } else if (!std::strcmp(argv[i], "-onr")) {
+        oflags |= kc::BasicDB::ONOREPAIR;
+      } else {
+        usage();
+      }
+    } else if (!path) {
+      argbrk = true;
+      path = argv[i];
+    } else {
+      usage();
+    }
+  }
+  if (!path) usage();
+  int32_t rv = procvacuum(path, oflags);
   return rv;
 }
 
@@ -862,7 +903,8 @@ static int32_t proclist(const char* path, const char*kbuf, size_t ksiz, int32_t 
 
 
 // perform import command
-static int32_t procimport(const char* path, const char* file, int32_t oflags, bool sx) {
+static int32_t procimport(const char* path, const char* file, int32_t oflags,
+                          bool sx, int64_t xt) {
   std::istream *is = &std::cin;
   std::ifstream ifs;
   if (file) {
@@ -899,7 +941,7 @@ static int32_t procimport(const char* path, const char* file, int32_t oflags, bo
     }
     switch (fields.size()) {
       case 2: {
-        if (!db.set(fields[0], fields[1])) {
+        if (!db.set(fields[0], fields[1], xt)) {
           dberrprint(&db, "DB::set failed");
           err = true;
         }
@@ -1002,6 +1044,26 @@ static int32_t procload(const char* path, const char* file, int32_t oflags) {
     }
     iprintf(" (end)\n");
     if (!err) iprintf("%lld records were loaded successfully\n", (long long)checker.count());
+  }
+  if (!db.close()) {
+    dberrprint(&db, "DB::close failed");
+    err = true;
+  }
+  return err ? 1 : 0;
+}
+
+
+// perform vacuum command
+static int32_t procvacuum(const char* path, int32_t oflags) {
+  kt::TimedDB db;
+  if (!db.open(path, kc::BasicDB::OWRITER | oflags)) {
+    dberrprint(&db, "DB::open failed");
+    return 1;
+  }
+  bool err = false;
+  if (!db.vacuum()) {
+    dberrprint(&db, "DB::vacuum failed");
+    err = true;
   }
   if (!db.close()) {
     dberrprint(&db, "DB::close failed");

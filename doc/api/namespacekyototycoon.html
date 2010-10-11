@@ -87,6 +87,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Check the best suited encoding of a string map.  <a href="#aa016a36936911f0dfb64863093b8a27b"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#aff047ef8d15604042a8349d54f344353">strcapitalize</a> (char *str)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Capitalize letters of a string.  <a href="#aff047ef8d15604042a8349d54f344353"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#aaa999b301f358a83c5e114f166d933f8">strisalnum</a> (const char *str)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Check a string is composed of alphabets or numbers only.  <a href="#aaa999b301f358a83c5e114f166d933f8"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#ae0f925395a82daba3c4c81a25840d1e2">getcalendar</a> (int64_t t, int32_t jl, int32_t *yearp=NULL, int32_t *monp=NULL, int32_t *dayp=NULL, int32_t *hourp=NULL, int32_t *minp=NULL, int32_t *secp=NULL)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the Gregorian calendar of a time.  <a href="#ae0f925395a82daba3c4c81a25840d1e2"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a77b8bf8385b9b7d2b19f71835298364a">datestrwww</a> (int64_t t, int32_t jl, char *buf)</td></tr>
@@ -639,6 +641,27 @@
 
 </div>
 </div>
+<a class="anchor" id="aaa999b301f358a83c5e114f166d933f8"></a><!-- doxytag: member="kyototycoon::strisalnum" ref="aaa999b301f358a83c5e114f166d933f8" args="(const char *str)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::strisalnum </td>
+          <td>(</td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>str</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Check a string is composed of alphabets or numbers only. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true if it is composed of alphabets or numbers only, or false if not. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ae0f925395a82daba3c4c81a25840d1e2"></a><!-- doxytag: member="kyototycoon::getcalendar" ref="ae0f925395a82daba3c4c81a25840d1e2" args="(int64_t t, int32_t jl, int32_t *yearp=NULL, int32_t *monp=NULL, int32_t *dayp=NULL, int32_t *hourp=NULL, int32_t *minp=NULL, int32_t *secp=NULL)" -->
 <div class="memitem">
 <div class="memproto">
@@ -1107,7 +1130,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Oct 6 02:02:36 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Mon Oct 11 12:40:19 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

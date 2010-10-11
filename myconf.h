@@ -90,9 +90,15 @@
 
 #endif
 
-#define _KT_VERSION    "0.7.1"
+#define _KT_VERSION    "0.8.0"
 #define _KT_LIBVER     1
-#define _KT_LIBREV     3
+#define _KT_LIBREV     4
+
+#if defined(_MYLUA)
+#define _KT_LUA        1
+#else
+#define _KT_LUA        0
+#endif
 
 
 

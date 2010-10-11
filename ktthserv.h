@@ -81,6 +81,13 @@ public:
      * @return true to reuse the session, or false to close the session.
      */
     virtual bool process(ThreadedServer* serv, Session* sess) = 0;
+    /**
+     * Process each idle event.
+     * @param serv the server.
+     */
+    virtual void process_idle(ThreadedServer* serv) {
+      _assert_(serv);
+    }
   };
   /**
    * Interface to access each session data.
@@ -165,7 +172,7 @@ public:
    */
   explicit ThreadedServer() :
     run_(false), expr_(), timeout_(0), logger_(NULL), logkinds_(0), worker_(NULL), thnum_(0),
-    sock_(), poll_(), queue_(this), sesscnt_(0) {
+    sock_(), poll_(), queue_(this), sesscnt_(0), idlesem_(0) {
     _assert_(true);
   }
   /**
@@ -274,6 +281,9 @@ public:
             queue_.add_task(task);
           }
         }
+      } else if (queue_.count() < 1 && idlesem_.cas(0, 1)) {
+        SessionTask* task = new SessionTask(NULL);
+        queue_.add_task(task);
       }
     }
     log(Logger::SYSTEM, "server stopped");
@@ -393,30 +403,35 @@ private:
       _assert_(task);
       SessionTask* mytask = (SessionTask*)task;
       Session* sess = mytask->sess_;
-      bool keep = false;
-      if (mytask->aborted()) {
-        serv_->log(Logger::INFO, "aborted a request: expr=%s", sess->expression().c_str());
-      } else {
-        sess->thid_ = mytask->thread_id();
-        keep = worker_->process(serv_, sess);
-      }
-      if (keep) {
-        sess->set_event_flags(Pollable::EVINPUT);
-        if (!serv_->poll_.undo(sess)) {
-          serv_->log(Logger::ERROR, "poller error: msg=%s", serv_->poll_.error());
-          err_ = true;
+      if (sess) {
+        bool keep = false;
+        if (mytask->aborted()) {
+          serv_->log(Logger::INFO, "aborted a request: expr=%s", sess->expression().c_str());
+        } else {
+          sess->thid_ = mytask->thread_id();
+          keep = worker_->process(serv_, sess);
+        }
+        if (keep) {
+          sess->set_event_flags(Pollable::EVINPUT);
+          if (!serv_->poll_.undo(sess)) {
+            serv_->log(Logger::ERROR, "poller error: msg=%s", serv_->poll_.error());
+            err_ = true;
+          }
+        } else {
+          serv_->log(Logger::INFO, "disconnecting: expr=%s", sess->expression().c_str());
+          if (!serv_->poll_.withdraw(sess)) {
+            serv_->log(Logger::ERROR, "poller error: msg=%s", serv_->poll_.error());
+            err_ = true;
+          }
+          if (!sess->close()) {
+            serv_->log(Logger::ERROR, "socket error: msg=%s", sess->error());
+            err_ = true;
+          }
+          delete sess;
         }
       } else {
-        serv_->log(Logger::INFO, "disconnecting: expr=%s", sess->expression().c_str());
-        if (!serv_->poll_.withdraw(sess)) {
-          serv_->log(Logger::ERROR, "poller error: msg=%s", serv_->poll_.error());
-          err_ = true;
-        }
-        if (!sess->close()) {
-          serv_->log(Logger::ERROR, "socket error: msg=%s", sess->error());
-          err_ = true;
-        }
-        delete sess;
+        worker_->process_idle(serv_);
+        serv_->idlesem_.set(0);
       }
       delete mytask;
     }
@@ -460,6 +475,8 @@ private:
   TaskQueueImpl queue_;
   /** The session count. */
   uint64_t sesscnt_;
+  /** The idle event semaphore. */
+  kc::AtomicInt64 idlesem_;
 };
 
 

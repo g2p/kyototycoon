@@ -23,6 +23,7 @@
 #include <ktrpc.h>
 #include <kttimeddb.h>
 #include <ktremotedb.h>
+#include "myscript.h"
 
 namespace kc = kyotocabinet;
 namespace kt = kyototycoon;

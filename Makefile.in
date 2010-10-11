@@ -189,8 +189,8 @@ check-timed :
 	$(RUNENV) $(RUNCMD) ./kttimedmgr copy casket.kch casket-para
 	$(RUNENV) $(RUNCMD) ./kttimedmgr dump casket.kch check.out
 	$(RUNENV) $(RUNCMD) ./kttimedmgr load -otr casket.kch check.out
-	$(RUNENV) $(RUNCMD) ./kttimedmgr set -xt -987654321 casket.kch ryu 1
-	$(RUNENV) $(RUNCMD) ./kttimedmgr set -xt -987654321 casket.kch ken 2
+	$(RUNENV) $(RUNCMD) ./kttimedmgr set -xt -9876543210 casket.kch ryu 1
+	$(RUNENV) $(RUNCMD) ./kttimedmgr set -xt -9876543210 casket.kch ken 2
 	$(RUNENV) $(RUNCMD) ./kttimedmgr remove casket.kch duffy
 	$(RUNENV) $(RUNCMD) ./kttimedmgr set -xt 3600 casket.kch ryu syo-ryu-ken
 	$(RUNENV) $(RUNCMD) ./kttimedmgr set -xt 3600 casket.kch ken tatsumaki-senpu-kyaku
@@ -198,15 +198,16 @@ check-timed :
 	$(RUNENV) $(RUNCMD) ./kttimedmgr set -inci -xt 3600 casket.kch int 5678
 	$(RUNENV) $(RUNCMD) ./kttimedmgr set -incd -xt 3600 casket.kch double 1234.5678
 	$(RUNENV) $(RUNCMD) ./kttimedmgr set -incd -xt 3600 casket.kch double 8765.4321
-	$(RUNENV) $(RUNCMD) ./kttimedmgr get -pt "casket.kch" mikio
-	$(RUNENV) $(RUNCMD) ./kttimedmgr get -pt "casket.kch" ryu
-	$(RUNENV) $(RUNCMD) ./kttimedmgr import casket.kch lab/numbers.tsv
+	$(RUNENV) $(RUNCMD) ./kttimedmgr get -pt casket.kch mikio
+	$(RUNENV) $(RUNCMD) ./kttimedmgr get -pt casket.kch ryu
+	$(RUNENV) $(RUNCMD) ./kttimedmgr import -xt 60 casket.kch lab/numbers.tsv
 	$(RUNENV) $(RUNCMD) ./kttimedmgr list -pv -pt -px "casket.kch#mode=r" > check.out
+	$(RUNENV) $(RUNCMD) ./kttimedmgr vacuum -onl casket.kch
 	$(RUNENV) $(RUNCMD) ./kttimedmgr check -onr casket.kch
 	$(RUNENV) $(RUNCMD) ./kttimedmgr inform -st casket.kch
 	$(RUNENV) $(RUNCMD) ./kttimedmgr create -otr -otl -onr \
 	  "casket.kct#apow=1#fpow=3#opts=slc#bnum=1"
-	$(RUNENV) $(RUNCMD) ./kttimedmgr import casket.kct < lab/numbers.tsv
+	$(RUNENV) $(RUNCMD) ./kttimedmgr import -xt 60 casket.kct < lab/numbers.tsv
 	$(RUNENV) $(RUNCMD) ./kttimedmgr set casket.kct mikio kyotocabinet
 	$(RUNENV) $(RUNCMD) ./kttimedmgr set -app casket.kct tako ikaunini
 	$(RUNENV) $(RUNCMD) ./kttimedmgr set -app casket.kct mikio kyototyrant
@@ -287,6 +288,45 @@ check-timed :
 	  "casket#type=kcf#zcomp=arc#zkey=mikio"
 
 
+check-remote :
+	$(RUNENV) $(RUNCMD) ./ktremotemgr report
+	$(RUNENV) $(RUNCMD) ./ktremotemgr inform -st
+	$(RUNENV) $(RUNCMD) ./ktremotemgr set -add -xt 3600 duffy 1231
+	$(RUNENV) $(RUNCMD) ./ktremotemgr set -add -xt 3600 micky 0101
+	$(RUNENV) $(RUNCMD) ./ktremotemgr set -xt 3600 fal 1007
+	$(RUNENV) $(RUNCMD) ./ktremotemgr set -xt 3600 mikio 0211
+	$(RUNENV) $(RUNCMD) ./ktremotemgr set -xt 3600 natsuki 0810
+	$(RUNENV) $(RUNCMD) ./ktremotemgr set -xt 3600 micky ""
+	$(RUNENV) $(RUNCMD) ./ktremotemgr set -app -xt 3600 duffy kukuku
+	$(RUNENV) $(RUNCMD) ./ktremotemgr remove micky
+	$(RUNENV) $(RUNCMD) ./ktremotemgr list -pv -pt > check.out
+	$(RUNENV) $(RUNCMD) ./ktremotemgr set -xt -9876543210 ryu 1
+	$(RUNENV) $(RUNCMD) ./ktremotemgr set -xt -9876543210 ken 2
+	$(RUNENV) $(RUNCMD) ./ktremotemgr remove duffy
+	$(RUNENV) $(RUNCMD) ./ktremotemgr set -xt 3600 ryu syo-ryu-ken
+	$(RUNENV) $(RUNCMD) ./ktremotemgr set -xt 3600 ken tatsumaki-senpu-kyaku
+	$(RUNENV) $(RUNCMD) ./ktremotemgr set -inci -xt 3600 int 1234
+	$(RUNENV) $(RUNCMD) ./ktremotemgr set -inci -xt 3600 int 5678
+	$(RUNENV) $(RUNCMD) ./ktremotemgr set -incd -xt 3600 double 1234.5678
+	$(RUNENV) $(RUNCMD) ./ktremotemgr set -incd -xt 3600 double 8765.4321
+	$(RUNENV) $(RUNCMD) ./ktremotemgr get -pt mikio
+	$(RUNENV) $(RUNCMD) ./ktremotemgr get -pt ryu
+	$(RUNENV) $(RUNCMD) ./ktremotemgr import -xt 60 lab/numbers.tsv
+	$(RUNENV) $(RUNCMD) ./ktremotemgr vacuum -step 4
+	$(RUNENV) $(RUNCMD) ./ktremotemgr vacuum
+	$(RUNENV) $(RUNCMD) ./ktremotetest order 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest order -rnd 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest order -etc 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest order -rnd -etc 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest order -th 4 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest order -th 4 -rnd 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest order -th 4 -etc 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest order -th 4 -rnd -etc 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest wicked 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest wicked -it 4 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest wicked -th 4 -it 4 10000
+
+
 check-heavy :
 	$(MAKE) check-timed-heavy
 
@@ -306,10 +346,19 @@ doc :
 	$(MAKE) docclean
 	mkdir -p doc/api
 	doxygen
+	mkdir -p doc/luadoc
+	luadoc -d doc/luadoc --nofiles kyototycoon-doc.lua
+	find doc/luadoc -type f -name '*.html' | \
+	  while read name ; do \
+	    sed -e 's/<title>.*<\/title>/<title>Kyoto Tycoon<\/title>/' \
+	      -e 's/.*validator\.w3\.org.*/Kyoto Tycoon Manual/' $$name > $$name~ ; \
+	    [ -f $$name~ ] && mv -f $$name~ $$name ; \
+	  done
+	lua docrefine.lua
 
 
 docclean :
-	rm -rf doc/api
+	rm -rf doc/api doc/luadoc
 
 
 .PHONY : all clean install check doc
@@ -379,8 +428,9 @@ kttimedmgr : kttimedmgr.o $(LIBRARYFILES)
 	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
 
 
-ktserver : ktserver.o $(LIBRARYFILES)
-	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
+ktserver : ktserver.o myscript.o $(LIBRARYFILES)
+	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ $< myscript.o \
+	  $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
 
 
 ktremotetest : ktremotetest.o $(LIBRARYFILES)
@@ -406,9 +456,13 @@ kttimeddb.o : ktcommon.h ktutil.h kttimeddb.h myconf.h
 ktremotedb.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h \
   kttimeddb.h ktremotedb.h myconf.h
 
+myscript.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h \
+  kttimeddb.h ktremotedb.h myconf.h myscript.h
+
 ktutiltest.o ktutilmgr.o ktutilserv.o kttimedtest.o kttimedmgr.o \
   ktserver.o ktremotetest.o ktremotemgr.o : \
-  ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h kttimeddb.h ktremotedb.h cmdcommon.h
+  ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h kttimeddb.h ktremotedb.h \
+  cmdcommon.h myconf.h myscript.h
 
 
 

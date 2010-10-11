@@ -725,6 +725,13 @@ public:
                             std::map<std::string, std::string>& resheads,
                             std::string& resbody,
                             const std::map<std::string, std::string>& misc) = 0;
+    /**
+     * Process each idle event.
+     * @param serv the server.
+     */
+    virtual void process_idle(HTTPServer* serv) {
+      _assert_(serv);
+    }
   };
   /**
    * Interface to access each session data.
@@ -909,6 +916,13 @@ public:
   void log_v(Logger::Kind kind, const char* format, va_list ap) {
     _assert_(format);
     serv_.log_v(kind, format, ap);
+  }
+  /**
+   * Reveal the internal server.
+   * @return the internal server.
+   */
+  ThreadedServer* reveal_core() {
+    return &serv_;
   }
   /**
    * Get the name of a status code.
@@ -1222,6 +1236,9 @@ private:
         keep = false;
       }
       return keep;
+    }
+    void process_idle(ThreadedServer* serv) {
+      worker_->process_idle(serv_);
     }
     void send_error(ThreadedServer::Session* sess, int32_t code, const char* msg) {
       _assert_(sess && code > 0);

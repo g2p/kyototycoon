@@ -134,6 +134,10 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Load records from a data stream.  <a href="#a983812244d5b4f6f93e004e1197395c4"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a229ed4eef39c7323b75ec1cd2140c2ef">load_snapshot</a> (const std::string &amp;src, kc::BasicDB::ProgressChecker *checker=NULL)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Load records from a file.  <a href="#a229ed4eef39c7323b75ec1cd2140c2ef"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">kc::BasicDB *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a764079e4e6ad2dd1651454a45da02028">reveal_inner_db</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Reveal the inner database object.  <a href="#a764079e4e6ad2dd1651454a45da02028"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a55966b82776b51d167fac05597de4622">vacuum</a> (int64_t step=0)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Scan the database and eliminate regions of expired records.  <a href="#a55966b82776b51d167fac05597de4622"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Cursor.html">Cursor</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a55b5f73fa02f9c898a7a0c998eeb2d0c">cursor</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Create a cursor object.  <a href="#a55b5f73fa02f9c898a7a0c998eeb2d0c"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a14729ddf477c1cac0f1a3922b846a385">tune_options</a> (int8_t opts)</td></tr>
@@ -1487,7 +1491,7 @@
     <tr><td valign="top"></td><td valign="top"><em>kbuf</em>&nbsp;</td><td>the pointer to the key region. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>ksiz</em>&nbsp;</td><td>the size of the key region. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>sp</em>&nbsp;</td><td>the pointer to the variable into which the size of the region of the return value is assigned. </td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>xtp</em>&nbsp;</td><td>the pointer to the variable into which the expiration time from now in seconds is assigned. If it is NULL, it is ignored. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>xtp</em>&nbsp;</td><td>the pointer to the variable into which the absolute expiration time is assigned. If it is NULL, it is ignored. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1732,6 +1736,53 @@
 
 </div>
 </div>
+<a class="anchor" id="a764079e4e6ad2dd1651454a45da02028"></a><!-- doxytag: member="kyototycoon::TimedDB::reveal_inner_db" ref="a764079e4e6ad2dd1651454a45da02028" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">kc::BasicDB* kyototycoon::TimedDB::reveal_inner_db </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Reveal the inner database object. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the inner database object, or NULL on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a55966b82776b51d167fac05597de4622"></a><!-- doxytag: member="kyototycoon::TimedDB::vacuum" ref="a55966b82776b51d167fac05597de4622" args="(int64_t step=0)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::TimedDB::vacuum </td>
+          <td>(</td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>step</em> = <code>0</code></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Scan the database and eliminate regions of expired records. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>step</em>&nbsp;</td><td>the number of steps. If it is not more than 0, the whole region is scanned. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a55b5f73fa02f9c898a7a0c998eeb2d0c"></a><!-- doxytag: member="kyototycoon::TimedDB::cursor" ref="a55b5f73fa02f9c898a7a0c998eeb2d0c" args="()" -->
 <div class="memitem">
 <div class="memproto">
@@ -1849,7 +1900,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Oct 6 02:02:37 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Mon Oct 11 12:40:20 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

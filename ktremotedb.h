@@ -369,8 +369,8 @@ public:
      * assigned.
      * @param vsp the pointer to the variable into which the size of the value region is
      * assigned.
-     * @param xtp the pointer to the variable into which the expiration time from now in seconds
-     * is assigned.  If it is NULL, it is ignored.
+     * @param xtp the pointer to the variable into which the absolute expiration time is
+     * assigned.  If it is NULL, it is ignored.
      * @param step true to move the cursor to the next record, or false for no move.
      * @return the pointer to the pair of the key region, or NULL on failure.
      * @note If the cursor is invalidated, NULL is returned.  Because an additional zero code is
@@ -414,8 +414,8 @@ public:
     }
     /**
      * Get a pair of the key and the value of the current record.
-     * @param xtp the pointer to the variable into which the expiration time from now in seconds
-     * is assigned.  If it is NULL, it is ignored.
+     * @param xtp the pointer to the variable into which the absolute expiration time is
+     * assigned.  If it is NULL, it is ignored.
      * @param step true to move the cursor to the next record, or false for no move.
      * @return the pointer to the pair of the key and the value, or NULL on failure.
      * @note Equal to the original Cursor::get method except that the return value is std::pair.
@@ -664,7 +664,7 @@ public:
     return true;
   }
   /**
-   * Call a procedure of the script language extension.
+   * Call a procedure of the scripting extension.
    * @param name the name of the procedure to call.
    * @param params a string map containing the input parameters.
    * @param result a string map to contain the output data.
@@ -672,9 +672,36 @@ public:
    */
   bool play_script(const std::string& name, const std::map<std::string, std::string>& params,
                    std::map<std::string, std::string>* result) {
-    _assert_(true);
-    set_error(RPCClient::RVENOIMPL, "not implemented");
-    return false;
+    _assert_(result);
+    result->clear();
+    std::map<std::string, std::string> inmap;
+    inmap["name"] = name;
+    std::map<std::string, std::string>::const_iterator it = params.begin();
+    std::map<std::string, std::string>::const_iterator itend = params.end();
+    while (it != itend) {
+      std::string key = "_";
+      key.append(it->first);
+      inmap[key] = it->second;
+      it++;
+    }
+    std::map<std::string, std::string> outmap;
+    RPCClient::ReturnValue rv = rpc_.call("play_script", &inmap, &outmap);
+    if (rv != RPCClient::RVSUCCESS) {
+      set_rpc_error(rv, outmap);
+      return false;
+    }
+    it = outmap.begin();
+    itend = outmap.end();
+    while (it != itend) {
+      const char* kbuf = it->first.data();
+      size_t ksiz = it->first.size();
+      if (ksiz > 0 && *kbuf == '_') {
+        std::string key(kbuf + 1, ksiz - 1);
+        (*result)[key] = it->second;
+      }
+      it++;
+    }
+    return true;
   }
   /**
    * Get the miscellaneous status information.
@@ -1068,8 +1095,8 @@ public:
    * @param ksiz the size of the key region.
    * @param sp the pointer to the variable into which the size of the region of the return
    * value is assigned.
-   * @param xtp the pointer to the variable into which the expiration time from now in seconds
-   * is assigned.  If it is NULL, it is ignored.
+   * @param xtp the pointer to the variable into which the absolute expiration time is assigned.
+   * If it is NULL, it is ignored.
    * @return the pointer to the value region of the corresponding record, or NULL on failure.
    * @note If no record corresponds to the key, NULL is returned.  Because an additional zero
    * code is appended at the end of the region of the return value, the return value can be
@@ -1222,6 +1249,24 @@ public:
       return -1;
     }
     return kc::atoi(rp);
+  }
+  /**
+   * Scan the database and eliminate regions of expired records.
+   * @param step the number of steps.  If it is not more than 0, the whole region is scanned.
+   * @return true on success, or false on failure.
+   */
+  bool vacuum(int64_t step = 0) {
+    _assert_(true);
+    std::map<std::string, std::string> inmap;
+    set_db_param(inmap);
+    if (step > 0) kc::strprintf(&inmap["step"], "%lld", (long long)step);
+    std::map<std::string, std::string> outmap;
+    RPCClient::ReturnValue rv = rpc_.call("vacuum", &inmap, &outmap);
+    if (rv != RPCClient::RVSUCCESS) {
+      set_rpc_error(rv, outmap);
+      return false;
+    }
+    return true;
   }
   /**
    * Set the target database.

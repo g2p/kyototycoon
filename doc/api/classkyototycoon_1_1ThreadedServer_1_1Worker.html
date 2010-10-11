@@ -42,6 +42,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Destructor.  <a href="#a58e183ffcc6efba701208e0454628981"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Worker.html#a3c34ce8ba8b16c3cd47d4d500a3c5d8d">process</a> (<a class="el" href="classkyototycoon_1_1ThreadedServer.html">ThreadedServer</a> *serv, <a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Session.html">Session</a> *sess)=0</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Process each request.  <a href="#a3c34ce8ba8b16c3cd47d4d500a3c5d8d"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Worker.html#a3837f4923d33ee13859a0466856b2075">process_idle</a> (<a class="el" href="classkyototycoon_1_1ThreadedServer.html">ThreadedServer</a> *serv)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Process each idle event.  <a href="#a3837f4923d33ee13859a0466856b2075"></a><br/></td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>Interface to process each request. </p>
@@ -103,8 +105,34 @@
 
 </div>
 </div>
+<a class="anchor" id="a3837f4923d33ee13859a0466856b2075"></a><!-- doxytag: member="kyototycoon::ThreadedServer::Worker::process_idle" ref="a3837f4923d33ee13859a0466856b2075" args="(ThreadedServer *serv)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void kyototycoon::ThreadedServer::Worker::process_idle </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classkyototycoon_1_1ThreadedServer.html">ThreadedServer</a> *&nbsp;</td>
+          <td class="paramname"> <em>serv</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [virtual]</code></td>
+        </tr>
+      </table>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Oct 6 02:02:37 2010 for Kyoto Tycoon by&nbsp;
+<div class="memdoc">
+
+<p>Process each idle event. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>serv</em>&nbsp;</td><td>the server. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+</div>
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Mon Oct 11 12:40:20 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

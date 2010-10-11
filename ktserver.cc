@@ -33,7 +33,7 @@ static int32_t run(int argc, char** argv);
 static int32_t proc(const std::vector<std::string>& dbpaths,
                     const char* host, int32_t port, double tout, int32_t thnum,
                     const char* logpath, uint32_t logkinds, int32_t omode, int32_t opts,
-                    bool dmn, const char* pidpath, const char* cmdpath);
+                    bool dmn, const char* pidpath, const char* cmdpath, const char* scrpath);
 
 
 // logger implementation
@@ -123,9 +123,11 @@ private:
   class SLS;
 public:
   // constructor
-  Worker(kt::TimedDB* dbs, int32_t dbnum, const std::map<std::string, int32_t>& dbmap,
-         const char* cmdpath) :
-    dbs_(dbs), dbnum_(dbnum), dbmap_(dbmap), cmdpath_(cmdpath) {}
+  Worker(int32_t thnum, kt::TimedDB* dbs, int32_t dbnum,
+         const std::map<std::string, int32_t>& dbmap,
+         const char* cmdpath, ScriptProcessor* scrprocs) :
+    thnum_(thnum), dbs_(dbs), dbnum_(dbnum), dbmap_(dbmap),
+    cmdpath_(cmdpath), scrprocs_(scrprocs), idlecnt_(0) {}
   // destructor
   ~Worker() {}
 private:
@@ -203,6 +205,8 @@ private:
       rv = do_remove_bulk(serv, sess, db, inmap, outmap);
     } else if (name == "get_bulk") {
       rv = do_get_bulk(serv, sess, db, inmap, outmap);
+    } else if (name == "vacuum") {
+      rv = do_vacuum(serv, sess, db, inmap, outmap);
     } else if (name == "cur_jump") {
       rv = do_cur_jump(serv, sess, cur, inmap, outmap);
     } else if (name == "cur_jump_back") {
@@ -293,6 +297,15 @@ private:
     delete[] kbuf;
     return code;
   }
+  // process each idle ivent
+  void process_idle(kt::RPCServer* serv) {
+    int32_t dbidx = idlecnt_.add(1) % dbnum_;
+    kt::TimedDB* db = dbs_ + dbidx;
+    if (!db->vacuum(4)) {
+      const kc::BasicDB::Error& e = db->error();
+      log_db_error(serv, e);
+    }
+  }
   // set the error message
   void set_message(std::map<std::string, std::string>& outmap, const char* key,
                    const char* format, ...) {
@@ -306,6 +319,15 @@ private:
   // set the database error message
   void set_db_error(std::map<std::string, std::string>& outmap, const kc::BasicDB::Error& e) {
     set_message(outmap, "ERROR", "DB: %d: %s: %s", e.code(), e.name(), e.message());
+  }
+  // log the database error message
+  void log_db_error(kt::RPCServer* serv, const kc::BasicDB::Error& e) {
+    log_db_error(serv->reveal_core(), e);
+  }
+  // log the database error message
+  void log_db_error(kt::HTTPServer* serv, const kc::BasicDB::Error& e) {
+    serv->log(kt::RPCServer::Logger::ERROR, "database error: %d: %s: %s",
+               e.code(), e.name(), e.message());
   }
   // process the echo procedure
   RV do_echo(kt::RPCServer* serv, kt::RPCServer::Session* sess,
@@ -353,7 +375,48 @@ private:
   RV do_play_script(kt::RPCServer* serv, kt::RPCServer::Session* sess,
                     const std::map<std::string, std::string>& inmap,
                     std::map<std::string, std::string>& outmap) {
-    return kt::RPCClient::RVENOIMPL;
+    if (!scrprocs_) {
+      set_message(outmap, "ERROR", "the scripting extention is disabled");
+      return kt::RPCClient::RVELOGIC;
+    }
+    int32_t thid = sess->thread_id();
+    if (thid >= thnum_) {
+      set_message(outmap, "ERROR", "the thread ID is invalid");
+      return kt::RPCClient::RVEINTERNAL;
+    }
+    const char* nstr = kt::strmapget(inmap, "name");
+    if (!nstr || *nstr == '\0' || !kt::strisalnum(nstr)) {
+      set_message(outmap, "ERROR", "invalid parameters");
+      return kt::RPCClient::RVEINVALID;
+    }
+    ScriptProcessor* scrproc = scrprocs_ + thid;
+    std::map<std::string, std::string> scrinmap;
+    std::map<std::string, std::string>::const_iterator it = inmap.begin();
+    std::map<std::string, std::string>::const_iterator itend = inmap.end();
+    while (it != itend) {
+      const char* kbuf = it->first.data();
+      size_t ksiz = it->first.size();
+      if (ksiz > 0 && *kbuf == '_') {
+        std::string key(kbuf + 1, ksiz - 1);
+        scrinmap[key] = it->second;
+      }
+      it++;
+    }
+    std::map<std::string, std::string> scroutmap;
+    RV rv = scrproc->call(nstr, scrinmap, scroutmap);
+    if (rv == kt::RPCClient::RVSUCCESS) {
+      it = scroutmap.begin();
+      itend = scroutmap.end();
+      while (it != itend) {
+        std::string key = "_";
+        key.append(it->first);
+        outmap[key] = it->second;
+        it++;
+      }
+    } else {
+      set_message(outmap, "ERROR", "a scripting procedure failed");
+    }
+    return rv;
   }
   // process the status procedure
   RV do_status(kt::RPCServer* serv, kt::RPCServer::Session* sess,
@@ -372,6 +435,7 @@ private:
     } else {
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
+      log_db_error(serv, e);
       rv = kt::RPCClient::RVEINTERNAL;
     }
     return rv;
@@ -391,6 +455,7 @@ private:
     } else {
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
+      log_db_error(serv, e);
       rv = kt::RPCClient::RVEINTERNAL;
     }
     return rv;
@@ -445,6 +510,7 @@ private:
     } else {
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
+      log_db_error(serv, e);
       rv = kt::RPCClient::RVEINTERNAL;
     }
     return rv;
@@ -467,14 +533,14 @@ private:
       return kt::RPCClient::RVEINVALID;
     }
     const char* rp = kt::strmapget(inmap, "xt");
-    int64_t xt = rp ? kc::atoi(rp) : -1;
-    if (xt < 1) xt = INT64_MAX;
+    int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
     RV rv;
     if (db->set(kbuf, ksiz, vbuf, vsiz, xt)) {
       rv = kt::RPCClient::RVSUCCESS;
     } else {
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
+      log_db_error(serv, e);
       rv = kt::RPCClient::RVEINTERNAL;
     }
     return rv;
@@ -497,16 +563,19 @@ private:
       return kt::RPCClient::RVEINVALID;
     }
     const char* rp = kt::strmapget(inmap, "xt");
-    int64_t xt = rp ? kc::atoi(rp) : -1;
-    if (xt < 1) xt = INT64_MAX;
+    int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
     RV rv;
     if (db->add(kbuf, ksiz, vbuf, vsiz, xt)) {
       rv = kt::RPCClient::RVSUCCESS;
     } else {
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
-      rv = e == kc::BasicDB::Error::DUPREC ?
-        kt::RPCClient::RVELOGIC : kt::RPCClient::RVEINTERNAL;
+      if (e == kc::BasicDB::Error::DUPREC) {
+        rv = kt::RPCClient::RVELOGIC;
+      } else {
+        log_db_error(serv, e);
+        rv = kt::RPCClient::RVEINTERNAL;
+      }
     }
     return rv;
   }
@@ -528,16 +597,19 @@ private:
       return kt::RPCClient::RVEINVALID;
     }
     const char* rp = kt::strmapget(inmap, "xt");
-    int64_t xt = rp ? kc::atoi(rp) : -1;
-    if (xt < 1) xt = INT64_MAX;
+    int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
     RV rv;
     if (db->replace(kbuf, ksiz, vbuf, vsiz, xt)) {
       rv = kt::RPCClient::RVSUCCESS;
     } else {
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
-      rv = e == kc::BasicDB::Error::NOREC ?
-        kt::RPCClient::RVELOGIC : kt::RPCClient::RVEINTERNAL;
+      if (e == kc::BasicDB::Error::NOREC) {
+        rv = kt::RPCClient::RVELOGIC;
+      } else {
+        log_db_error(serv, e);
+        rv = kt::RPCClient::RVEINTERNAL;
+      }
     }
     return rv;
   }
@@ -559,14 +631,14 @@ private:
       return kt::RPCClient::RVEINVALID;
     }
     const char* rp = kt::strmapget(inmap, "xt");
-    int64_t xt = rp ? kc::atoi(rp) : -1;
-    if (xt < 1) xt = INT64_MAX;
+    int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
     RV rv;
     if (db->append(kbuf, ksiz, vbuf, vsiz, xt)) {
       rv = kt::RPCClient::RVSUCCESS;
     } else {
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
+      log_db_error(serv, e);
       rv = kt::RPCClient::RVEINTERNAL;
     }
     return rv;
@@ -589,8 +661,7 @@ private:
     }
     int64_t num = kc::atoi(nstr);
     const char* rp = kt::strmapget(inmap, "xt");
-    int64_t xt = rp ? kc::atoi(rp) : -1;
-    if (xt < 1) xt = INT64_MAX;
+    int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
     RV rv;
     num = db->increment(kbuf, ksiz, num, xt);
     if (num != INT64_MIN) {
@@ -599,8 +670,12 @@ private:
     } else {
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
-      rv = e == kc::BasicDB::Error::LOGIC ?
-        kt::RPCClient::RVELOGIC : kt::RPCClient::RVEINTERNAL;
+      if (e == kc::BasicDB::Error::LOGIC) {
+        rv = kt::RPCClient::RVELOGIC;
+      } else {
+        log_db_error(serv, e);
+        rv = kt::RPCClient::RVEINTERNAL;
+      }
     }
     return rv;
   }
@@ -622,8 +697,7 @@ private:
     }
     double num = kc::atof(nstr);
     const char* rp = kt::strmapget(inmap, "xt");
-    int64_t xt = rp ? kc::atoi(rp) : -1;
-    if (xt < 1) xt = INT64_MAX;
+    int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
     RV rv;
     num = db->increment_double(kbuf, ksiz, num, xt);
     if (!kc::chknan(num)) {
@@ -632,8 +706,12 @@ private:
     } else {
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
-      rv = e == kc::BasicDB::Error::LOGIC ?
-        kt::RPCClient::RVELOGIC : kt::RPCClient::RVEINTERNAL;
+      if (e == kc::BasicDB::Error::LOGIC) {
+        rv = kt::RPCClient::RVELOGIC;
+      } else {
+        log_db_error(serv, e);
+        rv = kt::RPCClient::RVEINTERNAL;
+      }
     }
     return rv;
   }
@@ -657,16 +735,19 @@ private:
     size_t nvsiz;
     const char* nvbuf = kt::strmapget(inmap, "nval", &nvsiz);
     const char* rp = kt::strmapget(inmap, "xt");
-    int64_t xt = rp ? kc::atoi(rp) : -1;
-    if (xt < 1) xt = INT64_MAX;
+    int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
     RV rv;
     if (db->cas(kbuf, ksiz, ovbuf, ovsiz, nvbuf, nvsiz, xt)) {
       rv = kt::RPCClient::RVSUCCESS;
     } else {
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
-      rv = e == kc::BasicDB::Error::LOGIC ?
-        kt::RPCClient::RVELOGIC : kt::RPCClient::RVEINTERNAL;
+      if (e == kc::BasicDB::Error::LOGIC) {
+        rv = kt::RPCClient::RVELOGIC;
+      } else {
+        log_db_error(serv, e);
+        rv = kt::RPCClient::RVEINTERNAL;
+      }
     }
     return rv;
   }
@@ -691,8 +772,12 @@ private:
     } else {
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
-      rv = e == kc::BasicDB::Error::NOREC ?
-        kt::RPCClient::RVELOGIC : kt::RPCClient::RVEINTERNAL;
+      if (e == kc::BasicDB::Error::NOREC) {
+        rv = kt::RPCClient::RVELOGIC;
+      } else {
+        log_db_error(serv, e);
+        rv = kt::RPCClient::RVEINTERNAL;
+      }
     }
     return rv;
   }
@@ -723,8 +808,12 @@ private:
     } else {
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
-      rv = e == kc::BasicDB::Error::NOREC ?
-        kt::RPCClient::RVELOGIC : kt::RPCClient::RVEINTERNAL;
+      if (e == kc::BasicDB::Error::NOREC) {
+        rv = kt::RPCClient::RVELOGIC;
+      } else {
+        log_db_error(serv, e);
+        rv = kt::RPCClient::RVEINTERNAL;
+      }
     }
     return rv;
   }
@@ -738,8 +827,7 @@ private:
       return kt::RPCClient::RVEINVALID;
     }
     const char* rp = kt::strmapget(inmap, "xt");
-    int64_t xt = rp ? kc::atoi(rp) : -1;
-    if (xt < 1) xt = INT64_MAX;
+    int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
     bool err = false;
     int64_t num = 0;
     std::map<std::string, std::string>::const_iterator it = inmap.begin();
@@ -753,6 +841,7 @@ private:
         } else {
           const kc::BasicDB::Error& e = db->error();
           set_db_error(outmap, e);
+          log_db_error(serv, e);
           err = true;
         }
       }
@@ -784,6 +873,7 @@ private:
           const kc::BasicDB::Error& e = db->error();
           if (e != kc::BasicDB::Error::NOREC) {
             set_db_error(outmap, e);
+            log_db_error(serv, e);
             err = true;
           }
         }
@@ -820,6 +910,7 @@ private:
           const kc::BasicDB::Error& e = db->error();
           if (e != kc::BasicDB::Error::NOREC) {
             set_db_error(outmap, e);
+            log_db_error(serv, e);
             err = true;
           }
         }
@@ -828,6 +919,28 @@ private:
     }
     if (!err) kc::strprintf(&outmap["num"], "%lld", (long long)num);
     return err ? kt::RPCClient::RVEINTERNAL : kt::RPCClient::RVSUCCESS;
+  }
+  // process the vacuum procedure
+  RV do_vacuum(kt::RPCServer* serv, kt::RPCServer::Session* sess,
+               kt::TimedDB* db,
+               const std::map<std::string, std::string>& inmap,
+               std::map<std::string, std::string>& outmap) {
+    if (!db) {
+      set_message(outmap, "ERROR", "no such database");
+      return kt::RPCClient::RVEINVALID;
+    }
+    const char* rp = kt::strmapget(inmap, "step");
+    int64_t step = rp ? kc::atoi(rp) : 0;
+    RV rv;
+    if (db->vacuum(step)) {
+      rv = kt::RPCClient::RVSUCCESS;
+    } else {
+      const kc::BasicDB::Error& e = db->error();
+      set_db_error(outmap, e);
+      log_db_error(serv, e);
+      rv = kt::RPCClient::RVEINTERNAL;
+    }
+    return rv;
   }
   // process the cur_jump procedure
   RV do_cur_jump(kt::RPCServer* serv, kt::RPCServer::Session* sess,
@@ -847,8 +960,12 @@ private:
       } else {
         const kc::BasicDB::Error& e = cur->error();
         set_db_error(outmap, e);
-        rv = e == kc::BasicDB::Error::NOREC ?
-          kt::RPCClient::RVELOGIC : kt::RPCClient::RVEINTERNAL;
+        if (e == kc::BasicDB::Error::NOREC) {
+          rv = kt::RPCClient::RVELOGIC;
+        } else {
+          log_db_error(serv, e);
+          rv = kt::RPCClient::RVEINTERNAL;
+        }
       }
     } else {
       if (cur->jump()) {
@@ -856,8 +973,12 @@ private:
       } else {
         const kc::BasicDB::Error& e = cur->error();
         set_db_error(outmap, e);
-        rv = e == kc::BasicDB::Error::NOREC ?
-          kt::RPCClient::RVELOGIC : kt::RPCClient::RVEINTERNAL;
+        if (e == kc::BasicDB::Error::NOREC) {
+          rv = kt::RPCClient::RVELOGIC;
+        } else {
+          log_db_error(serv, e);
+          rv = kt::RPCClient::RVEINTERNAL;
+        }
       }
     }
     return rv;
@@ -881,9 +1002,19 @@ private:
         const kc::BasicDB::Error& e = cur->error();
         set_db_error(outmap, e);
         switch (e.code()) {
-          case kc::BasicDB::Error::NOIMPL: rv = kt::RPCClient::RVENOIMPL; break;
-          case kc::BasicDB::Error::NOREC: rv = kt::RPCClient::RVELOGIC; break;
-          default: rv = kt::RPCClient::RVEINTERNAL; break;
+          case kc::BasicDB::Error::NOIMPL: {
+            rv = kt::RPCClient::RVENOIMPL;
+            break;
+          }
+          case kc::BasicDB::Error::NOREC: {
+            rv = kt::RPCClient::RVELOGIC;
+            break;
+          }
+          default: {
+            log_db_error(serv, e);
+            rv = kt::RPCClient::RVEINTERNAL;
+            break;
+          }
         }
       }
     } else {
@@ -893,9 +1024,19 @@ private:
         const kc::BasicDB::Error& e = cur->error();
         set_db_error(outmap, e);
         switch (e.code()) {
-          case kc::BasicDB::Error::NOIMPL: rv = kt::RPCClient::RVENOIMPL; break;
-          case kc::BasicDB::Error::NOREC: rv = kt::RPCClient::RVELOGIC; break;
-          default: rv = kt::RPCClient::RVEINTERNAL; break;
+          case kc::BasicDB::Error::NOIMPL: {
+            rv = kt::RPCClient::RVENOIMPL;
+            break;
+          }
+          case kc::BasicDB::Error::NOREC: {
+            rv = kt::RPCClient::RVELOGIC;
+            break;
+          }
+          default: {
+            log_db_error(serv, e);
+            rv = kt::RPCClient::RVEINTERNAL;
+            break;
+          }
         }
       }
     }
@@ -916,8 +1057,12 @@ private:
     } else {
       const kc::BasicDB::Error& e = cur->error();
       set_db_error(outmap, e);
-      rv = e == kc::BasicDB::Error::NOREC ?
-        kt::RPCClient::RVELOGIC : kt::RPCClient::RVEINTERNAL;
+      if (e == kc::BasicDB::Error::NOREC) {
+        rv = kt::RPCClient::RVELOGIC;
+      } else {
+        log_db_error(serv, e);
+        rv = kt::RPCClient::RVEINTERNAL;
+      }
     }
     return rv;
   }
@@ -937,9 +1082,19 @@ private:
       const kc::BasicDB::Error& e = cur->error();
       set_db_error(outmap, e);
       switch (e.code()) {
-        case kc::BasicDB::Error::NOIMPL: rv = kt::RPCClient::RVENOIMPL; break;
-        case kc::BasicDB::Error::NOREC: rv = kt::RPCClient::RVELOGIC; break;
-        default: rv = kt::RPCClient::RVEINTERNAL; break;
+        case kc::BasicDB::Error::NOIMPL: {
+          rv = kt::RPCClient::RVENOIMPL;
+          break;
+        }
+        case kc::BasicDB::Error::NOREC: {
+          rv = kt::RPCClient::RVELOGIC;
+          break;
+        }
+        default: {
+          log_db_error(serv, e);
+          rv = kt::RPCClient::RVEINTERNAL;
+          break;
+        }
       }
     }
     return rv;
@@ -962,16 +1117,19 @@ private:
     const char* rp = kt::strmapget(inmap, "step");
     bool step = rp ? true : false;
     rp = kt::strmapget(inmap, "xt");
-    int64_t xt = rp ? kc::atoi(rp) : -1;
-    if (xt < 1) xt = INT64_MAX;
+    int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
     RV rv;
     if (cur->set_value(vbuf, vsiz, xt, step)) {
       rv = kt::RPCClient::RVSUCCESS;
     } else {
       const kc::BasicDB::Error& e = cur->error();
       set_db_error(outmap, e);
-      rv = e == kc::BasicDB::Error::NOREC ?
-        kt::RPCClient::RVELOGIC : kt::RPCClient::RVEINTERNAL;
+      if (e == kc::BasicDB::Error::NOREC) {
+        rv = kt::RPCClient::RVELOGIC;
+      } else {
+        log_db_error(serv, e);
+        rv = kt::RPCClient::RVEINTERNAL;
+      }
     }
     return rv;
   }
@@ -990,8 +1148,12 @@ private:
     } else {
       const kc::BasicDB::Error& e = cur->error();
       set_db_error(outmap, e);
-      rv = e == kc::BasicDB::Error::NOREC ?
-        kt::RPCClient::RVELOGIC : kt::RPCClient::RVEINTERNAL;
+      if (e == kc::BasicDB::Error::NOREC) {
+        rv = kt::RPCClient::RVELOGIC;
+      } else {
+        log_db_error(serv, e);
+        rv = kt::RPCClient::RVEINTERNAL;
+      }
     }
     return rv;
   }
@@ -1016,8 +1178,12 @@ private:
     } else {
       const kc::BasicDB::Error& e = cur->error();
       set_db_error(outmap, e);
-      rv = e == kc::BasicDB::Error::NOREC ?
-        kt::RPCClient::RVELOGIC : kt::RPCClient::RVEINTERNAL;
+      if (e == kc::BasicDB::Error::NOREC) {
+        rv = kt::RPCClient::RVELOGIC;
+      } else {
+        log_db_error(serv, e);
+        rv = kt::RPCClient::RVEINTERNAL;
+      }
     }
     return rv;
   }
@@ -1042,8 +1208,12 @@ private:
     } else {
       const kc::BasicDB::Error& e = cur->error();
       set_db_error(outmap, e);
-      rv = e == kc::BasicDB::Error::NOREC ?
-        kt::RPCClient::RVELOGIC : kt::RPCClient::RVEINTERNAL;
+      if (e == kc::BasicDB::Error::NOREC) {
+        rv = kt::RPCClient::RVELOGIC;
+      } else {
+        log_db_error(serv, e);
+        rv = kt::RPCClient::RVEINTERNAL;
+      }
     }
     return rv;
   }
@@ -1072,8 +1242,12 @@ private:
     } else {
       const kc::BasicDB::Error& e = cur->error();
       set_db_error(outmap, e);
-      rv = e == kc::BasicDB::Error::NOREC ?
-        kt::RPCClient::RVELOGIC : kt::RPCClient::RVEINTERNAL;
+      if (e == kc::BasicDB::Error::NOREC) {
+        rv = kt::RPCClient::RVELOGIC;
+      } else {
+        log_db_error(serv, e);
+        rv = kt::RPCClient::RVEINTERNAL;
+      }
     }
     return rv;
   }
@@ -1101,7 +1275,12 @@ private:
     } else {
       const kc::BasicDB::Error& e = db->error();
       strprintf(&resheads["x-kt-error"], "DB: %d: %s: %s", e.code(), e.name(), e.message());
-      code = e == kc::BasicDB::Error::NOREC ? 404 : 500;
+      if (e == kc::BasicDB::Error::NOREC) {
+        code = 404;
+      } else {
+        log_db_error(serv, e);
+        code = 500;
+      }
     }
     return code;
   }
@@ -1128,7 +1307,12 @@ private:
     } else {
       const kc::BasicDB::Error& e = db->error();
       strprintf(&resheads["x-kt-error"], "DB: %d: %s: %s", e.code(), e.name(), e.message());
-      code = e == kc::BasicDB::Error::NOREC ? 404 : 500;
+      if (e == kc::BasicDB::Error::NOREC) {
+        code = 404;
+      } else {
+        log_db_error(serv, e);
+        code = 500;
+      }
     }
     return code;
   }
@@ -1151,6 +1335,7 @@ private:
     } else {
       const kc::BasicDB::Error& e = db->error();
       strprintf(&resheads["x-kt-error"], "DB: %d: %s: %s", e.code(), e.name(), e.message());
+      log_db_error(serv, e);
       code = 500;
     }
     return code;
@@ -1169,7 +1354,12 @@ private:
     } else {
       const kc::BasicDB::Error& e = db->error();
       strprintf(&resheads["x-kt-error"], "DB: %d: %s: %s", e.code(), e.name(), e.message());
-      code = e == kc::BasicDB::Error::NOREC ? 404 : 500;
+      if (e == kc::BasicDB::Error::NOREC) {
+        code = 404;
+      } else {
+        log_db_error(serv, e);
+        code = 500;
+      }
     }
     return code;
   }
@@ -1197,10 +1387,13 @@ private:
     }
     std::map<int64_t, kt::TimedDB::Cursor*> curs_;
   };
+  int32_t thnum_;
   kt::TimedDB* const dbs_;
   const int32_t dbnum_;
   const std::map<std::string, int32_t>& dbmap_;
   const char* cmdpath_;
+  ScriptProcessor* scrprocs_;
+  kc::AtomicInt64 idlecnt_;
 };
 
 
@@ -1226,8 +1419,8 @@ static void usage() {
   eprintf("\n");
   eprintf("usage:\n");
   eprintf("  %s [-host str] [-port num] [-tout num] [-th num] [-log file] [-li|-ls|-le|-lz]"
-          " [-ord] [-oat|-oas|-onl|-otl|-onr] [-tp] [-dmn] [-pid file] [-cmd dir] [db...]\n",
-          g_progname);
+          " [-ord] [-oat|-oas|-onl|-otl|-onr] [-tp] [-dmn] [-pid file] [-cmd dir] [-scr file]"
+          " [db...]\n", g_progname);
   eprintf("\n");
   std::exit(1);
 }
@@ -1257,7 +1450,8 @@ static int32_t run(int argc, char** argv) {
   int32_t opts = 0;
   bool dmn = false;
   const char* pidpath = NULL;
-  const char* cmdpath = kc::File::CDIRSTR;
+  const char* cmdpath = NULL;
+  const char* scrpath = NULL;
   for (int32_t i = 1; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -1309,6 +1503,9 @@ static int32_t run(int argc, char** argv) {
       } else if (!std::strcmp(argv[i], "-cmd")) {
         if (++i >= argc) usage();
         cmdpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-scr")) {
+        if (++i >= argc) usage();
+        scrpath = argv[i];
       } else {
         usage();
       }
@@ -1321,7 +1518,7 @@ static int32_t run(int argc, char** argv) {
   if (thnum > THREADMAX) thnum = THREADMAX;
   if (dbpaths.empty()) dbpaths.push_back("*");
   int32_t rv = proc(dbpaths, host, port, tout, thnum, logpath, logkinds, omode, opts,
-                    dmn, pidpath, cmdpath);
+                    dmn, pidpath, cmdpath, scrpath);
   return rv;
 }
 
@@ -1330,7 +1527,7 @@ static int32_t run(int argc, char** argv) {
 static int32_t proc(const std::vector<std::string>& dbpaths,
                     const char* host, int32_t port, double tout, int32_t thnum,
                     const char* logpath, uint32_t logkinds, int32_t omode, int32_t opts,
-                    bool dmn, const char* pidpath, const char* cmdpath) {
+                    bool dmn, const char* pidpath, const char* cmdpath, const char* scrpath) {
   g_daemon = false;
   if (dmn) {
     if (kc::File::PATHCHR == '/') {
@@ -1342,6 +1539,14 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
         eprintf("%s: %s: a daemon can accept absolute path only\n", g_progname, pidpath);
         return 1;
       }
+      if (cmdpath && *cmdpath != kc::File::PATHCHR) {
+        eprintf("%s: %s: a daemon can accept absolute path only\n", g_progname, cmdpath);
+        return 1;
+      }
+      if (scrpath && *scrpath != kc::File::PATHCHR) {
+        eprintf("%s: %s: a daemon can accept absolute path only\n", g_progname, scrpath);
+        return 1;
+      }
     }
     if (!kt::daemonize()) {
       eprintf("%s: switching to a daemon failed\n", g_progname);
@@ -1349,6 +1554,16 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
     }
     g_procid = kc::getpid();
     g_daemon = true;
+  }
+  if (!cmdpath) cmdpath = kc::File::CDIRSTR;
+  kc::File::Status sbuf;
+  if (!kc::File::status(cmdpath, &sbuf) || !sbuf.isdir) {
+    eprintf("%s: %s: no such directory\n", g_progname, cmdpath);
+    return 1;
+  }
+  if (scrpath && !kc::File::status(scrpath)) {
+    eprintf("%s: %s: no such file\n", g_progname, scrpath);
+    return 1;
   }
   kt::RPCServer serv;
   Logger logger;
@@ -1362,7 +1577,7 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
   if (host) {
     addr = kt::Socket::get_host_address(host);
     if (addr.empty()) {
-      serv.log(kt::RPCServer::Logger::ERROR, "%s: unknown host\n", g_progname, host);
+      serv.log(kt::RPCServer::Logger::ERROR, "%s: unknown host", g_progname, host);
       return 1;
     }
   }
@@ -1380,7 +1595,7 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
     if (opts > 0) dbs[i].tune_options(opts);
     if (!dbs[i].open(dbpath, omode)) {
       const kc::BasicDB::Error& e = dbs[i].error();
-      serv.log(kt::RPCServer::Logger::ERROR, "%s: could not open a database file: %s: %s\n",
+      serv.log(kt::RPCServer::Logger::ERROR, "%s: could not open a database file: %s: %s",
                dbpath.c_str(), e.name(), e.message());
       delete[] dbs;
       return 1;
@@ -1391,7 +1606,26 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
     if (pv) rp = pv + 1;
     dbmap[rp] = i;
   }
-  Worker worker(dbs, dbnum, dbmap, cmdpath);
+  ScriptProcessor* scrprocs = NULL;
+  if (scrpath) {
+    serv.log(kt::RPCServer::Logger::SYSTEM, "loading a script file: path=%s", scrpath);
+    scrprocs = new ScriptProcessor[thnum];
+    for (int32_t i = 0; i < thnum; i++) {
+      if (!scrprocs[i].set_resources(i, &serv, dbs, dbnum, &dbmap)) {
+        serv.log(kt::RPCServer::Logger::ERROR, "could not initialize the scripting processor");
+        delete[] scrprocs;
+        delete[] dbs;
+        return 1;
+      }
+      if (!scrprocs[i].load(scrpath)) {
+        serv.log(kt::RPCServer::Logger::ERROR, "%s: could not load a script file", scrpath);
+        delete[] scrprocs;
+        delete[] dbs;
+        return 1;
+      }
+    }
+  }
+  Worker worker(thnum, dbs, dbnum, dbmap, cmdpath, scrprocs);
   serv.set_worker(&worker, thnum);
   if (pidpath) {
     char numbuf[kc::NUMBUFSIZ];
@@ -1416,6 +1650,7 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
       break;
     }
   }
+  delete[] scrprocs;
   delete[] dbs;
   if (pidpath) kc::File::remove(pidpath);
   serv.log(kt::RPCServer::Logger::SYSTEM, "================ [FINISH]: pid=%d", g_procid);

@@ -1,3 +1,21 @@
+2010-10-08  Mikio Hirabayashi  <info@fallabs.com>
+
+	* kttimeddb.h (TimedDB::vacuum): new function.
+
+	* ktremotedb.h (RemoteDB::vacuum): new function.
+
+	* ktserver.cc (Worker::process_idle): new function.
+
+	* ktserver.cc (Worker::do_play_script): new function.
+
+	* kttimedmgr.cc (runimport, procimport): "-xt" option was added.
+
+	* ktremovemgr.cc (runimport, procimport): new functions.
+
+	* myscript.h, myscript.cc: new files.
+
+	- Release: 0.8.0
+
 2010-10-05  Mikio Hirabayashi  <info@fallabs.com>
 
 	* ktserver (Worker::process): the URL convention for RESTful interface was extended.

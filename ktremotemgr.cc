@@ -26,6 +26,7 @@ int main(int argc, char** argv);
 static void usage();
 static void dberrprint(kt::RemoteDB* db, const char* info);
 static int32_t runreport(int argc, char** argv);
+static int32_t runscript(int argc, char** argv);
 static int32_t runinform(int argc, char** argv);
 static int32_t runclear(int argc, char** argv);
 static int32_t runsync(int argc, char** argv);
@@ -33,7 +34,11 @@ static int32_t runset(int argc, char** argv);
 static int32_t runremove(int argc, char** argv);
 static int32_t runget(int argc, char** argv);
 static int32_t runlist(int argc, char** argv);
+static int32_t runimport(int argc, char** argv);
+static int32_t runvacuum(int argc, char** argv);
 static int32_t procreport(const char* host, int32_t port, double tout);
+static int32_t procscript(const char* proc, const char* host, int32_t port, double tout,
+                          const std::map<std::string, std::string>& params);
 static int32_t procinform(const char* host, int32_t port, double tout, const char* dbexpr,
                           bool st);
 static int32_t procclear(const char* host, int32_t port, double tout, const char* dbexpr);
@@ -50,6 +55,10 @@ static int32_t procget(const char* kbuf, size_t ksiz,
 static int32_t proclist(const char* kbuf, size_t ksiz,
                         const char* host, int32_t port, double tout, const char* dbexpr,
                         bool des, int64_t max, bool pv, bool px, bool pt);
+static int32_t procimport(const char* file, const char* host, int32_t port, double tout,
+                          const char* dbexpr, bool sx, int64_t xt);
+static int32_t procvacuum(const char* host, int32_t port, double tout, const char* dbexpr,
+                            int64_t step);
 
 
 // print the usage and exit
@@ -60,6 +69,8 @@ int main(int argc, char** argv) {
   int32_t rv = 0;
   if (!std::strcmp(argv[1], "report")) {
     rv = runreport(argc, argv);
+  } else if (!std::strcmp(argv[1], "script")) {
+    rv = runscript(argc, argv);
   } else if (!std::strcmp(argv[1], "inform")) {
     rv = runinform(argc, argv);
   } else if (!std::strcmp(argv[1], "clear")) {
@@ -74,6 +85,10 @@ int main(int argc, char** argv) {
     rv = runget(argc, argv);
   } else if (!std::strcmp(argv[1], "list")) {
     rv = runlist(argc, argv);
+  } else if (!std::strcmp(argv[1], "import")) {
+    rv = runimport(argc, argv);
+  } else if (!std::strcmp(argv[1], "vacuum")) {
+    rv = runvacuum(argc, argv);
   } else if (!std::strcmp(argv[1], "version") || !std::strcmp(argv[1], "--version")) {
     printversion();
   } else {
@@ -89,6 +104,8 @@ static void usage() {
   eprintf("\n");
   eprintf("usage:\n");
   eprintf("  %s report [-host str] [-port num] [-tout num]\n", g_progname);
+  eprintf("  %s script [-host str] [-port num] [-tout num] [-arg name value] proc\n",
+          g_progname);
   eprintf("  %s inform [-host str] [-port num] [-tout num] [-db str] [-st]\n", g_progname);
   eprintf("  %s clear [-host str] [-port num] [-tout num] [-db str]\n", g_progname);
   eprintf("  %s sync [-host str] [-port num] [-tout num] [-db str] [-hard] [-cmd str]\n",
@@ -100,6 +117,10 @@ static void usage() {
           g_progname);
   eprintf("  %s list [-host str] [-port num] [-tout num] [-db str] [-des] [-max num]"
           " [-sx] [-pv] [-px] [-pt] [key]\n", g_progname);
+  eprintf("  %s import [-host str] [-port num] [-tout num] [-db str] [-sx] [-xt num] [file]\n",
+          g_progname);
+  eprintf("  %s vacuum [-host str] [-port num] [-tout num] [-db str] [-step num]\n",
+          g_progname);
   eprintf("\n");
   std::exit(1);
 }
@@ -140,7 +161,48 @@ static int32_t runreport(int argc, char** argv) {
       usage();
     }
   }
+  if (port < 1) usage();
   int32_t rv = procreport(host, port, tout);
+  return rv;
+}
+
+
+// parse arguments of script command
+static int32_t runscript(int argc, char** argv) {
+  bool argbrk = false;
+  const char* proc = NULL;
+  const char* host = "";
+  int32_t port = kt::DEFPORT;
+  double tout = 0;
+  std::map<std::string, std::string> params;
+  for (int32_t i = 2; i < argc; i++) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-host")) {
+        if (++i >= argc) usage();
+        host = argv[i];
+      } else if (!std::strcmp(argv[i], "-port")) {
+        if (++i >= argc) usage();
+        port = kc::atoi(argv[i]);
+      } else if (!std::strcmp(argv[i], "-tout")) {
+        if (++i >= argc) usage();
+        tout = kc::atof(argv[i]);
+      } else if (!std::strcmp(argv[i], "-arg")) {
+        if ((i += 2) >= argc) usage();
+        params[argv[i-1]] = argv[i];
+      } else {
+        usage();
+      }
+    } else if (!proc) {
+      argbrk = true;
+      proc = argv[i];
+    } else {
+      usage();
+    }
+  }
+  if (!proc || port < 1) usage();
+  int32_t rv = procscript(proc, host, port, tout, params);
   return rv;
 }
 
@@ -179,6 +241,7 @@ static int32_t runinform(int argc, char** argv) {
       usage();
     }
   }
+  if (port < 1) usage();
   int32_t rv = procinform(host, port, tout, dbexpr, st);
   return rv;
 }
@@ -215,6 +278,7 @@ static int32_t runclear(int argc, char** argv) {
       usage();
     }
   }
+  if (port < 1) usage();
   int32_t rv = procclear(host, port, tout, dbexpr);
   return rv;
 }
@@ -258,6 +322,7 @@ static int32_t runsync(int argc, char** argv) {
       usage();
     }
   }
+  if (port < 1) usage();
   int32_t rv = procsync(host, port, tout, dbexpr, hard, cmd);
   return rv;
 }
@@ -334,6 +399,11 @@ static int32_t runset(int argc, char** argv) {
     vsiz = std::strlen(vstr);
     vbuf = NULL;
   }
+  if (port < 1) {
+    delete[] kbuf;
+    delete[] vbuf;
+    usage();
+  }
   int32_t rv = procset(kstr, ksiz, vstr, vsiz, host, port, tout, dbexpr, mode, xt);
   delete[] kbuf;
   delete[] vbuf;
@@ -387,6 +457,10 @@ static int32_t runremove(int argc, char** argv) {
   } else {
     ksiz = std::strlen(kstr);
     kbuf = NULL;
+  }
+  if (port < 1) {
+    delete[] kbuf;
+    usage();
   }
   int32_t rv = procremove(kstr, ksiz, host, port, tout, dbexpr);
   delete[] kbuf;
@@ -449,6 +523,10 @@ static int32_t runget(int argc, char** argv) {
   } else {
     ksiz = std::strlen(kstr);
     kbuf = NULL;
+  }
+  if (port < 1) {
+    delete[] kbuf;
+    usage();
   }
   int32_t rv = procget(kstr, ksiz, host, port, tout, dbexpr, px, pt, pz);
   delete[] kbuf;
@@ -522,8 +600,100 @@ static int32_t runlist(int argc, char** argv) {
       kbuf[ksiz] = '\0';
     }
   }
+  if (port < 1) {
+    delete[] kbuf;
+    usage();
+  }
   int32_t rv = proclist(kbuf, ksiz, host, port, tout, dbexpr, des, max, pv, px, pt);
   delete[] kbuf;
+  return rv;
+}
+
+
+// parse arguments of import command
+static int32_t runimport(int argc, char** argv) {
+  bool argbrk = false;
+  const char* file = NULL;
+  const char* host = "";
+  int32_t port = kt::DEFPORT;
+  double tout = 0;
+  const char* dbexpr = NULL;
+  bool sx = false;
+  int64_t xt = INT64_MAX;
+  for (int32_t i = 2; i < argc; i++) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-host")) {
+        if (++i >= argc) usage();
+        host = argv[i];
+      } else if (!std::strcmp(argv[i], "-port")) {
+        if (++i >= argc) usage();
+        port = kc::atoi(argv[i]);
+      } else if (!std::strcmp(argv[i], "-tout")) {
+        if (++i >= argc) usage();
+        tout = kc::atof(argv[i]);
+      } else if (!std::strcmp(argv[i], "-db")) {
+        if (++i >= argc) usage();
+        dbexpr = argv[i];
+      } else if (!std::strcmp(argv[i], "-sx")) {
+        sx = true;
+      } else if (!std::strcmp(argv[i], "-xt")) {
+        if (++i >= argc) usage();
+        xt = kc::atoix(argv[i]);
+      } else {
+        usage();
+      }
+    } else if (!file) {
+      argbrk = true;
+      file = argv[i];
+    } else {
+      usage();
+    }
+  }
+  if (port < 1) usage();
+  int32_t rv = procimport(file, host, port, tout, dbexpr, sx, xt);
+  return rv;
+}
+
+
+// parse arguments of vacuum command
+static int32_t runvacuum(int argc, char** argv) {
+  bool argbrk = false;
+  const char* host = "";
+  int32_t port = kt::DEFPORT;
+  double tout = 0;
+  const char* dbexpr = NULL;
+  int64_t step = 0;
+  for (int32_t i = 2; i < argc; i++) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-host")) {
+        if (++i >= argc) usage();
+        host = argv[i];
+      } else if (!std::strcmp(argv[i], "-port")) {
+        if (++i >= argc) usage();
+        port = kc::atoi(argv[i]);
+      } else if (!std::strcmp(argv[i], "-tout")) {
+        if (++i >= argc) usage();
+        tout = kc::atof(argv[i]);
+      } else if (!std::strcmp(argv[i], "-db")) {
+        if (++i >= argc) usage();
+        dbexpr = argv[i];
+      } else if (!std::strcmp(argv[i], "-step")) {
+        if (++i >= argc) usage();
+        step = kc::atoix(argv[i]);
+      } else {
+        usage();
+      }
+    } else {
+      argbrk = true;
+      usage();
+    }
+  }
+  if (port < 1) usage();
+  int32_t rv = procvacuum(host, port, tout, dbexpr, step);
   return rv;
 }
 
@@ -546,6 +716,35 @@ static int32_t procreport(const char* host, int32_t port, double tout) {
     }
   } else {
     dberrprint(&db, "DB::status failed");
+    err = true;
+  }
+  if (!db.close()) {
+    dberrprint(&db, "DB::close failed");
+    err = true;
+  }
+  return err ? 1 : 0;
+}
+
+
+// perform script command
+static int32_t procscript(const char* proc, const char* host, int32_t port, double tout,
+                          const std::map<std::string, std::string>& params) {
+  kt::RemoteDB db;
+  if (!db.open(host, port, tout)) {
+    dberrprint(&db, "DB::open failed");
+    return 1;
+  }
+  bool err = false;
+  std::map<std::string, std::string> result;
+  if (db.play_script(proc, params, &result)) {
+    std::map<std::string, std::string>::iterator it = result.begin();
+    std::map<std::string, std::string>::iterator itend = result.end();
+    while (it != itend) {
+      iprintf("%s\t%s\n", it->first.c_str(), it->second.c_str());
+      it++;
+    }
+  } else {
+    dberrprint(&db, "DB::play_script failed");
     err = true;
   }
   if (!db.close()) {
@@ -840,6 +1039,93 @@ static int32_t proclist(const char* kbuf, size_t ksiz,
       }
       max--;
     }
+  }
+  if (!db.close()) {
+    dberrprint(&db, "DB::close failed");
+    err = true;
+  }
+  return err ? 1 : 0;
+}
+
+
+// perform import command
+static int32_t procimport(const char* file, const char* host, int32_t port, double tout,
+                          const char* dbexpr, bool sx, int64_t xt) {
+  std::istream *is = &std::cin;
+  std::ifstream ifs;
+  if (file) {
+    ifs.open(file, std::ios_base::in | std::ios_base::binary);
+    if (!ifs) {
+      eprintf("%s: %s: open error\n", g_progname, file);
+      return 1;
+    }
+    is = &ifs;
+  }
+  kt::RemoteDB db;
+  if (!db.open(host, port, tout)) {
+    dberrprint(&db, "DB::open failed");
+    return 1;
+  }
+  bool err = false;
+  int64_t cnt = 0;
+  std::string line;
+  std::vector<std::string> fields;
+  while (!err && getline(is, &line)) {
+    cnt++;
+    kc::strsplit(line, '\t', &fields);
+    if (sx) {
+      std::vector<std::string>::iterator it = fields.begin();
+      std::vector<std::string>::iterator itend = fields.end();
+      while (it != itend) {
+        size_t esiz;
+        char* ebuf = kc::hexdecode(it->c_str(), &esiz);
+        it->clear();
+        it->append(ebuf, esiz);
+        delete[] ebuf;
+        it++;
+      }
+    }
+    switch (fields.size()) {
+      case 2: {
+        if (!db.set(fields[0], fields[1], xt)) {
+          dberrprint(&db, "DB::set failed");
+          err = true;
+        }
+        break;
+      }
+      case 1: {
+        if (!db.remove(fields[0]) && db.error() != kt::RemoteDB::Error::LOGIC) {
+          dberrprint(&db, "DB::remove failed");
+          err = true;
+        }
+        break;
+      }
+    }
+    iputchar('.');
+    if (cnt % 50 == 0) iprintf(" (%d)\n", cnt);
+  }
+  if (cnt % 50 > 0) iprintf(" (%d)\n", cnt);
+  if (!db.close()) {
+    dberrprint(&db, "DB::close failed");
+    err = true;
+  }
+  return err ? 1 : 0;
+}
+
+
+// perform vacuum command
+static int32_t procvacuum(const char* host, int32_t port, double tout, const char* dbexpr,
+                            int64_t step) {
+  kt::RemoteDB db;
+  if (!db.open(host, port, tout)) {
+    dberrprint(&db, "DB::open failed");
+    return 1;
+  }
+  if (dbexpr) db.set_target(dbexpr);
+  bool err = false;
+  if (!db.vacuum(step)) {
+    dberrprint(&db, "DB::vacuum failed");
+    err = true;
   }
   if (!db.close()) {
     dberrprint(&db, "DB::close failed");

@@ -402,8 +402,8 @@ public:
      * assigned.
      * @param vsp the pointer to the variable into which the size of the value region is
      * assigned.
-     * @param xtp the pointer to the variable into which the expiration time from now in seconds
-     * is assigned.  If it is NULL, it is ignored.
+     * @param xtp the pointer to the variable into which the absolute expiration time is
+     * assigned.  If it is NULL, it is ignored.
      * @param step true to move the cursor to the next record, or false for no move.
      * @return the pointer to the pair of the key region, or NULL on failure.
      * @note If the cursor is invalidated, NULL is returned.  Because an additional zero code is
@@ -461,8 +461,8 @@ public:
     }
     /**
      * Get a pair of the key and the value of the current record.
-     * @param xtp the pointer to the variable into which the expiration time from now in seconds
-     * is assigned.  If it is NULL, it is ignored.
+     * @param xtp the pointer to the variable into which the absolute expiration time is
+     * assigned.  If it is NULL, it is ignored.
      * @param step true to move the cursor to the next record, or false for no move.
      * @return the pointer to the pair of the key and the value, or NULL on failure.
      * @note Equal to the original Cursor::get method except that the return value is std::pair.
@@ -547,7 +547,7 @@ public:
      * @param sp the pointer to the variable into which the size of the region of the return
      * value is assigned.
      * @param xtp the pointer to the variable into which the expiration time from now in seconds
-     * is assigned.
+     * is assigned.  The initial value is the absolute expiration time.
      * @return If it is the pointer to a region, the value is replaced by the content.  If it
      * is Visitor::NOP, nothing is modified.  If it is Visitor::REMOVE, the record is removed.
      */
@@ -1345,8 +1345,8 @@ public:
    * @param ksiz the size of the key region.
    * @param sp the pointer to the variable into which the size of the region of the return
    * value is assigned.
-   * @param xtp the pointer to the variable into which the expiration time from now in seconds
-   * is assigned.  If it is NULL, it is ignored.
+   * @param xtp the pointer to the variable into which the absolute expiration time is assigned.
+   * If it is NULL, it is ignored.
    * @return the pointer to the value region of the corresponding record, or NULL on failure.
    * @note If no record corresponds to the key, NULL is returned.  Because an additional zero
    * code is appended at the end of the region of the return value, the return value can be
@@ -1490,6 +1490,46 @@ public:
   bool load_snapshot(const std::string& src, kc::BasicDB::ProgressChecker* checker = NULL) {
     _assert_(true);
     return db_.load_snapshot(src, checker);
+  }
+  /**
+   * Reveal the inner database object.
+   * @return the inner database object, or NULL on failure.
+   */
+  kc::BasicDB* reveal_inner_db() {
+    _assert_(true);
+    return db_.reveal_inner_db();
+  }
+  /**
+   * Scan the database and eliminate regions of expired records.
+   * @param step the number of steps.  If it is not more than 0, the whole region is scanned.
+   * @return true on success, or false on failure.
+   */
+  bool vacuum(int64_t step = 0) {
+    _assert_(true);
+    bool err = false;
+    if (xcur_) {
+      if (step > 1) {
+        if (step > INT64_MAX / JDBXTSCUNIT) step = INT64_MAX / JDBXTSCUNIT;
+        if (!expire_records(step * JDBXTSCUNIT)) err = true;
+      } else {
+        xcur_->jump();
+        xsc_ = 0;
+        if (!expire_records(INT64_MAX)) err = true;
+        xsc_ = 0;
+      }
+    }
+    kc::BasicDB* idb = db_.reveal_inner_db();
+    if (idb) {
+      const std::type_info& info = typeid(*idb);
+      if (info == typeid(kc::HashDB)) {
+        kc::HashDB* hdb = (kc::HashDB*)idb;
+        if (!hdb->defrag(step)) err = true;
+      } else if (info == typeid(kc::TreeDB)) {
+        kc::TreeDB* tdb = (kc::TreeDB*)idb;
+        if (!tdb->defrag(step)) err = true;
+      }
+    }
+    return !err;
   }
   /**
    * Create a cursor object.
@@ -1636,6 +1676,7 @@ private:
           err = true;
         }
         xsc_ = 0;
+        break;
       }
     }
     return !err;
