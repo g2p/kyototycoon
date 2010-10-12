@@ -90,9 +90,15 @@
 
 #endif
 
-#define _KT_VERSION    "0.8.1"
+#define _KT_VERSION    "0.9.0"
 #define _KT_LIBVER     1
-#define _KT_LIBREV     5
+#define _KT_LIBREV     6
+
+#if ! defined(_MYNOEVENT)
+#if defined(_SYS_LINUX_)
+#define _KT_EVENT_EPOLL
+#endif
+#endif
 
 #if defined(_MYLUA)
 #define _KT_LUA        1

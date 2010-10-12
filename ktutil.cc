@@ -180,7 +180,7 @@ void datestrwww(double t, int32_t jl, int32_t acr, char* buf) {
   _assert_(acr >= 0 && buf);
   if (kc::chknan(t)) t = kc::time();
   double tinteg, tfract;
-  tfract = fabs(std::modf(t, &tinteg));
+  tfract = std::fabs(std::modf(t, &tinteg));
   if (jl == INT32_MAX) jl = jetlag();
   if (acr > 12) acr = 12;
   time_t tt = (time_t)tinteg + jl;

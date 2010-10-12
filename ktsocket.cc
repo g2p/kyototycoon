@@ -16,6 +16,12 @@
 #include "ktsocket.h"
 #include "myconf.h"
 
+#if defined(_KT_EVENT_EPOLL)
+extern "C" {
+#include <sys/epoll.h>
+}
+#endif
+
 namespace kyototycoon {                  // common namespace
 
 
@@ -63,6 +69,14 @@ struct ServerSocketCore {
  * Poller internal.
  */
 struct PollerCore {
+#if defined(_KT_EVENT_EPOLL)
+  const char* errmsg;                    ///< error message
+  int32_t fd;                            ///< file descriptor
+  std::set<Pollable*> events;            ///< monitored events
+  std::set<Pollable*> hits;              ///< notified file descriptors
+  kc::SpinLock elock;                    ///< lock for events
+  bool aborted;                          ///< flag for abortion
+#else
   const char* errmsg;                    ///< error message
   bool open;                             ///< flag for open
   std::set<Pollable*> events;            ///< monitored events
@@ -70,6 +84,7 @@ struct PollerCore {
   kc::SpinLock elock;                    ///< lock for events
   ::pthread_t th;                        ///< main thread ID
   bool aborted;                          ///< flag for abortion
+#endif
 };
 
 
@@ -888,6 +903,16 @@ uint32_t ServerSocket::event_flags() {
  * Default constructor.
  */
 Poller::Poller() {
+#if defined(_KT_EVENT_EPOLL)
+  _assert_(true);
+  PollerCore* core = new PollerCore;
+  core->errmsg = NULL;
+  core->fd = -1;
+  core->aborted = false;
+  opq_ = core;
+  ignoresignal();
+  dummysighandler(0);
+#else
   _assert_(true);
   PollerCore* core = new PollerCore;
   core->errmsg = NULL;
@@ -896,6 +921,8 @@ Poller::Poller() {
   core->aborted = false;
   opq_ = core;
   ignoresignal();
+  dummysighandler(0);
+#endif
 }
 
 
@@ -903,10 +930,16 @@ Poller::Poller() {
  * Destructor.
  */
 Poller::~Poller() {
+#if defined(_KT_EVENT_EPOLL)
+  PollerCore* core = (PollerCore*)opq_;
+  if (core->fd >= 0) close();
+  delete core;
+#else
   _assert_(true);
   PollerCore* core = (PollerCore*)opq_;
   if (core->open) close();
   delete core;
+#endif
 }
 
 
@@ -914,10 +947,17 @@ Poller::~Poller() {
  * Get the last happened error information.
  */
 const char* Poller::error() {
+#if defined(_KT_EVENT_EPOLL)
   _assert_(true);
   PollerCore* core = (PollerCore*)opq_;
   if (!core->errmsg) return "no error";
   return core->errmsg;
+#else
+  _assert_(true);
+  PollerCore* core = (PollerCore*)opq_;
+  if (!core->errmsg) return "no error";
+  return core->errmsg;
+#endif
 }
 
 
@@ -925,6 +965,21 @@ const char* Poller::error() {
  * Open the poller.
  */
 bool Poller::open() {
+#if defined(_KT_EVENT_EPOLL)
+  _assert_(true);
+  PollerCore* core = (PollerCore*)opq_;
+  if (core->fd >= 0) {
+    pollseterrmsg(core, "already opened");
+    return false;
+  }
+  int32_t fd = ::epoll_create(256);
+  if (fd < 0) {
+    pollseterrmsg(core, "epoll_create failed");
+    return false;
+  }
+  core->fd = fd;
+  return true;
+#else
   _assert_(true);
   PollerCore* core = (PollerCore*)opq_;
   if (core->open) {
@@ -933,6 +988,7 @@ bool Poller::open() {
   }
   core->open = true;
   return true;
+#endif
 }
 
 
@@ -940,6 +996,24 @@ bool Poller::open() {
  * Close the poller.
  */
 bool Poller::close() {
+#if defined(_KT_EVENT_EPOLL)
+  _assert_(true);
+  PollerCore* core = (PollerCore*)opq_;
+  if (core->fd < 0) {
+    pollseterrmsg(core, "not opened");
+    return false;
+  }
+  bool err = false;
+  if (::close(core->fd) != 0) {
+    pollseterrmsg(core, "close failed");
+    return false;
+  }
+  core->hits.clear();
+  core->events.clear();
+  core->fd = -1;
+  core->aborted = false;
+  return !err;
+#else
   _assert_(true);
   PollerCore* core = (PollerCore*)opq_;
   if (!core->open) {
@@ -951,6 +1025,7 @@ bool Poller::close() {
   core->open = false;
   core->aborted = false;
   return true;
+#endif
 }
 
 
@@ -958,6 +1033,31 @@ bool Poller::close() {
  * Add a pollable I/O event to the monitored list.
  */
 bool Poller::deposit(Pollable* event) {
+#if defined(_KT_EVENT_EPOLL)
+  _assert_(event);
+  PollerCore* core = (PollerCore*)opq_;
+  if (core->fd < 0) {
+    pollseterrmsg(core, "not opened");
+    return false;
+  }
+  core->elock.lock();
+  struct ::epoll_event ev;
+  std::memset(&ev, 0, sizeof(ev));
+  uint32_t flags = event->event_flags();
+  ev.events = EPOLLONESHOT;
+  if (flags & Pollable::EVINPUT) ev.events |= EPOLLIN;
+  if (flags & Pollable::EVOUTPUT) ev.events |= EPOLLOUT;
+  if (flags & Pollable::EVEXCEPT) ev.events |= EPOLLHUP | EPOLLRDHUP | EPOLLPRI;
+  ev.data.ptr = event;
+  if (::epoll_ctl(core->fd, EPOLL_CTL_ADD, event->descriptor(), &ev) != 0) {
+    pollseterrmsg(core, "epoll_ctl failed");
+    core->elock.unlock();
+    return false;
+  }
+  core->events.insert(event);
+  core->elock.unlock();
+  return true;
+#else
   _assert_(event);
   PollerCore* core = (PollerCore*)opq_;
   if (!core->open) {
@@ -972,6 +1072,7 @@ bool Poller::deposit(Pollable* event) {
   }
   core->elock.unlock();
   return true;
+#endif
 }
 
 
@@ -979,6 +1080,23 @@ bool Poller::deposit(Pollable* event) {
  * Remove a pollable I/O from the monitored list.
  */
 bool Poller::withdraw(Pollable* event) {
+#if defined(_KT_EVENT_EPOLL)
+  _assert_(event);
+  PollerCore* core = (PollerCore*)opq_;
+  if (core->fd < 0) {
+    pollseterrmsg(core, "not opened");
+    return false;
+  }
+  bool err = false;
+  core->elock.lock();
+  core->events.erase(event);
+  if (::epoll_ctl(core->fd, EPOLL_CTL_DEL, event->descriptor(), NULL) != 0) {
+    pollseterrmsg(core, "epoll_ctl failed");
+    err = true;
+  }
+  core->elock.unlock();
+  return !err;
+#else
   _assert_(event);
   PollerCore* core = (PollerCore*)opq_;
   if (!core->open) {
@@ -986,6 +1104,7 @@ bool Poller::withdraw(Pollable* event) {
     return false;
   }
   return true;
+#endif
 }
 
 
@@ -993,6 +1112,24 @@ bool Poller::withdraw(Pollable* event) {
  * Fetch the next notified I/O event.
  */
 Pollable* Poller::next() {
+#if defined(_KT_EVENT_EPOLL)
+  _assert_(true);
+  PollerCore* core = (PollerCore*)opq_;
+  if (core->fd < 0) {
+    pollseterrmsg(core, "not opened");
+    return NULL;
+  }
+  core->elock.lock();
+  if (core->hits.empty()) {
+    pollseterrmsg(core, "no event");
+    core->elock.unlock();
+    return NULL;
+  }
+  Pollable* item = *core->hits.begin();
+  core->hits.erase(item);
+  core->elock.unlock();
+  return item;
+#else
   _assert_(true);
   PollerCore* core = (PollerCore*)opq_;
   if (!core->open) {
@@ -1009,6 +1146,7 @@ Pollable* Poller::next() {
   core->hits.erase(item);
   core->elock.unlock();
   return item;
+#endif
 }
 
 
@@ -1016,6 +1154,30 @@ Pollable* Poller::next() {
  * Enable the next notification of a pollable event.
  */
 bool Poller::undo(Pollable* event) {
+#if defined(_KT_EVENT_EPOLL)
+  _assert_(event);
+  PollerCore* core = (PollerCore*)opq_;
+  if (core->fd < 0) {
+    pollseterrmsg(core, "not opened");
+    return false;
+  }
+  core->elock.lock();
+  struct ::epoll_event ev;
+  std::memset(&ev, 0, sizeof(ev));
+  uint32_t flags = event->event_flags();
+  ev.events = EPOLLONESHOT;
+  if (flags & Pollable::EVINPUT) ev.events |= EPOLLIN;
+  if (flags & Pollable::EVOUTPUT) ev.events |= EPOLLOUT;
+  if (flags & Pollable::EVEXCEPT) ev.events |= EPOLLHUP | EPOLLRDHUP | EPOLLPRI;
+  ev.data.ptr = event;
+  if (::epoll_ctl(core->fd, EPOLL_CTL_MOD, event->descriptor(), &ev) != 0) {
+    pollseterrmsg(core, "epoll_ctl failed");
+    core->elock.unlock();
+    return false;
+  }
+  core->elock.unlock();
+  return true;
+#else
   _assert_(event);
   PollerCore* core = (PollerCore*)opq_;
   if (!core->open) {
@@ -1031,6 +1193,7 @@ bool Poller::undo(Pollable* event) {
   core->elock.unlock();
   ::pthread_kill(core->th, SIGUSR2);
   return true;
+#endif
 }
 
 
@@ -1038,6 +1201,54 @@ bool Poller::undo(Pollable* event) {
  * Wait one or more notifying events.
  */
 bool Poller::wait(double timeout) {
+#if defined(_KT_EVENT_EPOLL)
+  _assert_(true);
+  PollerCore* core = (PollerCore*)opq_;
+  if (core->fd < 0) {
+    pollseterrmsg(core, "not opened");
+    return false;
+  }
+  core->hits.clear();
+  double ct = kc::time();
+  while (true) {
+    struct ::epoll_event events[256];
+    int32_t tout = timeout > 0 ? timeout * 1000 : -1;
+    int32_t rv = epoll_wait(core->fd, events, sizeof(events) / sizeof(*events), tout);
+    if (rv > 0) {
+      for (int32_t i = 0; i < rv; i++) {
+        Pollable* item = (Pollable*)events[i].data.ptr;
+        uint32_t epflags = events[i].events;
+        uint32_t flags = 0;
+        if (epflags & EPOLLIN) flags |= Pollable::EVINPUT;
+        if (epflags & EPOLLOUT) flags |= Pollable::EVOUTPUT;
+        if ((epflags & EPOLLHUP) || (epflags & EPOLLRDHUP) || (epflags & EPOLLPRI))
+          flags |= Pollable::EVEXCEPT;
+        core->elock.lock();
+        if (core->hits.insert(item).second) {
+          item->set_event_flags(flags);
+        } else {
+          uint32_t oflags = item->event_flags();
+          item->set_event_flags(oflags | flags);
+        }
+        core->elock.unlock();
+      }
+      return true;
+    } else if (rv == 0 || checkerrnoretriable(errno)) {
+      if (kc::time() > ct + timeout) {
+        pollseterrmsg(core, "operation timed out");
+        break;
+      }
+      if (core->aborted) {
+        pollseterrmsg(core, "operation was aborted");
+        break;
+      }
+    } else {
+      pollseterrmsg(core, "epoll_wait failed");
+      break;
+    }
+  }
+  return false;
+#else
   _assert_(true);
   PollerCore* core = (PollerCore*)opq_;
   if (!core->open) {
@@ -1091,7 +1302,7 @@ bool Poller::wait(double timeout) {
     }
     core->elock.unlock();
     double integ, fract;
-    fract = modf(WAITTIME, &integ);
+    fract = std::modf(WAITTIME, &integ);
     struct ::timespec ts;
     ts.tv_sec = integ;
     ts.tv_nsec = fract * 999999000;
@@ -1170,6 +1381,7 @@ bool Poller::wait(double timeout) {
     }
   }
   return false;
+#endif
 }
 
 
@@ -1177,6 +1389,25 @@ bool Poller::wait(double timeout) {
  * Notify all registered events.
  */
 bool Poller::flush() {
+#if defined(_KT_EVENT_EPOLL)
+  PollerCore* core = (PollerCore*)opq_;
+  if (core->fd < 0) {
+    pollseterrmsg(core, "not opened");
+    return false;
+  }
+  core->elock.lock();
+  core->hits.clear();
+  std::set<Pollable*>::iterator it = core->events.begin();
+  std::set<Pollable*>::iterator itend = core->events.end();
+  while (it != itend) {
+    Pollable* item = *it;
+    item->set_event_flags(0);
+    core->hits.insert(item);
+    it++;
+  }
+  core->elock.unlock();
+  return true;
+#else
   PollerCore* core = (PollerCore*)opq_;
   if (!core->open) {
     pollseterrmsg(core, "not opened");
@@ -1194,6 +1425,7 @@ bool Poller::flush() {
   }
   core->elock.unlock();
   return true;
+#endif
 }
 
 
@@ -1201,6 +1433,18 @@ bool Poller::flush() {
  * Get the number of events to watch.
  */
 int64_t Poller::count() {
+#if defined(_KT_EVENT_EPOLL)
+  _assert_(true);
+  PollerCore* core = (PollerCore*)opq_;
+  if (core->fd < 0) {
+    pollseterrmsg(core, "not opened");
+    return -1;
+  }
+  core->elock.lock();
+  int64_t count = core->events.size();
+  core->elock.unlock();
+  return count;
+#else
   _assert_(true);
   PollerCore* core = (PollerCore*)opq_;
   if (!core->open) {
@@ -1211,6 +1455,7 @@ int64_t Poller::count() {
   int64_t count = core->events.size();
   core->elock.unlock();
   return count;
+#endif
 }
 
 
@@ -1218,6 +1463,15 @@ int64_t Poller::count() {
  * Abort the current operation.
  */
 bool Poller::abort() {
+#if defined(_KT_EVENT_EPOLL)
+  PollerCore* core = (PollerCore*)opq_;
+  if (core->fd < 0) {
+    pollseterrmsg(core, "not opened");
+    return false;
+  }
+  core->aborted = true;
+  return true;
+#else
   _assert_(true);
   PollerCore* core = (PollerCore*)opq_;
   if (!core->open) {
@@ -1226,6 +1480,7 @@ bool Poller::abort() {
   }
   core->aborted = true;
   return true;
+#endif
 }
 
 
@@ -1338,7 +1593,7 @@ static bool waitsocket(int32_t fd, uint32_t mode, double timeout) {
   FD_ZERO(&set);
   FD_SET(fd, &set);
   double integ, fract;
-  fract = modf(timeout, &integ);
+  fract = std::modf(timeout, &integ);
   struct ::timespec ts;
   ts.tv_sec = integ;
   ts.tv_nsec = fract * 999999000;

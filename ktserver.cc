@@ -341,11 +341,6 @@ private:
   RV do_report(kt::RPCServer* serv, kt::RPCServer::Session* sess,
                const std::map<std::string, std::string>& inmap,
                std::map<std::string, std::string>& outmap) {
-    set_message(outmap, "version", "%s (%d.%d)", kt::VERSION, kt::LIBVER, kt::LIBREV);
-    set_message(outmap, "kc_version", "%s (%d.%d)", kc::VERSION, kc::LIBVER, kc::LIBREV);
-    set_message(outmap, "os", "%s", kc::SYSNAME);
-    set_message(outmap, "pid", "%d", g_procid);
-    set_message(outmap, "time", "%.6f", kc::time() - g_starttime);
     int64_t totalcount = 0;
     int64_t totalsize = 0;
     for (int32_t i = 0; i < dbnum_; i++) {
@@ -358,8 +353,16 @@ private:
       totalcount += count;
       totalsize += size;
     }
-    set_message(outmap, "count", "%lld", (long long)totalcount);
-    set_message(outmap, "size", "%lld", (long long)totalsize);
+    set_message(outmap, "db_total_count", "%lld", (long long)totalcount);
+    set_message(outmap, "db_total_size", "%lld", (long long)totalsize);
+    kt::ThreadedServer* thserv = serv->reveal_core()->reveal_core();
+    set_message(outmap, "serv_conn", "%lld", (long long)thserv->connection_count());
+    set_message(outmap, "serv_task", "%lld", (long long)thserv->task_count());
+    set_message(outmap, "conf_kt_version", "%s (%d.%d)", kt::VERSION, kt::LIBVER, kt::LIBREV);
+    set_message(outmap, "conf_kc_version", "%s (%d.%d)", kc::VERSION, kc::LIBVER, kc::LIBREV);
+    set_message(outmap, "conf_os_name", "%s", kc::SYSNAME);
+    set_message(outmap, "sys_proc_id", "%d", g_procid);
+    set_message(outmap, "sys_time", "%.6f", kc::time() - g_starttime);
     std::map<std::string, std::string> sysinfo;
     kc::getsysinfo(&sysinfo);
     std::map<std::string, std::string>::iterator it = sysinfo.begin();
@@ -1275,7 +1278,7 @@ private:
       code = 200;
     } else {
       const kc::BasicDB::Error& e = db->error();
-      strprintf(&resheads["x-kt-error"], "DB: %d: %s: %s", e.code(), e.name(), e.message());
+      kc::strprintf(&resheads["x-kt-error"], "DB: %d: %s: %s", e.code(), e.name(), e.message());
       if (e == kc::BasicDB::Error::NOREC) {
         code = 404;
       } else {
@@ -1303,11 +1306,13 @@ private:
         kt::datestrhttp(xt, 0, buf);
         resheads["x-kt-xt"] = buf;
       }
+      kc::strprintf(&resheads["content-length"], "%lld", (long long)vsiz);
       delete[] vbuf;
       code = 200;
     } else {
       const kc::BasicDB::Error& e = db->error();
-      strprintf(&resheads["x-kt-error"], "DB: %d: %s: %s", e.code(), e.name(), e.message());
+      kc::strprintf(&resheads["x-kt-error"], "DB: %d: %s: %s", e.code(), e.name(), e.message());
+      resheads["content-length"] = "0";
       if (e == kc::BasicDB::Error::NOREC) {
         code = 404;
       } else {
@@ -1335,7 +1340,7 @@ private:
       code = 201;
     } else {
       const kc::BasicDB::Error& e = db->error();
-      strprintf(&resheads["x-kt-error"], "DB: %d: %s: %s", e.code(), e.name(), e.message());
+      kc::strprintf(&resheads["x-kt-error"], "DB: %d: %s: %s", e.code(), e.name(), e.message());
       log_db_error(serv, e);
       code = 500;
     }
@@ -1354,7 +1359,7 @@ private:
       code = 204;
     } else {
       const kc::BasicDB::Error& e = db->error();
-      strprintf(&resheads["x-kt-error"], "DB: %d: %s: %s", e.code(), e.name(), e.message());
+      kc::strprintf(&resheads["x-kt-error"], "DB: %d: %s: %s", e.code(), e.name(), e.message());
       if (e == kc::BasicDB::Error::NOREC) {
         code = 404;
       } else {

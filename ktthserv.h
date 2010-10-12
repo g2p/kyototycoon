@@ -381,6 +381,22 @@ public:
     kc::vstrprintf(&msg, format, ap);
     logger_->log(kind, msg.c_str());
   }
+  /**
+   * Get the number of connections.
+   * @return the number of connections.
+   */
+  int64_t connection_count() {
+    _assert_(true);
+    return poll_.count() - 1;
+  }
+  /**
+   * Get the number of tasks in the queue.
+   * @return the number of tasks in the queue.
+   */
+  int64_t task_count() {
+    _assert_(true);
+    return queue_.count();
+  }
 private:
   /**
    * Task queue implementation.

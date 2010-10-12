@@ -50,6 +50,7 @@ static int kt_atof(lua_State* lua);
 static int kt_hash_murmur(lua_State* lua);
 static int kt_hash_fnv(lua_State* lua);
 static int kt_time(lua_State* lua);
+static int kt_sleep(lua_State* lua);
 static int kt_pack(lua_State* lua);
 static int kt_unpack(lua_State *lua);
 static int kt_split(lua_State *lua);
@@ -164,12 +165,12 @@ public:
         }
         nbuf[sizeof(nbuf)-1] = '\0';
         ptr = nbuf;
-        size = strlen(ptr);
+        size = std::strlen(ptr);
         break;
       }
       case LUA_TBOOLEAN: {
         ptr = lua_toboolean(lua, index) ? "true" : "false";
-        size = strlen(ptr);
+        size = std::strlen(ptr);
         break;
       }
       case LUA_TSTRING: {
@@ -298,7 +299,7 @@ bool ScriptProcessor::load(const std::string& path) {
   if (!script) return false;
   bool err = false;
   lua_settop(lua, 0);
-  if(luaL_loadstring(lua, script) != 0 || lua_pcall(lua, 0, 0, 0) != 0) {
+  if (luaL_loadstring(lua, script) != 0 || lua_pcall(lua, 0, 0, 0) != 0) {
     reporterror(core, "(init)");
     err = true;
   }
@@ -583,6 +584,7 @@ static void define_module(lua_State* lua) {
   setfieldfunc(lua, "hash_murmur", kt_hash_murmur);
   setfieldfunc(lua, "hash_fnv", kt_hash_fnv);
   setfieldfunc(lua, "time", kt_time);
+  setfieldfunc(lua, "sleep", kt_sleep);
   setfieldfunc(lua, "pack", kt_pack);
   setfieldfunc(lua, "unpack", kt_unpack);
   setfieldfunc(lua, "split", kt_split);
@@ -669,6 +671,22 @@ static int kt_time(lua_State* lua) {
   if (argc != 0) throwinvarg(lua);
   lua_pushnumber(lua, kc::time());
   return 1;
+}
+
+
+/**
+ * Implementation of sleep.
+ */
+static int kt_sleep(lua_State* lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc > 1) throwinvarg(lua);
+  double sec = argc > 0 ? lua_tonumber(lua, 1) : 0;
+  if (sec > 0) {
+    kc::Thread::sleep(sec);
+  } else {
+    kc::Thread::yield();
+  }
+  return 0;
 }
 
 

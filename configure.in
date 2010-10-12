@@ -7,11 +7,11 @@
 #================================================================
 
 # Package name
-AC_INIT(kyototycoon, 0.8.1)
+AC_INIT(kyototycoon, 0.9.0)
 
 # Package information
 MYLIBVER=1
-MYLIBREV=5
+MYLIBREV=6
 
 # Targets
 MYHEADERFILES="ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h"
@@ -116,6 +116,15 @@ AC_ARG_ENABLE(shared,
 if test "$enable_shared" = "no"
 then
   enables="$enables (no-shared)"
+fi
+
+# Disable specific event notifiers
+AC_ARG_ENABLE(event,
+  AC_HELP_STRING([--disable-event], [avoid to use system-specific event notifiers]))
+if test "$enable_event" = "no"
+then
+  MYCPPFLAGS="$MYCPPFLAGS -D_MYNOEVENT"
+  enables="$enables (no-event)"
 fi
 
 # Enable Lua extension

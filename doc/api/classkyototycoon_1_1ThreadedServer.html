@@ -69,6 +69,10 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Log a message.  <a href="#a07cdbd865e687fc73378f57d9c468105"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ThreadedServer.html#a033650b3b115902d9b1883e0a6ce8d3b">log_v</a> (<a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Logger.html#aa29edfef7fa44d651c56937eaaa0a271">Logger::Kind</a> kind, const char *format, va_list ap)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Log a message.  <a href="#a033650b3b115902d9b1883e0a6ce8d3b"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ThreadedServer.html#ae1b250ee799eef3bdab8d5a7190d80ce">connection_count</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the number of connections.  <a href="#ae1b250ee799eef3bdab8d5a7190d80ce"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ThreadedServer.html#abedfb927902b7eb1b6fd1f8d23e41fbf">task_count</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the number of tasks in the queue.  <a href="#abedfb927902b7eb1b6fd1f8d23e41fbf"></a><br/></td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>Interface of poolable I/O event. </p>
@@ -360,8 +364,48 @@
 
 </div>
 </div>
+<a class="anchor" id="ae1b250ee799eef3bdab8d5a7190d80ce"></a><!-- doxytag: member="kyototycoon::ThreadedServer::connection_count" ref="ae1b250ee799eef3bdab8d5a7190d80ce" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t kyototycoon::ThreadedServer::connection_count </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Oct 12 02:57:49 2010 for Kyoto Tycoon by&nbsp;
+<div class="memdoc">
+
+<p>Get the number of connections. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the number of connections. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="abedfb927902b7eb1b6fd1f8d23e41fbf"></a><!-- doxytag: member="kyototycoon::ThreadedServer::task_count" ref="abedfb927902b7eb1b6fd1f8d23e41fbf" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t kyototycoon::ThreadedServer::task_count </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Get the number of tasks in the queue. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the number of tasks in the queue. </dd></dl>
+
+</div>
+</div>
+</div>
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Oct 13 03:23:41 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

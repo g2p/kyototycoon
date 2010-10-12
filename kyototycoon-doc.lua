@@ -88,6 +88,11 @@ function hash_fnv(str) end
 function time() end
 
 
+--- Suspend execution of the current thread.
+-- @param sec the interval of the suspension in seconds.  If it is omitted, the processor is yielded from the current thread.
+function sleep(sec) end
+
+
 --- Serialize an array of numbers into a string.
 -- @param format the format string.  It should be composed of conversion characters.  "c" for int8_t, "C" for uint8_t, "s" for int16_t, "S" for uint16_t, "i" for int32_t, "I" for uint32_t, "l" for int64_t, "L" for uint64_t, "f" for float, "d" for double, "n" for uint16_t in network byte order, "N" for uint32_t in network byte order, "M" for uint64_t in network byte order, and "w" for BER encoding.  They can be trailed by a numeric expression standing for the iteration count or by "*" for the rest all iteration.
 -- @param ary the array of numbers.  It can be trailed optional arguments, which are treated as additional elements of the array.
