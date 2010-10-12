@@ -485,7 +485,12 @@ cp -f "$srcfile" "$destfile"
 
 <p>The timed database is a database type of wrapper of the polymorphic database of Kyoto Cabinet.  The value of each record in the timed database has the 5 bytes prefix to contain the expiration time in seconds from the epoch.  When a database operation accesses a record, the current time and the expiration time of the record is compared.  If the former is larger, the record is regarded as expired.</p>
 
-<p>In order to eliminate or reuse regions of expired records, the timed database has an implicit cursor called "GC cursor".  Every several updating operations have the GC cursor scan the database gradually.  If a scanned record has been expired, the record is removed and its region is registered to the reusable list.  When the GC cursor reaches the end of the database, the tail end unused regions are discarded and the size of the database file is reduced.</p>
+<p>In order to eliminate or reuse regions of expired records, the timed database has an implicit cursor called "GC cursor".  Every several updating operations have the GC cursor scan the database gradually.  If a scanned record has been expired, the record is removed and its region is registered to the reusable list.  When the GC cursor reaches the end of the database, the tail end unused regions are discarded and the size of the database file is reduced.  Thus, meta data such as "count" and "size" have latency from the current status.</p>
+
+<p>The above algorithm means that the GC cursor does not work while the database is not being updated.  However, while the server is idle, the GC cursor works implicitly so that the database keeps compact.  Moreover, If you want to cause the full GC operation explicitly, you can call the "vacuum" procedure.</p>
+
+<pre>$ ktremotemgr vacuum
+</pre>
 
 <p>If you use Kyoto Tycoon for data storage not for cache, create the database with the "-tp" option to disable the GC cursor and omit the time stamp region of each record, for the sake of time and space efficiency.  Note that the "-tp" option works when creating a database and it does not work for existing databases.</p>
 

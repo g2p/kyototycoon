@@ -46,6 +46,13 @@ __kyototycoon__ = {
 }
 
 
+--- Log a message
+-- @param kind the kind of the event.  "debug" for debugging, "info" for normal information, "system" for system information, and "error" for fatal error.
+-- @param message the supplement message.
+-- @return always nil.
+function log(kind, message) end
+
+
 --- Convert a string to an integer.
 -- @param str the string.
 -- @return the integer.  If the string does not contain numeric expression, 0 is returned.
@@ -79,6 +86,64 @@ function hash_fnv(str) end
 --- Get the time of day in seconds.
 -- @return the time of day in seconds.  The accuracy is in microseconds.
 function time() end
+
+
+--- Serialize an array of numbers into a string.
+-- @param format the format string.  It should be composed of conversion characters.  "c" for int8_t, "C" for uint8_t, "s" for int16_t, "S" for uint16_t, "i" for int32_t, "I" for uint32_t, "l" for int64_t, "L" for uint64_t, "f" for float, "d" for double, "n" for uint16_t in network byte order, "N" for uint32_t in network byte order, "M" for uint64_t in network byte order, and "w" for BER encoding.  They can be trailed by a numeric expression standing for the iteration count or by "*" for the rest all iteration.
+-- @param ary the array of numbers.  It can be trailed optional arguments, which are treated as additional elements of the array.
+-- @return the serialized string.
+function pack(format, ary, ...) end
+
+
+--- Deserialize a binary string into an array of numbers.
+-- @param format the format string.  It should be composed of conversion characters as with the pack function.
+-- @param str the binary string.
+-- @return the deserialized array.
+function unpack(format, str) end
+
+
+--- Split a string into substrings.
+-- @param str the string
+-- @param delims a string including separator characters.  If it is omitted, the zero code is specified.
+-- @return an array of substrings.
+function split(str, delims) end
+
+
+--- Encode or decode a string.
+-- @param mode the encoding method; "url" for URL encoding, "~url" for URL decoding, "base" for Base64 encoding, "~base" for Base64 decoding, "hex" for hexadecimal encoding, "~hex" for hexadecimal decoding, "zlib" for ZLIB raw compressing, "~zlib" for ZLIB raw decompressing, "deflate" for ZLIB deflate compressing, "~deflate" for ZLIB deflate decompressing, "gzip" for ZLIB gzip compressing, "~gzip" for ZLIB gzip decompressing.
+-- @param str the string.
+-- @return the result string.
+function codec(mode, str) end
+
+
+--- Perform bit operation of an integer.
+-- @param mode the operator; "and" for bitwise-and operation, "or" for bitwise-or operation, "xor" for bitwise-xor operation, "not" for bitwise-not operation, "left" for left shift operation, "right" for right shift operation.
+-- @param num the integer, which is treated as an unsigned 32-bit integer.
+-- @param aux the auxiliary operand for some operators.
+-- @return the result value.
+function bit(mode, num, aux) end
+
+
+--- Perform substring matching or replacement without evaluating any meta character.
+-- @param str the source string.
+-- @param pattern the matching pattern.
+-- @param alt the alternative string corresponding for the pattern.  If it is omitted, matching check is performed.
+-- @return If the alternative string is specified, the converted string is returned.  If the alternative string is not specified, the index of the substring matching the given pattern or 0 is returned.
+function strstr(str, pattern, alt) end
+
+
+--- Perform forward matching without evaluating any meta character.
+-- @param str the source string.
+-- @param pattern the matching pattern.
+-- @return true if they matches, or false if not.
+function strfwm(str, pattern) end
+
+
+--- Perform backward matching without evaluating any meta character.
+-- @param str the source string.
+-- @param pattern the matching pattern.
+-- @return true if they matches, or false if not.
+function strbwm(str, pattern) end
 
 
 ---

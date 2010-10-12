@@ -2,6 +2,11 @@
 kt = __kyototycoon__
 db = kt.db
 
+-- log the start-up message
+if kt.thid == 0 then
+   kt.log("system", "the Lua script has been loaded")
+end
+
 -- echo back the input data as the output data
 function echo(inmap, outmap)
    for key, value in pairs(inmap) do
@@ -25,6 +30,20 @@ function report(inmap, outmap)
       names = names .. name
    end
    outmap["names"] = names
+   return kt.RVSUCCESS
+end
+
+-- log a message
+function log(inmap, outmap)
+   local kind = inmap.kind
+   local message = inmap.message
+   if not message then
+      return kt.RVEINVALID
+   end
+   if not kind then
+      kind = "info"
+   end
+   kt.log(kind, message)
    return kt.RVSUCCESS
 end
 
@@ -58,6 +77,26 @@ function remove(inmap, outmap)
    return kt.RVSUCCESS
 end
 
+-- increment the numeric string value
+function increment(inmap, outmap)
+   local key = inmap.key
+   local num = inmap.num
+   if not key or not num then
+      return kt.RVEINVALID
+   end
+   local function visit(rkey, rvalue, rxt)
+      rvalue = tonumber(rvalue)
+      if not rvalue then rvalue = 0 end
+      num = rvalue + num
+      return num
+   end
+   if not db:accept(key, visit) then
+      return kt.REINTERNAL
+   end
+   outmap.num = num
+   return kt.RVSUCCESS
+end
+
 -- retrieve the value of a record
 function get(inmap, outmap)
    local key = inmap.key
@@ -85,7 +124,7 @@ function list(inmap, outmap)
    while true do
       local key, value, xt = cur:get(true)
       if not key then break end
-      outmap[key] = value
+      outmap.key = value
    end
    return kt.RVSUCCESS
 end
@@ -119,7 +158,7 @@ function survive(inmap, outmap)
       if not value then
          return kt.Visitor.NOP
       end
-      outmap["old_xt"] = xt
+      outmap.old_xt = xt
       if xt > kt.time() + 3600 then
          return kt.Visitor.NOP
       end

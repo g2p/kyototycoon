@@ -1,3 +1,11 @@
+2010-10-11  Mikio Hirabayashi  <info@fallabs.com>
+
+	* ktserver.cc (Worker::process_idle): a bug related to the read only mode was fixed.
+
+	* myscript.cc (serv_log, kt_pack, kt_unpack, kt_split, kt_codec, kt_bit): new functions.
+
+	- Release: 0.8.1
+
 2010-10-08  Mikio Hirabayashi  <info@fallabs.com>
 
 	* kttimeddb.h (TimedDB::vacuum): new function.

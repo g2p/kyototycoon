@@ -113,6 +113,16 @@
 	</tr>
 
 	<tr>
+	<td class="name" nowrap><a href="#bit">bit</a>&nbsp;(mode, num, aux)</td>
+	<td class="summary">Perform bit operation of an integer.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#codec">codec</a>&nbsp;(mode, str)</td>
+	<td class="summary">Encode or decode a string.</td>
+	</tr>
+
+	<tr>
 	<td class="name" nowrap><a href="#cursor:__call">cursor:__call</a>&nbsp;(db)</td>
 	<td class="summary">Get a pair of the key and the value of the current record.</td>
 	</tr>
@@ -388,8 +398,43 @@
 	</tr>
 
 	<tr>
+	<td class="name" nowrap><a href="#log">log</a>&nbsp;(kind, message)</td>
+	<td class="summary">Log a message </td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#pack">pack</a>&nbsp;(format, ary, ...)</td>
+	<td class="summary">Serialize an array of numbers into a string.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#split">split</a>&nbsp;(str, delims)</td>
+	<td class="summary">Split a string into substrings.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#strbwm">strbwm</a>&nbsp;(str, pattern)</td>
+	<td class="summary">Perform backward matching without evaluating any meta character.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#strfwm">strfwm</a>&nbsp;(str, pattern)</td>
+	<td class="summary">Perform forward matching without evaluating any meta character.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#strstr">strstr</a>&nbsp;(str, pattern, alt)</td>
+	<td class="summary">Perform substring matching or replacement without evaluating any meta character.</td>
+	</tr>
+
+	<tr>
 	<td class="name" nowrap><a href="#time">time</a>&nbsp;()</td>
 	<td class="summary">Get the time of day in seconds.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#unpack">unpack</a>&nbsp;(format, str)</td>
+	<td class="summary">Deserialize a binary string into an array of numbers.</td>
 	</tr>
 
 	<tr>
@@ -721,6 +766,76 @@ Convert a string with a metric prefix to an integer.
 
 <h3>Return value:</h3>
 the integer.  If the string does not contain numeric expression, 0 is returned.  If the integer overflows the domain, INT64_MAX or INT64_MIN is returned according to the sign.
+
+
+
+</dd>
+
+
+
+
+<dt><a name="bit"></a><strong>bit</strong>&nbsp;(mode, num, aux)</dt>
+<dd>
+Perform bit operation of an integer.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  mode: the operator; "and" for bitwise-and operation, "or" for bitwise-or operation, "xor" for bitwise-xor operation, "not" for bitwise-not operation, "left" for left shift operation, "right" for right shift operation.
+	</li>
+	
+	<li>
+	  num: the integer, which is treated as an unsigned 32-bit integer.
+	</li>
+	
+	<li>
+	  aux: the auxiliary operand for some operators.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+the result value.
+
+
+
+</dd>
+
+
+
+
+<dt><a name="codec"></a><strong>codec</strong>&nbsp;(mode, str)</dt>
+<dd>
+Encode or decode a string.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  mode: the encoding method; "url" for URL encoding, "~url" for URL decoding, "base" for Base64 encoding, "~base" for Base64 decoding, "hex" for hexadecimal encoding, "~hex" for hexadecimal decoding, "zlib" for ZLIB raw compressing, "~zlib" for ZLIB raw decompressing, "deflate" for ZLIB deflate compressing, "~deflate" for ZLIB deflate decompressing, "gzip" for ZLIB gzip compressing, "~gzip" for ZLIB gzip decompressing.
+	</li>
+	
+	<li>
+	  str: the string.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+the result string.
 
 
 
@@ -2309,6 +2424,212 @@ the hash value.
 
 
 
+<dt><a name="log"></a><strong>log</strong>&nbsp;(kind, message)</dt>
+<dd>
+Log a message
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  kind: the kind of the event.  "debug" for debugging, "info" for normal information, "system" for system information, and "error" for fatal error.
+	</li>
+	
+	<li>
+	  message: the supplement message.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+always nil.
+
+
+
+</dd>
+
+
+
+
+<dt><a name="pack"></a><strong>pack</strong>&nbsp;(format, ary, ...)</dt>
+<dd>
+Serialize an array of numbers into a string.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  format: the format string.  It should be composed of conversion characters.  "c" for int8_t, "C" for uint8_t, "s" for int16_t, "S" for uint16_t, "i" for int32_t, "I" for uint32_t, "l" for int64_t, "L" for uint64_t, "f" for float, "d" for double, "n" for uint16_t in network byte order, "N" for uint32_t in network byte order, "M" for uint64_t in network byte order, and "w" for BER encoding.  They can be trailed by a numeric expression standing for the iteration count or by "*" for the rest all iteration.
+	</li>
+	
+	<li>
+	  ary: the array of numbers.  It can be trailed optional arguments, which are treated as additional elements of the array.
+	</li>
+	
+	<li>
+	  ...: 
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+the serialized string.
+
+
+
+</dd>
+
+
+
+
+<dt><a name="split"></a><strong>split</strong>&nbsp;(str, delims)</dt>
+<dd>
+Split a string into substrings.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  str: the string
+	</li>
+	
+	<li>
+	  delims: a string including separator characters.  If it is omitted, the zero code is specified.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+an array of substrings.
+
+
+
+</dd>
+
+
+
+
+<dt><a name="strbwm"></a><strong>strbwm</strong>&nbsp;(str, pattern)</dt>
+<dd>
+Perform backward matching without evaluating any meta character.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  str: the source string.
+	</li>
+	
+	<li>
+	  pattern: the matching pattern.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+true if they matches, or false if not.
+
+
+
+</dd>
+
+
+
+
+<dt><a name="strfwm"></a><strong>strfwm</strong>&nbsp;(str, pattern)</dt>
+<dd>
+Perform forward matching without evaluating any meta character.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  str: the source string.
+	</li>
+	
+	<li>
+	  pattern: the matching pattern.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+true if they matches, or false if not.
+
+
+
+</dd>
+
+
+
+
+<dt><a name="strstr"></a><strong>strstr</strong>&nbsp;(str, pattern, alt)</dt>
+<dd>
+Perform substring matching or replacement without evaluating any meta character.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  str: the source string.
+	</li>
+	
+	<li>
+	  pattern: the matching pattern.
+	</li>
+	
+	<li>
+	  alt: the alternative string corresponding for the pattern.  If it is omitted, matching check is performed.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+If the alternative string is specified, the converted string is returned.  If the alternative string is not specified, the index of the substring matching the given pattern or 0 is returned.
+
+
+
+</dd>
+
+
+
+
 <dt><a name="time"></a><strong>time</strong>&nbsp;()</dt>
 <dd>
 Get the time of day in seconds.
@@ -2321,6 +2642,39 @@ Get the time of day in seconds.
 
 <h3>Return value:</h3>
 the time of day in seconds.  The accuracy is in microseconds.
+
+
+
+</dd>
+
+
+
+
+<dt><a name="unpack"></a><strong>unpack</strong>&nbsp;(format, str)</dt>
+<dd>
+Deserialize a binary string into an array of numbers.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  format: the format string.  It should be composed of conversion characters as with the pack function.
+	</li>
+	
+	<li>
+	  str: the binary string.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+the deserialized array.
 
 
 

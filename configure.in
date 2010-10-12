@@ -7,11 +7,11 @@
 #================================================================
 
 # Package name
-AC_INIT(kyototycoon, 0.8.0)
+AC_INIT(kyototycoon, 0.8.1)
 
 # Package information
 MYLIBVER=1
-MYLIBREV=4
+MYLIBREV=5
 
 # Targets
 MYHEADERFILES="ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h"
@@ -188,7 +188,7 @@ then
   then
     CC="ccache $CC"
     CXX="ccache $CXX"
-    ccache -C >/dev/null 2>&1
+    ccache -C >config.tmp 2>&1
   fi
 fi
 
@@ -204,7 +204,7 @@ test -n "$LDFLAGS" && MYLDFLAGS="$LDFLAGS $MYLDFLAGS"
 
 # System-depending optimization
 printf 'checking for 64-bit availability... '
-if printf 'main() {}' | $CC -xc -m64 -o /dev/null - >/dev/null 2>&1
+if printf 'main() {}' | $CC -xc -m64 -o config.tmp - >config.tmp 2>&1
 then
   MYCFLAGS="-m64 $MYCFLAGS"
   MYCXXFLAGS="-m64 $MYCXXFLAGS"
@@ -213,7 +213,7 @@ else
   printf 'no\n'
 fi
 printf 'checking whether the CPU is i686... '
-if uname -a | egrep ' i686' >/dev/null
+if uname -a | egrep ' i686' >config.tmp
 then
   MYCXXFLAGS="-march=i686 $MYCXXFLAGS"
   printf 'yes\n'
@@ -254,7 +254,7 @@ then
 fi
 
 # Checking the version of Kyoto Cabinet with pkg-config
-if type pkg-config > /dev/null 2>&1
+if type pkg-config >config.tmp 2>&1
 then
   printf 'checking Kyoto Cabinet by pkg-config... '
   if pkg-config --atleast-version=1.2.16 kyotocabinet
@@ -269,7 +269,7 @@ fi
 # Shared libraries
 if test "$enable_shared" != "no" && test "$enable_profile" != "yes"
 then
-  if uname | grep Darwin >/dev/null
+  if uname | grep Darwin >config.tmp
   then
     MYLIBRARYFILES="$MYLIBRARYFILES libkyototycoon.$MYLIBVER.$MYLIBREV.0.dylib"
     MYLIBRARYFILES="$MYLIBRARYFILES libkyototycoon.$MYLIBVER.dylib"
@@ -283,7 +283,7 @@ then
 fi
 
 # Work around of bugs of some environments
-if uname | grep Darwin >/dev/null
+if uname | grep Darwin >config.tmp
 then
   MYCFLAGS="$MYCFLAGS -Os"
   MYCXXFLAGS="$MYCXXFLAGS -Os"

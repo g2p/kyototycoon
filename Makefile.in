@@ -153,7 +153,8 @@ dist :
 
 distclean : clean
 	cd example && $(MAKE) clean
-	rm -rf Makefile kyototycoon.pc config.cache config.log config.status autom4te.cache
+	rm -rf Makefile kyototycoon.pc \
+	  config.cache config.log config.status config.tmp autom4te.cache
 	which ccache >/dev/null 2>&1 && ccache -C >/dev/null 2>&1
 
 
@@ -291,6 +292,7 @@ check-timed :
 check-remote :
 	$(RUNENV) $(RUNCMD) ./ktremotemgr report
 	$(RUNENV) $(RUNCMD) ./ktremotemgr inform -st
+	$(RUNENV) $(RUNCMD) ./ktremotemgr clear
 	$(RUNENV) $(RUNCMD) ./ktremotemgr set -add -xt 3600 duffy 1231
 	$(RUNENV) $(RUNCMD) ./ktremotemgr set -add -xt 3600 micky 0101
 	$(RUNENV) $(RUNCMD) ./ktremotemgr set -xt 3600 fal 1007
@@ -354,7 +356,7 @@ doc :
 	      -e 's/.*validator\.w3\.org.*/Kyoto Tycoon Manual/' $$name > $$name~ ; \
 	    [ -f $$name~ ] && mv -f $$name~ $$name ; \
 	  done
-	lua docrefine.lua
+	lua lab/docrefine.lua
 
 
 docclean :

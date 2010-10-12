@@ -124,9 +124,9 @@ private:
 public:
   // constructor
   Worker(int32_t thnum, kt::TimedDB* dbs, int32_t dbnum,
-         const std::map<std::string, int32_t>& dbmap,
+         const std::map<std::string, int32_t>& dbmap, int32_t omode,
          const char* cmdpath, ScriptProcessor* scrprocs) :
-    thnum_(thnum), dbs_(dbs), dbnum_(dbnum), dbmap_(dbmap),
+    thnum_(thnum), dbs_(dbs), dbnum_(dbnum), dbmap_(dbmap), omode_(omode),
     cmdpath_(cmdpath), scrprocs_(scrprocs), idlecnt_(0) {}
   // destructor
   ~Worker() {}
@@ -299,6 +299,7 @@ private:
   }
   // process each idle ivent
   void process_idle(kt::RPCServer* serv) {
+    if (!(omode_ & kc::BasicDB::OWRITER)) return;
     int32_t dbidx = idlecnt_.add(1) % dbnum_;
     kt::TimedDB* db = dbs_ + dbidx;
     if (!db->vacuum(4)) {
@@ -1391,6 +1392,7 @@ private:
   kt::TimedDB* const dbs_;
   const int32_t dbnum_;
   const std::map<std::string, int32_t>& dbmap_;
+  const int32_t omode_;
   const char* cmdpath_;
   ScriptProcessor* scrprocs_;
   kc::AtomicInt64 idlecnt_;
@@ -1625,7 +1627,7 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
       }
     }
   }
-  Worker worker(thnum, dbs, dbnum, dbmap, cmdpath, scrprocs);
+  Worker worker(thnum, dbs, dbnum, dbmap, omode, cmdpath, scrprocs);
   serv.set_worker(&worker, thnum);
   if (pidpath) {
     char numbuf[kc::NUMBUFSIZ];

@@ -50,6 +50,14 @@ static int kt_atof(lua_State* lua);
 static int kt_hash_murmur(lua_State* lua);
 static int kt_hash_fnv(lua_State* lua);
 static int kt_time(lua_State* lua);
+static int kt_pack(lua_State* lua);
+static int kt_unpack(lua_State *lua);
+static int kt_split(lua_State *lua);
+static int kt_codec(lua_State *lua);
+static int kt_bit(lua_State *lua);
+static int kt_strstr(lua_State *lua);
+static int kt_strfwm(lua_State *lua);
+static int kt_strbwm(lua_State *lua);
 static void define_err(lua_State* lua);
 static int err_new(lua_State* lua);
 static int err_tostring(lua_State* lua);
@@ -120,6 +128,7 @@ static int db_status(lua_State* lua);
 static int db_cursor(lua_State* lua);
 static int db_cursor_process(lua_State* lua);
 static int db_pairs(lua_State* lua);
+static int serv_log(lua_State* lua);
 
 
 /**
@@ -233,6 +242,8 @@ bool ScriptProcessor::set_resources(int32_t thid, kt::RPCServer* serv,
   define_db(lua);
   lua_setglobal(lua, "__kyototycoon__");
   lua_getglobal(lua, "__kyototycoon__");
+  lua_pushlightuserdata(lua, serv);
+  lua_setfield(lua, -2, "__serv__");
   setfieldstr(lua, "VERSION", kt::VERSION);
   setfielduint(lua, "RVSUCCESS", kt::RPCClient::RVSUCCESS);
   setfielduint(lua, "RVENOIMPL", kt::RPCClient::RVENOIMPL);
@@ -263,6 +274,7 @@ bool ScriptProcessor::set_resources(int32_t thid, kt::RPCServer* serv,
   }
   lua_setfield(lua, -3, "dbs");
   lua_pop(lua, 1);
+  setfieldfunc(lua, "log", serv_log);
   lua_settop(lua, 0);
   core->thid = thid;
   core->serv = serv;
@@ -571,6 +583,14 @@ static void define_module(lua_State* lua) {
   setfieldfunc(lua, "hash_murmur", kt_hash_murmur);
   setfieldfunc(lua, "hash_fnv", kt_hash_fnv);
   setfieldfunc(lua, "time", kt_time);
+  setfieldfunc(lua, "pack", kt_pack);
+  setfieldfunc(lua, "unpack", kt_unpack);
+  setfieldfunc(lua, "split", kt_split);
+  setfieldfunc(lua, "codec", kt_codec);
+  setfieldfunc(lua, "bit", kt_bit);
+  setfieldfunc(lua, "strstr", kt_strstr);
+  setfieldfunc(lua, "strfwm", kt_strfwm);
+  setfieldfunc(lua, "strbwm", kt_strbwm);
 }
 
 
@@ -648,6 +668,608 @@ static int kt_time(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
   if (argc != 0) throwinvarg(lua);
   lua_pushnumber(lua, kc::time());
+  return 1;
+}
+
+
+/**
+ * Implementation of pack.
+ */
+static int kt_pack(lua_State* lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc < 1) throwinvarg(lua);
+  const char* format = lua_tostring(lua, 1);
+  if (!format) throwinvarg(lua);
+  lua_newtable(lua);
+  int32_t aidx = argc + 1;
+  int32_t eidx = 1;
+  for (int32_t i = 2; i <= argc; i++) {
+    size_t len;
+    switch (lua_type(lua, i)) {
+      case LUA_TNUMBER: case LUA_TSTRING: {
+        lua_pushvalue(lua, i);
+        lua_rawseti(lua, aidx, eidx++);
+        break;
+      }
+      case LUA_TTABLE: {
+        len = lua_objlen(lua, i);
+        for (size_t j = 1; j <= len; j++) {
+          lua_rawgeti(lua, i, j);
+          lua_rawseti(lua, aidx, eidx++);
+        }
+        break;
+      }
+      default: {
+        lua_pushnumber(lua, 0);
+        lua_rawseti(lua, aidx, eidx++);
+        break;
+      }
+    }
+  }
+  lua_replace(lua, 2);
+  lua_settop(lua, 2);
+  std::string xstr;
+  int32_t emax = eidx - 1;
+  eidx = 1;
+  while (*format != '\0') {
+    int32_t c = *format;
+    int32_t loop = 1;
+    if (format[1] == '*') {
+      loop = INT32_MAX;
+      format++;
+    } else if (format[1] >= '0' && format[1] <= '9') {
+      char* suffix;
+      loop = std::strtol(format + 1, &suffix, 10);
+      format = suffix - 1;
+    }
+    loop = loop < emax ? loop : emax;
+    int32_t end = eidx + loop - 1;
+    if (end > emax) end = emax;
+    while (eidx <= end) {
+      lua_rawgeti(lua, 2, eidx);
+      double num = lua_tonumber(lua, 3);
+      lua_pop(lua, 1);
+      uint8_t cnum;
+      uint16_t snum;
+      uint32_t inum;
+      uint64_t lnum;
+      double dnum;
+      float fnum;
+      uint64_t wnum;
+      char wbuf[kc::NUMBUFSIZ], *wp;
+      switch (c) {
+        case 'c': case 'C': {
+          cnum = num;
+          xstr.append((char*)&cnum, sizeof(cnum));
+          break;
+        }
+        case 's': case 'S': {
+          snum = num;
+          xstr.append((char*)&snum, sizeof(snum));
+          break;
+        }
+        case 'i': case 'I': {
+          inum = num;
+          xstr.append((char*)&inum, sizeof(inum));
+          break;
+        }
+        case 'l': case 'L': {
+          lnum = num;
+          xstr.append((char*)&lnum, sizeof(lnum));
+          break;
+        }
+        case 'f': case 'F': {
+          fnum = num;
+          xstr.append((char*)&fnum, sizeof(fnum));
+          break;
+        }
+        case 'd': case 'D': {
+          dnum = num;
+          xstr.append((char*)&dnum, sizeof(dnum));
+          break;
+        }
+        case 'n': {
+          snum = num;
+          snum = kc::hton16(snum);
+          xstr.append((char*)&snum, sizeof(snum));
+          break;
+        }
+        case 'N': {
+          inum = num;
+          inum = kc::hton32(inum);
+          xstr.append((char*)&inum, sizeof(inum));
+          break;
+        }
+        case 'M': {
+          lnum = num;
+          lnum = kc::hton64(lnum);
+          xstr.append((char*)&lnum, sizeof(lnum));
+          break;
+        }
+        case 'w': case 'W': {
+          wnum = num;
+          wp = wbuf;
+          if (wnum < (1ULL << 7)) {
+            *(wp++) = wnum;
+          } else if (wnum < (1ULL << 14)) {
+            *(wp++) = (wnum >> 7) | 0x80;
+            *(wp++) = wnum & 0x7f;
+          } else if (wnum < (1ULL << 21)) {
+            *(wp++) = (wnum >> 14) | 0x80;
+            *(wp++) = ((wnum >> 7) & 0x7f) | 0x80;
+            *(wp++) = wnum & 0x7f;
+          } else if (wnum < (1ULL << 28)) {
+            *(wp++) = (wnum >> 21) | 0x80;
+            *(wp++) = ((wnum >> 14) & 0x7f) | 0x80;
+            *(wp++) = ((wnum >> 7) & 0x7f) | 0x80;
+            *(wp++) = wnum & 0x7f;
+          } else if (wnum < (1ULL << 35)) {
+            *(wp++) = (wnum >> 28) | 0x80;
+            *(wp++) = ((wnum >> 21) & 0x7f) | 0x80;
+            *(wp++) = ((wnum >> 14) & 0x7f) | 0x80;
+            *(wp++) = ((wnum >> 7) & 0x7f) | 0x80;
+            *(wp++) = wnum & 0x7f;
+          } else if (wnum < (1ULL << 42)) {
+            *(wp++) = (wnum >> 35) | 0x80;
+            *(wp++) = ((wnum >> 28) & 0x7f) | 0x80;
+            *(wp++) = ((wnum >> 21) & 0x7f) | 0x80;
+            *(wp++) = ((wnum >> 14) & 0x7f) | 0x80;
+            *(wp++) = ((wnum >> 7) & 0x7f) | 0x80;
+            *(wp++) = wnum & 0x7f;
+          } else if (wnum < (1ULL << 49)) {
+            *(wp++) = (wnum >> 42) | 0x80;
+            *(wp++) = ((wnum >> 35) & 0x7f) | 0x80;
+            *(wp++) = ((wnum >> 28) & 0x7f) | 0x80;
+            *(wp++) = ((wnum >> 21) & 0x7f) | 0x80;
+            *(wp++) = ((wnum >> 14) & 0x7f) | 0x80;
+            *(wp++) = ((wnum >> 7) & 0x7f) | 0x80;
+            *(wp++) = wnum & 0x7f;
+          } else if (wnum < (1ULL << 56)) {
+            *(wp++) = (wnum >> 49) | 0x80;
+            *(wp++) = ((wnum >> 42) & 0x7f) | 0x80;
+            *(wp++) = ((wnum >> 35) & 0x7f) | 0x80;
+            *(wp++) = ((wnum >> 28) & 0x7f) | 0x80;
+            *(wp++) = ((wnum >> 21) & 0x7f) | 0x80;
+            *(wp++) = ((wnum >> 14) & 0x7f) | 0x80;
+            *(wp++) = ((wnum >> 7) & 0x7f) | 0x80;
+            *(wp++) = wnum & 0x7f;
+          } else {
+            *(wp++) = (wnum >> 63) | 0x80;
+            *(wp++) = ((wnum >> 49) & 0x7f) | 0x80;
+            *(wp++) = ((wnum >> 42) & 0x7f) | 0x80;
+            *(wp++) = ((wnum >> 35) & 0x7f) | 0x80;
+            *(wp++) = ((wnum >> 28) & 0x7f) | 0x80;
+            *(wp++) = ((wnum >> 21) & 0x7f) | 0x80;
+            *(wp++) = ((wnum >> 14) & 0x7f) | 0x80;
+            *(wp++) = ((wnum >> 7) & 0x7f) | 0x80;
+            *(wp++) = wnum & 0x7f;
+          }
+          xstr.append(wbuf, wp - wbuf);
+          break;
+        }
+      }
+      eidx++;
+    }
+    format++;
+    if (eidx > emax) break;
+  }
+  lua_pushlstring(lua, xstr.data(), xstr.size());
+  return 1;
+}
+
+
+/**
+ * Implementation of unpack.
+ */
+static int kt_unpack(lua_State *lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc != 2) throwinvarg(lua);
+  const char* format = lua_tostring(lua, 1);
+  size_t size;
+  const char* buf = lua_tolstring(lua, 2, &size);
+  if (!format) throwinvarg(lua);
+  if (!buf) {
+    buf = "";
+    size = 0;
+  }
+  lua_newtable(lua);
+  const char* rp = buf;
+  int32_t eidx = 1;
+  while (*format != '\0') {
+    int32_t c = *format;
+    int32_t loop = 1;
+    if (format[1] == '*') {
+      loop = INT32_MAX;
+      format++;
+    } else if (format[1] >= '0' && format[1] <= '9') {
+      char* suffix;
+      loop = strtol(format + 1, &suffix, 10);
+      format = suffix - 1;
+    }
+    loop = loop < (int32_t)size ? loop : size;
+    for (int32_t i = 0; i < loop && size > 0; i++) {
+      uint8_t cnum;
+      uint16_t snum;
+      uint32_t inum;
+      uint64_t lnum;
+      float fnum;
+      double dnum;
+      uint64_t wnum;
+      switch (c) {
+        case 'c': {
+          if (size >= sizeof(cnum)) {
+            std::memcpy(&cnum, rp, sizeof(cnum));
+            lua_pushnumber(lua, (int8_t)cnum);
+            lua_rawseti(lua, 3, eidx++);
+            rp += sizeof(cnum);
+            size -= sizeof(cnum);
+          } else {
+            size = 0;
+          }
+          break;
+        }
+        case 'C': {
+          if (size >= sizeof(cnum)) {
+            std::memcpy(&cnum, rp, sizeof(cnum));
+            lua_pushnumber(lua, (uint8_t)cnum);
+            lua_rawseti(lua, 3, eidx++);
+            rp += sizeof(cnum);
+            size -= sizeof(cnum);
+          } else {
+            size = 0;
+          }
+          break;
+        }
+        case 's': {
+          if (size >= sizeof(snum)) {
+            std::memcpy(&snum, rp, sizeof(snum));
+            lua_pushnumber(lua, (int16_t)snum);
+            lua_rawseti(lua, 3, eidx++);
+            rp += sizeof(snum);
+            size -= sizeof(snum);
+          } else {
+            size = 0;
+          }
+          break;
+        }
+        case 'S': {
+          if (size >= sizeof(snum)) {
+            std::memcpy(&snum, rp, sizeof(snum));
+            lua_pushnumber(lua, (uint16_t)snum);
+            lua_rawseti(lua, 3, eidx++);
+            rp += sizeof(snum);
+            size -= sizeof(snum);
+          } else {
+            size = 0;
+          }
+          break;
+        }
+        case 'i': {
+          if (size >= sizeof(inum)) {
+            std::memcpy(&inum, rp, sizeof(inum));
+            lua_pushnumber(lua, (int32_t)inum);
+            lua_rawseti(lua, 3, eidx++);
+            rp += sizeof(inum);
+            size -= sizeof(inum);
+          } else {
+            size = 0;
+          }
+          break;
+        }
+        case 'I': {
+          if (size >= sizeof(inum)) {
+            std::memcpy(&inum, rp, sizeof(inum));
+            lua_pushnumber(lua, (uint32_t)inum);
+            lua_rawseti(lua, 3, eidx++);
+            rp += sizeof(inum);
+            size -= sizeof(inum);
+          } else {
+            size = 0;
+          }
+          break;
+        }
+        case 'l': {
+          if (size >= sizeof(lnum)) {
+            std::memcpy(&lnum, rp, sizeof(lnum));
+            lua_pushnumber(lua, (int64_t)lnum);
+            lua_rawseti(lua, 3, eidx++);
+            rp += sizeof(lnum);
+            size -= sizeof(lnum);
+          } else {
+            size = 0;
+          }
+          break;
+        }
+        case 'L': {
+          if (size >= sizeof(lnum)) {
+            std::memcpy(&lnum, rp, sizeof(lnum));
+            lua_pushnumber(lua, (uint64_t)lnum);
+            lua_rawseti(lua, 3, eidx++);
+            rp += sizeof(lnum);
+            size -= sizeof(lnum);
+          } else {
+            size = 0;
+          }
+          break;
+        }
+        case 'f': case 'F': {
+          if (size >= sizeof(fnum)) {
+            std::memcpy(&fnum, rp, sizeof(fnum));
+            lua_pushnumber(lua, (float)fnum);
+            lua_rawseti(lua, 3, eidx++);
+            rp += sizeof(fnum);
+            size -= sizeof(fnum);
+          } else {
+            size = 0;
+          }
+          break;
+        }
+        case 'd': case 'D': {
+          if (size >= sizeof(dnum)) {
+            std::memcpy(&dnum, rp, sizeof(dnum));
+            lua_pushnumber(lua, (double)dnum);
+            lua_rawseti(lua, 3, eidx++);
+            rp += sizeof(dnum);
+            size -= sizeof(dnum);
+          } else {
+            size = 0;
+          }
+          break;
+        }
+        case 'n': {
+          if (size >= sizeof(snum)) {
+            std::memcpy(&snum, rp, sizeof(snum));
+            snum = kc::ntoh16(snum);
+            lua_pushnumber(lua, (uint16_t)snum);
+            lua_rawseti(lua, 3, eidx++);
+            rp += sizeof(snum);
+            size -= sizeof(snum);
+          } else {
+            size = 0;
+          }
+          break;
+        }
+        case 'N': {
+          if (size >= sizeof(inum)) {
+            std::memcpy(&inum, rp, sizeof(inum));
+            inum = kc::ntoh32(inum);
+            lua_pushnumber(lua, (uint32_t)inum);
+            lua_rawseti(lua, 3, eidx++);
+            rp += sizeof(inum);
+            size -= sizeof(inum);
+          } else {
+            size = 0;
+          }
+          break;
+        }
+        case 'M': {
+          if (size >= sizeof(lnum)) {
+            std::memcpy(&lnum, rp, sizeof(lnum));
+            lnum = kc::ntoh64(lnum);
+            lua_pushnumber(lua, (uint64_t)lnum);
+            lua_rawseti(lua, 3, eidx++);
+            rp += sizeof(lnum);
+            size -= sizeof(lnum);
+          } else {
+            size = 0;
+          }
+          break;
+        }
+        case 'w': case 'W': {
+          wnum = 0;
+          do {
+            inum = *(unsigned char*)rp;
+            wnum = wnum * 0x80 + (inum & 0x7f);
+            rp++;
+            size--;
+          } while (inum >= 0x80 && size > 0);
+          lua_pushnumber(lua, (uint64_t)wnum);
+          lua_rawseti(lua, 3, eidx++);
+          break;
+        }
+      }
+    }
+    format++;
+    if (size < 1) break;
+  }
+  return 1;
+}
+
+
+/**
+ * Implementation of split.
+ */
+static int kt_split(lua_State *lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc < 1) throwinvarg(lua);
+  size_t isiz;
+  const char* ibuf = lua_tolstring(lua, 1, &isiz);
+  if (!ibuf) throwinvarg(lua);
+  const char* delims = argc > 1 ? lua_tostring(lua, 2) : NULL;
+  lua_newtable(lua);
+  int32_t lnum = 1;
+  if (delims) {
+    const char* str = ibuf;
+    while (true) {
+      const char* sp = str;
+      while (*str != '\0' && !std::strchr(delims, *str)) {
+        str++;
+      }
+      lua_pushlstring(lua, sp, str - sp);
+      lua_rawseti(lua, -2, lnum++);
+      if (*str == '\0') break;
+      str++;
+    }
+  } else {
+    const char* ptr = ibuf;
+    int32_t size = isiz;
+    while (size >= 0) {
+      const char* rp = ptr;
+      const char* ep = ptr + size;
+      while (rp < ep) {
+        if (*rp == '\0') break;
+        rp++;
+      }
+      lua_pushlstring(lua, ptr, rp - ptr);
+      lua_rawseti(lua, -2, lnum++);
+      rp++;
+      size -= rp - ptr;
+      ptr = rp;
+    }
+  }
+  return 1;
+}
+
+
+/**
+ * Implementation of codec.
+ */
+static int kt_codec(lua_State *lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc != 2) throwinvarg(lua);
+  const char* mode = lua_tostring(lua, 1);
+  size_t isiz;
+  const char* ibuf = lua_tolstring(lua, 2, &isiz);
+  if (!mode || !ibuf) throwinvarg(lua);
+  char* obuf = NULL;
+  size_t osiz = 0;
+  if (*mode == '~') {
+    mode++;
+    if (!kc::stricmp(mode, "url")) {
+      obuf = kc::urldecode(ibuf, &osiz);
+    } else if (!kc::stricmp(mode, "base")) {
+      obuf = kc::basedecode(ibuf, &osiz);
+    } else if (!kc::stricmp(mode, "quote")) {
+      obuf = kc::quotedecode(ibuf, &osiz);
+    } else if (!kc::stricmp(mode, "hex")) {
+      obuf = kc::hexdecode(ibuf, &osiz);
+    } else if (!kc::stricmp(mode, "zlib")) {
+      obuf = kc::ZLIB::decompress(ibuf, isiz, &osiz, kc::ZLIB::RAW);
+    } else if (!kc::stricmp(mode, "deflate")) {
+      obuf = kc::ZLIB::decompress(ibuf, isiz, &osiz, kc::ZLIB::DEFLATE);
+    } else if (!kc::stricmp(mode, "gzip")) {
+      obuf = kc::ZLIB::decompress(ibuf, isiz, &osiz, kc::ZLIB::GZIP);
+    }
+  } else {
+    if (!kc::stricmp(mode, "url")) {
+      obuf = kc::urlencode(ibuf, isiz);
+      osiz = obuf ? std::strlen(obuf) : 0;
+    } else if (!kc::stricmp(mode, "base")) {
+      obuf = kc::baseencode(ibuf, isiz);
+      osiz = obuf ? std::strlen(obuf) : 0;
+    } else if (!kc::stricmp(mode, "quote")) {
+      obuf = kc::quoteencode(ibuf, isiz);
+      osiz = obuf ? std::strlen(obuf) : 0;
+    } else if (!kc::stricmp(mode, "hex")) {
+      obuf = kc::hexencode(ibuf, isiz);
+      osiz = obuf ? std::strlen(obuf) : 0;
+    } else if (!kc::stricmp(mode, "zlib")) {
+      obuf = kc::ZLIB::compress(ibuf, isiz, &osiz, kc::ZLIB::RAW);
+    } else if (!kc::stricmp(mode, "deflate")) {
+      obuf = kc::ZLIB::compress(ibuf, isiz, &osiz, kc::ZLIB::DEFLATE);
+    } else if (!kc::stricmp(mode, "gzip")) {
+      obuf = kc::ZLIB::compress(ibuf, isiz, &osiz, kc::ZLIB::GZIP);
+    }
+  }
+  if (obuf) {
+    lua_pushlstring(lua, obuf, osiz);
+    delete[] obuf;
+  } else {
+    lua_pushnil(lua);
+  }
+  return 1;
+}
+
+
+/**
+ * Implementation of bit.
+ */
+static int kt_bit(lua_State *lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc < 2) throwinvarg(lua);
+  const char* mode = lua_tostring(lua, 1);
+  uint32_t num = lua_tonumber(lua, 2);
+  uint32_t aux = argc > 2 ? lua_tonumber(lua, 3) : 0;
+  if (!mode) throwinvarg(lua);
+  if (!kc::stricmp(mode, "and")) {
+    num &= aux;
+  } else if (!kc::stricmp(mode, "or")) {
+    num |= aux;
+  } else if (!kc::stricmp(mode, "xor")) {
+    num ^= aux;
+  } else if (!kc::stricmp(mode, "not")) {
+    num = ~num;
+  } else if (!kc::stricmp(mode, "left")) {
+    num <<= aux;
+  } else if (!kc::stricmp(mode, "right")) {
+    num >>= aux;
+  }
+  lua_pushnumber(lua, num);
+  return 1;
+}
+
+
+/**
+ * Implementation of strstr.
+ */
+static int kt_strstr(lua_State *lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc < 2) throwinvarg(lua);
+  const char* str = lua_tostring(lua, 1);
+  const char* pat = lua_tostring(lua, 2);
+  if (!str || !pat) throwinvarg(lua);
+  const char* alt = argc > 2 ? lua_tostring(lua, 3) : NULL;
+  if (alt) {
+    std::string xstr;
+    size_t plen = std::strlen(pat);
+    size_t alen = std::strlen(alt);
+    if (plen > 0) {
+      const char* pv;
+      while ((pv = std::strstr(str, pat)) != NULL) {
+        xstr.append(str, pv - str);
+        xstr.append(alt, alen);
+        str = pv + plen;
+      }
+    }
+    xstr.append(str);
+    lua_pushlstring(lua, xstr.data(), xstr.size());
+  } else {
+    const char* pv = std::strstr(str, pat);
+    if (pv) {
+      int32_t idx = pv - str + 1;
+      lua_pushinteger(lua, idx);
+    } else {
+      lua_pushinteger(lua, 0);
+    }
+  }
+  return 1;
+}
+
+
+/**
+ * Implementation of strfwm.
+ */
+static int kt_strfwm(lua_State *lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc < 2) throwinvarg(lua);
+  const char* str = lua_tostring(lua, 1);
+  const char* pat = lua_tostring(lua, 2);
+  if (!str || !pat) throwinvarg(lua);
+  lua_pushboolean(lua, kc::strfwm(str, pat));
+  return 1;
+}
+
+
+/**
+ * Implementation of strbwm.
+ */
+static int kt_strbwm(lua_State *lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc < 2) throwinvarg(lua);
+  const char* str = lua_tostring(lua, 1);
+  const char* pat = lua_tostring(lua, 2);
+  if (!str || !pat) throwinvarg(lua);
+  lua_pushboolean(lua, kc::strbwm(str, pat));
   return 1;
 }
 
@@ -2080,6 +2702,32 @@ static int db_pairs(lua_State* lua) {
   lua_pushvalue(lua, 1);
   lua_pushnil(lua);
   return 3;
+}
+
+
+/**
+ * Implementation of log.
+ */
+static int serv_log(lua_State* lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc != 2 || !lua_isstring(lua, 1)) throwinvarg(lua);
+  lua_getglobal(lua, "__kyototycoon__");
+  lua_getfield(lua, -1, "__serv__");
+  kt::RPCServer* serv = (kt::RPCServer*)lua_touserdata(lua, -1);
+  const char* kstr = lua_tostring(lua, 1);
+  const char* message = lua_tostring(lua, 2);
+  if (kstr && message) {
+    kt::RPCServer::Logger::Kind kind = kt::RPCServer::Logger::DEBUG;
+    if (!kc::stricmp(kstr, "info")) {
+      kind = kt::RPCServer::Logger::INFO;
+    } else if (!kc::stricmp(kstr, "system")) {
+      kind = kt::RPCServer::Logger::SYSTEM;
+    } else if (!kc::stricmp(kstr, "error")) {
+      kind = kt::RPCServer::Logger::ERROR;
+    }
+    serv->log(kind, "[SCRIPT]: %s", message);
+  }
+  return 0;
 }
 
 
