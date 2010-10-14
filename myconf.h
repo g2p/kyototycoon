@@ -90,13 +90,15 @@
 
 #endif
 
-#define _KT_VERSION    "0.9.0"
+#define _KT_VERSION    "0.9.1"
 #define _KT_LIBVER     1
-#define _KT_LIBREV     6
+#define _KT_LIBREV     7
 
 #if ! defined(_MYNOEVENT)
 #if defined(_SYS_LINUX_)
 #define _KT_EVENT_EPOLL
+#elif defined(_SYS_FREEBSD_) || defined(_SYS_MACOSX_)
+#define _KT_EVENT_KQUEUE
 #endif
 #endif
 

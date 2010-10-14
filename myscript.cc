@@ -1300,7 +1300,7 @@ static void define_err(lua_State* lua) {
   setfielduint(lua, "SUCCESS", kc::BasicDB::Error::SUCCESS);
   setfielduint(lua, "NOIMPL", kc::BasicDB::Error::NOIMPL);
   setfielduint(lua, "INVALID", kc::BasicDB::Error::INVALID);
-  setfielduint(lua, "NOENTRY", kc::BasicDB::Error::NOENTRY);
+  setfielduint(lua, "NOREPOS", kc::BasicDB::Error::NOREPOS);
   setfielduint(lua, "NOPERM", kc::BasicDB::Error::NOPERM);
   setfielduint(lua, "BROKEN", kc::BasicDB::Error::BROKEN);
   setfielduint(lua, "DUPREC", kc::BasicDB::Error::DUPREC);

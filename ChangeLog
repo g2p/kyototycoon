@@ -1,3 +1,9 @@
+2010-10-14  Mikio Hirabayashi  <info@fallabs.com>
+
+	* ktsocket.c (Poller::Poller, Poller::~Poller, Poller::wait): "kqueue" is now supported.
+
+	- Release: 0.9.1
+
 2010-10-13  Mikio Hirabayashi  <info@fallabs.com>
 
 	* ktsocket.c (Poller::Poller, Poller::~Poller, Poller::wait): "epoll" is now supported.

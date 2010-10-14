@@ -91,10 +91,9 @@ pre {
 
 <p>Because the server uses respective instances of the Lua processor for each native thread, you cannot use global variables to share data among sessions.  Use a cache database managed by the server for that purpose.</p>
 
-<p>The following is an example.</p>
+<p>The following is an example code.</p>
 
-<pre>-- global variables
-kt = __kyototycoon__
+<pre>kt = __kyototycoon__
 db = kt.db
 
 -- log the start-up message
@@ -265,6 +264,22 @@ function survive(inmap, outmap)
    return kt.RVSUCCESS
 end
 </pre>
+
+<p>To call the above functions, execute the following commands.</p>
+
+<pre>$ ktremotemgr script -arg key1 value1 -arg key2 value2 echo
+$ ktremotemgr script report
+$ ktremotemgr script -arg kind info -arg message hello log
+$ ktremotemgr script -arg key one -arg value first set
+$ ktremotemgr script -arg key two -arg value second set
+$ ktremotemgr script -arg key three -arg value third set
+$ ktremotemgr script -arg key three remove
+$ ktremotemgr script -arg key two get
+$ ktremotemgr script list
+</pre>
+
+
+
 <h2>Modules</h2>
 <table class="module_list">
 <!--<tr><td colspan="2">Modules</td></tr>-->

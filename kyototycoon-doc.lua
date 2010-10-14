@@ -158,7 +158,7 @@ function strbwm(str, pattern) end
 -- @field SUCCESS error code: success
 -- @field NOIMPL error code: not implemented
 -- @field INVALID error code: invalid operation
--- @field NOENTRY error code: file not found
+-- @field NOREPOS error code: no repository
 -- @field NOPERM error code: no permission
 -- @field BROKEN error code: broken file
 -- @field DUPREC error code: record duplication
@@ -171,7 +171,7 @@ Error = {
    SUCCESS = 0,
    NOIMPL = 1,
    INVALID = 2,
-   NOENTRY = 3,
+   NOREPOS = 3,
    NOPERM = 4,
    BROKEN = 5,
    DUPREC = 6,

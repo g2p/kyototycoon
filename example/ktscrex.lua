@@ -1,4 +1,3 @@
--- global variables
 kt = __kyototycoon__
 db = kt.db
 
