@@ -359,7 +359,9 @@ private:
     set_message(outmap, "serv_conn", "%lld", (long long)thserv->connection_count());
     set_message(outmap, "serv_task", "%lld", (long long)thserv->task_count());
     set_message(outmap, "conf_kt_version", "%s (%d.%d)", kt::VERSION, kt::LIBVER, kt::LIBREV);
+    set_message(outmap, "conf_kt_features", "%s", kt::FEATURES);
     set_message(outmap, "conf_kc_version", "%s (%d.%d)", kc::VERSION, kc::LIBVER, kc::LIBREV);
+    set_message(outmap, "conf_kc_features", "%s", kc::FEATURES);
     set_message(outmap, "conf_os_name", "%s", kc::SYSNAME);
     set_message(outmap, "sys_proc_id", "%d", g_procid);
     set_message(outmap, "sys_time", "%.6f", kc::time() - g_starttime);
@@ -381,7 +383,7 @@ private:
                     std::map<std::string, std::string>& outmap) {
     if (!scrprocs_) {
       set_message(outmap, "ERROR", "the scripting extention is disabled");
-      return kt::RPCClient::RVELOGIC;
+      return kt::RPCClient::RVENOIMPL;
     }
     int32_t thid = sess->thread_id();
     if (thid >= thnum_) {
@@ -417,8 +419,10 @@ private:
         outmap[key] = it->second;
         it++;
       }
+    } else if (rv == kt::RPCClient::RVENOIMPL) {
+      set_message(outmap, "ERROR", "no such scripting procedure");
     } else {
-      set_message(outmap, "ERROR", "a scripting procedure failed");
+      set_message(outmap, "ERROR", "the scripting procedure failed");
     }
     return rv;
   }

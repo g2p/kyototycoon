@@ -31,6 +31,21 @@ const int32_t LIBVER = _KT_LIBVER;
 const int32_t LIBREV = _KT_LIBREV;
 
 
+/** The extra feature list. */
+const char* const FEATURES = ""
+#if defined(_KT_EVENT_EPOLL)
+"(epoll)"
+#elif defined(_KT_EVENT_KQUEUE)
+"(kqueue)"
+#else
+"(select)"
+#endif
+#if _KT_LUA
+"(lua)"
+#endif
+  ;
+
+
 /**
  * Set the signal handler for termination signals.
  */

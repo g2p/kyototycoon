@@ -216,6 +216,7 @@ check-timed :
 	$(RUNENV) $(RUNCMD) ./kttimedmgr get -px casket.kct mikio > check.out
 	$(RUNENV) $(RUNCMD) ./kttimedmgr list casket.kct > check.out
 	$(RUNENV) $(RUNCMD) ./kttimedmgr check -onr casket.kct
+	$(RUNENV) $(RUNCMD) ./kttimedmgr clear casket.kct
 	rm -rf casket*
 	$(RUNENV) $(RUNCMD) ./kttimedtest order -set "casket.kct#bnum=5000#msiz=50000" 10000
 	$(RUNENV) $(RUNCMD) ./kttimedtest order -get "casket.kct#msiz=50000" 10000

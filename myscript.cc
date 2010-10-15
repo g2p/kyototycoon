@@ -322,7 +322,7 @@ kt::RPCClient::ReturnValue ScriptProcessor::call(const std::string& name,
   lua_getglobal(lua, name.c_str());
   if (!lua_isfunction(lua, -1)) {
     lua_settop(lua, 0);
-    return kt::RPCClient::RVEINVALID;
+    return kt::RPCClient::RVENOIMPL;
   }
   lua_newtable(lua);
   std::map<std::string, std::string>::const_iterator it = inmap.begin();

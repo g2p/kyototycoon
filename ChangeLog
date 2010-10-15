@@ -1,14 +1,26 @@
+2010-10-13  Mikio Hirabayashi  <info@fallabs.com>
+
+	* ktutil.h (FEATURES): new constant.
+
+	* ktserver.cc (do_report): "kc_conf_features" and "kt_conf_features" were added.
+
+	* ktserver.cc (do_play_scriot): the rule related to the status code was modified.
+
+	* kttimedmgr.cc (runclear, procclear): new functions.
+
+	- Release: 0.9.2
+
 2010-10-14  Mikio Hirabayashi  <info@fallabs.com>
 
-	* ktsocket.c (Poller::Poller, Poller::~Poller, Poller::wait): "kqueue" is now supported.
+	* ktsocket.cc (Poller::Poller, Poller::~Poller, Poller::wait): "kqueue" is now supported.
 
 	- Release: 0.9.1
 
 2010-10-13  Mikio Hirabayashi  <info@fallabs.com>
 
-	* ktsocket.c (Poller::Poller, Poller::~Poller, Poller::wait): "epoll" is now supported.
+	* ktsocket.cc (Poller::Poller, Poller::~Poller, Poller::wait): "epoll" is now supported.
 
-	* ktserver.c (do_report): connection stats data were added.
+	* ktserver.cc (do_report): connection stats data were added.
 
 	- Release: 0.9.0
 

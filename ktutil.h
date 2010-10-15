@@ -33,6 +33,10 @@ extern const int32_t LIBVER;
 extern const int32_t LIBREV;
 
 
+/** The extra feature list. */
+extern const char* const FEATURES;
+
+
 /** The default port number. */
 const int32_t DEFPORT = 1978;
 
