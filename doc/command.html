@@ -47,7 +47,7 @@
 <p>The command `<code>ktserver</code>' runs the server managing database instances.  This command is used in the following format.  `<var>db</var>' specifies a database name which is a polymorphic database of Kyoto Cabinet.  If no database is specified, an unnamed on-memory database is opened.</p>
 
 <dl class="api">
-<dt><code>ktserver [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-th <var>num</var>] [-log <var>file</var>] [-li|-ls|-le|-lz] [-ord] [-oat|-oas|-onl|-otl|-onr] [-tp] [-dmn] [-pid <var>file</var>] [-scr <var>file</var>] [<var>db</var>...]</code></dt>
+<dt><code>ktserver [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-th <var>num</var>] [-log <var>file</var>] [-li|-ls|-le|-lz] [-ord] [-oat|-oas|-onl|-otl|-onr] [-tp] [-asi <var>num</var>] [-ash] [-dmn] [-pid <var>file</var>] [-scr <var>file</var>] [<var>db</var>...]</code></dt>
 </dl>
 
 <p>Options feature the following.</p>
@@ -69,6 +69,8 @@
 <li><code>-otl</code> : opens the database with the try locking option.</li>
 <li><code>-onr</code> : opens the database with the no auto repair option.</li>
 <li><code>-tp</code> : disables expiration.</li>
+<li><code>-asi <var>num</var></code> : specifies the interval of auto synchronization.  By default, auto synchronization is disabled.</li>
+<li><code>-ash</code> : does physical synchronization while auto synchronization.</li>
 <li><code>-dmn</code> : switches to a daemon process.</li>
 <li><code>-pid <var>file</var></code> : specifies the file to contain the process ID to send signals by.</li>
 <li><code>-cmd <var>dir</var></code> : specifies the command search path for outer commands.  By default, it is the current directroy.</li>

@@ -732,6 +732,13 @@ public:
     virtual void process_idle(HTTPServer* serv) {
       _assert_(serv);
     }
+    /**
+     * Process each timer event.
+     * @param serv the server.
+     */
+    virtual void process_timer(HTTPServer* serv) {
+      _assert_(serv);
+    }
   };
   /**
    * Interface to access each session data.
@@ -1239,6 +1246,9 @@ private:
     }
     void process_idle(ThreadedServer* serv) {
       worker_->process_idle(serv_);
+    }
+    void process_timer(ThreadedServer* serv) {
+      worker_->process_timer(serv_);
     }
     void send_error(ThreadedServer::Session* sess, int32_t code, const char* msg) {
       _assert_(sess && code > 0);

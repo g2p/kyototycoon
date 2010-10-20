@@ -684,6 +684,7 @@ static int32_t runcheck(int argc, char** argv) {
 // perform create command
 static int32_t proccreate(const char* path, int32_t oflags, int32_t opts) {
   kt::TimedDB db;
+  db.tune_logger(stddblogger(g_progname, &std::cerr));
   if (opts > 0) db.tune_options(opts);
   if (!db.open(path, kc::BasicDB::OWRITER | kc::BasicDB::OCREATE | oflags)) {
     dberrprint(&db, "DB::open failed");
@@ -701,6 +702,7 @@ static int32_t proccreate(const char* path, int32_t oflags, int32_t opts) {
 // perform inform command
 static int32_t procinform(const char* path, int32_t oflags, bool st) {
   kt::TimedDB db;
+  db.tune_logger(stddblogger(g_progname, &std::cerr));
   if (!db.open(path, kc::BasicDB::OREADER | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -735,6 +737,7 @@ static int32_t procinform(const char* path, int32_t oflags, bool st) {
 static int32_t procset(const char* path, const char* kbuf, size_t ksiz,
                        const char* vbuf, size_t vsiz, int32_t oflags, int32_t mode, int64_t xt) {
   kt::TimedDB db;
+  db.tune_logger(stddblogger(g_progname, &std::cerr));
   if (!db.open(path, kc::BasicDB::OWRITER | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -801,6 +804,7 @@ static int32_t procset(const char* path, const char* kbuf, size_t ksiz,
 // perform remove command
 static int32_t procremove(const char* path, const char* kbuf, size_t ksiz, int32_t oflags) {
   kt::TimedDB db;
+  db.tune_logger(stddblogger(g_progname, &std::cerr));
   if (!db.open(path, kc::BasicDB::OWRITER | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -822,6 +826,7 @@ static int32_t procremove(const char* path, const char* kbuf, size_t ksiz, int32
 static int32_t procget(const char* path, const char* kbuf, size_t ksiz,
                        int32_t oflags, bool px, bool pt, bool pz) {
   kt::TimedDB db;
+  db.tune_logger(stddblogger(g_progname, &std::cerr));
   if (!db.open(path, kc::BasicDB::OREADER | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -851,6 +856,7 @@ static int32_t procget(const char* path, const char* kbuf, size_t ksiz,
 static int32_t proclist(const char* path, const char*kbuf, size_t ksiz, int32_t oflags,
                         bool des, int64_t max, bool pv, bool px, bool pt) {
   kt::TimedDB db;
+  db.tune_logger(stddblogger(g_progname, &std::cerr));
   if (!db.open(path, kc::BasicDB::OREADER | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -941,6 +947,7 @@ static int32_t proclist(const char* path, const char*kbuf, size_t ksiz, int32_t 
 // perform clear command
 static int32_t procclear(const char* path, int32_t oflags) {
   kt::TimedDB db;
+  db.tune_logger(stddblogger(g_progname, &std::cerr));
   if (!db.open(path, kc::BasicDB::OWRITER | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -972,6 +979,7 @@ static int32_t procimport(const char* path, const char* file, int32_t oflags,
     is = &ifs;
   }
   kt::TimedDB db;
+  db.tune_logger(stddblogger(g_progname, &std::cerr));
   if (!db.open(path, kc::BasicDB::OWRITER | kc::BasicDB::OCREATE | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -1026,6 +1034,7 @@ static int32_t procimport(const char* path, const char* file, int32_t oflags,
 // perform copy command
 static int32_t proccopy(const char* path, const char* file, int32_t oflags) {
   kt::TimedDB db;
+  db.tune_logger(stddblogger(g_progname, &std::cerr));
   if (!db.open(path, kc::BasicDB::OREADER | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -1049,6 +1058,7 @@ static int32_t proccopy(const char* path, const char* file, int32_t oflags) {
 // perform dump command
 static int32_t procdump(const char* path, const char* file, int32_t oflags) {
   kt::TimedDB db;
+  db.tune_logger(stddblogger(g_progname, &std::cerr));
   if (!db.open(path, kc::BasicDB::OREADER | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -1079,6 +1089,7 @@ static int32_t procdump(const char* path, const char* file, int32_t oflags) {
 // perform load command
 static int32_t procload(const char* path, const char* file, int32_t oflags) {
   kt::TimedDB db;
+  db.tune_logger(stddblogger(g_progname, &std::cerr));
   if (!db.open(path, kc::BasicDB::OWRITER | kc::BasicDB::OCREATE | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -1112,6 +1123,7 @@ static int32_t procload(const char* path, const char* file, int32_t oflags) {
 // perform vacuum command
 static int32_t procvacuum(const char* path, int32_t oflags) {
   kt::TimedDB db;
+  db.tune_logger(stddblogger(g_progname, &std::cerr));
   if (!db.open(path, kc::BasicDB::OWRITER | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -1132,6 +1144,7 @@ static int32_t procvacuum(const char* path, int32_t oflags) {
 // perform check command
 static int32_t proccheck(const char* path, int32_t oflags) {
   kt::TimedDB db;
+  db.tune_logger(stddblogger(g_progname, &std::cerr));
   if (!db.open(path, kc::BasicDB::OREADER | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;

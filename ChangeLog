@@ -1,3 +1,17 @@
+2010-10-15  Mikio Hirabayashi  <info@fallabs.com>
+
+	* kttimedtest.cc (procorder, procqueue, procwicked, proctran): "tune_logger" was added.
+
+	* kttimedmgr.cc (runcreate, runinform, runset, runget): "-lv" option was added.
+
+	* ktthserv.h (SESSIDLE, SESSTIMER): new constants.
+
+	* ktthserv.h (ThreadedServer::Worker::process_timer): new function.
+
+	* ktserver.cc (Worker::process_idle): efficiency of the auto vacuum was improved.
+
+	- Release: 0.9.3
+
 2010-10-13  Mikio Hirabayashi  <info@fallabs.com>
 
 	* ktutil.h (FEATURES): new constant.

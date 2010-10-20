@@ -19,7 +19,12 @@
 namespace kyototycoon {                  // common namespace
 
 
-// There is no implementation now.
+/** The magic pointer of an idle session. */
+ThreadedServer::Session* const ThreadedServer::SESSIDLE = (ThreadedServer::Session*)0;
+
+
+/** The magic pointer of a timer session. */
+ThreadedServer::Session* const ThreadedServer::SESSTIMER = (ThreadedServer::Session*)1;
 
 
 }                                        // common namespace

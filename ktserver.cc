@@ -32,7 +32,8 @@ static void killserver(int signum);
 static int32_t run(int argc, char** argv);
 static int32_t proc(const std::vector<std::string>& dbpaths,
                     const char* host, int32_t port, double tout, int32_t thnum,
-                    const char* logpath, uint32_t logkinds, int32_t omode, int32_t opts,
+                    const char* logpath, uint32_t logkinds, int32_t omode,
+                    int32_t opts, double asi, bool ash,
                     bool dmn, const char* pidpath, const char* cmdpath, const char* scrpath);
 
 
@@ -124,10 +125,11 @@ private:
 public:
   // constructor
   Worker(int32_t thnum, kt::TimedDB* dbs, int32_t dbnum,
-         const std::map<std::string, int32_t>& dbmap, int32_t omode,
+         const std::map<std::string, int32_t>& dbmap, int32_t omode, double asi, bool ash,
          const char* cmdpath, ScriptProcessor* scrprocs) :
-    thnum_(thnum), dbs_(dbs), dbnum_(dbnum), dbmap_(dbmap), omode_(omode),
-    cmdpath_(cmdpath), scrprocs_(scrprocs), idlecnt_(0) {}
+    thnum_(thnum), dbs_(dbs), dbnum_(dbnum), dbmap_(dbmap),
+    omode_(omode), asi_(asi), ash_(ash),
+    cmdpath_(cmdpath), scrprocs_(scrprocs), idlecnt_(0), asnext_(0) {}
   // destructor
   ~Worker() {}
 private:
@@ -297,15 +299,36 @@ private:
     delete[] kbuf;
     return code;
   }
-  // process each idle ivent
+  // process each idle event
   void process_idle(kt::RPCServer* serv) {
     if (!(omode_ & kc::BasicDB::OWRITER)) return;
-    int32_t dbidx = idlecnt_.add(1) % dbnum_;
+    int32_t dbidx = idlecnt_++ % dbnum_;
     kt::TimedDB* db = dbs_ + dbidx;
-    if (!db->vacuum(4)) {
-      const kc::BasicDB::Error& e = db->error();
-      log_db_error(serv, e);
+    kt::ThreadedServer* thserv = serv->reveal_core()->reveal_core();
+    for (int32_t i = 0; i < 8; i++) {
+      if (thserv->task_count() > 0) break;
+      if (!db->vacuum(4)) {
+        const kc::BasicDB::Error& e = db->error();
+        log_db_error(serv, e);
+        break;
+      }
+      kc::Thread::yield();
     }
+  }
+  // process each timer event
+  void process_timer(kt::RPCServer* serv) {
+    if (asi_ <= 0 || !(omode_ & kc::BasicDB::OWRITER)) return;
+    if (kc::time() < asnext_) return;
+    for (int32_t i = 0; i < dbnum_; i++) {
+      kt::TimedDB* db = dbs_ + i;
+      if (!db->synchronize(ash_)) {
+        const kc::BasicDB::Error& e = db->error();
+        log_db_error(serv, e);
+        break;
+      }
+      kc::Thread::yield();
+    }
+    asnext_ = kc::time() + asi_;
   }
   // set the error message
   void set_message(std::map<std::string, std::string>& outmap, const char* key,
@@ -1402,9 +1425,12 @@ private:
   const int32_t dbnum_;
   const std::map<std::string, int32_t>& dbmap_;
   const int32_t omode_;
+  double asi_;
+  bool ash_;
   const char* cmdpath_;
   ScriptProcessor* scrprocs_;
-  kc::AtomicInt64 idlecnt_;
+  uint64_t idlecnt_;
+  uint64_t asnext_;
 };
 
 
@@ -1430,8 +1456,8 @@ static void usage() {
   eprintf("\n");
   eprintf("usage:\n");
   eprintf("  %s [-host str] [-port num] [-tout num] [-th num] [-log file] [-li|-ls|-le|-lz]"
-          " [-ord] [-oat|-oas|-onl|-otl|-onr] [-tp] [-dmn] [-pid file] [-cmd dir] [-scr file]"
-          " [db...]\n", g_progname);
+          " [-ord] [-oat|-oas|-onl|-otl|-onr] [-tp] [-asi num] [-ash]"
+          " [-dmn] [-pid file] [-cmd dir] [-scr file] [db...]\n", g_progname);
   eprintf("\n");
   std::exit(1);
 }
@@ -1459,6 +1485,8 @@ static int32_t run(int argc, char** argv) {
   uint32_t logkinds = UINT32_MAX;
   int32_t omode = kc::BasicDB::OWRITER | kc::BasicDB::OCREATE;
   int32_t opts = 0;
+  double asi = 0;
+  bool ash = false;
   bool dmn = false;
   const char* pidpath = NULL;
   const char* cmdpath = NULL;
@@ -1506,6 +1534,11 @@ static int32_t run(int argc, char** argv) {
         omode |= kc::BasicDB::ONOREPAIR;
       } else if (!std::strcmp(argv[i], "-tp")) {
         opts |= kt::TimedDB::TPERSIST;
+      } else if (!std::strcmp(argv[i], "-asi")) {
+        if (++i >= argc) usage();
+        asi = kc::atof(argv[i]);
+      } else if (!std::strcmp(argv[i], "-ash")) {
+        ash = true;
       } else if (!std::strcmp(argv[i], "-dmn")) {
         dmn = true;
       } else if (!std::strcmp(argv[i], "-pid")) {
@@ -1528,8 +1561,8 @@ static int32_t run(int argc, char** argv) {
   if (port < 1 || thnum < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
   if (dbpaths.empty()) dbpaths.push_back("*");
-  int32_t rv = proc(dbpaths, host, port, tout, thnum, logpath, logkinds, omode, opts,
-                    dmn, pidpath, cmdpath, scrpath);
+  int32_t rv = proc(dbpaths, host, port, tout, thnum, logpath, logkinds, omode,
+                    opts, asi, ash, dmn, pidpath, cmdpath, scrpath);
   return rv;
 }
 
@@ -1537,7 +1570,8 @@ static int32_t run(int argc, char** argv) {
 // perform rpc command
 static int32_t proc(const std::vector<std::string>& dbpaths,
                     const char* host, int32_t port, double tout, int32_t thnum,
-                    const char* logpath, uint32_t logkinds, int32_t omode, int32_t opts,
+                    const char* logpath, uint32_t logkinds, int32_t omode,
+                    int32_t opts, double asi, bool ash,
                     bool dmn, const char* pidpath, const char* cmdpath, const char* scrpath) {
   g_daemon = false;
   if (dmn) {
@@ -1636,7 +1670,7 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
       }
     }
   }
-  Worker worker(thnum, dbs, dbnum, dbmap, omode, cmdpath, scrprocs);
+  Worker worker(thnum, dbs, dbnum, dbmap, omode, asi, ash, cmdpath, scrprocs);
   serv.set_worker(&worker, thnum);
   if (pidpath) {
     char numbuf[kc::NUMBUFSIZ];

@@ -88,6 +88,13 @@ public:
     virtual void process_idle(ThreadedServer* serv) {
       _assert_(serv);
     }
+    /**
+     * Process each timer event.
+     * @param serv the server.
+     */
+    virtual void process_timer(ThreadedServer* serv) {
+      _assert_(serv);
+    }
   };
   /**
    * Interface to access each session data.
@@ -172,7 +179,7 @@ public:
    */
   explicit ThreadedServer() :
     run_(false), expr_(), timeout_(0), logger_(NULL), logkinds_(0), worker_(NULL), thnum_(0),
-    sock_(), poll_(), queue_(this), sesscnt_(0), idlesem_(0) {
+    sock_(), poll_(), queue_(this), sesscnt_(0), idlesem_(0), timersem_(0) {
     _assert_(true);
   }
   /**
@@ -251,6 +258,7 @@ public:
     }
     queue_.set_worker(worker_);
     queue_.start(thnum_);
+    uint32_t timercnt = 0;
     run_ = true;
     while (run_) {
       if (poll_.wait(0.1)) {
@@ -281,9 +289,18 @@ public:
             queue_.add_task(task);
           }
         }
-      } else if (queue_.count() < 1 && idlesem_.cas(0, 1)) {
-        SessionTask* task = new SessionTask(NULL);
+        timercnt++;
+      } else {
+        if (queue_.count() < 1 && idlesem_.cas(0, 1)) {
+          SessionTask* task = new SessionTask(SESSIDLE);
+          queue_.add_task(task);
+        }
+        timercnt += UINT8_MAX / 4;
+      }
+      if (timercnt > UINT8_MAX && timersem_.cas(0, 1)) {
+        SessionTask* task = new SessionTask(SESSTIMER);
         queue_.add_task(task);
+        timercnt = 0;
       }
     }
     log(Logger::SYSTEM, "server stopped");
@@ -398,6 +415,10 @@ public:
     return queue_.count();
   }
 private:
+  /** The magic pointer of an idle session. */
+  static Session* const SESSIDLE;
+  /** The magic pointer of a timer session. */
+  static Session* const SESSTIMER;
   /**
    * Task queue implementation.
    */
@@ -419,7 +440,13 @@ private:
       _assert_(task);
       SessionTask* mytask = (SessionTask*)task;
       Session* sess = mytask->sess_;
-      if (sess) {
+      if (sess == SESSIDLE) {
+        worker_->process_idle(serv_);
+        serv_->idlesem_.set(0);
+      } else if (sess == SESSTIMER) {
+        worker_->process_timer(serv_);
+        serv_->timersem_.set(0);
+      } else {
         bool keep = false;
         if (mytask->aborted()) {
           serv_->log(Logger::INFO, "aborted a request: expr=%s", sess->expression().c_str());
@@ -445,9 +472,6 @@ private:
           }
           delete sess;
         }
-      } else {
-        worker_->process_idle(serv_);
-        serv_->idlesem_.set(0);
       }
       delete mytask;
     }
@@ -493,6 +517,8 @@ private:
   uint64_t sesscnt_;
   /** The idle event semaphore. */
   kc::AtomicInt64 idlesem_;
+  /** The timer event semaphore. */
+  kc::AtomicInt64 timersem_;
 };
 
 

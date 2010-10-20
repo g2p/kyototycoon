@@ -58,6 +58,7 @@ bool getline(std::istream* is, std::string* str);
 std::string unitnumstr(int64_t num);
 std::string unitnumstrbyte(int64_t num);
 kt::RPCServer::Logger* stdlogger(const char* prefix, std::ostream* strm);
+kc::BasicDB::Logger* stddblogger(const char* prefix, std::ostream* strm);
 void printdb(kc::BasicDB* db, bool px = false);
 
 
@@ -245,6 +246,33 @@ inline kt::RPCServer::Logger* stdlogger(const char* prefix, std::ostream* strm) 
         case kt::RPCServer::Logger::ERROR: kstr = "ERROR"; break;
       }
       *strm_ << prefix_ << ": [" << kstr << "]: " << message << std::endl;
+    }
+  private:
+    std::ostream* strm_;
+    const char* prefix_;
+  };
+  static LoggerImpl logger(strm, prefix);
+  return &logger;
+}
+
+
+// get the database logger into the standard stream
+inline kc::BasicDB::Logger* stddblogger(const char* prefix, std::ostream* strm) {
+  class LoggerImpl : public kc::BasicDB::Logger {
+  public:
+    explicit LoggerImpl(std::ostream* strm, const char* prefix) :
+      strm_(strm), prefix_(prefix) {}
+    void log(const char* file, int32_t line, const char* func, Kind kind,
+             const char* message) {
+      const char* kstr = "MISC";
+      switch (kind) {
+        case kc::BasicDB::Logger::DEBUG: kstr = "DEBUG"; break;
+        case kc::BasicDB::Logger::INFO: kstr = "INFO"; break;
+        case kc::BasicDB::Logger::WARN: kstr = "WARN"; break;
+        case kc::BasicDB::Logger::ERROR: kstr = "ERROR"; break;
+      }
+      *strm_ << prefix_ << ": [" << kstr << "]: " <<
+        file << ": " << line << ": " << func << ": " << message << std::endl;
     }
   private:
     std::ostream* strm_;

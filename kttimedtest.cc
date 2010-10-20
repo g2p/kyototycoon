@@ -34,13 +34,13 @@ static int32_t runwicked(int argc, char** argv);
 static int32_t runtran(int argc, char** argv);
 static int32_t runmisc(int argc, char** argv);
 static int32_t procorder(const char* path, int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
-                         bool tran, int32_t oflags, int32_t opts);
+                         bool tran, int32_t oflags, int32_t opts, bool lv);
 static int32_t procqueue(const char* path, int64_t rnum, int32_t thnum, int32_t itnum, bool rnd,
-                         int32_t oflags, int32_t opts);
+                         int32_t oflags, int32_t opts, bool lv);
 static int32_t procwicked(const char* path, int64_t rnum, int32_t thnum, int32_t itnum,
-                          int32_t oflags, int32_t opts);
+                          int32_t oflags, int32_t opts, bool lv);
 static int32_t proctran(const char* path, int64_t rnum, int32_t thnum, int32_t itnum, bool hard,
-                        int32_t oflags, int32_t opts);
+                        int32_t oflags, int32_t opts, bool lv);
 static int32_t procmisc(const char* path);
 
 
@@ -137,6 +137,7 @@ static int32_t runorder(int argc, char** argv) {
   bool tran = false;
   int32_t oflags = 0;
   int32_t opts = 0;
+  bool lv = false;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -186,7 +187,7 @@ static int32_t runorder(int argc, char** argv) {
   int64_t rnum = kc::atoix(rstr);
   if (rnum < 1 || thnum < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
-  int32_t rv = procorder(path, rnum, thnum, rnd, mode, tran, oflags, opts);
+  int32_t rv = procorder(path, rnum, thnum, rnd, mode, tran, oflags, opts, lv);
   return rv;
 }
 
@@ -201,6 +202,7 @@ static int32_t runqueue(int argc, char** argv) {
   bool rnd = false;
   int32_t oflags = 0;
   int32_t opts = 0;
+  bool lv = false;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -241,7 +243,7 @@ static int32_t runqueue(int argc, char** argv) {
   int64_t rnum = kc::atoix(rstr);
   if (rnum < 1 || thnum < 1 || itnum < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
-  int32_t rv = procqueue(path, rnum, thnum, itnum, rnd, oflags, opts);
+  int32_t rv = procqueue(path, rnum, thnum, itnum, rnd, oflags, opts, lv);
   return rv;
 }
 
@@ -255,6 +257,7 @@ static int32_t runwicked(int argc, char** argv) {
   int32_t itnum = 1;
   int32_t oflags = 0;
   int32_t opts = 0;
+  bool lv = false;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -293,7 +296,7 @@ static int32_t runwicked(int argc, char** argv) {
   int64_t rnum = kc::atoix(rstr);
   if (rnum < 1 || thnum < 1 || itnum < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
-  int32_t rv = procwicked(path, rnum, thnum, itnum, oflags, opts);
+  int32_t rv = procwicked(path, rnum, thnum, itnum, oflags, opts, lv);
   return rv;
 }
 
@@ -308,6 +311,7 @@ static int32_t runtran(int argc, char** argv) {
   bool hard = false;
   int32_t oflags = 0;
   int32_t opts = 0;
+  bool lv = false;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -348,7 +352,7 @@ static int32_t runtran(int argc, char** argv) {
   int64_t rnum = kc::atoix(rstr);
   if (rnum < 1 || thnum < 1 || itnum < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
-  int32_t rv = proctran(path, rnum, thnum, itnum, hard, oflags, opts);
+  int32_t rv = proctran(path, rnum, thnum, itnum, hard, oflags, opts, lv);
   return rv;
 }
 
@@ -377,15 +381,17 @@ static int32_t runmisc(int argc, char** argv) {
 
 // perform order command
 static int32_t procorder(const char* path, int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
-                         bool tran, int32_t oflags, int32_t opts) {
+                         bool tran, int32_t oflags, int32_t opts, bool lv) {
   iprintf("<In-order Test>\n  seed=%u  path=%s  rnum=%lld  thnum=%d  rnd=%d  mode=%d  tran=%d"
-          "  oflags=%d  opts=%d\n\n",
-          g_randseed, path, (long long)rnum, thnum, rnd, mode, tran, oflags, opts);
+          "  oflags=%d  opts=%d  lv=%d\n\n",
+          g_randseed, path, (long long)rnum, thnum, rnd, mode, tran, oflags, opts, lv);
   bool err = false;
   kt::TimedDB db;
   iprintf("opening the database:\n");
   if (opts > 0) db.tune_options(opts);
   double stime = kc::time();
+  db.tune_logger(stddblogger(g_progname, &std::cout),
+                 lv ? UINT32_MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
   uint32_t omode = kc::BasicDB::OWRITER | kc::BasicDB::OCREATE | kc::BasicDB::OTRUNCATE;
   if (mode == 'r') {
     omode = kc::BasicDB::OWRITER | kc::BasicDB::OCREATE;
@@ -1391,12 +1397,14 @@ static int32_t procorder(const char* path, int64_t rnum, int32_t thnum, bool rnd
 
 // perform queue command
 static int32_t procqueue(const char* path, int64_t rnum, int32_t thnum, int32_t itnum, bool rnd,
-                         int32_t oflags, int32_t opts) {
+                         int32_t oflags, int32_t opts, bool lv) {
   iprintf("<Queue Test>\n  seed=%u  path=%s  rnum=%lld  thnum=%d  itnum=%d  rnd=%d"
-          "  oflags=%d  opts=%d\n\n",
-          g_randseed, path, (long long)rnum, thnum, itnum, rnd, oflags, opts);
+          "  oflags=%d  opts=%d  lv=%d\n\n",
+          g_randseed, path, (long long)rnum, thnum, itnum, rnd, oflags, opts, lv);
   bool err = false;
   kt::TimedDB db;
+  db.tune_logger(stddblogger(g_progname, &std::cout),
+                 lv ? UINT32_MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
   if (opts > 0) db.tune_options(opts);
   for (int32_t itcnt = 1; itcnt <= itnum; itcnt++) {
     if (itnum > 1) iprintf("iteration %d:\n", itcnt);
@@ -1558,12 +1566,14 @@ static int32_t procqueue(const char* path, int64_t rnum, int32_t thnum, int32_t 
 
 // perform wicked command
 static int32_t procwicked(const char* path, int64_t rnum, int32_t thnum, int32_t itnum,
-                          int32_t oflags, int32_t opts) {
+                          int32_t oflags, int32_t opts, bool lv) {
   iprintf("<Wicked Test>\n  seed=%u  path=%s  rnum=%lld  thnum=%d  itnum=%d"
-          "  oflags=%d  opts=%d\n\n",
-          g_randseed, path, (long long)rnum, thnum, itnum, oflags, opts);
+          "  oflags=%d  opts=%d  lv=%d\n\n",
+          g_randseed, path, (long long)rnum, thnum, itnum, oflags, opts, lv);
   bool err = false;
   kt::TimedDB db;
+  db.tune_logger(stddblogger(g_progname, &std::cout),
+                 lv ? UINT32_MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
   if (opts > 0) db.tune_options(opts);
   for (int32_t itcnt = 1; itcnt <= itnum; itcnt++) {
     if (itnum > 1) iprintf("iteration %d:\n", itcnt);
@@ -1835,13 +1845,17 @@ static int32_t procwicked(const char* path, int64_t rnum, int32_t thnum, int32_t
 
 // perform tran command
 static int32_t proctran(const char* path, int64_t rnum, int32_t thnum, int32_t itnum, bool hard,
-                        int32_t oflags, int32_t opts) {
+                        int32_t oflags, int32_t opts, bool lv) {
   iprintf("<Transaction Test>\n  seed=%u  path=%s  rnum=%lld  thnum=%d  itnum=%d  hard=%d"
-          "  oflags=%d  opts=%d\n\n",
-          g_randseed, path, (long long)rnum, thnum, itnum, hard, oflags, opts);
+          "  oflags=%d  opts=%d  lv=%d\n\n",
+          g_randseed, path, (long long)rnum, thnum, itnum, hard, oflags, opts, lv);
   bool err = false;
   kt::TimedDB db;
   kt::TimedDB paradb;
+  db.tune_logger(stddblogger(g_progname, &std::cout),
+                 lv ? UINT32_MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
+  paradb.tune_logger(stddblogger(g_progname, &std::cout),
+                     lv ? UINT32_MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
   if (opts > 0) db.tune_options(opts);
   for (int32_t itcnt = 1; itcnt <= itnum; itcnt++) {
     iprintf("iteration %d updating:\n", itcnt);

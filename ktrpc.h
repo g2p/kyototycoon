@@ -300,6 +300,13 @@ public:
     virtual void process_idle(RPCServer* serv) {
       _assert_(serv);
     }
+    /**
+     * Process each timer event.
+     * @param serv the server.
+     */
+    virtual void process_timer(RPCServer* serv) {
+      _assert_(serv);
+    }
   };
   /**
    * Interface to log internal information and errors.
@@ -561,6 +568,9 @@ private:
     }
     void process_idle(HTTPServer* serv) {
       worker_->process_idle(serv_);
+    }
+    void process_timer(HTTPServer* serv) {
+      worker_->process_timer(serv_);
     }
     RPCServer* serv_;
     RPCServer::Worker* worker_;
