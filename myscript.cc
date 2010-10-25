@@ -35,6 +35,7 @@ struct SoftDB;
 class SoftVisitor;
 class SoftFileProcessor;
 typedef std::map<std::string, std::string> StringMap;
+typedef std::vector<std::string> StringVector;
 
 
 /* function prototypes */
@@ -59,6 +60,7 @@ static int kt_bit(lua_State *lua);
 static int kt_strstr(lua_State *lua);
 static int kt_strfwm(lua_State *lua);
 static int kt_strbwm(lua_State *lua);
+static int kt_regex(lua_State *lua);
 static void define_err(lua_State* lua);
 static int err_new(lua_State* lua);
 static int err_tostring(lua_State* lua);
@@ -126,6 +128,8 @@ static int db_count(lua_State* lua);
 static int db_size(lua_State* lua);
 static int db_path(lua_State* lua);
 static int db_status(lua_State* lua);
+static int db_match_prefix(lua_State* lua);
+static int db_match_regex(lua_State* lua);
 static int db_cursor(lua_State* lua);
 static int db_cursor_process(lua_State* lua);
 static int db_pairs(lua_State* lua);
@@ -593,6 +597,7 @@ static void define_module(lua_State* lua) {
   setfieldfunc(lua, "strstr", kt_strstr);
   setfieldfunc(lua, "strfwm", kt_strfwm);
   setfieldfunc(lua, "strbwm", kt_strbwm);
+  setfieldfunc(lua, "regex", kt_regex);
 }
 
 
@@ -1293,6 +1298,27 @@ static int kt_strbwm(lua_State *lua) {
 
 
 /**
+ * Implementation of regex.
+ */
+static int kt_regex(lua_State *lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc < 2) throwinvarg(lua);
+  const char* str = lua_tostring(lua, 1);
+  const char* pat = lua_tostring(lua, 2);
+  if (!str || !pat) throwinvarg(lua);
+  const char* alt = argc > 2 ? lua_tostring(lua, 3) : NULL;
+  if (alt) {
+    std::string xstr = kc::Regex::replace(str, pat, alt);
+    lua_pushlstring(lua, xstr.data(), xstr.size());
+  } else {
+    bool rv = kc::Regex::match(str, pat);
+    lua_pushboolean(lua, rv);
+  }
+  return 1;
+}
+
+
+/**
  * Define objects of the Error class.
  */
 static void define_err(lua_State* lua) {
@@ -1958,6 +1984,8 @@ static int db_new(lua_State* lua) {
   setfieldfunc(lua, "size", db_size);
   setfieldfunc(lua, "path", db_path);
   setfieldfunc(lua, "status", db_status);
+  setfieldfunc(lua, "match_prefix", db_match_prefix);
+  setfieldfunc(lua, "match_regex", db_match_regex);
   setfieldfunc(lua, "cursor", db_cursor);
   setfieldfunc(lua, "cursor_process", db_cursor_process);
   setfieldfunc(lua, "pairs", db_pairs);
@@ -2642,6 +2670,68 @@ static int db_status(lua_State* lua) {
     while (it != itend) {
       lua_pushstring(lua, it->second.c_str());
       lua_setfield(lua, -2, it->first.c_str());
+      it++;
+    }
+  } else {
+    lua_pushnil(lua);
+  }
+  return 1;
+}
+
+
+/**
+ * Implementation of match_prefix.
+ */
+static int db_match_prefix(lua_State* lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua);
+  lua_getfield(lua, 1, "db_ptr_");
+  SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
+  size_t psiz;
+  const char* pbuf = lua_tolstring(lua, 2, &psiz);
+  if (!db || !pbuf) throwinvarg(lua);
+  int64_t max = argc > 2 ? lua_tonumber(lua, 3) : -1;
+  StringVector keys;
+  int64_t num = db->db->match_prefix(std::string(pbuf, psiz), &keys, max);
+  if (num >= 0) {
+    lua_newtable(lua);
+    StringVector::const_iterator it = keys.begin();
+    StringVector::const_iterator itend = keys.end();
+    int32_t idx = 1;
+    while (it != itend) {
+      lua_pushlstring(lua, it->data(), it->size());
+      lua_rawseti(lua, -2, idx++);
+      it++;
+    }
+  } else {
+    lua_pushnil(lua);
+  }
+  return 1;
+}
+
+
+/**
+ * Implementation of match_regex.
+ */
+static int db_match_regex(lua_State* lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua);
+  lua_getfield(lua, 1, "db_ptr_");
+  SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
+  size_t rsiz;
+  const char* rbuf = lua_tolstring(lua, 2, &rsiz);
+  if (!db || !rbuf) throwinvarg(lua);
+  int64_t max = argc > 2 ? lua_tonumber(lua, 3) : -1;
+  StringVector keys;
+  int64_t num = db->db->match_regex(std::string(rbuf, rsiz), &keys, max);
+  if (num >= 0) {
+    lua_newtable(lua);
+    StringVector::const_iterator it = keys.begin();
+    StringVector::const_iterator itend = keys.end();
+    int32_t idx = 1;
+    while (it != itend) {
+      lua_pushlstring(lua, it->data(), it->size());
+      lua_rawseti(lua, -2, idx++);
       it++;
     }
   } else {

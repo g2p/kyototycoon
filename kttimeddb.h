@@ -81,8 +81,9 @@ public:
      */
     bool jump() {
       _assert_(true);
+      if (!cur_->jump()) return false;
       back_ = false;
-      return cur_->jump();
+      return true;
     }
     /**
      * Jump the cursor to a record for forward scan.
@@ -92,8 +93,9 @@ public:
      */
     bool jump(const char* kbuf, size_t ksiz) {
       _assert_(kbuf && ksiz <= kc::MEMMAXSIZ);
+      if (!cur_->jump(kbuf, ksiz)) return false;
       back_ = false;
-      return cur_->jump(kbuf, ksiz);
+      return true;
     }
     /**
      * Jump the cursor to a record for forward scan.
@@ -111,8 +113,9 @@ public:
      */
     bool jump_back() {
       _assert_(true);
+      if (!cur_->jump_back()) return false;
       back_ = true;
-      return cur_->jump_back();
+      return true;
     }
     /**
      * Jump the cursor to a record for backward scan.
@@ -124,8 +127,9 @@ public:
      */
     bool jump_back(const char* kbuf, size_t ksiz) {
       _assert_(kbuf && ksiz <= kc::MEMMAXSIZ);
+      if (!cur_->jump_back(kbuf, ksiz)) return false;
       back_ = true;
-      return cur_->jump_back(kbuf, ksiz);
+      return true;
     }
     /**
      * Jump the cursor to a record for backward scan.
@@ -142,8 +146,9 @@ public:
      */
     bool step() {
       _assert_(true);
+      if (!cur_->step()) return false;
       back_ = false;
-      return cur_->step();
+      return true;
     }
     /**
      * Step the cursor to the previous record.
@@ -153,8 +158,9 @@ public:
      */
     bool step_back() {
       _assert_(true);
+      if (!cur_->step_back()) return false;
       back_ = true;
-      return cur_->step_back();
+      return true;
     }
     /**
      * Accept a visitor to the current record.
@@ -1530,6 +1536,32 @@ public:
       }
     }
     return !err;
+  }
+  /**
+   * Get keys matching a prefix string.
+   * @param prefix the prefix string.
+   * @param strvec a string vector to contain the result.
+   * @param max the maximum number to retrieve.  If it is negative, no limit is specified.
+   * @param checker a progress checker object.  If it is NULL, no checking is performed.
+   * @return the number of retrieved keys or -1 on failure.
+   */
+  int64_t match_prefix(const std::string& prefix, std::vector<std::string>* strvec,
+                       int64_t max = -1, kc::BasicDB::ProgressChecker* checker = NULL) {
+    _assert_(strvec);
+    return db_.match_prefix(prefix, strvec, max, checker);
+  }
+  /**
+   * Get keys matching a regular expression string.
+   * @param regex the regular expression string.
+   * @param strvec a string vector to contain the result.
+   * @param max the maximum number to retrieve.  If it is negative, no limit is specified.
+   * @param checker a progress checker object.  If it is NULL, no checking is performed.
+   * @return the number of retrieved keys or -1 on failure.
+   */
+  int64_t match_regex(const std::string& regex, std::vector<std::string>* strvec,
+                      int64_t max = -1, kc::BasicDB::ProgressChecker* checker = NULL) {
+    _assert_(strvec);
+    return db_.match_regex(regex, strvec, max, checker);
   }
   /**
    * Create a cursor object.

@@ -209,6 +209,10 @@ private:
       rv = do_get_bulk(serv, sess, db, inmap, outmap);
     } else if (name == "vacuum") {
       rv = do_vacuum(serv, sess, db, inmap, outmap);
+    } else if (name == "match_prefix") {
+      rv = do_match_prefix(serv, sess, db, inmap, outmap);
+    } else if (name == "match_regex") {
+      rv = do_match_regex(serv, sess, db, inmap, outmap);
     } else if (name == "cur_jump") {
       rv = do_cur_jump(serv, sess, cur, inmap, outmap);
     } else if (name == "cur_jump_back") {
@@ -964,6 +968,84 @@ private:
     int64_t step = rp ? kc::atoi(rp) : 0;
     RV rv;
     if (db->vacuum(step)) {
+      rv = kt::RPCClient::RVSUCCESS;
+    } else {
+      const kc::BasicDB::Error& e = db->error();
+      set_db_error(outmap, e);
+      log_db_error(serv, e);
+      rv = kt::RPCClient::RVEINTERNAL;
+    }
+    return rv;
+  }
+  // process the match_prefix procedure
+  RV do_match_prefix(kt::RPCServer* serv, kt::RPCServer::Session* sess,
+                     kt::TimedDB* db,
+                     const std::map<std::string, std::string>& inmap,
+                     std::map<std::string, std::string>& outmap) {
+    if (!db) {
+      set_message(outmap, "ERROR", "no such database");
+      return kt::RPCClient::RVEINVALID;
+    }
+    size_t psiz;
+    const char* pbuf = kt::strmapget(inmap, "prefix", &psiz);
+    if (!pbuf) {
+      set_message(outmap, "ERROR", "invalid parameters");
+      return kt::RPCClient::RVEINVALID;
+    }
+    const char* rp = kt::strmapget(inmap, "max");
+    int64_t max = rp ? kc::atoi(rp) : -1;
+    std::vector<std::string> keys;
+    RV rv;
+    int64_t num = db->match_prefix(std::string(pbuf, psiz), &keys, max);
+    if (num >= 0) {
+      std::vector<std::string>::iterator it = keys.begin();
+      std::vector<std::string>::iterator itend = keys.end();
+      while (it != itend) {
+        std::string key = "_";
+        key.append(*it);
+        outmap[key] = "";
+        it++;
+      }
+      kc::strprintf(&outmap["num"], "%lld", (long long)num);
+      rv = kt::RPCClient::RVSUCCESS;
+    } else {
+      const kc::BasicDB::Error& e = db->error();
+      set_db_error(outmap, e);
+      log_db_error(serv, e);
+      rv = kt::RPCClient::RVEINTERNAL;
+    }
+    return rv;
+  }
+  // process the match_regex procedure
+  RV do_match_regex(kt::RPCServer* serv, kt::RPCServer::Session* sess,
+                    kt::TimedDB* db,
+                    const std::map<std::string, std::string>& inmap,
+                    std::map<std::string, std::string>& outmap) {
+    if (!db) {
+      set_message(outmap, "ERROR", "no such database");
+      return kt::RPCClient::RVEINVALID;
+    }
+    size_t psiz;
+    const char* pbuf = kt::strmapget(inmap, "regex", &psiz);
+    if (!pbuf) {
+      set_message(outmap, "ERROR", "invalid parameters");
+      return kt::RPCClient::RVEINVALID;
+    }
+    const char* rp = kt::strmapget(inmap, "max");
+    int64_t max = rp ? kc::atoi(rp) : -1;
+    std::vector<std::string> keys;
+    RV rv;
+    int64_t num = db->match_regex(std::string(pbuf, psiz), &keys, max);
+    if (num >= 0) {
+      std::vector<std::string>::iterator it = keys.begin();
+      std::vector<std::string>::iterator itend = keys.end();
+      while (it != itend) {
+        std::string key = "_";
+        key.append(*it);
+        outmap[key] = "";
+        it++;
+      }
+      kc::strprintf(&outmap["num"], "%lld", (long long)num);
       rv = kt::RPCClient::RVSUCCESS;
     } else {
       const kc::BasicDB::Error& e = db->error();

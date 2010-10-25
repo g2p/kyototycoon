@@ -111,6 +111,10 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieve records at once.  <a href="#a47595399f3e4eedc0913bfd2549be80e"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a68a4885b5fac88c72bf62d75539def3e">vacuum</a> (int64_t step=0)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Scan the database and eliminate regions of expired records.  <a href="#a68a4885b5fac88c72bf62d75539def3e"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#aff05cb0454a003330cbc82bff68ea7e4">match_prefix</a> (const std::string &amp;prefix, std::vector&lt; std::string &gt; *strvec, int64_t max=-1)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get keys matching a prefix string.  <a href="#aff05cb0454a003330cbc82bff68ea7e4"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#abbfe172a43c7105bd76a4fbaefea63eb">match_regex</a> (const std::string &amp;regex, std::vector&lt; std::string &gt; *strvec, int64_t max=-1)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get keys matching a regular expression string.  <a href="#abbfe172a43c7105bd76a4fbaefea63eb"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ace5ab87b94e584ed121a7df5bb7b0eef">set_target</a> (const std::string &amp;expr)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the target database.  <a href="#ace5ab87b94e584ed121a7df5bb7b0eef"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">const std::string&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ad43e50e8ad87e7220b476158fa7ef190">expression</a> ()</td></tr>
@@ -1384,6 +1388,94 @@
 
 </div>
 </div>
+<a class="anchor" id="aff05cb0454a003330cbc82bff68ea7e4"></a><!-- doxytag: member="kyototycoon::RemoteDB::match_prefix" ref="aff05cb0454a003330cbc82bff68ea7e4" args="(const std::string &amp;prefix, std::vector&lt; std::string &gt; *strvec, int64_t max=&#45;1)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t kyototycoon::RemoteDB::match_prefix </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>prefix</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; std::string &gt; *&nbsp;</td>
+          <td class="paramname"> <em>strvec</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>max</em> = <code>-1</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Get keys matching a prefix string. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>prefix</em>&nbsp;</td><td>the prefix string. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>strvec</em>&nbsp;</td><td>a string vector to contain the result. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>max</em>&nbsp;</td><td>the maximum number to retrieve. If it is negative, no limit is specified. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the number of retrieved keys or -1 on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="abbfe172a43c7105bd76a4fbaefea63eb"></a><!-- doxytag: member="kyototycoon::RemoteDB::match_regex" ref="abbfe172a43c7105bd76a4fbaefea63eb" args="(const std::string &amp;regex, std::vector&lt; std::string &gt; *strvec, int64_t max=&#45;1)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t kyototycoon::RemoteDB::match_regex </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>regex</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; std::string &gt; *&nbsp;</td>
+          <td class="paramname"> <em>strvec</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>max</em> = <code>-1</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Get keys matching a regular expression string. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>regex</em>&nbsp;</td><td>the regular expression string. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>strvec</em>&nbsp;</td><td>a string vector to contain the result. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>max</em>&nbsp;</td><td>the maximum number to retrieve. If it is negative, no limit is specified. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the number of retrieved keys or -1 on failure. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ace5ab87b94e584ed121a7df5bb7b0eef"></a><!-- doxytag: member="kyototycoon::RemoteDB::set_target" ref="ace5ab87b94e584ed121a7df5bb7b0eef" args="(const std::string &amp;expr)" -->
 <div class="memitem">
 <div class="memproto">
@@ -1452,7 +1544,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Oct 21 01:52:02 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Mon Oct 25 22:53:07 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

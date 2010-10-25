@@ -1070,7 +1070,7 @@ static int32_t procimport(const char* file, const char* host, int32_t port, doub
   int64_t cnt = 0;
   std::string line;
   std::vector<std::string> fields;
-  while (!err && getline(is, &line)) {
+  while (!err && mygetline(is, &line)) {
     cnt++;
     kc::strsplit(line, '\t', &fields);
     if (sx) {

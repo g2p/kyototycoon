@@ -10,7 +10,7 @@
 SHELL = /bin/sh
 
 # Targets
-MYBINS = ktremoteex
+MYBINS = ktremoteex ktpollex ktthservex kthttpex
 
 
 # Building binaries
@@ -72,6 +72,18 @@ check :
 
 
 ktremoteex : ktremoteex.o
+	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIBS)
+
+
+ktpollex : ktpollex.o
+	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIBS)
+
+
+ktthservex : ktthservex.o
+	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIBS)
+
+
+kthttpex : kthttpex.o
 	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIBS)
 
 

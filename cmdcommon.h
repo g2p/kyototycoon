@@ -35,7 +35,7 @@ const size_t RECBUFSIZ = 64;             // buffer size for a record
 const size_t RECBUFSIZL = 1024;          // buffer size for a long record
 const size_t LINEBUFSIZ = 8192;          // buffer size for a line
 const double DEFTOUT = 30;               // default timeout
-const double DEFTHNUM = 4;               // default number of threads
+const double DEFTHNUM = 8;               // default number of threads
 
 
 // global variables
@@ -54,7 +54,7 @@ void iputchar(char c);
 void eprintf(const char* format, ...);
 void printversion();
 void printdata(const char* buf, int32_t size, bool px);
-bool getline(std::istream* is, std::string* str);
+bool mygetline(std::istream* is, std::string* str);
 std::string unitnumstr(int64_t num);
 std::string unitnumstrbyte(int64_t num);
 kt::RPCServer::Logger* stdlogger(const char* prefix, std::ostream* strm);
@@ -179,7 +179,7 @@ inline void printdata(const char* buf, int32_t size, bool px) {
 
 
 // read a line from a file descriptor
-inline bool getline(std::istream* is, std::string* str) {
+inline bool mygetline(std::istream* is, std::string* str) {
   str->clear();
   bool hit = false;
   char c;

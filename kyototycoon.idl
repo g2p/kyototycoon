@@ -95,6 +95,8 @@ module kyototycoon {
     long long remove_bulk(in List keys);
     Map get_bulk(in List keys);
     boolean vacuum(in long long steps);
+    List match_prefix(in string prefix, in long long max);
+    List match_regex(in string regex, in long long max);
     void set_target(in string expr);
     string expression();
     Cursor cursor();

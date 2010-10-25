@@ -303,8 +303,13 @@
 	</tr>
 
 	<tr>
-	<td class="name" nowrap><a href="#db:merge">db:merge</a>&nbsp;(srcary, mode)</td>
-	<td class="summary">Merge records from other databases.</td>
+	<td class="name" nowrap><a href="#db:match_prefix">db:match_prefix</a>&nbsp;(prefix, max)</td>
+	<td class="summary">Get keys matching a prefix string.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#db:match_regex">db:match_regex</a>&nbsp;(regex, max)</td>
+	<td class="summary">Get keys matching a regular expression string.</td>
 	</tr>
 
 	<tr>
@@ -405,6 +410,11 @@
 	<tr>
 	<td class="name" nowrap><a href="#pack">pack</a>&nbsp;(format, ary, ...)</td>
 	<td class="summary">Serialize an array of numbers into a string.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#regex">regex</a>&nbsp;(str, pattern, alt)</td>
+	<td class="summary">Perform pattern matching or replacement with regular expressions.</td>
 	</tr>
 
 	<tr>
@@ -1900,20 +1910,20 @@ true on success, or false on failure.
 
 
 
-<dt><a name="db:merge"></a><strong>db:merge</strong>&nbsp;(srcary, mode)</dt>
+<dt><a name="db:match_prefix"></a><strong>db:match_prefix</strong>&nbsp;(prefix, max)</dt>
 <dd>
-Merge records from other databases.
+Get keys matching a prefix string.
 
 
 <h3>Parameters</h3>
 <ul>
 	
 	<li>
-	  srcary: an array of the source detabase objects.
+	  prefix: the prefix string.
 	</li>
 	
 	<li>
-	  mode: the merge mode.  DB.MSET to overwrite the existing value, DB.MADD to keep the existing value, DB.MAPPEND to append the new value.  If it is omitted, DB.MSET is specified.
+	  max: the maximum number to retrieve.  If it is omitted or negative, no limit is specified.
 	</li>
 	
 </ul>
@@ -1924,7 +1934,40 @@ Merge records from other databases.
 
 
 <h3>Return value:</h3>
-true on success, or false on failure.
+an array of matching keys, or nil on failure.
+
+
+
+</dd>
+
+
+
+
+<dt><a name="db:match_regex"></a><strong>db:match_regex</strong>&nbsp;(regex, max)</dt>
+<dd>
+Get keys matching a regular expression string.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  regex: the regular expression string.
+	</li>
+	
+	<li>
+	  max: the maximum number to retrieve.  If it is omitted or negative, no limit is specified.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+an array of matching keys, or nil on failure.
 
 
 
@@ -2491,6 +2534,43 @@ Serialize an array of numbers into a string.
 
 <h3>Return value:</h3>
 the serialized string.
+
+
+
+</dd>
+
+
+
+
+<dt><a name="regex"></a><strong>regex</strong>&nbsp;(str, pattern, alt)</dt>
+<dd>
+Perform pattern matching or replacement with regular expressions.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  str: the source string.
+	</li>
+	
+	<li>
+	  pattern: the pattern of regular expressions.
+	</li>
+	
+	<li>
+	  alt: the alternative string corresponding for the pattern.  If it is not defined, matching check is performed.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+If the alternative string is specified, the converted string is returned.  If the alternative string is not specified, the boolean value of whether the source string matches the pattern is returned.
 
 
 

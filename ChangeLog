@@ -1,3 +1,15 @@
+2010-10-21  Mikio Hirabayashi  <info@fallabs.com>
+
+	* kttimeddb.h (TimedDB::match_prefix, TimedDB::match_regex): new functions.
+
+	* kttimeddb.h (TimedDB::jump_back, TimedDB::jump_step): a bug about error code was fixed.
+
+	* ktremotedb.h (RemoteDB::match_prefix, RemoteDB::match_regex): new functions.
+
+	* ktserver.cc (do_match_prefix, do_match_regex): new functions.
+
+	- Release: 0.9.4
+
 2010-10-15  Mikio Hirabayashi  <info@fallabs.com>
 
 	* kttimedtest.cc (procorder, procqueue, procwicked, proctran): "tune_logger" was added.

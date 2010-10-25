@@ -1269,6 +1269,84 @@ public:
     return true;
   }
   /**
+   * Get keys matching a prefix string.
+   * @param prefix the prefix string.
+   * @param strvec a string vector to contain the result.
+   * @param max the maximum number to retrieve.  If it is negative, no limit is specified.
+   * @return the number of retrieved keys or -1 on failure.
+   */
+  int64_t match_prefix(const std::string& prefix, std::vector<std::string>* strvec,
+                       int64_t max = -1) {
+    _assert_(strvec);
+    strvec->clear();
+    std::map<std::string, std::string> inmap;
+    set_db_param(inmap);
+    inmap["prefix"] = prefix;
+    if (max >= 0) kc::strprintf(&inmap["max"], "%lld", (long long)max);
+    std::map<std::string, std::string> outmap;
+    RPCClient::ReturnValue rv = rpc_.call("match_prefix", &inmap, &outmap);
+    if (rv != RPCClient::RVSUCCESS) {
+      set_rpc_error(rv, outmap);
+      return -1;
+    }
+    std::map<std::string, std::string>::const_iterator oit = outmap.begin();
+    std::map<std::string, std::string>::const_iterator oitend = outmap.end();
+    while (oit != oitend) {
+      const char* kbuf = oit->first.data();
+      size_t ksiz = oit->first.size();
+      if (ksiz > 0 && *kbuf == '_') {
+        std::string key(kbuf + 1, ksiz - 1);
+        strvec->push_back(key);
+      }
+      oit++;
+    }
+    const char* rp = strmapget(outmap, "num");
+    if (!rp) {
+      set_error(RPCClient::RVELOGIC, "no information");
+      return -1;
+    }
+    return kc::atoi(rp);
+  }
+  /**
+   * Get keys matching a regular expression string.
+   * @param regex the regular expression string.
+   * @param strvec a string vector to contain the result.
+   * @param max the maximum number to retrieve.  If it is negative, no limit is specified.
+   * @return the number of retrieved keys or -1 on failure.
+   */
+  int64_t match_regex(const std::string& regex, std::vector<std::string>* strvec,
+                       int64_t max = -1) {
+    _assert_(strvec);
+    strvec->clear();
+    std::map<std::string, std::string> inmap;
+    set_db_param(inmap);
+    inmap["regex"] = regex;
+    if (max >= 0) kc::strprintf(&inmap["max"], "%lld", (long long)max);
+    std::map<std::string, std::string> outmap;
+    RPCClient::ReturnValue rv = rpc_.call("match_regex", &inmap, &outmap);
+    if (rv != RPCClient::RVSUCCESS) {
+      set_rpc_error(rv, outmap);
+      return -1;
+    }
+    std::map<std::string, std::string>::const_iterator oit = outmap.begin();
+    std::map<std::string, std::string>::const_iterator oitend = outmap.end();
+    while (oit != oitend) {
+      const char* kbuf = oit->first.data();
+      size_t ksiz = oit->first.size();
+      if (ksiz > 0 && *kbuf == '_') {
+        std::string key(kbuf + 1, ksiz - 1);
+        strvec->push_back(key);
+      }
+      oit++;
+    }
+    const char* rp = strmapget(outmap, "num");
+    if (!rp) {
+      set_error(RPCClient::RVELOGIC, "no information");
+      return -1;
+    }
+    return kc::atoi(rp);
+  }
+  /**
    * Set the target database.
    * @param expr the expression of the target database.
    */

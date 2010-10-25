@@ -448,7 +448,7 @@ static int32_t procmtecho(const char* host, int32_t port, double tout, int32_t t
   private:
     bool process(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess) {
       bool keep = false;
-      char line[1024];
+      char line[LINEBUFSIZ];
       if (sess->receive_line(line, sizeof(line))) {
         if (!kc::stricmp(line, "/quit")) {
           sess->printf("> Bye!\n");

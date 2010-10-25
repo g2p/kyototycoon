@@ -42,7 +42,7 @@
 
 <h2 id="introduction">Introduction</h2>
 
-<p>Kyoto Tycoon is a lightweight database server with auto expiration mechanism, which is useful to handle cache data of various applications.  Kyoto Tycoon is also a package of network interface to the DBM called Kyoto Cabinet.  Though the DBM has high performance and high concurrency, you might bother in case that multiple processes share the same database, or remote processes access the database.  Thus, Kyoto Tycoon is provided for concurrent and remote connections to Kyoto Cabinet.  Kyoto Tycoon is composed of the server process managing multiple databases and its access library for client applications.</p>
+<p>Kyoto Tycoon is a lightweight database server with auto expiration mechanism, which is useful to handle cache data of various applications.  Kyoto Tycoon is also a package of network interface to the DBM called Kyoto Cabinet.  Although the DBM has high performance and high concurrency, you might bother in case that multiple processes share the same database, or remote processes access the database.  Thus, Kyoto Tycoon is provided for concurrent and remote connections to Kyoto Cabinet.  Kyoto Tycoon is composed of the server process managing multiple databases and its access library for client applications.</p>
 
 <p>The server features high concurrency due to thread-pool modeled implementation and the epoll/kqueue mechanism of the modern Linux/*BSD kernel.  It can handle more than 10 thousand connections at the same time.  Because such system-specific features as epoll/kqueue are encapsulated and abstracted as the same interface, Kyoto Tycoon has high portability and works almost all UNIX-like systems and Windows.</p>
 
@@ -440,7 +440,7 @@ end
 <pre>$ ktserver -port 1978 -tout 10 \
   -log /var/data/ktserver.log -ls \
   -dmn -pid /var/data/ktserver.pid \
-  '/var/data/casket.kch#bnum=20000000#msiz=12g#dfunit=8'
+  '/var/data/casket.kch#opts=l#bnum=20000000#msiz=12g#dfunit=8'
 </pre>
 
 <p>To improve performance, the bucket number of the hash table by the "bnum" parameter should be two times or more of the number of records.  The size of mapped memory by the "msiz" parameter should be largest as far as the main memory is available.  The unit number of auto defragmentation by the "dfunit" parameter should be about 8 which means every eight detected fragmentations causes a series of auto defragmentation steps.  If you want more high availability at the cost of performance, using auto transaction by the "-oat" option is a good idea.  For detail about database tuning, see <a href="http://fallabs.com/kyotocabinet/spex.html#tips">the tips of Kyoto Cabinet</a>.</p>
@@ -805,6 +805,28 @@ key     mikio
 <dd>Scan the database and eliminate regions of expired records.</dd>
 <dd>input: <code>DB</code>: (optional): the database identifier.</dd>
 <dd>input: <code>step</code>: (optional): the number of steps.  If it is omitted or not more than 0, the whole region is scanned.</dd>
+<dd>status code: 200.</dd>
+</dl>
+
+<dl>
+<dt><code>/rpc/match_prefix</code></dt>
+<dd>Get keys matching a prefix string.</dd>
+<dd>input: <code>DB</code>: (optional): the database identifier.</dd>
+<dd>input: <code>prefix</code>: the prefix string.</dd>
+<dd>input: <code>max</code>: (optional): the maximum number to retrieve.  If it is omitted or negative, no limit is specified.</dd>
+<dd>output: <code>num</code>: the number of retrieved keys.</dd>
+<dd>output: (optional): arbitrary keys which trail the character "_".</dd>
+<dd>status code: 200.</dd>
+</dl>
+
+<dl>
+<dt><code>/rpc/match_regex</code></dt>
+<dd>Get keys matching a ragular expression string.</dd>
+<dd>input: <code>DB</code>: (optional): the database identifier.</dd>
+<dd>input: <code>regex</code>: the regular expression string.</dd>
+<dd>input: <code>max</code>: (optional): the maximum number to retrieve.  If it is omitted or negative, no limit is specified.</dd>
+<dd>output: <code>num</code>: the number of retrieved keys.</dd>
+<dd>output: (optional): arbitrary keys which trail the character "_".</dd>
 <dd>status code: 200.</dd>
 </dl>
 

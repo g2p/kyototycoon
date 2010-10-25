@@ -783,48 +783,49 @@ static int32_t procwicked(int64_t rnum, int32_t thnum, int32_t itnum,
                     }
                   }
                 } else {
-                  /*
-                  class VisitorImpl : public kt::RemoteDB::Visitor {
-                  public:
-                    explicit VisitorImpl(const char* lbuf) : lbuf_(lbuf) {}
-                  private:
-                    const char* visit_full(const char* kbuf, size_t ksiz,
-                                           const char* vbuf, size_t vsiz,
-                                           size_t* sp, int64_t* xtp) {
-                      const char* rv = NOP;
-                      switch (myrand(3)) {
-                        case 0: {
-                          rv = lbuf_;
-                          *sp = myrand(RECBUFSIZL) / (myrand(5) + 1);
-                          *xtp = myrand(100) + 1;
-                          break;
-                        }
-                        case 1: {
-                          rv = REMOVE;
-                          break;
-                        }
+                  switch (myrand(3)) {
+                    case 0: {
+                      size_t vsiz = myrand(RECBUFSIZL) / (myrand(5) + 1);
+                      if (!cur->set_value(lbuf_, vsiz, xt, myrand(2) == 0) &&
+                          db_->error() != kt::RemoteDB::Error::LOGIC) {
+                        dberrprint(db_, __LINE__, "Cursor::set_value");
+                        err_ = true;
                       }
-                      return rv;
+                      break;
                     }
-                    const char* lbuf_;
-                  } visitor(lbuf_);
-                  if (!cur->accept(&visitor, true, myrand(2) == 0) &&
-                      db_->error() != kt::RemoteDB::Error::LOGIC) {
-                    dberrprint(db_, __LINE__, "Cursor::accept");
-                    err_ = true;
+                    case 1: {
+                      if (!cur->remove() && db_->error() != kt::RemoteDB::Error::LOGIC) {
+                        dberrprint(db_, __LINE__, "Cursor::remove");
+                        err_ = true;
+                      }
+                      break;
+                    }
                   }
-                  */
-
                   if (myrand(5) > 0 && !cur->step() &&
                       db_->error() != kt::RemoteDB::Error::LOGIC) {
                     dberrprint(db_, __LINE__, "Cursor::step");
                     err_ = true;
                   }
                 }
+                if (myrand(rnum_ / 50 + 1) == 0) {
+                  std::vector<std::string> keys;
+                  std::string prefix(kbuf, ksiz > 0 ? ksiz - 1 : 0);
+                  if (db_->match_prefix(prefix, &keys, myrand(10)) == -1) {
+                    dberrprint(db_, __LINE__, "DB::match_prefix");
+                    err_ = true;
+                  }
+                }
+                if (myrand(rnum_ / 50 + 1) == 0) {
+                  std::vector<std::string> keys;
+                  std::string regex(kbuf, ksiz > 0 ? ksiz - 1 : 0);
+                  if (db_->match_regex(regex, &keys, myrand(10)) == -1 &&
+                      db_->error() != kc::BasicDB::Error::LOGIC) {
+                    dberrprint(db_, __LINE__, "DB::match_regex");
+                    err_ = true;
+                  }
+                }
                 break;
               }
-
-
               case 8: {
                 std::map<std::string, std::string> recs;
                 int32_t num = myrand(4);

@@ -151,6 +151,14 @@ function strfwm(str, pattern) end
 function strbwm(str, pattern) end
 
 
+--- Perform pattern matching or replacement with regular expressions.
+-- @param str the source string.
+-- @param pattern the pattern of regular expressions.
+-- @param alt the alternative string corresponding for the pattern.  If it is not defined, matching check is performed.
+-- @return If the alternative string is specified, the converted string is returned.  If the alternative string is not specified, the boolean value of whether the source string matches the pattern is returned.
+function regex(str, pattern, alt) end
+
+
 ---
 -- Error data.
 -- @class table
@@ -628,11 +636,18 @@ function db:path() end
 function db:status() end
 
 
---- Merge records from other databases.
--- @param srcary an array of the source detabase objects.
--- @param mode the merge mode.  DB.MSET to overwrite the existing value, DB.MADD to keep the existing value, DB.MAPPEND to append the new value.  If it is omitted, DB.MSET is specified.
--- @return true on success, or false on failure.
-function db:merge(srcary, mode) end
+--- Get keys matching a prefix string.
+-- @param prefix the prefix string.
+-- @param max the maximum number to retrieve.  If it is omitted or negative, no limit is specified.
+-- @return an array of matching keys, or nil on failure.
+function db:match_prefix(prefix, max) end
+
+
+--- Get keys matching a regular expression string.
+-- @param regex the regular expression string.
+-- @param max the maximum number to retrieve.  If it is omitted or negative, no limit is specified.
+-- @return an array of matching keys, or nil on failure.
+function db:match_regex(regex, max) end
 
 
 --- Create a cursor object.

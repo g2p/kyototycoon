@@ -138,6 +138,10 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Reveal the inner database object.  <a href="#a764079e4e6ad2dd1651454a45da02028"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a55966b82776b51d167fac05597de4622">vacuum</a> (int64_t step=0)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Scan the database and eliminate regions of expired records.  <a href="#a55966b82776b51d167fac05597de4622"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a33d48a58dd9127756da2b22fafe53777">match_prefix</a> (const std::string &amp;prefix, std::vector&lt; std::string &gt; *strvec, int64_t max=-1, kc::BasicDB::ProgressChecker *checker=NULL)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get keys matching a prefix string.  <a href="#a33d48a58dd9127756da2b22fafe53777"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a1ca05ebafef224e3ec3b12e7a30b9526">match_regex</a> (const std::string &amp;regex, std::vector&lt; std::string &gt; *strvec, int64_t max=-1, kc::BasicDB::ProgressChecker *checker=NULL)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get keys matching a regular expression string.  <a href="#a1ca05ebafef224e3ec3b12e7a30b9526"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Cursor.html">Cursor</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a55b5f73fa02f9c898a7a0c998eeb2d0c">cursor</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Create a cursor object.  <a href="#a55b5f73fa02f9c898a7a0c998eeb2d0c"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a14729ddf477c1cac0f1a3922b846a385">tune_options</a> (int8_t opts)</td></tr>
@@ -1783,6 +1787,108 @@
 
 </div>
 </div>
+<a class="anchor" id="a33d48a58dd9127756da2b22fafe53777"></a><!-- doxytag: member="kyototycoon::TimedDB::match_prefix" ref="a33d48a58dd9127756da2b22fafe53777" args="(const std::string &amp;prefix, std::vector&lt; std::string &gt; *strvec, int64_t max=&#45;1, kc::BasicDB::ProgressChecker *checker=NULL)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t kyototycoon::TimedDB::match_prefix </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>prefix</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; std::string &gt; *&nbsp;</td>
+          <td class="paramname"> <em>strvec</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>max</em> = <code>-1</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">kc::BasicDB::ProgressChecker *&nbsp;</td>
+          <td class="paramname"> <em>checker</em> = <code>NULL</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Get keys matching a prefix string. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>prefix</em>&nbsp;</td><td>the prefix string. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>strvec</em>&nbsp;</td><td>a string vector to contain the result. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>max</em>&nbsp;</td><td>the maximum number to retrieve. If it is negative, no limit is specified. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>checker</em>&nbsp;</td><td>a progress checker object. If it is NULL, no checking is performed. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the number of retrieved keys or -1 on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a1ca05ebafef224e3ec3b12e7a30b9526"></a><!-- doxytag: member="kyototycoon::TimedDB::match_regex" ref="a1ca05ebafef224e3ec3b12e7a30b9526" args="(const std::string &amp;regex, std::vector&lt; std::string &gt; *strvec, int64_t max=&#45;1, kc::BasicDB::ProgressChecker *checker=NULL)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t kyototycoon::TimedDB::match_regex </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>regex</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; std::string &gt; *&nbsp;</td>
+          <td class="paramname"> <em>strvec</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>max</em> = <code>-1</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">kc::BasicDB::ProgressChecker *&nbsp;</td>
+          <td class="paramname"> <em>checker</em> = <code>NULL</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Get keys matching a regular expression string. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>regex</em>&nbsp;</td><td>the regular expression string. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>strvec</em>&nbsp;</td><td>a string vector to contain the result. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>max</em>&nbsp;</td><td>the maximum number to retrieve. If it is negative, no limit is specified. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>checker</em>&nbsp;</td><td>a progress checker object. If it is NULL, no checking is performed. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the number of retrieved keys or -1 on failure. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a55b5f73fa02f9c898a7a0c998eeb2d0c"></a><!-- doxytag: member="kyototycoon::TimedDB::cursor" ref="a55b5f73fa02f9c898a7a0c998eeb2d0c" args="()" -->
 <div class="memitem">
 <div class="memproto">
@@ -1900,7 +2006,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Oct 21 01:52:02 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Mon Oct 25 22:53:07 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>
