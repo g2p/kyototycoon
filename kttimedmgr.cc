@@ -37,6 +37,7 @@ static int32_t runcopy(int argc, char** argv);
 static int32_t rundump(int argc, char** argv);
 static int32_t runload(int argc, char** argv);
 static int32_t runvacuum(int argc, char** argv);
+static int32_t runmerge(int argc, char** argv);
 static int32_t runcheck(int argc, char** argv);
 static int32_t proccreate(const char* path, int32_t oflags, int32_t opts);
 static int32_t procinform(const char* path, int32_t oflags, bool st);
@@ -54,6 +55,8 @@ static int32_t proccopy(const char* path, const char* file, int32_t oflags);
 static int32_t procdump(const char* path, const char* file, int32_t oflags);
 static int32_t procload(const char* path, const char* file, int32_t oflags);
 static int32_t procvacuum(const char* path, int32_t oflags);
+static int32_t procmerge(const char* path, int32_t oflags, kt::TimedDB::MergeMode mode,
+                         const std::vector<std::string>& srcpaths);
 static int32_t proccheck(const char* path, int32_t oflags);
 
 
@@ -87,6 +90,8 @@ int main(int argc, char** argv) {
     rv = runload(argc, argv);
   } else if (!std::strcmp(argv[1], "vacuum")) {
     rv = runvacuum(argc, argv);
+  } else if (!std::strcmp(argv[1], "merge")) {
+    rv = runmerge(argc, argv);
   } else if (!std::strcmp(argv[1], "check")) {
     rv = runcheck(argc, argv);
   } else if (!std::strcmp(argv[1], "version") || !std::strcmp(argv[1], "--version")) {
@@ -117,6 +122,7 @@ static void usage() {
   eprintf("  %s dump [-onl|-otl|-onr] path [file]\n", g_progname);
   eprintf("  %s load [-otr] [-onl|-otl|-onr] path [file]\n", g_progname);
   eprintf("  %s vacuum [-onl|-otl|-onr] path\n", g_progname);
+  eprintf("  %s merge [-onl|-otl|-onr] [-add|-rep|-app] path src...\n", g_progname);
   eprintf("  %s check [-onl|-otl|-onr] path\n", g_progname);
   eprintf("\n");
   std::exit(1);
@@ -650,6 +656,45 @@ static int32_t runvacuum(int argc, char** argv) {
 }
 
 
+// parse arguments of merge command
+static int32_t runmerge(int argc, char** argv) {
+  bool argbrk = false;
+  const char* path = NULL;
+  int32_t oflags = 0;
+  kt::TimedDB::MergeMode mode = kt::TimedDB::MSET;
+  std::vector<std::string> srcpaths;
+  for (int32_t i = 2; i < argc; i++) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-onl")) {
+        oflags |= kc::BasicDB::ONOLOCK;
+      } else if (!std::strcmp(argv[i], "-otl")) {
+        oflags |= kc::BasicDB::OTRYLOCK;
+      } else if (!std::strcmp(argv[i], "-onr")) {
+        oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-add")) {
+        mode = kt::TimedDB::MADD;
+      } else if (!std::strcmp(argv[i], "-rep")) {
+        mode = kt::TimedDB::MREPLACE;
+      } else if (!std::strcmp(argv[i], "-app")) {
+        mode = kt::TimedDB::MAPPEND;
+      } else {
+        usage();
+      }
+    } else if (!path) {
+      argbrk = true;
+      path = argv[i];
+    } else {
+      srcpaths.push_back(argv[i]);
+    }
+  }
+  if (!path && srcpaths.size() < 1) usage();
+  int32_t rv = procmerge(path, oflags, mode, srcpaths);
+  return rv;
+}
+
+
 // parse arguments of check command
 static int32_t runcheck(int argc, char** argv) {
   bool argbrk = false;
@@ -1137,6 +1182,56 @@ static int32_t procvacuum(const char* path, int32_t oflags) {
     dberrprint(&db, "DB::close failed");
     err = true;
   }
+  return err ? 1 : 0;
+}
+
+
+// perform merge command
+static int32_t procmerge(const char* path, int32_t oflags, kt::TimedDB::MergeMode mode,
+                         const std::vector<std::string>& srcpaths) {
+  kt::TimedDB db;
+  db.tune_logger(stddblogger(g_progname, &std::cerr));
+  if (!db.open(path, kc::BasicDB::OWRITER | kc::BasicDB::OCREATE | oflags)) {
+    dberrprint(&db, "DB::open failed");
+    return 1;
+  }
+  bool err = false;
+  kt::TimedDB** srcary = new kt::TimedDB*[srcpaths.size()];
+  size_t srcnum = 0;
+  std::vector<std::string>::const_iterator it = srcpaths.begin();
+  std::vector<std::string>::const_iterator itend = srcpaths.end();
+  while (it != itend) {
+    const std::string srcpath = *it;
+    kt::TimedDB* srcdb = new kt::TimedDB;
+    if (srcdb->open(srcpath, kc::BasicDB::OREADER | oflags)) {
+      srcary[srcnum++] = srcdb;
+    } else {
+      dberrprint(srcdb, "DB::open failed");
+      err = true;
+      delete srcdb;
+    }
+    it++;
+  }
+  DotChecker checker(&std::cout, 1000);
+  if (!db.merge(srcary, srcnum, mode, &checker)) {
+    dberrprint(&db, "DB::merge failed");
+    err = true;
+  }
+  iprintf(" (end)\n");
+  for (size_t i = 0; i < srcnum; i++) {
+    kt::TimedDB* srcdb = srcary[i];
+    if (!srcdb->close()) {
+      dberrprint(srcdb, "DB::close failed");
+      err = true;
+    }
+    delete srcdb;
+  }
+  delete[] srcary;
+  if (!db.close()) {
+    dberrprint(&db, "DB::close failed");
+    err = true;
+  }
+  if (!err) iprintf("%lld records were merged successfully\n", (long long)checker.count());
   return err ? 1 : 0;
 }
 

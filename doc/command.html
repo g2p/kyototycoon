@@ -208,6 +208,8 @@
 <dd>Performs mixed operations selected at random.</dd>
 <dt><code>kttimedtest tran [-th <var>num</var>] [-it <var>num</var>] [-hard] [-oat|-onl|-onl|-otl|-onr] [-tp] <var>path</var> <var>rnum</var></code></dt>
 <dd>Performs test of transaction.</dd>
+<dt><code>kctimedtest mapred [-rnd] [-oat|-onl|-onl|-otl|-onr] [-lv] [-tmp <var>str</var>] [-dbnum <var>num</var>] [-clim <var>num</var>] [-xnl] [-xnc] <var>path</var> <var>rnum</var></code></dt>
+<dd>Performs MapReduce operations.</dd>
 <dt><code>kttimedtest misc <var>path</var></code></dt>
 <dd>Performs miscellaneous tests.</dd>
 </dl>
@@ -231,6 +233,11 @@
 <li><code>-tp</code> : disables expiration.</li>
 <li><code>-it <var>num</var></code> : specifies the number of repetition.</li>
 <li><code>-hard</code> : performs physical synchronization.</li>
+<li><code>-tmp <var>str</var></code> : specifies the path of a directory for temporary storage.</li>
+<li><code>-dbnum <var>num</var></code> : specifies the number of temporary databases.</li>
+<li><code>-clim <var>num</var></code> : specifies the limit size of cache memory.</li>
+<li><code>-xnl</code> : executes with the no locking option.</li>
+<li><code>-xnc</code> : executes with the no compression option.</li>
 </ul>
 
 <p>This command returns 0 on success, another on failure.</p>
@@ -239,7 +246,7 @@
 
 <h2 id="kttimedmgr">kttimedmgr</h2>
 
-<p>The command `<code>kttimedmgr</code>' is a utility for test and debugging of the timed database and its applications.  `<var>path</var>' specifies the path of a database file.  `<var>key</var>' specifies the key of a record.  `<var>value</var>' specifies the value of a record.  `<var>file</var>' specifies the input/output file.</p>
+<p>The command `<code>kttimedmgr</code>' is a utility for test and debugging of the timed database and its applications.  `<var>path</var>' specifies the path of a database file.  `<var>key</var>' specifies the key of a record.  `<var>value</var>' specifies the value of a record.  `<var>file</var>' specifies the input/output file.  `<var>src</var>' specifies other database files.</p>
 
 <dl class="api">
 <dt><code>kttimedmgr create [-otr] [-onl|-otl|-onr] [-tp] <var>path</var></code></dt>
@@ -266,6 +273,8 @@
 <dd>Loads records from a snapshot file.</dd>
 <dt><code>kttimedmgr vacuum [-onl|-otl|-onr] <var>path</var></code></dt>
 <dd>Eliminates regions of expired records.</dd>
+<dt><code>kttimedmgr merge [-onl|-otl|-onr] [-add|-app|-rep] <var>path</var> <var>src</var>...</code></dt>
+<dd>Merge records from other databases.</dd>
 <dt><code>kttimedmgr check [-onl|-otl|-onr] <var>path</var></code></dt>
 <dd>Checks consistency.</dd>
 </dl>

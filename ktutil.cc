@@ -106,7 +106,7 @@ int32_t executecommand(const std::vector<std::string>& args) {
     char* wp = token;
     while (*rp != '\0') {
       switch (*rp) {
-        case '"': case '\\': case '$': case '`': {
+        case '"': case '\\': case '$': case '`': case '!': {
           *(wp++) = '\\';
           *(wp++) = *rp;
           break;

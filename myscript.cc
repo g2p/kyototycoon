@@ -40,6 +40,7 @@ typedef std::vector<std::string> StringVector;
 
 /* function prototypes */
 static void reporterror(ScriptProcessorCore* core, const char* name);
+static void throwinvarg(lua_State* lua, const char* func);
 static void setfielduint(lua_State* lua, const char* name, uint32_t num);
 static void setfieldstr(lua_State* lua, const char* name, const char* str);
 static void setfieldfunc(lua_State* lua, const char* name, lua_CFunction func);
@@ -130,6 +131,10 @@ static int db_path(lua_State* lua);
 static int db_status(lua_State* lua);
 static int db_match_prefix(lua_State* lua);
 static int db_match_regex(lua_State* lua);
+static int db_merge(lua_State* lua);
+static int db_mapreduce(lua_State* lua);
+static int db_mapreduce_emit(lua_State* lua);
+static int db_mapreduce_iter(lua_State* lua);
 static int db_cursor(lua_State* lua);
 static int db_cursor_process(lua_State* lua);
 static int db_pairs(lua_State* lua);
@@ -534,10 +539,12 @@ static void reporterror(ScriptProcessorCore* core, const char* name) {
 
 
 /**
- * throw the invalid argument error.
+ * Throw the invalid argument error.
  */
-static void throwinvarg(lua_State* lua) {
-  lua_pushstring(lua, "invalid arguments");
+static void throwinvarg(lua_State* lua, const char* func) {
+  char msg[256];
+  size_t len = std::sprintf(msg, "%s: invalid arguments", func);
+  lua_pushlstring(lua, msg, len);
   lua_error(lua);
 }
 
@@ -606,7 +613,7 @@ static void define_module(lua_State* lua) {
  */
 static int kt_atoi(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1) throwinvarg(lua);
+  if (argc != 1) throwinvarg(lua, __KCFUNC__);
   const char* str = lua_tostring(lua, 1);
   if (!str) return 0;
   lua_pushnumber(lua, kc::atoi(str));
@@ -619,7 +626,7 @@ static int kt_atoi(lua_State* lua) {
  */
 static int kt_atoix(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1) throwinvarg(lua);
+  if (argc != 1) throwinvarg(lua, __KCFUNC__);
   const char* str = lua_tostring(lua, 1);
   if (!str) return 0;
   lua_pushnumber(lua, kc::atoix(str));
@@ -632,7 +639,7 @@ static int kt_atoix(lua_State* lua) {
  */
 static int kt_atof(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1) throwinvarg(lua);
+  if (argc != 1) throwinvarg(lua, __KCFUNC__);
   const char* str = lua_tostring(lua, 1);
   if (!str) return 0;
   lua_pushnumber(lua, kc::atof(str));
@@ -645,7 +652,7 @@ static int kt_atof(lua_State* lua) {
  */
 static int kt_hash_murmur(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1) throwinvarg(lua);
+  if (argc != 1) throwinvarg(lua, __KCFUNC__);
   size_t len;
   const char* str = lua_tolstring(lua, 1, &len);
   if (!str) return 0;
@@ -659,7 +666,7 @@ static int kt_hash_murmur(lua_State* lua) {
  */
 static int kt_hash_fnv(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1) throwinvarg(lua);
+  if (argc != 1) throwinvarg(lua, __KCFUNC__);
   size_t len;
   const char* str = lua_tolstring(lua, 1, &len);
   if (!str) return 0;
@@ -673,7 +680,7 @@ static int kt_hash_fnv(lua_State* lua) {
  */
 static int kt_time(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 0) throwinvarg(lua);
+  if (argc != 0) throwinvarg(lua, __KCFUNC__);
   lua_pushnumber(lua, kc::time());
   return 1;
 }
@@ -684,7 +691,7 @@ static int kt_time(lua_State* lua) {
  */
 static int kt_sleep(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc > 1) throwinvarg(lua);
+  if (argc > 1) throwinvarg(lua, __KCFUNC__);
   double sec = argc > 0 ? lua_tonumber(lua, 1) : 0;
   if (sec > 0) {
     kc::Thread::sleep(sec);
@@ -700,9 +707,9 @@ static int kt_sleep(lua_State* lua) {
  */
 static int kt_pack(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 1) throwinvarg(lua);
+  if (argc < 1) throwinvarg(lua, __KCFUNC__);
   const char* format = lua_tostring(lua, 1);
-  if (!format) throwinvarg(lua);
+  if (!format) throwinvarg(lua, __KCFUNC__);
   lua_newtable(lua);
   int32_t aidx = argc + 1;
   int32_t eidx = 1;
@@ -886,11 +893,11 @@ static int kt_pack(lua_State* lua) {
  */
 static int kt_unpack(lua_State *lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 2) throwinvarg(lua);
+  if (argc != 2) throwinvarg(lua, __KCFUNC__);
   const char* format = lua_tostring(lua, 1);
   size_t size;
   const char* buf = lua_tolstring(lua, 2, &size);
-  if (!format) throwinvarg(lua);
+  if (!format) throwinvarg(lua, __KCFUNC__);
   if (!buf) {
     buf = "";
     size = 0;
@@ -1104,10 +1111,10 @@ static int kt_unpack(lua_State *lua) {
  */
 static int kt_split(lua_State *lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 1) throwinvarg(lua);
+  if (argc < 1) throwinvarg(lua, __KCFUNC__);
   size_t isiz;
   const char* ibuf = lua_tolstring(lua, 1, &isiz);
-  if (!ibuf) throwinvarg(lua);
+  if (!ibuf) throwinvarg(lua, __KCFUNC__);
   const char* delims = argc > 1 ? lua_tostring(lua, 2) : NULL;
   lua_newtable(lua);
   int32_t lnum = 1;
@@ -1149,11 +1156,11 @@ static int kt_split(lua_State *lua) {
  */
 static int kt_codec(lua_State *lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 2) throwinvarg(lua);
+  if (argc != 2) throwinvarg(lua, __KCFUNC__);
   const char* mode = lua_tostring(lua, 1);
   size_t isiz;
   const char* ibuf = lua_tolstring(lua, 2, &isiz);
-  if (!mode || !ibuf) throwinvarg(lua);
+  if (!mode || !ibuf) throwinvarg(lua, __KCFUNC__);
   char* obuf = NULL;
   size_t osiz = 0;
   if (*mode == '~') {
@@ -1209,11 +1216,11 @@ static int kt_codec(lua_State *lua) {
  */
 static int kt_bit(lua_State *lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 2) throwinvarg(lua);
+  if (argc < 2) throwinvarg(lua, __KCFUNC__);
   const char* mode = lua_tostring(lua, 1);
   uint32_t num = lua_tonumber(lua, 2);
   uint32_t aux = argc > 2 ? lua_tonumber(lua, 3) : 0;
-  if (!mode) throwinvarg(lua);
+  if (!mode) throwinvarg(lua, __KCFUNC__);
   if (!kc::stricmp(mode, "and")) {
     num &= aux;
   } else if (!kc::stricmp(mode, "or")) {
@@ -1237,10 +1244,10 @@ static int kt_bit(lua_State *lua) {
  */
 static int kt_strstr(lua_State *lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 2) throwinvarg(lua);
+  if (argc < 2) throwinvarg(lua, __KCFUNC__);
   const char* str = lua_tostring(lua, 1);
   const char* pat = lua_tostring(lua, 2);
-  if (!str || !pat) throwinvarg(lua);
+  if (!str || !pat) throwinvarg(lua, __KCFUNC__);
   const char* alt = argc > 2 ? lua_tostring(lua, 3) : NULL;
   if (alt) {
     std::string xstr;
@@ -1274,10 +1281,10 @@ static int kt_strstr(lua_State *lua) {
  */
 static int kt_strfwm(lua_State *lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 2) throwinvarg(lua);
+  if (argc < 2) throwinvarg(lua, __KCFUNC__);
   const char* str = lua_tostring(lua, 1);
   const char* pat = lua_tostring(lua, 2);
-  if (!str || !pat) throwinvarg(lua);
+  if (!str || !pat) throwinvarg(lua, __KCFUNC__);
   lua_pushboolean(lua, kc::strfwm(str, pat));
   return 1;
 }
@@ -1288,10 +1295,10 @@ static int kt_strfwm(lua_State *lua) {
  */
 static int kt_strbwm(lua_State *lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 2) throwinvarg(lua);
+  if (argc < 2) throwinvarg(lua, __KCFUNC__);
   const char* str = lua_tostring(lua, 1);
   const char* pat = lua_tostring(lua, 2);
-  if (!str || !pat) throwinvarg(lua);
+  if (!str || !pat) throwinvarg(lua, __KCFUNC__);
   lua_pushboolean(lua, kc::strbwm(str, pat));
   return 1;
 }
@@ -1302,10 +1309,10 @@ static int kt_strbwm(lua_State *lua) {
  */
 static int kt_regex(lua_State *lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 2) throwinvarg(lua);
+  if (argc < 2) throwinvarg(lua, __KCFUNC__);
   const char* str = lua_tostring(lua, 1);
   const char* pat = lua_tostring(lua, 2);
-  if (!str || !pat) throwinvarg(lua);
+  if (!str || !pat) throwinvarg(lua, __KCFUNC__);
   const char* alt = argc > 2 ? lua_tostring(lua, 3) : NULL;
   if (alt) {
     std::string xstr = kc::Regex::replace(str, pat, alt);
@@ -1347,8 +1354,8 @@ static void define_err(lua_State* lua) {
  */
 static int err_new(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 3) throwinvarg(lua);
+  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 3) throwinvarg(lua, __KCFUNC__);
   lua_newtable(lua);
   if (argc > 2 && lua_isnumber(lua, 2) && lua_isstring(lua, 3)) {
     setfieldvalue(lua, "code_", 2);
@@ -1372,7 +1379,7 @@ static int err_new(lua_State* lua) {
  */
 static int err_tostring(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "code_");
   uint32_t code = lua_tonumber(lua, -1);
   lua_getfield(lua, 1, "message_");
@@ -1388,7 +1395,7 @@ static int err_tostring(lua_State* lua) {
  */
 static int err_set(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 3 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 3 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   if (argc > 2 && lua_isnumber(lua, 2) && lua_isstring(lua, 3)) {
     lua_pushvalue(lua, 2);
     lua_setfield(lua, 1, "code_");
@@ -1405,7 +1412,7 @@ static int err_set(lua_State* lua) {
  */
 static int err_code(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "code_");
   return 1;
 }
@@ -1416,7 +1423,7 @@ static int err_code(lua_State* lua) {
  */
 static int err_name(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "code_");
   uint32_t code = lua_tonumber(lua, -1);
   const char* name = kc::BasicDB::Error::codename((kc::BasicDB::Error::Code)code);
@@ -1430,7 +1437,7 @@ static int err_name(lua_State* lua) {
  */
 static int err_message(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "message_");
   return 1;
 }
@@ -1457,7 +1464,7 @@ static void define_vis(lua_State* lua) {
  */
 static int vis_new(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_newtable(lua);
   setfieldfunc(lua, "visit_full", vis_visit_full);
   setfieldfunc(lua, "visit_empty", vis_visit_empty);
@@ -1472,7 +1479,7 @@ static int vis_new(lua_State* lua) {
  */
 static int vis_visit_full(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 3 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 3 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_pushnil(lua);
   return 1;
 }
@@ -1483,7 +1490,7 @@ static int vis_visit_full(lua_State* lua) {
  */
 static int vis_visit_empty(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 2 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 2 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_pushnil(lua);
   return 1;
 }
@@ -1506,7 +1513,7 @@ static void define_fproc(lua_State* lua) {
  */
 static int fproc_new(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_newtable(lua);
   setfieldfunc(lua, "process", fproc_process);
   lua_getfield(lua, 1, "meta_");
@@ -1520,7 +1527,7 @@ static int fproc_new(lua_State* lua) {
  */
 static int fproc_process(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 4 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 4 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_pushboolean(lua, true);
   return 1;
 }
@@ -1545,10 +1552,10 @@ static void define_cur(lua_State* lua) {
  */
 static int cur_new(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 2 || !lua_istable(lua, 1) || !lua_istable(lua, 2)) throwinvarg(lua);
+  if (argc != 2 || !lua_istable(lua, 1) || !lua_istable(lua, 2)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 2, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
-  if (!db) throwinvarg(lua);
+  if (!db) throwinvarg(lua, __KCFUNC__);
   lua_newtable(lua);
   g_curbur.sweap();
   SoftCursor* cur = (SoftCursor*)lua_newuserdata(lua, sizeof(*cur));
@@ -1596,7 +1603,7 @@ static int cur_gc(lua_State* lua) {
  */
 static int cur_tostring(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "cur_ptr_");
   SoftCursor* cur = (SoftCursor*)lua_touserdata(lua, -1);
   if (!cur) {
@@ -1625,10 +1632,10 @@ static int cur_tostring(lua_State* lua) {
  */
 static int cur_call(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "cur_ptr_");
   SoftCursor* cur = (SoftCursor*)lua_touserdata(lua, -1);
-  if (!cur) throwinvarg(lua);
+  if (!cur) throwinvarg(lua, __KCFUNC__);
   const char* vbuf;
   size_t ksiz, vsiz;
   int64_t xt;
@@ -1649,10 +1656,10 @@ static int cur_call(lua_State* lua) {
  */
 static int cur_disable(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "cur_ptr_");
   SoftCursor* cur = (SoftCursor*)lua_touserdata(lua, -1);
-  if (!cur) throwinvarg(lua);
+  if (!cur) throwinvarg(lua, __KCFUNC__);
   delete cur->cur;
   cur->cur = NULL;
   lua_pushnil(lua);
@@ -1667,11 +1674,11 @@ static int cur_disable(lua_State* lua) {
  */
 static int cur_accept(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 4) throwinvarg(lua);
+  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 4) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "cur_ptr_");
   SoftCursor* cur = (SoftCursor*)lua_touserdata(lua, -1);
-  if (!cur) throwinvarg(lua);
+  if (!cur) throwinvarg(lua, __KCFUNC__);
   bool writable = argc > 2 ? lua_toboolean(lua, 3) : true;
   bool step = argc > 3 ? lua_toboolean(lua, 4) : false;
   bool rv;
@@ -1680,7 +1687,7 @@ static int cur_accept(lua_State* lua) {
     SoftVisitor visitor(lua, writable);
     rv = cur->cur->accept(&visitor, writable, step);
   } else {
-    throwinvarg(lua);
+    throwinvarg(lua, __KCFUNC__);
     rv = false;
   }
   lua_pushboolean(lua, rv);
@@ -1693,13 +1700,13 @@ static int cur_accept(lua_State* lua) {
  */
 static int cur_set_value(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 4) throwinvarg(lua);
+  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 4) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "cur_ptr_");
   SoftCursor* cur = (SoftCursor*)lua_touserdata(lua, -1);
   size_t vsiz;
   const char* vbuf = lua_tolstring(lua, 2, &vsiz);
-  if (!cur || !vsiz) throwinvarg(lua);
+  if (!cur || !vsiz) throwinvarg(lua, __KCFUNC__);
   int64_t xt = argc > 2 && !lua_isnil(lua, 3) ? lua_tonumber(lua, 3) : INT64_MAX;
   bool step = argc > 3 ? lua_toboolean(lua, 4) : false;
   bool rv = cur->cur->set_value(vbuf, vsiz, step, xt);
@@ -1713,10 +1720,10 @@ static int cur_set_value(lua_State* lua) {
  */
 static int cur_remove(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "cur_ptr_");
   SoftCursor* cur = (SoftCursor*)lua_touserdata(lua, -1);
-  if (!cur) throwinvarg(lua);
+  if (!cur) throwinvarg(lua, __KCFUNC__);
   bool rv = cur->cur->remove();
   lua_pushboolean(lua, rv);
   return 1;
@@ -1728,11 +1735,11 @@ static int cur_remove(lua_State* lua) {
  */
 static int cur_get_key(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 2) throwinvarg(lua);
+  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 2) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "cur_ptr_");
   SoftCursor* cur = (SoftCursor*)lua_touserdata(lua, -1);
-  if (!cur) throwinvarg(lua);
+  if (!cur) throwinvarg(lua, __KCFUNC__);
   bool step = argc > 1 ? lua_toboolean(lua, 2) : false;
   size_t ksiz;
   char* kbuf = cur->cur->get_key(&ksiz, step);
@@ -1751,11 +1758,11 @@ static int cur_get_key(lua_State* lua) {
  */
 static int cur_get_value(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 2) throwinvarg(lua);
+  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 2) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "cur_ptr_");
   SoftCursor* cur = (SoftCursor*)lua_touserdata(lua, -1);
-  if (!cur) throwinvarg(lua);
+  if (!cur) throwinvarg(lua, __KCFUNC__);
   bool step = argc > 1 ? lua_toboolean(lua, 2) : false;
   size_t vsiz;
   char* vbuf = cur->cur->get_value(&vsiz, step);
@@ -1774,11 +1781,11 @@ static int cur_get_value(lua_State* lua) {
  */
 static int cur_get(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 2) throwinvarg(lua);
+  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 2) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "cur_ptr_");
   SoftCursor* cur = (SoftCursor*)lua_touserdata(lua, -1);
-  if (!cur) throwinvarg(lua);
+  if (!cur) throwinvarg(lua, __KCFUNC__);
   bool step = argc > 1 ? lua_toboolean(lua, 2) : false;
   const char* vbuf;
   size_t ksiz, vsiz;
@@ -1801,16 +1808,16 @@ static int cur_get(lua_State* lua) {
  */
 static int cur_jump(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 2) throwinvarg(lua);
+  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 2) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "cur_ptr_");
   SoftCursor* cur = (SoftCursor*)lua_touserdata(lua, -1);
-  if (!cur) throwinvarg(lua);
+  if (!cur) throwinvarg(lua, __KCFUNC__);
   bool rv;
   if (argc > 1) {
     size_t ksiz;
     const char* kbuf = lua_tolstring(lua, 2, &ksiz);
-    if (!kbuf) throwinvarg(lua);
+    if (!kbuf) throwinvarg(lua, __KCFUNC__);
     rv = cur->cur->jump(kbuf, ksiz);
   } else {
     rv = cur->cur->jump();
@@ -1825,16 +1832,16 @@ static int cur_jump(lua_State* lua) {
  */
 static int cur_jump_back(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 2) throwinvarg(lua);
+  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 2) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "cur_ptr_");
   SoftCursor* cur = (SoftCursor*)lua_touserdata(lua, -1);
-  if (!cur) throwinvarg(lua);
+  if (!cur) throwinvarg(lua, __KCFUNC__);
   bool rv;
   if (argc > 1) {
     size_t ksiz;
     const char* kbuf = lua_tolstring(lua, 2, &ksiz);
-    if (!kbuf) throwinvarg(lua);
+    if (!kbuf) throwinvarg(lua, __KCFUNC__);
     rv = cur->cur->jump_back(kbuf, ksiz);
   } else {
     rv = cur->cur->jump_back();
@@ -1849,10 +1856,10 @@ static int cur_jump_back(lua_State* lua) {
  */
 static int cur_step(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "cur_ptr_");
   SoftCursor* cur = (SoftCursor*)lua_touserdata(lua, -1);
-  if (!cur) throwinvarg(lua);
+  if (!cur) throwinvarg(lua, __KCFUNC__);
   bool rv = cur->cur->step();
   lua_pushboolean(lua, rv);
   return 1;
@@ -1864,10 +1871,10 @@ static int cur_step(lua_State* lua) {
  */
 static int cur_step_back(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "cur_ptr_");
   SoftCursor* cur = (SoftCursor*)lua_touserdata(lua, -1);
-  if (!cur) throwinvarg(lua);
+  if (!cur) throwinvarg(lua, __KCFUNC__);
   bool rv = cur->cur->step_back();
   lua_pushboolean(lua, rv);
   return 1;
@@ -1879,10 +1886,10 @@ static int cur_step_back(lua_State* lua) {
  */
 static int cur_db(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "cur_ptr_");
   SoftCursor* cur = (SoftCursor*)lua_touserdata(lua, -1);
-  if (!cur) throwinvarg(lua);
+  if (!cur) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_");
   return 1;
 }
@@ -1893,10 +1900,10 @@ static int cur_db(lua_State* lua) {
  */
 static int cur_error(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "cur_ptr_");
   SoftCursor* cur = (SoftCursor*)lua_touserdata(lua, -1);
-  if (!cur) throwinvarg(lua);
+  if (!cur) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_");
   lua_getfield(lua, -1, "error");
   lua_pushvalue(lua, -2);
@@ -1937,8 +1944,8 @@ static void define_db(lua_State* lua) {
  */
 static int db_new(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 2) throwinvarg(lua);
+  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 2) throwinvarg(lua, __KCFUNC__);
   lua_newtable(lua);
   SoftDB* db = (SoftDB*)lua_newuserdata(lua, sizeof(*db));
   if (argc > 1 && lua_islightuserdata(lua, 2)) {
@@ -1986,6 +1993,8 @@ static int db_new(lua_State* lua) {
   setfieldfunc(lua, "status", db_status);
   setfieldfunc(lua, "match_prefix", db_match_prefix);
   setfieldfunc(lua, "match_regex", db_match_regex);
+  setfieldfunc(lua, "merge", db_merge);
+  setfieldfunc(lua, "mapreduce", db_mapreduce);
   setfieldfunc(lua, "cursor", db_cursor);
   setfieldfunc(lua, "cursor_process", db_cursor_process);
   setfieldfunc(lua, "pairs", db_pairs);
@@ -2013,10 +2022,10 @@ static int db_gc(lua_State* lua) {
  */
 static int db_tostring(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
-  if (!db) throwinvarg(lua);
+  if (!db) throwinvarg(lua, __KCFUNC__);
   std::string path = db->db->path();
   if (path.size() < 1) path = "(nil)";
   std::string str = kc::strprintf("%s: %lld: %lld", path.c_str(),
@@ -2031,12 +2040,12 @@ static int db_tostring(lua_State* lua) {
  */
 static int db_index(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 2 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 2 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
   size_t ksiz;
   const char* kbuf = lua_tolstring(lua, 2, &ksiz);
-  if (!db || !kbuf) throwinvarg(lua);
+  if (!db || !kbuf) throwinvarg(lua, __KCFUNC__);
   size_t vsiz;
   char* vbuf = db->db->get(kbuf, ksiz, &vsiz);
   if (vbuf) {
@@ -2054,14 +2063,14 @@ static int db_index(lua_State* lua) {
  */
 static int db_newindex(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 3 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 3 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
   size_t ksiz;
   const char* kbuf = lua_tolstring(lua, 2, &ksiz);
   size_t vsiz;
   const char* vbuf = lua_tolstring(lua, 3, &vsiz);
-  if (!db || !kbuf) throwinvarg(lua);
+  if (!db || !kbuf) throwinvarg(lua, __KCFUNC__);
   bool rv;
   if (vbuf) {
     rv = db->db->set(kbuf, ksiz, vbuf, vsiz);
@@ -2078,7 +2087,7 @@ static int db_newindex(lua_State* lua) {
  */
 static int db_new_ptr(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   kt::TimedDB* db = new kt::TimedDB;
   lua_pushlightuserdata(lua, (void*)db);
   return 1;
@@ -2090,7 +2099,7 @@ static int db_new_ptr(lua_State* lua) {
  */
 static int db_delete_ptr(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 2 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 2 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   if (lua_islightuserdata(lua, 2)) {
     kt::TimedDB* db = (kt::TimedDB*)lua_touserdata(lua, 2);
     delete db;
@@ -2105,9 +2114,9 @@ static int db_delete_ptr(lua_State* lua) {
  */
 static int db_process(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 4) throwinvarg(lua);
-  if (!lua_isfunction(lua, 2)) throwinvarg(lua);
+  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 4) throwinvarg(lua, __KCFUNC__);
+  if (!lua_isfunction(lua, 2)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "new");
   lua_pushvalue(lua, 1);
   lua_call(lua, 1, 1);
@@ -2150,10 +2159,10 @@ static int db_process(lua_State* lua) {
  */
 static int db_error(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
-  if (!db) throwinvarg(lua);
+  if (!db) throwinvarg(lua, __KCFUNC__);
   kc::BasicDB::Error err = db->db->error();
   lua_getfield(lua, 1, "err_");
   lua_getfield(lua, -1, "new");
@@ -2170,11 +2179,11 @@ static int db_error(lua_State* lua) {
  */
 static int db_open(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 3) throwinvarg(lua);
+  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 3) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
-  if (!db) throwinvarg(lua);
+  if (!db) throwinvarg(lua, __KCFUNC__);
   const char* path = "*";
   if (argc > 1 && lua_isstring(lua, 2)) path = lua_tostring(lua, 2);
   uint32_t mode = kc::BasicDB::OWRITER | kc::BasicDB::OCREATE;
@@ -2190,10 +2199,10 @@ static int db_open(lua_State* lua) {
  */
 static int db_close(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
-  if (!db) throwinvarg(lua);
+  if (!db) throwinvarg(lua, __KCFUNC__);
   g_curbur.sweap();
   bool rv = db->db->close();
   lua_pushboolean(lua, rv);
@@ -2206,13 +2215,13 @@ static int db_close(lua_State* lua) {
  */
 static int db_accept(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 3 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 4) throwinvarg(lua);
+  if (argc < 3 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 4) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
   size_t ksiz;
   const char* kbuf = lua_tolstring(lua, 2, &ksiz);
-  if (!db || !kbuf) throwinvarg(lua);
+  if (!db || !kbuf) throwinvarg(lua, __KCFUNC__);
   bool writable = argc > 3 ? lua_toboolean(lua, 4) : true;
   bool rv;
   if (lua_istable(lua, 3) || lua_isfunction(lua, 3)) {
@@ -2220,7 +2229,7 @@ static int db_accept(lua_State* lua) {
     SoftVisitor visitor(lua, writable);
     rv = db->db->accept(kbuf, ksiz, &visitor, writable);
   } else {
-    throwinvarg(lua);
+    throwinvarg(lua, __KCFUNC__);
     rv = false;
   }
   lua_pushboolean(lua, rv);
@@ -2233,11 +2242,11 @@ static int db_accept(lua_State* lua) {
  */
 static int db_iterate(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 3) throwinvarg(lua);
+  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 3) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
-  if (!db) throwinvarg(lua);
+  if (!db) throwinvarg(lua, __KCFUNC__);
   bool writable = argc > 2 ? lua_toboolean(lua, 3) : true;
   bool rv;
   if (lua_istable(lua, 2) || lua_isfunction(lua, 2)) {
@@ -2245,7 +2254,7 @@ static int db_iterate(lua_State* lua) {
     SoftVisitor visitor(lua, writable);
     rv = db->db->iterate(&visitor, writable);
   } else {
-    throwinvarg(lua);
+    throwinvarg(lua, __KCFUNC__);
     rv = false;
   }
   lua_pushboolean(lua, rv);
@@ -2258,15 +2267,15 @@ static int db_iterate(lua_State* lua) {
  */
 static int db_set(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 3 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 4) throwinvarg(lua);
+  if (argc < 3 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 4) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
   size_t ksiz;
   const char* kbuf = lua_tolstring(lua, 2, &ksiz);
   size_t vsiz;
   const char* vbuf = lua_tolstring(lua, 3, &vsiz);
-  if (!db || !kbuf || !vbuf) throwinvarg(lua);
+  if (!db || !kbuf || !vbuf) throwinvarg(lua, __KCFUNC__);
   int64_t xt = argc > 3 && !lua_isnil(lua, 4) ? lua_tonumber(lua, 4) : INT64_MAX;
   bool rv = db->db->set(kbuf, ksiz, vbuf, vsiz, xt);
   lua_pushboolean(lua, rv);
@@ -2279,15 +2288,15 @@ static int db_set(lua_State* lua) {
  */
 static int db_add(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 3 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 4) throwinvarg(lua);
+  if (argc < 3 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 4) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
   size_t ksiz;
   const char* kbuf = lua_tolstring(lua, 2, &ksiz);
   size_t vsiz;
   const char* vbuf = lua_tolstring(lua, 3, &vsiz);
-  if (!db || !kbuf || !vbuf) throwinvarg(lua);
+  if (!db || !kbuf || !vbuf) throwinvarg(lua, __KCFUNC__);
   int64_t xt = argc > 3 && !lua_isnil(lua, 4) ? lua_tonumber(lua, 4) : INT64_MAX;
   bool rv = db->db->add(kbuf, ksiz, vbuf, vsiz, xt);
   lua_pushboolean(lua, rv);
@@ -2300,15 +2309,15 @@ static int db_add(lua_State* lua) {
  */
 static int db_replace(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 3 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 4) throwinvarg(lua);
+  if (argc < 3 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 4) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
   size_t ksiz;
   const char* kbuf = lua_tolstring(lua, 2, &ksiz);
   size_t vsiz;
   const char* vbuf = lua_tolstring(lua, 3, &vsiz);
-  if (!db || !kbuf || !vbuf) throwinvarg(lua);
+  if (!db || !kbuf || !vbuf) throwinvarg(lua, __KCFUNC__);
   int64_t xt = argc > 3 && !lua_isnil(lua, 4) ? lua_tonumber(lua, 4) : INT64_MAX;
   bool rv = db->db->replace(kbuf, ksiz, vbuf, vsiz, xt);
   lua_pushboolean(lua, rv);
@@ -2321,15 +2330,15 @@ static int db_replace(lua_State* lua) {
  */
 static int db_append(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 3 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 4) throwinvarg(lua);
+  if (argc < 3 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 4) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
   size_t ksiz;
   const char* kbuf = lua_tolstring(lua, 2, &ksiz);
   size_t vsiz;
   const char* vbuf = lua_tolstring(lua, 3, &vsiz);
-  if (!db || !kbuf || !vbuf) throwinvarg(lua);
+  if (!db || !kbuf || !vbuf) throwinvarg(lua, __KCFUNC__);
   int64_t xt = argc > 3 && !lua_isnil(lua, 4) ? lua_tonumber(lua, 4) : INT64_MAX;
   bool rv = db->db->append(kbuf, ksiz, vbuf, vsiz, xt);
   lua_pushboolean(lua, rv);
@@ -2342,13 +2351,13 @@ static int db_append(lua_State* lua) {
  */
 static int db_increment(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 4) throwinvarg(lua);
+  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 4) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
   size_t ksiz;
   const char* kbuf = lua_tolstring(lua, 2, &ksiz);
-  if (!db || !kbuf) throwinvarg(lua);
+  if (!db || !kbuf) throwinvarg(lua, __KCFUNC__);
   int64_t num = argc > 2 ? lua_tonumber(lua, 3) : 0;
   int64_t xt = argc > 3 && !lua_isnil(lua, 4) ? lua_tonumber(lua, 4) : INT64_MAX;
   num = db->db->increment(kbuf, ksiz, num, xt);
@@ -2366,13 +2375,13 @@ static int db_increment(lua_State* lua) {
  */
 static int db_increment_double(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 4) throwinvarg(lua);
+  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 4) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
   size_t ksiz;
   const char* kbuf = lua_tolstring(lua, 2, &ksiz);
-  if (!db || !kbuf) throwinvarg(lua);
+  if (!db || !kbuf) throwinvarg(lua, __KCFUNC__);
   double num = argc > 2 ? lua_tonumber(lua, 3) : 0;
   int64_t xt = argc > 3 && !lua_isnil(lua, 4) ? lua_tonumber(lua, 4) : INT64_MAX;
   num = db->db->increment_double(kbuf, ksiz, num, xt);
@@ -2390,8 +2399,8 @@ static int db_increment_double(lua_State* lua) {
  */
 static int db_cas(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 4 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 5) throwinvarg(lua);
+  if (argc < 4 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 5) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
   size_t ksiz;
@@ -2400,7 +2409,7 @@ static int db_cas(lua_State* lua) {
   const char* ovbuf = lua_tolstring(lua, 3, &ovsiz);
   size_t nvsiz;
   const char* nvbuf = lua_tolstring(lua, 4, &nvsiz);
-  if (!db || !kbuf) throwinvarg(lua);
+  if (!db || !kbuf) throwinvarg(lua, __KCFUNC__);
   int64_t xt = argc > 4 && !lua_isnil(lua, 5) ? lua_tonumber(lua, 5) : INT64_MAX;
   bool rv = db->db->cas(kbuf, ksiz, ovbuf, ovsiz, nvbuf, nvsiz, xt);
   lua_pushboolean(lua, rv);
@@ -2413,12 +2422,12 @@ static int db_cas(lua_State* lua) {
  */
 static int db_remove(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 2 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 2 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
   size_t ksiz;
   const char* kbuf = lua_tolstring(lua, 2, &ksiz);
-  if (!db || !kbuf) throwinvarg(lua);
+  if (!db || !kbuf) throwinvarg(lua, __KCFUNC__);
   bool rv = db->db->remove(kbuf, ksiz);
   lua_pushboolean(lua, rv);
   return 1;
@@ -2430,12 +2439,12 @@ static int db_remove(lua_State* lua) {
  */
 static int db_get(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 2 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 2 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
   size_t ksiz;
   const char* kbuf = lua_tolstring(lua, 2, &ksiz);
-  if (!db || !kbuf) throwinvarg(lua);
+  if (!db || !kbuf) throwinvarg(lua, __KCFUNC__);
   size_t vsiz;
   int64_t xt;
   char* vbuf = db->db->get(kbuf, ksiz, &vsiz, &xt);
@@ -2455,10 +2464,10 @@ static int db_get(lua_State* lua) {
  */
 static int db_clear(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
-  if (!db) throwinvarg(lua);
+  if (!db) throwinvarg(lua, __KCFUNC__);
   bool rv = db->db->clear();
   lua_pushboolean(lua, rv);
   return 1;
@@ -2470,11 +2479,11 @@ static int db_clear(lua_State* lua) {
  */
 static int db_synchronize(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 3) throwinvarg(lua);
+  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 3) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
-  if (!db) throwinvarg(lua);
+  if (!db) throwinvarg(lua, __KCFUNC__);
   bool hard = argc > 1 ? lua_toboolean(lua, 2) : false;
   bool rv;
   if (argc > 2 && (lua_istable(lua, 3) || lua_isfunction(lua, 3))) {
@@ -2494,11 +2503,11 @@ static int db_synchronize(lua_State* lua) {
  */
 static int db_copy(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 2 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 2 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
   const char* dest = lua_tostring(lua, 2);
-  if (!db || !dest) throwinvarg(lua);
+  if (!db || !dest) throwinvarg(lua, __KCFUNC__);
   bool rv = db->db->copy(dest);
   lua_pushboolean(lua, rv);
   return 1;
@@ -2510,11 +2519,11 @@ static int db_copy(lua_State* lua) {
  */
 static int db_begin_transaction(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 2) throwinvarg(lua);
+  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 2) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
-  if (!db) throwinvarg(lua);
+  if (!db) throwinvarg(lua, __KCFUNC__);
   bool hard = argc > 1 ? lua_toboolean(lua, 2) : false;
   bool rv = db->db->begin_transaction(hard);
   lua_pushboolean(lua, rv);
@@ -2527,11 +2536,11 @@ static int db_begin_transaction(lua_State* lua) {
  */
 static int db_end_transaction(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 2) throwinvarg(lua);
+  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 2) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
-  if (!db) throwinvarg(lua);
+  if (!db) throwinvarg(lua, __KCFUNC__);
   bool commit = argc > 1 ? lua_toboolean(lua, 2) : true;
   bool rv = db->db->end_transaction(commit);
   lua_pushboolean(lua, rv);
@@ -2544,11 +2553,11 @@ static int db_end_transaction(lua_State* lua) {
  */
 static int db_transaction(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (argc > 3) throwinvarg(lua);
+  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 3) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
-  if (!db) throwinvarg(lua);
+  if (!db) throwinvarg(lua, __KCFUNC__);
   bool hard = argc > 2 ? lua_toboolean(lua, 3) : false;
   lua_getfield(lua, 1, "begin_transaction");
   lua_pushvalue(lua, 1);
@@ -2576,11 +2585,11 @@ static int db_transaction(lua_State* lua) {
  */
 static int db_dump_snapshot(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 2 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 2 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
   const char* dest = lua_tostring(lua, 2);
-  if (!db || !dest) throwinvarg(lua);
+  if (!db || !dest) throwinvarg(lua, __KCFUNC__);
   bool rv = db->db->dump_snapshot(dest);
   lua_pushboolean(lua, rv);
   return 1;
@@ -2592,11 +2601,11 @@ static int db_dump_snapshot(lua_State* lua) {
  */
 static int db_load_snapshot(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 2 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 2 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
   const char* src = lua_tostring(lua, 2);
-  if (!db || !src) throwinvarg(lua);
+  if (!db || !src) throwinvarg(lua, __KCFUNC__);
   bool rv = db->db->load_snapshot(src);
   lua_pushboolean(lua, rv);
   return 1;
@@ -2608,10 +2617,10 @@ static int db_load_snapshot(lua_State* lua) {
  */
 static int db_count(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
-  if (!db) throwinvarg(lua);
+  if (!db) throwinvarg(lua, __KCFUNC__);
   int64_t count = db->db->count();
   lua_pushnumber(lua, count);
   return 1;
@@ -2623,10 +2632,10 @@ static int db_count(lua_State* lua) {
  */
 static int db_size(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
-  if (!db) throwinvarg(lua);
+  if (!db) throwinvarg(lua, __KCFUNC__);
   int64_t size = db->db->size();
   lua_pushnumber(lua, size);
   return 1;
@@ -2638,10 +2647,10 @@ static int db_size(lua_State* lua) {
  */
 static int db_path(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
-  if (!db) throwinvarg(lua);
+  if (!db) throwinvarg(lua, __KCFUNC__);
   const std::string& path = db->db->path();
   if (path.size() > 0) {
     lua_pushstring(lua, path.c_str());
@@ -2657,10 +2666,10 @@ static int db_path(lua_State* lua) {
  */
 static int db_status(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
-  if (!db) throwinvarg(lua);
+  if (!db) throwinvarg(lua, __KCFUNC__);
   StringMap status;
   bool rv = db->db->status(&status);
   if (rv) {
@@ -2684,12 +2693,12 @@ static int db_status(lua_State* lua) {
  */
 static int db_match_prefix(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
   size_t psiz;
   const char* pbuf = lua_tolstring(lua, 2, &psiz);
-  if (!db || !pbuf) throwinvarg(lua);
+  if (!db || !pbuf) throwinvarg(lua, __KCFUNC__);
   int64_t max = argc > 2 ? lua_tonumber(lua, 3) : -1;
   StringVector keys;
   int64_t num = db->db->match_prefix(std::string(pbuf, psiz), &keys, max);
@@ -2715,12 +2724,12 @@ static int db_match_prefix(lua_State* lua) {
  */
 static int db_match_regex(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
   size_t rsiz;
   const char* rbuf = lua_tolstring(lua, 2, &rsiz);
-  if (!db || !rbuf) throwinvarg(lua);
+  if (!db || !rbuf) throwinvarg(lua, __KCFUNC__);
   int64_t max = argc > 2 ? lua_tonumber(lua, 3) : -1;
   StringVector keys;
   int64_t num = db->db->match_regex(std::string(rbuf, rsiz), &keys, max);
@@ -2742,14 +2751,162 @@ static int db_match_regex(lua_State* lua) {
 
 
 /**
+ * Implementation of merge.
+ */
+static int db_merge(lua_State* lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc < 2 || !lua_istable(lua, 1) || !lua_istable(lua, 2)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 3) throwinvarg(lua, __KCFUNC__);
+  lua_getfield(lua, 1, "db_ptr_");
+  SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
+  if (!db) throwinvarg(lua, __KCFUNC__);
+  uint32_t mode = kt::TimedDB::MSET;
+  if (argc > 2 && lua_isnumber(lua, 3)) mode = lua_tonumber(lua, 3);
+  int32_t num = lua_objlen(lua, 2);
+  if (num < 1) {
+    lua_pushboolean(lua, true);
+    return 1;
+  }
+  kt::TimedDB** srcary = new kt::TimedDB*[num];
+  size_t srcnum = 0;
+  for (int32_t i = 1; i <= num; i++) {
+    lua_rawgeti(lua, 2, i);
+    if (lua_istable(lua, -1)) {
+      lua_getfield(lua, -1, "db_ptr_");
+      SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
+      srcary[srcnum++] = db->db;
+      lua_pop(lua, 1);
+    }
+    lua_pop(lua, 1);
+  }
+  bool rv = db->db->merge(srcary, srcnum, (kt::TimedDB::MergeMode)mode);
+  delete[] srcary;
+  lua_pushboolean(lua, rv);
+  return 1;
+}
+
+
+/**
+ * Implementation of mapreduce.
+ */
+static int db_mapreduce(lua_State* lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc < 3 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 5) throwinvarg(lua, __KCFUNC__);
+  lua_getfield(lua, 1, "db_ptr_");
+  SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
+  if (!db) throwinvarg(lua, __KCFUNC__);
+  if (!db || !lua_isfunction(lua, 2) || !lua_isfunction(lua, 3)) throwinvarg(lua, __KCFUNC__);
+  const char* tmppath = argc > 3 ? lua_tostring(lua, 4) : NULL;
+  if (!tmppath) tmppath = "";
+  uint32_t opts = argc > 4 ? lua_tonumber(lua, 5) : 0;
+  class SoftMapReduce : public kt::MapReduce {
+  public:
+    SoftMapReduce(lua_State* lua) : lua_(lua) {}
+    bool map(const char* kbuf, size_t ksiz, const char* vbuf, size_t vsiz,
+             MapEmitter* emitter) {
+      int32_t top = lua_gettop(lua_);
+      lua_pushlightuserdata(lua_, (void*)emitter);
+      lua_setglobal(lua_, "__mr_emit");
+      lua_pushvalue(lua_, 2);
+      lua_pushlstring(lua_, kbuf, ksiz);
+      lua_pushlstring(lua_, vbuf, vsiz);
+      lua_pushcfunction(lua_, db_mapreduce_emit);
+      bool rv;
+      if (lua_pcall(lua_, 3, 1, 0) == 0) {
+        rv = lua_toboolean(lua_, -1);
+      } else {
+        rv = false;
+      }
+      lua_settop(lua_, top);
+      return rv;
+    }
+    bool reduce(const char* kbuf, size_t ksiz, ValueIterator* iter) {
+      int32_t top = lua_gettop(lua_);
+      lua_pushlightuserdata(lua_, (void*)iter);
+      lua_setglobal(lua_, "__mr_iter");
+      lua_pushvalue(lua_, 3);
+      lua_pushlstring(lua_, kbuf, ksiz);
+      lua_pushcfunction(lua_, db_mapreduce_iter);
+      bool rv;
+      if (lua_pcall(lua_, 2, 1, 0) == 0) {
+        rv = lua_toboolean(lua_, -1);
+      } else {
+        rv = false;
+      }
+      lua_settop(lua_, top);
+      return rv;
+    }
+  private:
+    lua_State* lua_;
+  };
+  SoftMapReduce mr(lua);
+  bool rv = mr.execute(db->db, tmppath, opts);
+  lua_pushnil(lua);
+  lua_setglobal(lua, "__mr_iter");
+  lua_pushnil(lua);
+  lua_setglobal(lua, "__mr_emit");
+  lua_pushboolean(lua, rv);
+  return 1;
+}
+
+
+/**
+ * Implementation of mapreduce_emit.
+ */
+static int db_mapreduce_emit(lua_State* lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc != 2) throwinvarg(lua, __KCFUNC__);
+  size_t ksiz;
+  const char* kbuf = lua_tolstring(lua, 1, &ksiz);
+  size_t vsiz;
+  const char* vbuf = lua_tolstring(lua, 2, &vsiz);
+  if (!kbuf || !vbuf) throwinvarg(lua, __KCFUNC__);
+  lua_getglobal(lua, "__mr_emit");
+  kc::MapReduce::MapEmitter* emitter = (kc::MapReduce::MapEmitter*)lua_touserdata(lua, -1);
+  bool rv;
+  if (emitter) {
+    rv = emitter->emit(kbuf, ksiz, vbuf, vsiz);
+  } else {
+    rv = false;
+  }
+  lua_pushboolean(lua, rv);
+  return 1;
+}
+
+
+/**
+ * Implementation of mapreduce_iter.
+ */
+static int db_mapreduce_iter(lua_State* lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc != 0) throwinvarg(lua, __KCFUNC__);
+  lua_getglobal(lua, "__mr_iter");
+  kc::MapReduce::ValueIterator* iter = (kc::MapReduce::ValueIterator*)lua_touserdata(lua, -1);
+  if (iter) {
+    size_t vsiz;
+    const char* vbuf = iter->next(&vsiz);
+    if (vbuf) {
+      lua_pushlstring(lua, vbuf, vsiz);
+    } else {
+      lua_pushnil(lua);
+    }
+  } else {
+    lua_pushnil(lua);
+  }
+  return 1;
+}
+
+
+/**
  * Implementation of cursor.
  */
 static int db_cursor(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
-  if (!db) throwinvarg(lua);
+  if (!db) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "cur_");
   lua_getfield(lua, -1, "new");
   lua_getfield(lua, 1, "cur_");
@@ -2764,11 +2921,11 @@ static int db_cursor(lua_State* lua) {
  */
 static int db_cursor_process(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 2 || !lua_istable(lua, 1)) throwinvarg(lua);
-  if (!lua_isfunction(lua, 2)) throwinvarg(lua);
+  if (argc != 2 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (!lua_isfunction(lua, 2)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
-  if (!db) throwinvarg(lua);
+  if (!db) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "cur_");
   lua_getfield(lua, -1, "new");
   lua_getfield(lua, 1, "cur_");
@@ -2795,10 +2952,10 @@ static int db_cursor_process(lua_State* lua) {
  */
 static int db_pairs(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
-  if (!db) throwinvarg(lua);
+  if (!db) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "cur_");
   lua_getfield(lua, -1, "new");
   lua_getfield(lua, 1, "cur_");
@@ -2818,7 +2975,7 @@ static int db_pairs(lua_State* lua) {
  */
 static int serv_log(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
-  if (argc != 2 || !lua_isstring(lua, 1)) throwinvarg(lua);
+  if (argc != 2 || !lua_isstring(lua, 1)) throwinvarg(lua, __KCFUNC__);
   lua_getglobal(lua, "__kyototycoon__");
   lua_getfield(lua, -1, "__serv__");
   kt::RPCServer* serv = (kt::RPCServer*)lua_touserdata(lua, -1);

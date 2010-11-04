@@ -40,6 +40,8 @@
 <tr><td colspan="2"><h2>Classes</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Cursor.html">Cursor</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Cursor.html" title="Cursor to indicate a record.">Cursor</a> to indicate a record.  <a href="classkyototycoon_1_1TimedDB_1_1Cursor.html#_details">More...</a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">struct &nbsp;</td><td class="memItemRight" valign="bottom"><b>MergeLine</b></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Front line of a merging list. <br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><b>TimedVisitor</b></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Visitor.html" title="Interface to access a record.">Visitor</a> to handle records with time stamps. <br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Visitor.html">Visitor</a></td></tr>
@@ -49,6 +51,13 @@
  }</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><p>Tuning Options. </p>
  <a href="classkyototycoon_1_1TimedDB.html#acf8742654cb752f9a2f99fd351f100f6">More...</a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">enum &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#ae892844efd8d65d383e53a7e91265561">MergeMode</a> { <a class="el" href="classkyototycoon_1_1TimedDB.html#ae892844efd8d65d383e53a7e91265561a830e8fa0875a760e2e072e7bf202cbac">MSET</a>, 
+<a class="el" href="classkyototycoon_1_1TimedDB.html#ae892844efd8d65d383e53a7e91265561a8a7b107dd0064ea898a04447c5f587be">MADD</a>, 
+<a class="el" href="classkyototycoon_1_1TimedDB.html#ae892844efd8d65d383e53a7e91265561ad5b739bbc10ab35945963114e02fd3a8">MREPLACE</a>, 
+<a class="el" href="classkyototycoon_1_1TimedDB.html#ae892844efd8d65d383e53a7e91265561a22a0555956d94a65d840423e956d5473">MAPPEND</a>
+ }</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><p>Merge modes. </p>
+ <a href="classkyototycoon_1_1TimedDB.html#ae892844efd8d65d383e53a7e91265561">More...</a><br/></td></tr>
 <tr><td colspan="2"><h2>Public Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a3ae8b8bd0f7085481d5863d38a9ca5d3">TimedDB</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Default constructor.  <a href="#a3ae8b8bd0f7085481d5863d38a9ca5d3"></a><br/></td></tr>
@@ -142,6 +151,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get keys matching a prefix string.  <a href="#a33d48a58dd9127756da2b22fafe53777"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a1ca05ebafef224e3ec3b12e7a30b9526">match_regex</a> (const std::string &amp;regex, std::vector&lt; std::string &gt; *strvec, int64_t max=-1, kc::BasicDB::ProgressChecker *checker=NULL)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get keys matching a regular expression string.  <a href="#a1ca05ebafef224e3ec3b12e7a30b9526"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a7b77f684161670da7aff694e58c8877b">merge</a> (<a class="el" href="classkyototycoon_1_1TimedDB.html">TimedDB</a> **srcary, size_t srcnum, <a class="el" href="classkyototycoon_1_1TimedDB.html#ae892844efd8d65d383e53a7e91265561">MergeMode</a> mode=MSET, kc::BasicDB::ProgressChecker *checker=NULL)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Merge records from other databases.  <a href="#a7b77f684161670da7aff694e58c8877b"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Cursor.html">Cursor</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a55b5f73fa02f9c898a7a0c998eeb2d0c">cursor</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Create a cursor object.  <a href="#a55b5f73fa02f9c898a7a0c998eeb2d0c"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a14729ddf477c1cac0f1a3922b846a385">tune_options</a> (int8_t opts)</td></tr>
@@ -173,6 +184,37 @@
 <dl><dt><b>Enumerator: </b></dt><dd><table border="0" cellspacing="2" cellpadding="0">
 <tr><td valign="top"><em><a class="anchor" id="acf8742654cb752f9a2f99fd351f100f6ad9fe42aa6a173e4ff7ea79e483dd088a"></a><!-- doxytag: member="TPERSIST" ref="acf8742654cb752f9a2f99fd351f100f6ad9fe42aa6a173e4ff7ea79e483dd088a" args="" -->TPERSIST</em>&nbsp;</td><td>
 <p>disable expiration </p>
+</td></tr>
+</table>
+</dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ae892844efd8d65d383e53a7e91265561"></a><!-- doxytag: member="kyototycoon::TimedDB::MergeMode" ref="ae892844efd8d65d383e53a7e91265561" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="classkyototycoon_1_1TimedDB.html#ae892844efd8d65d383e53a7e91265561">kyototycoon::TimedDB::MergeMode</a></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Merge modes. </p>
+<dl><dt><b>Enumerator: </b></dt><dd><table border="0" cellspacing="2" cellpadding="0">
+<tr><td valign="top"><em><a class="anchor" id="ae892844efd8d65d383e53a7e91265561a830e8fa0875a760e2e072e7bf202cbac"></a><!-- doxytag: member="MSET" ref="ae892844efd8d65d383e53a7e91265561a830e8fa0875a760e2e072e7bf202cbac" args="" -->MSET</em>&nbsp;</td><td>
+<p>overwrite the existing value </p>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" id="ae892844efd8d65d383e53a7e91265561a8a7b107dd0064ea898a04447c5f587be"></a><!-- doxytag: member="MADD" ref="ae892844efd8d65d383e53a7e91265561a8a7b107dd0064ea898a04447c5f587be" args="" -->MADD</em>&nbsp;</td><td>
+<p>keep the existing value </p>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" id="ae892844efd8d65d383e53a7e91265561ad5b739bbc10ab35945963114e02fd3a8"></a><!-- doxytag: member="MREPLACE" ref="ae892844efd8d65d383e53a7e91265561ad5b739bbc10ab35945963114e02fd3a8" args="" -->MREPLACE</em>&nbsp;</td><td>
+<p>modify the existing record only </p>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" id="ae892844efd8d65d383e53a7e91265561a22a0555956d94a65d840423e956d5473"></a><!-- doxytag: member="MAPPEND" ref="ae892844efd8d65d383e53a7e91265561a22a0555956d94a65d840423e956d5473" args="" -->MAPPEND</em>&nbsp;</td><td>
+<p>append the new value </p>
 </td></tr>
 </table>
 </dd>
@@ -1889,6 +1931,57 @@
 
 </div>
 </div>
+<a class="anchor" id="a7b77f684161670da7aff694e58c8877b"></a><!-- doxytag: member="kyototycoon::TimedDB::merge" ref="a7b77f684161670da7aff694e58c8877b" args="(TimedDB **srcary, size_t srcnum, MergeMode mode=MSET, kc::BasicDB::ProgressChecker *checker=NULL)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::TimedDB::merge </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classkyototycoon_1_1TimedDB.html">TimedDB</a> **&nbsp;</td>
+          <td class="paramname"> <em>srcary</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&nbsp;</td>
+          <td class="paramname"> <em>srcnum</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classkyototycoon_1_1TimedDB.html#ae892844efd8d65d383e53a7e91265561">MergeMode</a>&nbsp;</td>
+          <td class="paramname"> <em>mode</em> = <code>MSET</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">kc::BasicDB::ProgressChecker *&nbsp;</td>
+          <td class="paramname"> <em>checker</em> = <code>NULL</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Merge records from other databases. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>srcary</em>&nbsp;</td><td>an array of the source detabase objects. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>srcnum</em>&nbsp;</td><td>the number of the elements of the source array. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>mode</em>&nbsp;</td><td>the merge mode. <a class="el" href="classkyototycoon_1_1TimedDB.html#ae892844efd8d65d383e53a7e91265561a830e8fa0875a760e2e072e7bf202cbac" title="overwrite the existing value">TimedDB::MSET</a> to overwrite the existing value, <a class="el" href="classkyototycoon_1_1TimedDB.html#ae892844efd8d65d383e53a7e91265561a8a7b107dd0064ea898a04447c5f587be" title="keep the existing value">TimedDB::MADD</a> to keep the existing value, <a class="el" href="classkyototycoon_1_1TimedDB.html#ae892844efd8d65d383e53a7e91265561ad5b739bbc10ab35945963114e02fd3a8" title="modify the existing record only">TimedDB::MREPLACE</a> to modify the existing record only, <a class="el" href="classkyototycoon_1_1TimedDB.html#ae892844efd8d65d383e53a7e91265561a22a0555956d94a65d840423e956d5473" title="append the new value">TimedDB::MAPPEND</a> to append the new value. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>checker</em>&nbsp;</td><td>a progress checker object. If it is NULL, no checking is performed. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a55b5f73fa02f9c898a7a0c998eeb2d0c"></a><!-- doxytag: member="kyototycoon::TimedDB::cursor" ref="a55b5f73fa02f9c898a7a0c998eeb2d0c" args="()" -->
 <div class="memitem">
 <div class="memproto">
@@ -2006,7 +2099,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Mon Oct 25 22:53:07 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Fri Nov 5 02:46:53 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

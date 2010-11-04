@@ -32,6 +32,7 @@ static int32_t runorder(int argc, char** argv);
 static int32_t runqueue(int argc, char** argv);
 static int32_t runwicked(int argc, char** argv);
 static int32_t runtran(int argc, char** argv);
+static int32_t runmapred(int argc, char** argv);
 static int32_t runmisc(int argc, char** argv);
 static int32_t procorder(const char* path, int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
                          bool tran, int32_t oflags, int32_t opts, bool lv);
@@ -41,6 +42,8 @@ static int32_t procwicked(const char* path, int64_t rnum, int32_t thnum, int32_t
                           int32_t oflags, int32_t opts, bool lv);
 static int32_t proctran(const char* path, int64_t rnum, int32_t thnum, int32_t itnum, bool hard,
                         int32_t oflags, int32_t opts, bool lv);
+static int32_t procmapred(const char* path, int64_t rnum, bool rnd, int32_t oflags, bool lv,
+                          const char* tmp, int64_t dbnum, int64_t clim, int32_t opts);
 static int32_t procmisc(const char* path);
 
 
@@ -62,6 +65,8 @@ int main(int argc, char** argv) {
     rv = runwicked(argc, argv);
   } else if (!std::strcmp(argv[1], "tran")) {
     rv = runtran(argc, argv);
+  } else if (!std::strcmp(argv[1], "mapred")) {
+    rv = runmapred(argc, argv);
   } else if (!std::strcmp(argv[1], "misc")) {
     rv = runmisc(argc, argv);
   } else {
@@ -91,6 +96,8 @@ static void usage() {
           " path rnum\n", g_progname);
   eprintf("  %s tran [-th num] [-it num] [-hard] [-oat|-oas|-onl|-otl|-onr] [-tp]"
           " path rnum\n", g_progname);
+  eprintf("  %s mapred [-rnd] [-oat|-oas|-onl|-otl|-onr] [-lv] [-tmp str]"
+          " [-dbnum num] [-clim num] [-xnl] [-xnc] path rnum\n", g_progname);
   eprintf("  %s misc path\n", g_progname);
   eprintf("\n");
   std::exit(1);
@@ -353,6 +360,69 @@ static int32_t runtran(int argc, char** argv) {
   if (rnum < 1 || thnum < 1 || itnum < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
   int32_t rv = proctran(path, rnum, thnum, itnum, hard, oflags, opts, lv);
+  return rv;
+}
+
+
+// parse arguments of mapred command
+static int32_t runmapred(int argc, char** argv) {
+  bool argbrk = false;
+  const char* path = NULL;
+  const char* rstr = NULL;
+  bool rnd = false;
+  int32_t oflags = 0;
+  bool lv = false;
+  const char* tmp = "";
+  int64_t dbnum = -1;
+  int64_t clim = -1;
+  int32_t opts = 0;
+  for (int32_t i = 2; i < argc; i++) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-rnd")) {
+        rnd = true;
+      } else if (!std::strcmp(argv[i], "-oat")) {
+        oflags |= kc::BasicDB::OAUTOTRAN;
+      } else if (!std::strcmp(argv[i], "-oas")) {
+        oflags |= kc::BasicDB::OAUTOSYNC;
+      } else if (!std::strcmp(argv[i], "-onl")) {
+        oflags |= kc::BasicDB::ONOLOCK;
+      } else if (!std::strcmp(argv[i], "-otl")) {
+        oflags |= kc::BasicDB::OTRYLOCK;
+      } else if (!std::strcmp(argv[i], "-onr")) {
+        oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-lv")) {
+        lv = true;
+      } else if (!std::strcmp(argv[i], "-tmp")) {
+        if (++i >= argc) usage();
+        tmp = argv[i];
+      } else if (!std::strcmp(argv[i], "-dbnum")) {
+        if (++i >= argc) usage();
+        dbnum = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-clim")) {
+        if (++i >= argc) usage();
+        clim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-xnl")) {
+        opts |= kt::MapReduce::XNOLOCK;
+      } else if (!std::strcmp(argv[i], "-xnc")) {
+        opts |= kt::MapReduce::XNOCOMP;
+      } else {
+        usage();
+      }
+    } else if (!path) {
+      argbrk = true;
+      path = argv[i];
+    } else if (!rstr) {
+      rstr = argv[i];
+    } else {
+      usage();
+    }
+  }
+  if (!path || !rstr) usage();
+  int64_t rnum = kc::atoix(rstr);
+  if (rnum < 1) usage();
+  int32_t rv = procmapred(path, rnum, rnd, oflags, lv, tmp, dbnum, clim, opts);
   return rv;
 }
 
@@ -2080,6 +2150,90 @@ static int32_t proctran(const char* path, int64_t rnum, int32_t thnum, int32_t i
     }
     iprintf("time: %.3f\n", kc::time() - stime);
   }
+  iprintf("%s\n\n", err ? "error" : "ok");
+  return err ? 1 : 0;
+}
+
+
+// perform mapred command
+static int32_t procmapred(const char* path, int64_t rnum, bool rnd, int32_t oflags, bool lv,
+                          const char* tmp, int64_t dbnum, int64_t clim, int32_t opts) {
+  iprintf("<MapReduce Test>\n  seed=%u  path=%s  rnum=%lld  rnd=%d  oflags=%d  lv=%d"
+          "  tmp=%s  dbnum=%lld  clim=%lld  opts=%d\n\n",
+          g_randseed, path, (long long)rnum, rnd, oflags, lv,
+          tmp, (long long)dbnum, (long long)clim, opts);
+  bool err = false;
+  kt::TimedDB db;
+  db.tune_logger(stddblogger(g_progname, &std::cout),
+                 lv ? UINT32_MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
+  double stime = kc::time();
+  uint32_t omode = kc::BasicDB::OWRITER | kc::BasicDB::OCREATE | kc::BasicDB::OTRUNCATE;
+  if (!db.open(path, omode | oflags)) {
+    dberrprint(&db, __LINE__, "DB::open");
+    err = true;
+  }
+  class MapReduceImpl : public kt::MapReduce {
+  public:
+    MapReduceImpl() : mapcnt_(0), redcnt_(0) {}
+    bool map(const char* kbuf, size_t ksiz, const char* vbuf, size_t vsiz,
+             MapEmitter* emitter) {
+      mapcnt_++;
+      return emitter->emit(vbuf, vsiz, kbuf, ksiz);
+    }
+    bool reduce(const char* kbuf, size_t ksiz, ValueIterator* iter) {
+      const char* vbuf;
+      size_t vsiz;
+      while ((vbuf = iter->next(&vsiz)) != NULL) {
+        redcnt_++;
+      }
+      return true;
+    }
+    bool log(const char* name, const char* message) {
+      iprintf("%s: %s\n", name, message);
+      return true;
+    }
+    int64_t mapcnt() {
+      return mapcnt_;
+    }
+    int64_t redcnt() {
+      return redcnt_;
+    }
+  private:
+    int64_t mapcnt_;
+    int64_t redcnt_;
+  };
+  MapReduceImpl mr;
+  mr.tune_storage(dbnum, clim);
+  int64_t pnum = rnum / 100;
+  if (pnum < 1) pnum = 1;
+  mr.log("misc", "setting records");
+  for (int64_t i = 1; !err && i <= rnum; i++) {
+    char kbuf[RECBUFSIZ];
+    size_t ksiz = std::sprintf(kbuf, "%lld", (long long)(rnd ? myrand(rnum) + 1 : i));
+    char vbuf[RECBUFSIZ];
+    size_t vsiz = std::sprintf(vbuf, "%lld", (long long)(rnd ? myrand(pnum) + 1 : i % pnum));
+    if (!db.append(kbuf, ksiz, vbuf, vsiz)) {
+      dberrprint(&db, __LINE__, "DB::append");
+      err = true;
+    }
+  }
+  if (!mr.execute(&db, tmp, opts)) {
+    dberrprint(&db, __LINE__, "MapReduce::execute");
+    err = true;
+  }
+  if (!rnd && mr.mapcnt() != rnum) {
+    dberrprint(&db, __LINE__, "MapReduce::mapcnt");
+    err = true;
+  }
+  if (!rnd && rnum % 100 == 0 && mr.redcnt() != rnum) {
+    dberrprint(&db, __LINE__, "MapReduce::redcnt");
+    err = true;
+  }
+  if (!db.close()) {
+    dberrprint(&db, __LINE__, "DB::close");
+    err = true;
+  }
+  iprintf("time: %.3f\n", kc::time() - stime);
   iprintf("%s\n\n", err ? "error" : "ok");
   return err ? 1 : 0;
 }

@@ -271,6 +271,8 @@ check-timed :
 	$(RUNENV) $(RUNCMD) ./kttimedtest order -rnd "casket.kct#opts=l#psiz=256" 1000
 	$(RUNENV) $(RUNCMD) ./kttimedtest order -rnd "casket.kcd#opts=c#bnum=256" 1000
 	$(RUNENV) $(RUNCMD) ./kttimedtest order -rnd "casket.kcf#opts=c#psiz=256" 1000
+	$(RUNENV) $(RUNCMD) ./kttimedmgr merge -add "casket#type=kct" \
+	  casket.kch casket.kct casket.kcd casket.kcf
 	rm -rf casket*
 	$(RUNENV) $(RUNCMD) ./kttimedtest misc "casket#type=-"
 	$(RUNENV) $(RUNCMD) ./kttimedtest misc "casket#type=+"
@@ -456,16 +458,18 @@ ktrpc.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h myconf.h
 
 kttimeddb.o : ktcommon.h ktutil.h kttimeddb.h myconf.h
 
+ktdbext.o : ktcommon.h ktutil.h kttimeddb.h ktdbext.h myconf.h
+
 ktremotedb.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h \
-  kttimeddb.h ktremotedb.h myconf.h
+  kttimeddb.h ktdbext.h ktremotedb.h myconf.h
 
 myscript.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h \
-  kttimeddb.h ktremotedb.h myconf.h myscript.h
+  kttimeddb.h ktdbext.h ktremotedb.h myconf.h myscript.h
 
 ktutiltest.o ktutilmgr.o ktutilserv.o kttimedtest.o kttimedmgr.o \
   ktserver.o ktremotetest.o ktremotemgr.o : \
-  ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h kttimeddb.h ktremotedb.h \
-  cmdcommon.h myconf.h myscript.h
+  ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h kttimeddb.h ktdbext.h \
+  ktremotedb.h cmdcommon.h myconf.h myscript.h
 
 
 

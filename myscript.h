@@ -23,6 +23,7 @@
 #include <kthttp.h>
 #include <ktrpc.h>
 #include <kttimeddb.h>
+#include <ktdbext.h>
 #include <ktremotedb.h>
 
 namespace kc = kyotocabinet;

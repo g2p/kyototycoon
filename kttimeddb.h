@@ -49,6 +49,7 @@ public:
   class Visitor;
 private:
   class TimedVisitor;
+  struct MergeLine;
 public:
   /** The width of expiration time. */
   static const int32_t XTWIDTH = 5;
@@ -585,6 +586,15 @@ public:
     TPERSIST = 1 << 4                    ///< disable expiration
   };
   /**
+   * Merge modes.
+   */
+  enum MergeMode {
+    MSET,                                ///< overwrite the existing value
+    MADD,                                ///< keep the existing value
+    MREPLACE,                            ///< modify the existing record only
+    MAPPEND                              ///< append the new value
+  };
+  /**
    * Default constructor.
    */
   explicit TimedDB() :
@@ -637,7 +647,7 @@ public:
       set_error(kc::BasicDB::Error::INVALID, "already opened");
       return false;
     }
-    kc::ScopedMutex lock(&xlock_);
+    kc::ScopedSpinLock lock(&xlock_);
     if (!db_.open(path, mode)) return false;
     kc::BasicDB* idb = db_.reveal_inner_db();
     if (idb) {
@@ -710,7 +720,7 @@ public:
       set_error(kc::BasicDB::Error::INVALID, "not opened");
       return false;
     }
-    kc::ScopedMutex lock(&xlock_);
+    kc::ScopedSpinLock lock(&xlock_);
     bool err = false;
     delete xcur_;
     xcur_ = NULL;
@@ -1564,6 +1574,91 @@ public:
     return db_.match_regex(regex, strvec, max, checker);
   }
   /**
+   * Merge records from other databases.
+   * @param srcary an array of the source detabase objects.
+   * @param srcnum the number of the elements of the source array.
+   * @param mode the merge mode.  TimedDB::MSET to overwrite the existing value, TimedDB::MADD to
+   * keep the existing value, TimedDB::MREPLACE to modify the existing record only,
+   * TimedDB::MAPPEND to append the new value.
+   * @param checker a progress checker object.  If it is NULL, no checking is performed.
+   * @return true on success, or false on failure.
+   */
+  bool merge(TimedDB** srcary, size_t srcnum, MergeMode mode = MSET,
+             kc::BasicDB::ProgressChecker* checker = NULL) {
+    _assert_(srcary && srcnum <= kc::MEMMAXSIZ);
+    bool err = false;
+    kc::Comparator* comp = &kc::LEXICALCOMP;
+    std::priority_queue<MergeLine> lines;
+    int64_t allcnt = 0;
+    for (size_t i = 0; i < srcnum; i++) {
+      MergeLine line;
+      line.cur = srcary[i]->cursor();
+      line.comp = comp;
+      line.cur->jump();
+      line.kbuf = line.cur->get(&line.ksiz, &line.vbuf, &line.vsiz, &line.xt, true);
+      if (line.kbuf) {
+        lines.push(line);
+        int64_t count = srcary[i]->count();
+        if (count > 0) allcnt += count;
+      } else {
+        delete line.cur;
+      }
+    }
+    if (checker && !checker->check("merge", "beginning", 0, allcnt)) {
+      set_error(kc::BasicDB::Error::LOGIC, "checker failed");
+      err = true;
+    }
+    int64_t curcnt = 0;
+    while (!err && !lines.empty()) {
+      MergeLine line = lines.top();
+      lines.pop();
+      switch (mode) {
+        case MSET: {
+          if (!set(line.kbuf, line.ksiz, line.vbuf, line.vsiz, -line.xt)) err = true;
+          break;
+        }
+        case MADD: {
+          if (!add(line.kbuf, line.ksiz, line.vbuf, line.vsiz, -line.xt) &&
+              error() != kc::BasicDB::Error::DUPREC) err = true;
+          break;
+        }
+        case MREPLACE: {
+          if (!replace(line.kbuf, line.ksiz, line.vbuf, line.vsiz, -line.xt) &&
+              error() != kc::BasicDB::Error::NOREC) err = true;
+          break;
+        }
+        case MAPPEND: {
+          if (!append(line.kbuf, line.ksiz, line.vbuf, line.vsiz, -line.xt)) err = true;
+          break;
+        }
+      }
+      delete[] line.kbuf;
+      line.kbuf = line.cur->get(&line.ksiz, &line.vbuf, &line.vsiz, &line.xt, true);
+      if (line.kbuf) {
+        lines.push(line);
+      } else {
+        delete line.cur;
+      }
+      curcnt++;
+      if (checker && !checker->check("merge", "processing", curcnt, allcnt)) {
+        set_error(kc::BasicDB::Error::LOGIC, "checker failed");
+        err = true;
+        break;
+      }
+    }
+    if (checker && !checker->check("merge", "ending", -1, allcnt)) {
+      set_error(kc::BasicDB::Error::LOGIC, "checker failed");
+      err = true;
+    }
+    while (!lines.empty()) {
+      MergeLine line = lines.top();
+      lines.pop();
+      delete[] line.kbuf;
+      delete line.cur;
+    }
+    return !err;
+  }
+  /**
    * Create a cursor object.
    * @return the return value is the created cursor object.
    * @note Because the object of the return value is allocated by the constructor, it should be
@@ -1672,6 +1767,22 @@ private:
     bool again_;
   };
   /**
+   * Front line of a merging list.
+   */
+  struct MergeLine {
+    TimedDB::Cursor* cur;                ///< cursor
+    kc::Comparator* comp;                ///< comparator
+    char* kbuf;                          ///< pointer to the key
+    size_t ksiz;                         ///< size of the key
+    const char* vbuf;                    ///< pointer to the value
+    size_t vsiz;                         ///< size of the value
+    int64_t xt;                          ///< expiration time
+    /** comparing operator */
+    bool operator <(const MergeLine& right) const {
+      return comp->compare(kbuf, ksiz, right.kbuf, right.ksiz) > 0;
+    }
+  };
+  /**
    * Remove expired records.
    * @param score the score of expiration.
    * @return true on success, or false on failure.
@@ -1680,7 +1791,7 @@ private:
     _assert_(score >= 0);
     xsc_ += score;
     if (xsc_ < JDBXTSCUNIT * JDBXTUNIT) return true;
-    kc::ScopedMutex lock(&xlock_);
+    if (!xlock_.lock_try()) return true;
     int64_t num = (int64_t)xsc_ / JDBXTSCUNIT;
     xsc_ -= num * JDBXTSCUNIT;
     int64_t ct = std::time(NULL);
@@ -1711,6 +1822,8 @@ private:
         break;
       }
     }
+    xlock_.unlock();
+
     return !err;
   }
   /**
@@ -1750,7 +1863,7 @@ private:
     return xt;
   }
   /** The expiration cursor lock. */
-  kc::Mutex xlock_;
+  kc::SpinLock xlock_;
   /** The internal database. */
   kc::PolyDB db_;
   /** The open mode. */

@@ -22,6 +22,7 @@
 #include <kthttp.h>
 #include <ktrpc.h>
 #include <kttimeddb.h>
+#include <ktdbext.h>
 #include <ktremotedb.h>
 #include "myscript.h"
 

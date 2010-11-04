@@ -1,5 +1,13 @@
 2010-10-21  Mikio Hirabayashi  <info@fallabs.com>
 
+	* kttimeddb.h (TimedDB::merge): new function.
+
+	* kttimeddb.h (TimedDB::expire_records): locking model was modified.
+
+	- Release: 0.9.5
+
+2010-10-21  Mikio Hirabayashi  <info@fallabs.com>
+
 	* kttimeddb.h (TimedDB::match_prefix, TimedDB::match_regex): new functions.
 
 	* kttimeddb.h (TimedDB::jump_back, TimedDB::jump_step): a bug about error code was fixed.

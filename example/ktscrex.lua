@@ -138,7 +138,6 @@ function upcase(inmap, outmap)
       if not value then
          return kt.Visitor.NOP
       end
-      print(value)
       return string.upper(value)
    end
    if not db:accept(key, visit) then
@@ -164,6 +163,39 @@ function survive(inmap, outmap)
       return value, 3600
    end
    if not db:accept(key, visit) then
+      return kt.RVEINTERNAL
+   end
+   return kt.RVSUCCESS
+end
+
+-- count words with the MapReduce framework
+function countwords(inmap, outmap)
+   local function map(key, value, emit)
+      local values = kt.split(value, " ")
+      for i = 1, #values do
+         local word = kt.regex(values[i], "[ .?!:;]", "")
+         word = string.lower(word)
+         if #word > 0 then
+            if not emit(word, "") then
+               return false
+            end
+         end
+      end
+      return true
+   end
+   function reduce(key, iter)
+      local count = 0
+      while true do
+         local value = iter()
+         if not value then
+            break
+         end
+         count = count + 1
+      end
+      outmap[key] = count
+      return true
+   end
+   if not db:mapreduce(map, reduce, nil, kt.DB.XNOLOCK) then
       return kt.RVEINTERNAL
    end
    return kt.RVSUCCESS
