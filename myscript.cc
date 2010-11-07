@@ -1926,6 +1926,12 @@ static void define_db(lua_State* lua) {
   setfielduint(lua, "ONOLOCK", kc::BasicDB::ONOLOCK);
   setfielduint(lua, "OTRYLOCK", kc::BasicDB::OTRYLOCK);
   setfielduint(lua, "ONOREPAIR", kc::BasicDB::ONOREPAIR);
+  setfielduint(lua, "MSET", kc::PolyDB::MSET);
+  setfielduint(lua, "MADD", kc::PolyDB::MADD);
+  setfielduint(lua, "MREPLACE", kc::PolyDB::MREPLACE);
+  setfielduint(lua, "MAPPEND", kc::PolyDB::MAPPEND);
+  setfielduint(lua, "XNOLOCK", kc::MapReduce::XNOLOCK);
+  setfielduint(lua, "XNOCOMP", kc::MapReduce::XNOCOMP);
   setfieldfunc(lua, "new", db_new);
   setfieldfunc(lua, "new_ptr", db_new_ptr);
   setfieldfunc(lua, "delete_ptr", db_delete_ptr);
@@ -2792,7 +2798,7 @@ static int db_merge(lua_State* lua) {
 static int db_mapreduce(lua_State* lua) {
   int32_t argc = lua_gettop(lua);
   if (argc < 3 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
-  if (argc > 5) throwinvarg(lua, __KCFUNC__);
+  if (argc > 9) throwinvarg(lua, __KCFUNC__);
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
   if (!db) throwinvarg(lua, __KCFUNC__);
@@ -2800,9 +2806,14 @@ static int db_mapreduce(lua_State* lua) {
   const char* tmppath = argc > 3 ? lua_tostring(lua, 4) : NULL;
   if (!tmppath) tmppath = "";
   uint32_t opts = argc > 4 ? lua_tonumber(lua, 5) : 0;
+  int32_t dbnum = argc > 5 ? lua_tonumber(lua, 6) : -1;
+  int64_t clim = argc > 6 ? lua_tonumber(lua, 7) : -1;
+  int64_t cbnum = argc > 7 ? lua_tonumber(lua, 8) : -1;
+  int32_t logidx = -1;
+  if (argc > 8 && lua_isfunction(lua, 9)) logidx = 9;
   class SoftMapReduce : public kt::MapReduce {
   public:
-    SoftMapReduce(lua_State* lua) : lua_(lua) {}
+    SoftMapReduce(lua_State* lua, int32_t logidx) : lua_(lua), logidx_(logidx) {}
     bool map(const char* kbuf, size_t ksiz, const char* vbuf, size_t vsiz,
              MapEmitter* emitter) {
       int32_t top = lua_gettop(lua_);
@@ -2837,10 +2848,27 @@ static int db_mapreduce(lua_State* lua) {
       lua_settop(lua_, top);
       return rv;
     }
+    bool log(const char* name, const char* message) {
+      if (logidx_ < 1) return true;
+      int32_t top = lua_gettop(lua_);
+      lua_pushvalue(lua_, logidx_);
+      lua_pushstring(lua_, name);
+      lua_pushstring(lua_, message);
+      bool rv;
+      if (lua_pcall(lua_, 2, 1, 0) == 0) {
+        rv = lua_toboolean(lua_, -1);
+      } else {
+        rv = false;
+      }
+      lua_settop(lua_, top);
+      return rv;
+    }
   private:
     lua_State* lua_;
+    int32_t logidx_;
   };
-  SoftMapReduce mr(lua);
+  SoftMapReduce mr(lua, logidx);
+  mr.tune_storage(dbnum, clim, cbnum);
   bool rv = mr.execute(db->db, tmppath, opts);
   lua_pushnil(lua);
   lua_setglobal(lua, "__mr_iter");

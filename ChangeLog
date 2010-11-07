@@ -1,8 +1,18 @@
+2010-11-04  Mikio Hirabayashi  <info@fallabs.com>
+
+	* kcdbext.h (MapReduce::execute): the cache algorithm was modified.
+
+	* myscript.cc (db_mapreduce): tuning parameters were added.
+
+	- Release: 0.9.6
+
 2010-10-21  Mikio Hirabayashi  <info@fallabs.com>
 
 	* kttimeddb.h (TimedDB::merge): new function.
 
 	* kttimeddb.h (TimedDB::expire_records): locking model was modified.
+
+	* ktdbext.h: new file.
 
 	- Release: 0.9.5
 

@@ -183,7 +183,7 @@ function countwords(inmap, outmap)
       end
       return true
    end
-   function reduce(key, iter)
+   local function reduce(key, iter)
       local count = 0
       while true do
          local value = iter()

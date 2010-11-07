@@ -7,11 +7,11 @@
 #================================================================
 
 # Package name
-AC_INIT(kyototycoon, 0.9.5)
+AC_INIT(kyototycoon, 0.9.6)
 
 # Package information
 MYLIBVER=1
-MYLIBREV=11
+MYLIBREV=12
 
 # Targets
 MYHEADERFILES="ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h"
@@ -266,7 +266,7 @@ fi
 if type pkg-config >config.tmp 2>&1
 then
   printf 'checking Kyoto Cabinet by pkg-config... '
-  if pkg-config --atleast-version=1.2.22 kyotocabinet
+  if pkg-config --atleast-version=1.2.23 kyotocabinet
   then
     printf 'yes\n'
   else
