@@ -640,7 +640,7 @@ public:
    * @param mode the connection mode.  The same as with kc::PolyDB.
    * @return true on success, or false on failure.
    */
-  bool open(const std::string& path,
+  bool open(const std::string& path = ":",
             uint32_t mode = kc::BasicDB::OWRITER | kc::BasicDB::OCREATE) {
     _assert_(true);
     if (omode_ != 0) {

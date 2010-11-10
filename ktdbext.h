@@ -471,10 +471,6 @@ private:
       return comp->compare(kbuf, ksiz, right.kbuf, right.ksiz) > 0;
     }
   };
-  /** Dummy constructor to forbid the use. */
-  MapReduce(const MapReduce&);
-  /** Dummy Operator to forbid the use. */
-  MapReduce& operator =(const MapReduce&);
   /**
    * Process a log message.
    * @param name the name of the event.
@@ -530,6 +526,10 @@ private:
     if (!reduce(kbuf, ksiz, &iter)) err = true;
     return !err;
   }
+  /** Dummy constructor to forbid the use. */
+  MapReduce(const MapReduce&);
+  /** Dummy Operator to forbid the use. */
+  MapReduce& operator =(const MapReduce&);
   /** The temporary databases. */
   kc::BasicDB** tmpdbs_;
   /** The number of temporary databases. */

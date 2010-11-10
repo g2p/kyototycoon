@@ -2190,7 +2190,7 @@ static int db_open(lua_State* lua) {
   lua_getfield(lua, 1, "db_ptr_");
   SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
   if (!db) throwinvarg(lua, __KCFUNC__);
-  const char* path = "*";
+  const char* path = ":";
   if (argc > 1 && lua_isstring(lua, 2)) path = lua_tostring(lua, 2);
   uint32_t mode = kc::BasicDB::OWRITER | kc::BasicDB::OCREATE;
   if (argc > 2 && lua_isnumber(lua, 3)) mode = lua_tonumber(lua, 3);

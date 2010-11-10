@@ -1642,7 +1642,7 @@ static int32_t run(int argc, char** argv) {
   }
   if (port < 1 || thnum < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
-  if (dbpaths.empty()) dbpaths.push_back("*");
+  if (dbpaths.empty()) dbpaths.push_back(":");
   int32_t rv = proc(dbpaths, host, port, tout, thnum, logpath, logkinds, omode,
                     opts, asi, ash, dmn, pidpath, cmdpath, scrpath);
   return rv;

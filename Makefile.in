@@ -276,6 +276,7 @@ check-timed :
 	rm -rf casket*
 	$(RUNENV) $(RUNCMD) ./kttimedtest misc "casket#type=-"
 	$(RUNENV) $(RUNCMD) ./kttimedtest misc "casket#type=+"
+	$(RUNENV) $(RUNCMD) ./kttimedtest misc "casket#type=:"
 	$(RUNENV) $(RUNCMD) ./kttimedtest misc "casket#type=*#zcomp=def"
 	$(RUNENV) $(RUNCMD) ./kttimedtest misc "casket#type=%#zcomp=gz"
 	rm -rf casket*
