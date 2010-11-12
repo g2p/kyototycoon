@@ -32,8 +32,7 @@ static void killserver(int signum);
 static int32_t run(int argc, char** argv);
 static int32_t proc(const std::vector<std::string>& dbpaths,
                     const char* host, int32_t port, double tout, int32_t thnum,
-                    const char* logpath, uint32_t logkinds, int32_t omode,
-                    int32_t opts, double asi, bool ash,
+                    const char* logpath, uint32_t logkinds, int32_t omode, double asi, bool ash,
                     bool dmn, const char* pidpath, const char* cmdpath, const char* scrpath);
 
 
@@ -1538,7 +1537,7 @@ static void usage() {
   eprintf("\n");
   eprintf("usage:\n");
   eprintf("  %s [-host str] [-port num] [-tout num] [-th num] [-log file] [-li|-ls|-le|-lz]"
-          " [-ord] [-oat|-oas|-onl|-otl|-onr] [-tp] [-asi num] [-ash]"
+          " [-ord] [-oat|-oas|-onl|-otl|-onr] [-asi num] [-ash]"
           " [-dmn] [-pid file] [-cmd dir] [-scr file] [db...]\n", g_progname);
   eprintf("\n");
   std::exit(1);
@@ -1566,7 +1565,6 @@ static int32_t run(int argc, char** argv) {
   const char* logpath = NULL;
   uint32_t logkinds = UINT32_MAX;
   int32_t omode = kc::BasicDB::OWRITER | kc::BasicDB::OCREATE;
-  int32_t opts = 0;
   double asi = 0;
   bool ash = false;
   bool dmn = false;
@@ -1614,8 +1612,6 @@ static int32_t run(int argc, char** argv) {
         omode |= kc::BasicDB::OTRYLOCK;
       } else if (!std::strcmp(argv[i], "-onr")) {
         omode |= kc::BasicDB::ONOREPAIR;
-      } else if (!std::strcmp(argv[i], "-tp")) {
-        opts |= kt::TimedDB::TPERSIST;
       } else if (!std::strcmp(argv[i], "-asi")) {
         if (++i >= argc) usage();
         asi = kc::atof(argv[i]);
@@ -1644,7 +1640,7 @@ static int32_t run(int argc, char** argv) {
   if (thnum > THREADMAX) thnum = THREADMAX;
   if (dbpaths.empty()) dbpaths.push_back(":");
   int32_t rv = proc(dbpaths, host, port, tout, thnum, logpath, logkinds, omode,
-                    opts, asi, ash, dmn, pidpath, cmdpath, scrpath);
+                    asi, ash, dmn, pidpath, cmdpath, scrpath);
   return rv;
 }
 
@@ -1652,8 +1648,7 @@ static int32_t run(int argc, char** argv) {
 // perform rpc command
 static int32_t proc(const std::vector<std::string>& dbpaths,
                     const char* host, int32_t port, double tout, int32_t thnum,
-                    const char* logpath, uint32_t logkinds, int32_t omode,
-                    int32_t opts, double asi, bool ash,
+                    const char* logpath, uint32_t logkinds, int32_t omode, double asi, bool ash,
                     bool dmn, const char* pidpath, const char* cmdpath, const char* scrpath) {
   g_daemon = false;
   if (dmn) {
@@ -1719,7 +1714,6 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
     serv.log(kt::RPCServer::Logger::SYSTEM, "opening a database: path=%s", dbpath.c_str());
     if (logkinds != 0)
       dbs[i].tune_logger(&dblogger, kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
-    if (opts > 0) dbs[i].tune_options(opts);
     if (!dbs[i].open(dbpath, omode)) {
       const kc::BasicDB::Error& e = dbs[i].error();
       serv.log(kt::RPCServer::Logger::ERROR, "%s: could not open a database file: %s: %s",

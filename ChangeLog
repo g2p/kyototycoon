@@ -1,3 +1,11 @@
+2010-11-12  Mikio Hirabayashi  <info@fallabs.com>
+
+	* kttimeddb.h (TimedDB::tune_options): abolished.
+
+	* kttimeddb.h (TimedDB::open): some tuning parameters was added.
+
+	- Release: 0.9.8
+
 2010-11-09  Mikio Hirabayashi  <info@fallabs.com>
 
 	* ktserver (main): the default database was changed to the stash database.

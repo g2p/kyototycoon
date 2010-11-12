@@ -47,10 +47,6 @@
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Visitor.html">Visitor</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Interface to access a record.  <a href="classkyototycoon_1_1TimedDB_1_1Visitor.html#_details">More...</a><br/></td></tr>
 <tr><td colspan="2"><h2>Public Types</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">enum &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#acf8742654cb752f9a2f99fd351f100f6">Option</a> { <a class="el" href="classkyototycoon_1_1TimedDB.html#acf8742654cb752f9a2f99fd351f100f6ad9fe42aa6a173e4ff7ea79e483dd088a">TPERSIST</a> =  1 &lt;&lt; 4
- }</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><p>Tuning Options. </p>
- <a href="classkyototycoon_1_1TimedDB.html#acf8742654cb752f9a2f99fd351f100f6">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">enum &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#ae892844efd8d65d383e53a7e91265561">MergeMode</a> { <a class="el" href="classkyototycoon_1_1TimedDB.html#ae892844efd8d65d383e53a7e91265561a830e8fa0875a760e2e072e7bf202cbac">MSET</a>, 
 <a class="el" href="classkyototycoon_1_1TimedDB.html#ae892844efd8d65d383e53a7e91265561a8a7b107dd0064ea898a04447c5f587be">MADD</a>, 
 <a class="el" href="classkyototycoon_1_1TimedDB.html#ae892844efd8d65d383e53a7e91265561ad5b739bbc10ab35945963114e02fd3a8">MREPLACE</a>, 
@@ -169,28 +165,6 @@
 <p>Timed database. </p>
 <dl class="note"><dt><b>Note:</b></dt><dd>This class is a concrete class of a wrapper for the polymorphic database to add expiration features. This class can be inherited but overwriting methods is forbidden. Before every database operation, it is necessary to call the <a class="el" href="classkyototycoon_1_1TimedDB.html#afa882641df0e672db3e51829cd62ee8c" title="Open a database file.">TimedDB::open</a> method in order to open a database file and connect the database object to it. To avoid data missing or corruption, it is important to close every database file by the <a class="el" href="classkyototycoon_1_1TimedDB.html#af69c719753f44fa216d286094f6227f1" title="Close the database file.">TimedDB::close</a> method when the database is no longer in use. It is forbidden for multible database objects in a process to open the same database at the same time. </dd></dl>
 <hr/><h2>Member Enumeration Documentation</h2>
-<a class="anchor" id="acf8742654cb752f9a2f99fd351f100f6"></a><!-- doxytag: member="kyototycoon::TimedDB::Option" ref="acf8742654cb752f9a2f99fd351f100f6" args="" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="classkyototycoon_1_1TimedDB.html#acf8742654cb752f9a2f99fd351f100f6">kyototycoon::TimedDB::Option</a></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>Tuning Options. </p>
-<dl><dt><b>Enumerator: </b></dt><dd><table border="0" cellspacing="2" cellpadding="0">
-<tr><td valign="top"><em><a class="anchor" id="acf8742654cb752f9a2f99fd351f100f6ad9fe42aa6a173e4ff7ea79e483dd088a"></a><!-- doxytag: member="TPERSIST" ref="acf8742654cb752f9a2f99fd351f100f6ad9fe42aa6a173e4ff7ea79e483dd088a" args="" -->TPERSIST</em>&nbsp;</td><td>
-<p>disable expiration </p>
-</td></tr>
-</table>
-</dd>
-</dl>
-
-</div>
-</div>
 <a class="anchor" id="ae892844efd8d65d383e53a7e91265561"></a><!-- doxytag: member="kyototycoon::TimedDB::MergeMode" ref="ae892844efd8d65d383e53a7e91265561" args="" -->
 <div class="memitem">
 <div class="memproto">
@@ -2022,7 +1996,7 @@
 <p>Set the optional features. </p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
-    <tr><td valign="top"></td><td valign="top"><em>opts</em>&nbsp;</td><td>the optional features by bitwise-or: <a class="el" href="classkyototycoon_1_1TimedDB.html#acf8742654cb752f9a2f99fd351f100f6ad9fe42aa6a173e4ff7ea79e483dd088a" title="disable expiration">TimedDB::TPERSIST</a> to disable expiration. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>opts</em>&nbsp;</td><td>the optional features by bitwise-or: TimedDB::TPERSIST to disable expiration. </td></tr>
   </table>
   </dd>
 </dl>
@@ -2099,7 +2073,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Nov 10 15:18:05 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Fri Nov 12 22:18:30 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

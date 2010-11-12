@@ -291,6 +291,11 @@ check-timed :
 	rm -rf casket*
 	$(RUNENV) $(RUNCMD) ./kttimedtest misc \
 	  "casket#type=kcf#zcomp=arc#zkey=mikio"
+	rm -rf casket*
+	$(RUNENV) $(RUNCMD) ./kttimedtest order -set -th 4 -rnd \
+	  'casket.kch#bnum=100#ktcapcnt=5000' 10000
+	$(RUNENV) $(RUNCMD) ./kttimedtest order -set -th 4 -rnd \
+	  'casket.kch#bnum=100#ktcapsiz=200000' 10000
 
 
 check-remote :

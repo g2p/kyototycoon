@@ -580,12 +580,6 @@ public:
     }
   };
   /**
-   * Tuning Options.
-   */
-  enum Option {
-    TPERSIST = 1 << 4                    ///< disable expiration
-  };
-  /**
    * Merge modes.
    */
   enum MergeMode {
@@ -598,7 +592,7 @@ public:
    * Default constructor.
    */
   explicit TimedDB() :
-    xlock_(), db_(), omode_(0), opts_(0), xcur_(NULL), xsc_(0) {
+    xlock_(), db_(), omode_(0), opts_(0), capcnt_(0), capsiz_(0), xcur_(NULL), xsc_(0) {
     _assert_(true);
   }
   /**
@@ -636,7 +630,10 @@ public:
   }
   /**
    * Open a database file.
-   * @param path the path of a database file.  The same as with kc::PolyDB.
+   * @param path the path of a database file.  The same as with kc::PolyDB.  In addition, the
+   * following tuning parameters are supported.  "ktopts" sets options and the value can contain
+   * "p" for the persistent option.  "ktcapcnt" sets the capacity by record number.  "ktcapsiz"
+   * sets the capacity by database size.
    * @param mode the connection mode.  The same as with kc::PolyDB.
    * @return true on success, or false on failure.
    */
@@ -648,6 +645,31 @@ public:
       return false;
     }
     kc::ScopedSpinLock lock(&xlock_);
+    std::vector<std::string> elems;
+    kc::strsplit(path, '#', &elems);
+    capcnt_ = -1;
+    capsiz_ = -1;
+    opts_ = 0;
+    std::vector<std::string>::iterator it = elems.begin();
+    std::vector<std::string>::iterator itend = elems.end();
+    if (it != itend) it++;
+    while (it != itend) {
+      std::vector<std::string> fields;
+      if (kc::strsplit(*it, '=', &fields) > 1) {
+        const char* key = fields[0].c_str();
+        const char* value = fields[1].c_str();
+        if (!std::strcmp(key, "ktcapcnt") || !std::strcmp(key, "ktcapcount") ||
+            !std::strcmp(key, "ktcap_count")) {
+          capcnt_ = kc::atoix(value);
+        } else if (!std::strcmp(key, "ktcapsiz") || !std::strcmp(key, "ktcapsize") ||
+                   !std::strcmp(key, "ktcap_size")) {
+          capsiz_ = kc::atoix(value);
+        } else if (!std::strcmp(key, "ktopts") || !std::strcmp(key, "ktoptions")) {
+          if (std::strchr(value, 'p')) opts_ |= TPERSIST;
+        }
+      }
+      it++;
+    }
     if (!db_.open(path, mode)) return false;
     kc::BasicDB* idb = db_.reveal_inner_db();
     if (idb) {
@@ -864,7 +886,11 @@ public:
    */
   bool status(std::map<std::string, std::string>* strmap) {
     _assert_(strmap);
-    return db_.status(strmap);
+    if (!db_.status(strmap)) return false;
+    (*strmap)["ktopts"] = kc::strprintf("%u", opts_);
+    (*strmap)["ktcapcnt"] = kc::strprintf("%lld", (long long)capcnt_);
+    (*strmap)["ktcapsiz"] = kc::strprintf("%lld", (long long)capsiz_);
+    return true;
   }
   /**
    * Set the value of a record.
@@ -1534,17 +1560,7 @@ public:
         xsc_ = 0;
       }
     }
-    kc::BasicDB* idb = db_.reveal_inner_db();
-    if (idb) {
-      const std::type_info& info = typeid(*idb);
-      if (info == typeid(kc::HashDB)) {
-        kc::HashDB* hdb = (kc::HashDB*)idb;
-        if (!hdb->defrag(step)) err = true;
-      } else if (info == typeid(kc::TreeDB)) {
-        kc::TreeDB* tdb = (kc::TreeDB*)idb;
-        if (!tdb->defrag(step)) err = true;
-      }
-    }
+    if (!defrag(step)) err = true;
     return !err;
   }
   /**
@@ -1669,20 +1685,6 @@ public:
     return new Cursor(this);
   }
   /**
-   * Set the optional features.
-   * @param opts the optional features by bitwise-or: TimedDB::TPERSIST to disable expiration.
-   * @return true on success, or false on failure.
-   */
-  bool tune_options(int8_t opts) {
-    _assert_(true);
-    if (omode_ != 0) {
-      set_error(kc::BasicDB::Error::INVALID, "already opened");
-      return false;
-    }
-    opts_ = opts;
-    return true;
-  }
-  /**
    * Set the internal logger.
    * @param logger the logger object.  The same as with kc::BasicDB.
    * @param kinds kinds of logged messages by bitwise-or:  The same as with kc::BasicDB.
@@ -1694,6 +1696,12 @@ public:
     return db_.tune_logger(logger, kinds);
   }
 private:
+  /**
+   * Tuning Options.
+   */
+  enum Option {
+    TPERSIST = 1 << 1                    ///< disable expiration
+  };
   /**
    * Visitor to handle records with time stamps.
    */
@@ -1792,8 +1800,8 @@ private:
     xsc_ += score;
     if (xsc_ < JDBXTSCUNIT * JDBXTUNIT) return true;
     if (!xlock_.lock_try()) return true;
-    int64_t num = (int64_t)xsc_ / JDBXTSCUNIT;
-    xsc_ -= num * JDBXTSCUNIT;
+    int64_t step = (int64_t)xsc_ / JDBXTSCUNIT;
+    xsc_ -= step * JDBXTSCUNIT;
     int64_t ct = std::time(NULL);
     class VisitorImpl : public kc::BasicDB::Visitor {
     public:
@@ -1810,7 +1818,7 @@ private:
     };
     VisitorImpl visitor(ct);
     bool err = false;
-    for (int64_t i = 0; i < num; i++) {
+    for (int64_t i = 0; i < step; i++) {
       if (!xcur_->accept(&visitor, true, true)) {
         kc::BasicDB::Error::Code code = db_.error().code();
         if (code == kc::BasicDB::Error::INVALID || code == kc::BasicDB::Error::NOREC) {
@@ -1822,8 +1830,61 @@ private:
         break;
       }
     }
+    if (capcnt_ > 0) {
+      int64_t count = db_.count();
+      while (count > capcnt_) {
+        if (!xcur_->remove()) {
+          kc::BasicDB::Error::Code code = db_.error().code();
+          if (code == kc::BasicDB::Error::INVALID || code == kc::BasicDB::Error::NOREC) {
+            xcur_->jump();
+          } else {
+            err = true;
+          }
+          break;
+        }
+        count--;
+      }
+      if (!defrag(step)) err = true;
+    }
+    if (capsiz_ > 0) {
+      int64_t size = db_.size();
+      if (size > capsiz_) {
+        for (int64_t i = 0; i < step; i++) {
+          if (!xcur_->remove()) {
+            kc::BasicDB::Error::Code code = db_.error().code();
+            if (code == kc::BasicDB::Error::INVALID || code == kc::BasicDB::Error::NOREC) {
+              xcur_->jump();
+            } else {
+              err = true;
+            }
+            break;
+          }
+        }
+        if (!defrag(step)) err = true;
+      }
+    }
     xlock_.unlock();
-
+    return !err;
+  }
+  /**
+   * Perform defragmentation of the database file.
+   * @param step the number of steps.  If it is not more than 0, the whole region is defraged.
+   * @return true on success, or false on failure.
+   */
+  bool defrag(int step) {
+    _assert_(true);
+    bool err = false;
+    kc::BasicDB* idb = db_.reveal_inner_db();
+    if (idb) {
+      const std::type_info& info = typeid(*idb);
+      if (info == typeid(kc::HashDB)) {
+        kc::HashDB* hdb = (kc::HashDB*)idb;
+        if (!hdb->defrag(step)) err = true;
+      } else if (info == typeid(kc::TreeDB)) {
+        kc::TreeDB* tdb = (kc::TreeDB*)idb;
+        if (!tdb->defrag(step)) err = true;
+      }
+    }
     return !err;
   }
   /**
@@ -1870,6 +1931,10 @@ private:
   uint32_t omode_;
   /** The options. */
   uint8_t opts_;
+  /** The capacity of record number. */
+  int64_t capcnt_;
+  /** The capacity of memory usage. */
+  int64_t capsiz_;
   /** The cursor for expiration. */
   kc::PolyDB::Cursor* xcur_;
   /** The score of expiration. */

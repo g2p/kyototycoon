@@ -39,7 +39,7 @@ static int32_t runload(int argc, char** argv);
 static int32_t runvacuum(int argc, char** argv);
 static int32_t runmerge(int argc, char** argv);
 static int32_t runcheck(int argc, char** argv);
-static int32_t proccreate(const char* path, int32_t oflags, int32_t opts);
+static int32_t proccreate(const char* path, int32_t oflags);
 static int32_t procinform(const char* path, int32_t oflags, bool st);
 static int32_t procset(const char* path, const char* kbuf, size_t ksiz,
                        const char* vbuf, size_t vsiz, int32_t oflags, int32_t mode, int64_t xt);
@@ -108,7 +108,7 @@ static void usage() {
   eprintf("%s: the command line utility of the timed database of Kyoto Tycoon\n", g_progname);
   eprintf("\n");
   eprintf("usage:\n");
-  eprintf("  %s create [-otr] [-onl|-otl|-onr] [-tp] path\n", g_progname);
+  eprintf("  %s create [-otr] [-onl|-otl|-onr] path\n", g_progname);
   eprintf("  %s inform [-onl|-otl|-onr] [-st] path\n", g_progname);
   eprintf("  %s set [-onl|-otl|-onr] [-add|-rep|-app|-inci|-incd] [-sx] [-xt num]"
           " path key value\n", g_progname);
@@ -142,7 +142,6 @@ static int32_t runcreate(int argc, char** argv) {
   bool argbrk = false;
   const char* path = NULL;
   int32_t oflags = 0;
-  int32_t opts = 0;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -155,8 +154,6 @@ static int32_t runcreate(int argc, char** argv) {
         oflags |= kc::BasicDB::OTRYLOCK;
       } else if (!std::strcmp(argv[i], "-onr")) {
         oflags |= kc::BasicDB::ONOREPAIR;
-      } else if (!std::strcmp(argv[i], "-tp")) {
-        opts |= kt::TimedDB::TPERSIST;
       } else {
         usage();
       }
@@ -168,7 +165,7 @@ static int32_t runcreate(int argc, char** argv) {
     }
   }
   if (!path) usage();
-  int32_t rv = proccreate(path, oflags, opts);
+  int32_t rv = proccreate(path, oflags);
   return rv;
 }
 
@@ -727,10 +724,9 @@ static int32_t runcheck(int argc, char** argv) {
 
 
 // perform create command
-static int32_t proccreate(const char* path, int32_t oflags, int32_t opts) {
+static int32_t proccreate(const char* path, int32_t oflags) {
   kt::TimedDB db;
   db.tune_logger(stddblogger(g_progname, &std::cerr));
-  if (opts > 0) db.tune_options(opts);
   if (!db.open(path, kc::BasicDB::OWRITER | kc::BasicDB::OCREATE | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;

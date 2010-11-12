@@ -460,6 +460,22 @@ end
 $ kill -HUP `cat /var/data/ktserver.pid`
 </pre>
 
+<h3 id="tips_onmemoryserver">On-memory Server Setting</h3>
+
+<p>You can use Kyoto Tycoon as a volatile (non-persistent) cache server with an on-memory database.  In most cases, space efficiency of Kyoto Tycoon is better than that of memcached.  If it is expected that 10 million records are cached in the database using 10GB memory, the following setting is suggested.</p>
+
+<pre>$ ktserver ':#bnum=20000000#ktcapsiz=10g'
+</pre>
+
+<p>Note that the capacity tuning parameter limits the total size of memory allocation in the "user land" layer.  So, acctual memory usage will be probably higher than the limit size.  For peaceful operation, the limit should be up to 65% of the total memory size of the machine.</p>
+
+<p>In addition, auto deletion by the capacity limit is performed at random.  In that case, fresh records may also be deleted soon.  So, setting effectual expiration time not to reach the limit is very important.  If you cannot calculate effectual expiration time, use the cache hash database instead of the default stash database.  The following setting is suggested.</p>
+
+<pre>$ ktserver '*#bnum=20000000#capsiz=8g'
+</pre>
+
+<p>Note that the space effiency of the cache hash database is worse than that of the stash database.  The limit should be up to 50% of the total memory size of the machine.  However, auto deletion by the "capsiz" parameter (not "ktcapsiz") of the cache hash database is based on LRU algorithm, which prevents fresh records from sudden deletion.</p>
+
 <h3 id="tips_hotbackup">Hot Backup</h3>
 
 <p>You can make backup files while the server is running, which is called "hot backup".  To do it, prepare the following shell script beforehand and save it as "/ktbin/dbbackup".  It must have exetutable permissions.</p>
@@ -493,7 +509,7 @@ cp -f "$srcfile" "$destfile"
 <pre>$ ktremotemgr vacuum
 </pre>
 
-<p>If you use Kyoto Tycoon for data storage not for cache, create the database with the "-tp" option to disable the GC cursor and omit the time stamp region of each record, for the sake of time and space efficiency.  Note that the "-tp" option works when creating a database and it does not work for existing databases.</p>
+<p>If you use Kyoto Tycoon for data storage not for cache, create the database with the persistent option by "#ktopts=p" parameter to disable the GC cursor and omit the time stamp region of each record, for the sake of time and space efficiency.  Note that the persistent option works when creating a database and it does not work for existing databases.</p>
 
 <hr />
 
