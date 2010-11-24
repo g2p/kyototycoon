@@ -14,7 +14,7 @@ export LANG LC_ALL
 
 # count steps
 srcfile="$1"
-destfile="$1.`date '+%Y%M%d%H%M%S'`"
+destfile="$1.$2"
 cp -f "$srcfile" "$destfile"
 
 

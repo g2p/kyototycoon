@@ -37,27 +37,48 @@ static int32_t runcopy(int argc, char** argv);
 static int32_t rundump(int argc, char** argv);
 static int32_t runload(int argc, char** argv);
 static int32_t runvacuum(int argc, char** argv);
+static int32_t runrecover(int argc, char** argv);
 static int32_t runmerge(int argc, char** argv);
 static int32_t runcheck(int argc, char** argv);
-static int32_t proccreate(const char* path, int32_t oflags);
-static int32_t procinform(const char* path, int32_t oflags, bool st);
+static int32_t proccreate(const char* path, int32_t oflags,
+                          const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid);
+static int32_t procinform(const char* path, int32_t oflags,
+                          const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid,
+                          bool st);
 static int32_t procset(const char* path, const char* kbuf, size_t ksiz,
-                       const char* vbuf, size_t vsiz, int32_t oflags, int32_t mode, int64_t xt);
-static int32_t procremove(const char* path, const char* kbuf, size_t ksiz, int32_t oflags);
-static int32_t procget(const char* path, const char* kbuf, size_t ksiz,
-                       int32_t oflags, bool px, bool pt, bool pz);
+                       const char* vbuf, size_t vsiz, int32_t oflags,
+                       const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid,
+                       int32_t mode, int64_t xt);
+static int32_t procremove(const char* path, const char* kbuf, size_t ksiz, int32_t oflags,
+                          const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid);
+static int32_t procget(const char* path, const char* kbuf, size_t ksiz, int32_t oflags,
+                       const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid,
+                       bool px, bool pt, bool pz);
 static int32_t proclist(const char* path, const char*kbuf, size_t ksiz, int32_t oflags,
+                        const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid,
                         bool des, int64_t max, bool pv, bool px, bool pt);
-static int32_t procclear(const char* path, int32_t oflags);
+static int32_t procclear(const char* path, int32_t oflags,
+                         const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid);
 static int32_t procimport(const char* path, const char* file, int32_t oflags,
+                          const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid,
                           bool sx, int64_t xt);
-static int32_t proccopy(const char* path, const char* file, int32_t oflags);
-static int32_t procdump(const char* path, const char* file, int32_t oflags);
-static int32_t procload(const char* path, const char* file, int32_t oflags);
-static int32_t procvacuum(const char* path, int32_t oflags);
-static int32_t procmerge(const char* path, int32_t oflags, kt::TimedDB::MergeMode mode,
+static int32_t proccopy(const char* path, const char* file, int32_t oflags,
+                        const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid);
+static int32_t procdump(const char* path, const char* file, int32_t oflags,
+                        const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid);
+static int32_t procload(const char* path, const char* file, int32_t oflags,
+                        const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid);
+static int32_t procvacuum(const char* path, int32_t oflags,
+                          const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid);
+static int32_t procrecover(const char* path, const char* dir, int32_t oflags,
+                           const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid,
+                           uint64_t ts);
+static int32_t procmerge(const char* path, int32_t oflags,
+                         const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid,
+                         kt::TimedDB::MergeMode mode,
                          const std::vector<std::string>& srcpaths);
-static int32_t proccheck(const char* path, int32_t oflags);
+static int32_t proccheck(const char* path, int32_t oflags,
+                         const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid);
 
 
 // main routine
@@ -90,6 +111,8 @@ int main(int argc, char** argv) {
     rv = runload(argc, argv);
   } else if (!std::strcmp(argv[1], "vacuum")) {
     rv = runvacuum(argc, argv);
+  } else if (!std::strcmp(argv[1], "recover")) {
+    rv = runrecover(argc, argv);
   } else if (!std::strcmp(argv[1], "merge")) {
     rv = runmerge(argc, argv);
   } else if (!std::strcmp(argv[1], "check")) {
@@ -108,22 +131,36 @@ static void usage() {
   eprintf("%s: the command line utility of the timed database of Kyoto Tycoon\n", g_progname);
   eprintf("\n");
   eprintf("usage:\n");
-  eprintf("  %s create [-otr] [-onl|-otl|-onr] path\n", g_progname);
-  eprintf("  %s inform [-onl|-otl|-onr] [-st] path\n", g_progname);
-  eprintf("  %s set [-onl|-otl|-onr] [-add|-rep|-app|-inci|-incd] [-sx] [-xt num]"
-          " path key value\n", g_progname);
-  eprintf("  %s remove [-onl|-otl|-onr] [-sx] path key\n", g_progname);
-  eprintf("  %s get [-onl|-otl|-onr] [-sx] [-px] [-pt] [-pz] path key\n", g_progname);
-  eprintf("  %s list [-onl|-otl|-onr] [-des] [-max num] [-sx] [-pv] [-px] [-pt] path [key]\n",
-          g_progname);
-  eprintf("  %s clear [-onl|-otl|-onr] path\n", g_progname);
-  eprintf("  %s import [-onl|-otl|-onr] [-sx] [-xt num] path [file]\n", g_progname);
-  eprintf("  %s copy [-onl|-otl|-onr] path file\n", g_progname);
-  eprintf("  %s dump [-onl|-otl|-onr] path [file]\n", g_progname);
-  eprintf("  %s load [-otr] [-onl|-otl|-onr] path [file]\n", g_progname);
-  eprintf("  %s vacuum [-onl|-otl|-onr] path\n", g_progname);
-  eprintf("  %s merge [-onl|-otl|-onr] [-add|-rep|-app] path src...\n", g_progname);
-  eprintf("  %s check [-onl|-otl|-onr] path\n", g_progname);
+  eprintf("  %s create [-otr] [-onl|-otl|-onr] [-ulog str] [-ulim num] [-sid num] [-dbid num]"
+          " path\n", g_progname);
+  eprintf("  %s inform [-onl|-otl|-onr] [-ulog str] [-ulim num] [-sid num] [-dbid num]"
+          " [-st] path\n", g_progname);
+  eprintf("  %s set [-onl|-otl|-onr] [-ulog str] [-ulim num] [-sid num] [-dbid num]"
+          " [-add|-rep|-app|-inci|-incd] [-sx] [-xt num] path key value\n", g_progname);
+  eprintf("  %s remove [-onl|-otl|-onr] [-ulog str] [-ulim num] [-sid num] [-dbid num]"
+          " [-sx] path key\n", g_progname);
+  eprintf("  %s get [-onl|-otl|-onr] [-ulog str] [-ulim num] [-sid num] [-dbid num]"
+          " [-sx] [-px] [-pt] [-pz] path key\n", g_progname);
+  eprintf("  %s list [-onl|-otl|-onr] [-ulog str] [-ulim num] [-sid num] [-dbid num]"
+          " [-des] [-max num] [-sx] [-pv] [-px] [-pt] path [key]\n", g_progname);
+  eprintf("  %s clear [-onl|-otl|-onr] [-ulog str] [-ulim num] [-sid num] [-dbid num]"
+          " path\n", g_progname);
+  eprintf("  %s import [-onl|-otl|-onr] [-ulog str] [-ulim num] [-sid num] [-dbid num]"
+          " [-sx] [-xt num] path [file]\n", g_progname);
+  eprintf("  %s copy [-onl|-otl|-onr] [-ulog str] [-ulim num] [-sid num] [-dbid num]"
+          " path file\n", g_progname);
+  eprintf("  %s dump [-onl|-otl|-onr] [-ulog str] [-ulim num] [-sid num] [-dbid num]"
+          " path [file]\n", g_progname);
+  eprintf("  %s load [-otr] [-onl|-otl|-onr] [-ulog str] [-ulim num] [-sid num] [-dbid num]"
+          " path [file]\n", g_progname);
+  eprintf("  %s vacuum [-onl|-otl|-onr] [-ulog str] [-ulim num] [-sid num] [-dbid num]"
+          " path\n", g_progname);
+  eprintf("  %s recover [-onl|-otl|-onr] [-ulog str] [-ulim num] [-sid num] [-dbid num]"
+          " [-ts num] [-sid num] [-dbid num] [-dbid num] path dir\n", g_progname);
+  eprintf("  %s merge [-onl|-otl|-onr] [-ulog str] [-ulim num] [-sid num] [-dbid num]"
+          " [-add|-rep|-app] path src...\n", g_progname);
+  eprintf("  %s check [-onl|-otl|-onr] [-ulog str] [-ulim num] [-sid num] [-dbid num]"
+          " path\n", g_progname);
   eprintf("\n");
   std::exit(1);
 }
@@ -142,6 +179,10 @@ static int32_t runcreate(int argc, char** argv) {
   bool argbrk = false;
   const char* path = NULL;
   int32_t oflags = 0;
+  const char* ulogpath = NULL;
+  int64_t ulim = DEFULIM;
+  uint16_t sid = 0;
+  uint16_t dbid = 0;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -154,6 +195,18 @@ static int32_t runcreate(int argc, char** argv) {
         oflags |= kc::BasicDB::OTRYLOCK;
       } else if (!std::strcmp(argv[i], "-onr")) {
         oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-ulog")) {
+        if (++i >= argc) usage();
+        ulogpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-dbid")) {
+        if (++i >= argc) usage();
+        dbid = kc::atoix(argv[i]);
       } else {
         usage();
       }
@@ -165,7 +218,7 @@ static int32_t runcreate(int argc, char** argv) {
     }
   }
   if (!path) usage();
-  int32_t rv = proccreate(path, oflags);
+  int32_t rv = proccreate(path, oflags, ulogpath, ulim, sid, dbid);
   return rv;
 }
 
@@ -175,6 +228,10 @@ static int32_t runinform(int argc, char** argv) {
   bool argbrk = false;
   const char* path = NULL;
   int32_t oflags = 0;
+  const char* ulogpath = NULL;
+  int64_t ulim = DEFULIM;
+  uint16_t sid = 0;
+  uint16_t dbid = 0;
   bool st = false;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
@@ -186,6 +243,18 @@ static int32_t runinform(int argc, char** argv) {
         oflags |= kc::BasicDB::OTRYLOCK;
       } else if (!std::strcmp(argv[i], "-onr")) {
         oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-ulog")) {
+        if (++i >= argc) usage();
+        ulogpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-dbid")) {
+        if (++i >= argc) usage();
+        dbid = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-st")) {
         st = true;
       } else {
@@ -199,7 +268,7 @@ static int32_t runinform(int argc, char** argv) {
     }
   }
   if (!path) usage();
-  int32_t rv = procinform(path, oflags, st);
+  int32_t rv = procinform(path, oflags, ulogpath, ulim, sid, dbid, st);
   return rv;
 }
 
@@ -211,6 +280,10 @@ static int32_t runset(int argc, char** argv) {
   const char* kstr = NULL;
   const char* vstr = NULL;
   int32_t oflags = 0;
+  const char* ulogpath = NULL;
+  int64_t ulim = DEFULIM;
+  uint16_t sid = 0;
+  uint16_t dbid = 0;
   int32_t mode = 0;
   bool sx = false;
   int64_t xt = INT64_MAX;
@@ -224,6 +297,18 @@ static int32_t runset(int argc, char** argv) {
         oflags |= kc::BasicDB::OTRYLOCK;
       } else if (!std::strcmp(argv[i], "-onr")) {
         oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-ulog")) {
+        if (++i >= argc) usage();
+        ulogpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-dbid")) {
+        if (++i >= argc) usage();
+        dbid = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-add")) {
         mode = 'a';
       } else if (!std::strcmp(argv[i], "-rep")) {
@@ -269,7 +354,8 @@ static int32_t runset(int argc, char** argv) {
     vsiz = std::strlen(vstr);
     vbuf = NULL;
   }
-  int32_t rv = procset(path, kstr, ksiz, vstr, vsiz, oflags, mode, xt);
+  int32_t rv = procset(path, kstr, ksiz, vstr, vsiz, oflags,
+                       ulogpath, ulim, sid, dbid, mode, xt);
   delete[] kbuf;
   delete[] vbuf;
   return rv;
@@ -282,6 +368,10 @@ static int32_t runremove(int argc, char** argv) {
   const char* path = NULL;
   const char* kstr = NULL;
   int32_t oflags = 0;
+  const char* ulogpath = NULL;
+  int64_t ulim = DEFULIM;
+  uint16_t sid = 0;
+  uint16_t dbid = 0;
   bool sx = false;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
@@ -293,6 +383,18 @@ static int32_t runremove(int argc, char** argv) {
         oflags |= kc::BasicDB::OTRYLOCK;
       } else if (!std::strcmp(argv[i], "-onr")) {
         oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-ulog")) {
+        if (++i >= argc) usage();
+        ulogpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-dbid")) {
+        if (++i >= argc) usage();
+        dbid = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-sx")) {
         sx = true;
       } else {
@@ -317,7 +419,7 @@ static int32_t runremove(int argc, char** argv) {
     ksiz = std::strlen(kstr);
     kbuf = NULL;
   }
-  int32_t rv = procremove(path, kstr, ksiz, oflags);
+  int32_t rv = procremove(path, kstr, ksiz, oflags, ulogpath, ulim, sid, dbid);
   delete[] kbuf;
   return rv;
 }
@@ -329,6 +431,10 @@ static int32_t runget(int argc, char** argv) {
   const char* path = NULL;
   const char* kstr = NULL;
   int32_t oflags = 0;
+  const char* ulogpath = NULL;
+  int64_t ulim = DEFULIM;
+  uint16_t sid = 0;
+  uint16_t dbid = 0;
   bool sx = false;
   bool px = false;
   bool pt = false;
@@ -343,6 +449,18 @@ static int32_t runget(int argc, char** argv) {
         oflags |= kc::BasicDB::OTRYLOCK;
       } else if (!std::strcmp(argv[i], "-onr")) {
         oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-ulog")) {
+        if (++i >= argc) usage();
+        ulogpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-dbid")) {
+        if (++i >= argc) usage();
+        dbid = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-sx")) {
         sx = true;
       } else if (!std::strcmp(argv[i], "-px")) {
@@ -373,7 +491,7 @@ static int32_t runget(int argc, char** argv) {
     ksiz = std::strlen(kstr);
     kbuf = NULL;
   }
-  int32_t rv = procget(path, kstr, ksiz, oflags, px, pt, pz);
+  int32_t rv = procget(path, kstr, ksiz, oflags, ulogpath, ulim, sid, dbid, px, pt, pz);
   delete[] kbuf;
   return rv;
 }
@@ -385,6 +503,10 @@ static int32_t runlist(int argc, char** argv) {
   const char* path = NULL;
   const char* kstr = NULL;
   int32_t oflags = 0;
+  const char* ulogpath = NULL;
+  int64_t ulim = DEFULIM;
+  uint16_t sid = 0;
+  uint16_t dbid = 0;
   bool des = false;
   int64_t max = -1;
   bool sx = false;
@@ -401,6 +523,18 @@ static int32_t runlist(int argc, char** argv) {
         oflags |= kc::BasicDB::OTRYLOCK;
       } else if (!std::strcmp(argv[i], "-onr")) {
         oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-ulog")) {
+        if (++i >= argc) usage();
+        ulogpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-dbid")) {
+        if (++i >= argc) usage();
+        dbid = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-des")) {
         des = true;
       } else if (!std::strcmp(argv[i], "-max")) {
@@ -440,7 +574,8 @@ static int32_t runlist(int argc, char** argv) {
       kbuf[ksiz] = '\0';
     }
   }
-  int32_t rv = proclist(path, kbuf, ksiz, oflags, des, max, pv, px, pt);
+  int32_t rv = proclist(path, kbuf, ksiz, oflags,
+                        ulogpath, ulim, sid, dbid, des, max, pv, px, pt);
   delete[] kbuf;
   return rv;
 }
@@ -451,6 +586,10 @@ static int32_t runclear(int argc, char** argv) {
   bool argbrk = false;
   const char* path = NULL;
   int32_t oflags = 0;
+  const char* ulogpath = NULL;
+  int64_t ulim = DEFULIM;
+  uint16_t sid = 0;
+  uint16_t dbid = 0;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -461,6 +600,18 @@ static int32_t runclear(int argc, char** argv) {
         oflags |= kc::BasicDB::OTRYLOCK;
       } else if (!std::strcmp(argv[i], "-onr")) {
         oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-ulog")) {
+        if (++i >= argc) usage();
+        ulogpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-dbid")) {
+        if (++i >= argc) usage();
+        dbid = kc::atoix(argv[i]);
       } else {
         usage();
       }
@@ -472,7 +623,7 @@ static int32_t runclear(int argc, char** argv) {
     }
   }
   if (!path) usage();
-  int32_t rv = procclear(path, oflags);
+  int32_t rv = procclear(path, oflags, ulogpath, ulim, sid, dbid);
   return rv;
 }
 
@@ -483,6 +634,10 @@ static int32_t runimport(int argc, char** argv) {
   const char* path = NULL;
   const char* file = NULL;
   int32_t oflags = 0;
+  const char* ulogpath = NULL;
+  int64_t ulim = DEFULIM;
+  uint16_t sid = 0;
+  uint16_t dbid = 0;
   bool sx = false;
   int64_t xt = INT64_MAX;
   for (int32_t i = 2; i < argc; i++) {
@@ -495,6 +650,18 @@ static int32_t runimport(int argc, char** argv) {
         oflags |= kc::BasicDB::OTRYLOCK;
       } else if (!std::strcmp(argv[i], "-onr")) {
         oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-ulog")) {
+        if (++i >= argc) usage();
+        ulogpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-dbid")) {
+        if (++i >= argc) usage();
+        dbid = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-sx")) {
         sx = true;
       } else if (!std::strcmp(argv[i], "-xt")) {
@@ -513,7 +680,7 @@ static int32_t runimport(int argc, char** argv) {
     }
   }
   if (!path) usage();
-  int32_t rv = procimport(path, file, oflags, sx, xt);
+  int32_t rv = procimport(path, file, oflags, ulogpath, ulim, sid, dbid, sx, xt);
   return rv;
 }
 
@@ -524,6 +691,10 @@ static int32_t runcopy(int argc, char** argv) {
   const char* path = NULL;
   const char* file = NULL;
   int32_t oflags = 0;
+  const char* ulogpath = NULL;
+  int64_t ulim = DEFULIM;
+  uint16_t sid = 0;
+  uint16_t dbid = 0;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -534,6 +705,18 @@ static int32_t runcopy(int argc, char** argv) {
         oflags |= kc::BasicDB::OTRYLOCK;
       } else if (!std::strcmp(argv[i], "-onr")) {
         oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-ulog")) {
+        if (++i >= argc) usage();
+        ulogpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-dbid")) {
+        if (++i >= argc) usage();
+        dbid = kc::atoix(argv[i]);
       } else {
         usage();
       }
@@ -547,7 +730,7 @@ static int32_t runcopy(int argc, char** argv) {
     }
   }
   if (!path || !file) usage();
-  int32_t rv = proccopy(path, file, oflags);
+  int32_t rv = proccopy(path, file, oflags, ulogpath, ulim, sid, dbid);
   return rv;
 }
 
@@ -558,6 +741,10 @@ static int32_t rundump(int argc, char** argv) {
   const char* path = NULL;
   const char* file = NULL;
   int32_t oflags = 0;
+  const char* ulogpath = NULL;
+  int64_t ulim = DEFULIM;
+  uint16_t sid = 0;
+  uint16_t dbid = 0;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -568,6 +755,18 @@ static int32_t rundump(int argc, char** argv) {
         oflags |= kc::BasicDB::OTRYLOCK;
       } else if (!std::strcmp(argv[i], "-onr")) {
         oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-ulog")) {
+        if (++i >= argc) usage();
+        ulogpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-dbid")) {
+        if (++i >= argc) usage();
+        dbid = kc::atoix(argv[i]);
       } else {
         usage();
       }
@@ -581,7 +780,7 @@ static int32_t rundump(int argc, char** argv) {
     }
   }
   if (!path) usage();
-  int32_t rv = procdump(path, file, oflags);
+  int32_t rv = procdump(path, file, oflags, ulogpath, ulim, sid, dbid);
   return rv;
 }
 
@@ -592,6 +791,10 @@ static int32_t runload(int argc, char** argv) {
   const char* path = NULL;
   const char* file = NULL;
   int32_t oflags = 0;
+  const char* ulogpath = NULL;
+  int64_t ulim = DEFULIM;
+  uint16_t sid = 0;
+  uint16_t dbid = 0;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -604,6 +807,18 @@ static int32_t runload(int argc, char** argv) {
         oflags |= kc::BasicDB::OTRYLOCK;
       } else if (!std::strcmp(argv[i], "-onr")) {
         oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-ulog")) {
+        if (++i >= argc) usage();
+        ulogpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-dbid")) {
+        if (++i >= argc) usage();
+        dbid = kc::atoix(argv[i]);
       } else {
         usage();
       }
@@ -617,7 +832,7 @@ static int32_t runload(int argc, char** argv) {
     }
   }
   if (!path) usage();
-  int32_t rv = procload(path, file, oflags);
+  int32_t rv = procload(path, file, oflags, ulogpath, ulim, sid, dbid);
   return rv;
 }
 
@@ -627,6 +842,10 @@ static int32_t runvacuum(int argc, char** argv) {
   bool argbrk = false;
   const char* path = NULL;
   int32_t oflags = 0;
+  const char* ulogpath = NULL;
+  int64_t ulim = DEFULIM;
+  uint16_t sid = 0;
+  uint16_t dbid = 0;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -637,6 +856,18 @@ static int32_t runvacuum(int argc, char** argv) {
         oflags |= kc::BasicDB::OTRYLOCK;
       } else if (!std::strcmp(argv[i], "-onr")) {
         oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-ulog")) {
+        if (++i >= argc) usage();
+        ulogpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-dbid")) {
+        if (++i >= argc) usage();
+        dbid = kc::atoix(argv[i]);
       } else {
         usage();
       }
@@ -648,7 +879,65 @@ static int32_t runvacuum(int argc, char** argv) {
     }
   }
   if (!path) usage();
-  int32_t rv = procvacuum(path, oflags);
+  int32_t rv = procvacuum(path, oflags, ulogpath, ulim, sid, dbid);
+  return rv;
+}
+
+
+// parse arguments of recover command
+static int32_t runrecover(int argc, char** argv) {
+  bool argbrk = false;
+  const char* path = NULL;
+  const char* dir = NULL;
+  int32_t oflags = 0;
+  const char* ulogpath = NULL;
+  int64_t ulim = DEFULIM;
+  uint16_t sid = 0;
+  uint16_t dbid = 0;
+  uint64_t ts = 0;
+  for (int32_t i = 2; i < argc; i++) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-onl")) {
+        oflags |= kc::BasicDB::ONOLOCK;
+      } else if (!std::strcmp(argv[i], "-otl")) {
+        oflags |= kc::BasicDB::OTRYLOCK;
+      } else if (!std::strcmp(argv[i], "-onr")) {
+        oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-ulog")) {
+        if (++i >= argc) usage();
+        ulogpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-dbid")) {
+        if (++i >= argc) usage();
+        dbid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-ts")) {
+        if (++i >= argc) usage();
+        if (!std::strcmp(argv[i], "now") || !std::strcmp(argv[i], "-")) {
+          ts = kt::UpdateLogger::clock_pure();
+        } else {
+          ts = kc::atoix(argv[i]);
+        }
+      } else {
+        usage();
+      }
+    } else if (!path) {
+      argbrk = true;
+      path = argv[i];
+    } else if (!dir) {
+      dir = argv[i];
+    } else {
+      usage();
+    }
+  }
+  if (!path || !dir) usage();
+  int32_t rv = procrecover(path, dir, oflags, ulogpath, ulim, sid, dbid, ts);
   return rv;
 }
 
@@ -658,6 +947,10 @@ static int32_t runmerge(int argc, char** argv) {
   bool argbrk = false;
   const char* path = NULL;
   int32_t oflags = 0;
+  const char* ulogpath = NULL;
+  int64_t ulim = DEFULIM;
+  uint16_t sid = 0;
+  uint16_t dbid = 0;
   kt::TimedDB::MergeMode mode = kt::TimedDB::MSET;
   std::vector<std::string> srcpaths;
   for (int32_t i = 2; i < argc; i++) {
@@ -670,6 +963,18 @@ static int32_t runmerge(int argc, char** argv) {
         oflags |= kc::BasicDB::OTRYLOCK;
       } else if (!std::strcmp(argv[i], "-onr")) {
         oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-ulog")) {
+        if (++i >= argc) usage();
+        ulogpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-dbid")) {
+        if (++i >= argc) usage();
+        dbid = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-add")) {
         mode = kt::TimedDB::MADD;
       } else if (!std::strcmp(argv[i], "-rep")) {
@@ -687,7 +992,7 @@ static int32_t runmerge(int argc, char** argv) {
     }
   }
   if (!path && srcpaths.size() < 1) usage();
-  int32_t rv = procmerge(path, oflags, mode, srcpaths);
+  int32_t rv = procmerge(path, oflags, ulogpath, ulim, sid, dbid, mode, srcpaths);
   return rv;
 }
 
@@ -697,6 +1002,10 @@ static int32_t runcheck(int argc, char** argv) {
   bool argbrk = false;
   const char* path = NULL;
   int32_t oflags = 0;
+  const char* ulogpath = NULL;
+  int64_t ulim = DEFULIM;
+  uint16_t sid = 0;
+  uint16_t dbid = 0;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -707,6 +1016,18 @@ static int32_t runcheck(int argc, char** argv) {
         oflags |= kc::BasicDB::OTRYLOCK;
       } else if (!std::strcmp(argv[i], "-onr")) {
         oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-ulog")) {
+        if (++i >= argc) usage();
+        ulogpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-dbid")) {
+        if (++i >= argc) usage();
+        dbid = kc::atoix(argv[i]);
       } else {
         usage();
       }
@@ -718,15 +1039,30 @@ static int32_t runcheck(int argc, char** argv) {
     }
   }
   if (!path) usage();
-  int32_t rv = proccheck(path, oflags);
+  int32_t rv = proccheck(path, oflags, ulogpath, ulim, sid, dbid);
   return rv;
 }
 
 
 // perform create command
-static int32_t proccreate(const char* path, int32_t oflags) {
+static int32_t proccreate(const char* path, int32_t oflags,
+                          const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid) {
   kt::TimedDB db;
   db.tune_logger(stddblogger(g_progname, &std::cerr));
+  kt::UpdateLogger ulog;
+  DBUpdateLogger ulogdb;
+  if (ulogpath) {
+    if (ulog.open(ulogpath, ulim)) {
+      ulogdb.initialize(&ulog, sid, dbid);
+      if (!db.tune_update_trigger(&ulogdb)) {
+        dberrprint(&db, "DB::tune_update_trigger failed");
+        return 1;
+      }
+    } else {
+      dberrprint(&db, "UpdateLogger::open failed");
+      return 1;
+    }
+  }
   if (!db.open(path, kc::BasicDB::OWRITER | kc::BasicDB::OCREATE | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -736,14 +1072,36 @@ static int32_t proccreate(const char* path, int32_t oflags) {
     dberrprint(&db, "DB::close failed");
     err = true;
   }
+  if (ulogpath) {
+    if (!ulog.close()) {
+      dberrprint(&db, "UpdateLogger::close failed");
+      err = true;
+    }
+  }
   return err ? 1 : 0;
 }
 
 
 // perform inform command
-static int32_t procinform(const char* path, int32_t oflags, bool st) {
+static int32_t procinform(const char* path, int32_t oflags,
+                          const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid,
+                          bool st) {
   kt::TimedDB db;
   db.tune_logger(stddblogger(g_progname, &std::cerr));
+  kt::UpdateLogger ulog;
+  DBUpdateLogger ulogdb;
+  if (ulogpath) {
+    if (ulog.open(ulogpath, ulim)) {
+      ulogdb.initialize(&ulog, sid, dbid);
+      if (!db.tune_update_trigger(&ulogdb)) {
+        dberrprint(&db, "DB::tune_update_trigger failed");
+        return 1;
+      }
+    } else {
+      dberrprint(&db, "UpdateLogger::open failed");
+      return 1;
+    }
+  }
   if (!db.open(path, kc::BasicDB::OREADER | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -770,15 +1128,37 @@ static int32_t procinform(const char* path, int32_t oflags, bool st) {
     dberrprint(&db, "DB::close failed");
     err = true;
   }
+  if (ulogpath) {
+    if (!ulog.close()) {
+      dberrprint(&db, "UpdateLogger::close failed");
+      err = true;
+    }
+  }
   return err ? 1 : 0;
 }
 
 
 // perform set command
 static int32_t procset(const char* path, const char* kbuf, size_t ksiz,
-                       const char* vbuf, size_t vsiz, int32_t oflags, int32_t mode, int64_t xt) {
+                       const char* vbuf, size_t vsiz, int32_t oflags,
+                       const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid,
+                       int32_t mode, int64_t xt) {
   kt::TimedDB db;
   db.tune_logger(stddblogger(g_progname, &std::cerr));
+  kt::UpdateLogger ulog;
+  DBUpdateLogger ulogdb;
+  if (ulogpath) {
+    if (ulog.open(ulogpath, ulim)) {
+      ulogdb.initialize(&ulog, sid, dbid);
+      if (!db.tune_update_trigger(&ulogdb)) {
+        dberrprint(&db, "DB::tune_update_trigger failed");
+        return 1;
+      }
+    } else {
+      dberrprint(&db, "UpdateLogger::open failed");
+      return 1;
+    }
+  }
   if (!db.open(path, kc::BasicDB::OWRITER | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -838,14 +1218,35 @@ static int32_t procset(const char* path, const char* kbuf, size_t ksiz,
     dberrprint(&db, "DB::close failed");
     err = true;
   }
+  if (ulogpath) {
+    if (!ulog.close()) {
+      dberrprint(&db, "UpdateLogger::close failed");
+      err = true;
+    }
+  }
   return err ? 1 : 0;
 }
 
 
 // perform remove command
-static int32_t procremove(const char* path, const char* kbuf, size_t ksiz, int32_t oflags) {
+static int32_t procremove(const char* path, const char* kbuf, size_t ksiz, int32_t oflags,
+                          const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid) {
   kt::TimedDB db;
   db.tune_logger(stddblogger(g_progname, &std::cerr));
+  kt::UpdateLogger ulog;
+  DBUpdateLogger ulogdb;
+  if (ulogpath) {
+    if (ulog.open(ulogpath, ulim)) {
+      ulogdb.initialize(&ulog, sid, dbid);
+      if (!db.tune_update_trigger(&ulogdb)) {
+        dberrprint(&db, "DB::tune_update_trigger failed");
+        return 1;
+      }
+    } else {
+      dberrprint(&db, "UpdateLogger::open failed");
+      return 1;
+    }
+  }
   if (!db.open(path, kc::BasicDB::OWRITER | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -859,15 +1260,36 @@ static int32_t procremove(const char* path, const char* kbuf, size_t ksiz, int32
     dberrprint(&db, "DB::close failed");
     err = true;
   }
+  if (ulogpath) {
+    if (!ulog.close()) {
+      dberrprint(&db, "UpdateLogger::close failed");
+      err = true;
+    }
+  }
   return err ? 1 : 0;
 }
 
 
 // perform get command
-static int32_t procget(const char* path, const char* kbuf, size_t ksiz,
-                       int32_t oflags, bool px, bool pt, bool pz) {
+static int32_t procget(const char* path, const char* kbuf, size_t ksiz, int32_t oflags,
+                       const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid,
+                       bool px, bool pt, bool pz) {
   kt::TimedDB db;
   db.tune_logger(stddblogger(g_progname, &std::cerr));
+  kt::UpdateLogger ulog;
+  DBUpdateLogger ulogdb;
+  if (ulogpath) {
+    if (ulog.open(ulogpath, ulim)) {
+      ulogdb.initialize(&ulog, sid, dbid);
+      if (!db.tune_update_trigger(&ulogdb)) {
+        dberrprint(&db, "DB::tune_update_trigger failed");
+        return 1;
+      }
+    } else {
+      dberrprint(&db, "UpdateLogger::open failed");
+      return 1;
+    }
+  }
   if (!db.open(path, kc::BasicDB::OREADER | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -889,15 +1311,36 @@ static int32_t procget(const char* path, const char* kbuf, size_t ksiz,
     dberrprint(&db, "DB::close failed");
     err = true;
   }
+  if (ulogpath) {
+    if (!ulog.close()) {
+      dberrprint(&db, "UpdateLogger::close failed");
+      err = true;
+    }
+  }
   return err ? 1 : 0;
 }
 
 
 // perform list command
 static int32_t proclist(const char* path, const char*kbuf, size_t ksiz, int32_t oflags,
+                        const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid,
                         bool des, int64_t max, bool pv, bool px, bool pt) {
   kt::TimedDB db;
   db.tune_logger(stddblogger(g_progname, &std::cerr));
+  kt::UpdateLogger ulog;
+  DBUpdateLogger ulogdb;
+  if (ulogpath) {
+    if (ulog.open(ulogpath, ulim)) {
+      ulogdb.initialize(&ulog, sid, dbid);
+      if (!db.tune_update_trigger(&ulogdb)) {
+        dberrprint(&db, "DB::tune_update_trigger failed");
+        return 1;
+      }
+    } else {
+      dberrprint(&db, "UpdateLogger::open failed");
+      return 1;
+    }
+  }
   if (!db.open(path, kc::BasicDB::OREADER | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -981,14 +1424,35 @@ static int32_t proclist(const char* path, const char*kbuf, size_t ksiz, int32_t 
     dberrprint(&db, "DB::close failed");
     err = true;
   }
+  if (ulogpath) {
+    if (!ulog.close()) {
+      dberrprint(&db, "UpdateLogger::close failed");
+      err = true;
+    }
+  }
   return err ? 1 : 0;
 }
 
 
 // perform clear command
-static int32_t procclear(const char* path, int32_t oflags) {
+static int32_t procclear(const char* path, int32_t oflags,
+                         const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid) {
   kt::TimedDB db;
   db.tune_logger(stddblogger(g_progname, &std::cerr));
+  kt::UpdateLogger ulog;
+  DBUpdateLogger ulogdb;
+  if (ulogpath) {
+    if (ulog.open(ulogpath, ulim)) {
+      ulogdb.initialize(&ulog, sid, dbid);
+      if (!db.tune_update_trigger(&ulogdb)) {
+        dberrprint(&db, "DB::tune_update_trigger failed");
+        return 1;
+      }
+    } else {
+      dberrprint(&db, "UpdateLogger::open failed");
+      return 1;
+    }
+  }
   if (!db.open(path, kc::BasicDB::OWRITER | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -1002,12 +1466,19 @@ static int32_t procclear(const char* path, int32_t oflags) {
     dberrprint(&db, "DB::close failed");
     err = true;
   }
+  if (ulogpath) {
+    if (!ulog.close()) {
+      dberrprint(&db, "UpdateLogger::close failed");
+      err = true;
+    }
+  }
   return err ? 1 : 0;
 }
 
 
 // perform import command
 static int32_t procimport(const char* path, const char* file, int32_t oflags,
+                          const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid,
                           bool sx, int64_t xt) {
   std::istream *is = &std::cin;
   std::ifstream ifs;
@@ -1021,6 +1492,20 @@ static int32_t procimport(const char* path, const char* file, int32_t oflags,
   }
   kt::TimedDB db;
   db.tune_logger(stddblogger(g_progname, &std::cerr));
+  kt::UpdateLogger ulog;
+  DBUpdateLogger ulogdb;
+  if (ulogpath) {
+    if (ulog.open(ulogpath, ulim)) {
+      ulogdb.initialize(&ulog, sid, dbid);
+      if (!db.tune_update_trigger(&ulogdb)) {
+        dberrprint(&db, "DB::tune_update_trigger failed");
+        return 1;
+      }
+    } else {
+      dberrprint(&db, "UpdateLogger::open failed");
+      return 1;
+    }
+  }
   if (!db.open(path, kc::BasicDB::OWRITER | kc::BasicDB::OCREATE | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -1068,14 +1553,35 @@ static int32_t procimport(const char* path, const char* file, int32_t oflags,
     dberrprint(&db, "DB::close failed");
     err = true;
   }
+  if (ulogpath) {
+    if (!ulog.close()) {
+      dberrprint(&db, "UpdateLogger::close failed");
+      err = true;
+    }
+  }
   return err ? 1 : 0;
 }
 
 
 // perform copy command
-static int32_t proccopy(const char* path, const char* file, int32_t oflags) {
+static int32_t proccopy(const char* path, const char* file, int32_t oflags,
+                        const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid) {
   kt::TimedDB db;
   db.tune_logger(stddblogger(g_progname, &std::cerr));
+  kt::UpdateLogger ulog;
+  DBUpdateLogger ulogdb;
+  if (ulogpath) {
+    if (ulog.open(ulogpath, ulim)) {
+      ulogdb.initialize(&ulog, sid, dbid);
+      if (!db.tune_update_trigger(&ulogdb)) {
+        dberrprint(&db, "DB::tune_update_trigger failed");
+        return 1;
+      }
+    } else {
+      dberrprint(&db, "UpdateLogger::open failed");
+      return 1;
+    }
+  }
   if (!db.open(path, kc::BasicDB::OREADER | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -1091,15 +1597,36 @@ static int32_t proccopy(const char* path, const char* file, int32_t oflags) {
     dberrprint(&db, "DB::close failed");
     err = true;
   }
+  if (ulogpath) {
+    if (!ulog.close()) {
+      dberrprint(&db, "UpdateLogger::close failed");
+      err = true;
+    }
+  }
   if (!err) iprintf("%lld blocks were merged successfully\n", (long long)checker.count());
   return err ? 1 : 0;
 }
 
 
 // perform dump command
-static int32_t procdump(const char* path, const char* file, int32_t oflags) {
+static int32_t procdump(const char* path, const char* file, int32_t oflags,
+                        const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid) {
   kt::TimedDB db;
   db.tune_logger(stddblogger(g_progname, &std::cerr));
+  kt::UpdateLogger ulog;
+  DBUpdateLogger ulogdb;
+  if (ulogpath) {
+    if (ulog.open(ulogpath, ulim)) {
+      ulogdb.initialize(&ulog, sid, dbid);
+      if (!db.tune_update_trigger(&ulogdb)) {
+        dberrprint(&db, "DB::tune_update_trigger failed");
+        return 1;
+      }
+    } else {
+      dberrprint(&db, "UpdateLogger::open failed");
+      return 1;
+    }
+  }
   if (!db.open(path, kc::BasicDB::OREADER | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -1123,14 +1650,35 @@ static int32_t procdump(const char* path, const char* file, int32_t oflags) {
     dberrprint(&db, "DB::close failed");
     err = true;
   }
+  if (ulogpath) {
+    if (!ulog.close()) {
+      dberrprint(&db, "UpdateLogger::close failed");
+      err = true;
+    }
+  }
   return err ? 1 : 0;
 }
 
 
 // perform load command
-static int32_t procload(const char* path, const char* file, int32_t oflags) {
+static int32_t procload(const char* path, const char* file, int32_t oflags,
+                        const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid) {
   kt::TimedDB db;
   db.tune_logger(stddblogger(g_progname, &std::cerr));
+  kt::UpdateLogger ulog;
+  DBUpdateLogger ulogdb;
+  if (ulogpath) {
+    if (ulog.open(ulogpath, ulim)) {
+      ulogdb.initialize(&ulog, sid, dbid);
+      if (!db.tune_update_trigger(&ulogdb)) {
+        dberrprint(&db, "DB::tune_update_trigger failed");
+        return 1;
+      }
+    } else {
+      dberrprint(&db, "UpdateLogger::open failed");
+      return 1;
+    }
+  }
   if (!db.open(path, kc::BasicDB::OWRITER | kc::BasicDB::OCREATE | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -1157,14 +1705,35 @@ static int32_t procload(const char* path, const char* file, int32_t oflags) {
     dberrprint(&db, "DB::close failed");
     err = true;
   }
+  if (ulogpath) {
+    if (!ulog.close()) {
+      dberrprint(&db, "UpdateLogger::close failed");
+      err = true;
+    }
+  }
   return err ? 1 : 0;
 }
 
 
 // perform vacuum command
-static int32_t procvacuum(const char* path, int32_t oflags) {
+static int32_t procvacuum(const char* path, int32_t oflags,
+                          const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid) {
   kt::TimedDB db;
   db.tune_logger(stddblogger(g_progname, &std::cerr));
+  kt::UpdateLogger ulog;
+  DBUpdateLogger ulogdb;
+  if (ulogpath) {
+    if (ulog.open(ulogpath, ulim)) {
+      ulogdb.initialize(&ulog, sid, dbid);
+      if (!db.tune_update_trigger(&ulogdb)) {
+        dberrprint(&db, "DB::tune_update_trigger failed");
+        return 1;
+      }
+    } else {
+      dberrprint(&db, "UpdateLogger::open failed");
+      return 1;
+    }
+  }
   if (!db.open(path, kc::BasicDB::OWRITER | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -1178,15 +1747,123 @@ static int32_t procvacuum(const char* path, int32_t oflags) {
     dberrprint(&db, "DB::close failed");
     err = true;
   }
+  if (ulogpath) {
+    if (!ulog.close()) {
+      dberrprint(&db, "UpdateLogger::close failed");
+      err = true;
+    }
+  }
+  return err ? 1 : 0;
+}
+
+
+// perform recover command
+static int32_t procrecover(const char* path, const char* dir, int32_t oflags,
+                           const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid,
+                           uint64_t ts) {
+  kt::TimedDB db;
+  db.tune_logger(stddblogger(g_progname, &std::cerr));
+  kt::UpdateLogger ulog;
+  DBUpdateLogger ulogdb;
+  if (ulogpath) {
+    if (ulog.open(ulogpath, ulim)) {
+      ulogdb.initialize(&ulog, sid, dbid);
+      if (!db.tune_update_trigger(&ulogdb)) {
+        dberrprint(&db, "DB::tune_update_trigger failed");
+        return 1;
+      }
+    } else {
+      dberrprint(&db, "UpdateLogger::open failed");
+      return 1;
+    }
+  }
+  if (!db.open(path, kc::BasicDB::OWRITER | oflags)) {
+    dberrprint(&db, "DB::open failed");
+    return 1;
+  }
+  kt::UpdateLogger ulogsrc;
+  if (!ulogsrc.open(dir, INT64_MIN)) {
+    dberrprint(&db, "UpdateLogger::open failed");
+    return 1;
+  }
+  bool err = false;
+  kt::UpdateLogger::Reader ulrd;
+  if (!ulrd.open(&ulogsrc, ts)) {
+    dberrprint(&db, "UpdateLogger::Reader::open failed");
+    err = true;
+  }
+  int64_t cnt = 0;
+  while (true) {
+    size_t msiz;
+    uint64_t mts;
+    char* mbuf = ulrd.read(&msiz, &mts);
+    if (mbuf) {
+      size_t rsiz;
+      uint16_t rsid, rdbid;
+      const char* rbuf = DBUpdateLogger::parse(mbuf, msiz, &rsiz, &rsid, &rdbid);
+      if (rbuf) {
+        ulogdb.set_rsid(rsid);
+        if (sid != rsid && dbid == rdbid && !db.recover(rbuf, rsiz)) {
+          dberrprint(&db, "DB::recover failed");
+          err = true;
+        }
+        ulogdb.clear_rsid();
+      } else {
+        dberrprint(&db, "DBUpdateLogger::parse failed");
+        err = true;
+      }
+      delete[] mbuf;
+    } else {
+      break;
+    }
+    cnt++;
+    iputchar('.');
+    if (cnt % 50 == 0) iprintf(" (%d)\n", cnt);
+  }
+  if (cnt % 50 > 0) iprintf(" (%d)\n", cnt);
+  if (!ulrd.close()) {
+    dberrprint(&db, "DBUpdateLogger::Reader::close failed");
+    err = true;
+  }
+  if (!ulogsrc.close()) {
+    dberrprint(&db, "DBUpdateLogger::close failed");
+    err = true;
+  }
+  if (!db.close()) {
+    dberrprint(&db, "DB::close failed");
+    err = true;
+  }
+  if (ulogpath) {
+    if (!ulog.close()) {
+      dberrprint(&db, "UpdateLogger::close failed");
+      err = true;
+    }
+  }
   return err ? 1 : 0;
 }
 
 
 // perform merge command
-static int32_t procmerge(const char* path, int32_t oflags, kt::TimedDB::MergeMode mode,
+static int32_t procmerge(const char* path, int32_t oflags,
+                         const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid,
+                         kt::TimedDB::MergeMode mode,
                          const std::vector<std::string>& srcpaths) {
   kt::TimedDB db;
   db.tune_logger(stddblogger(g_progname, &std::cerr));
+  kt::UpdateLogger ulog;
+  DBUpdateLogger ulogdb;
+  if (ulogpath) {
+    if (ulog.open(ulogpath, ulim)) {
+      ulogdb.initialize(&ulog, sid, dbid);
+      if (!db.tune_update_trigger(&ulogdb)) {
+        dberrprint(&db, "DB::tune_update_trigger failed");
+        return 1;
+      }
+    } else {
+      dberrprint(&db, "UpdateLogger::open failed");
+      return 1;
+    }
+  }
   if (!db.open(path, kc::BasicDB::OWRITER | kc::BasicDB::OCREATE | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -1227,15 +1904,36 @@ static int32_t procmerge(const char* path, int32_t oflags, kt::TimedDB::MergeMod
     dberrprint(&db, "DB::close failed");
     err = true;
   }
+  if (ulogpath) {
+    if (!ulog.close()) {
+      dberrprint(&db, "UpdateLogger::close failed");
+      err = true;
+    }
+  }
   if (!err) iprintf("%lld records were merged successfully\n", (long long)checker.count());
   return err ? 1 : 0;
 }
 
 
 // perform check command
-static int32_t proccheck(const char* path, int32_t oflags) {
+static int32_t proccheck(const char* path, int32_t oflags,
+                         const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid) {
   kt::TimedDB db;
   db.tune_logger(stddblogger(g_progname, &std::cerr));
+  kt::UpdateLogger ulog;
+  DBUpdateLogger ulogdb;
+  if (ulogpath) {
+    if (ulog.open(ulogpath, ulim)) {
+      ulogdb.initialize(&ulog, sid, dbid);
+      if (!db.tune_update_trigger(&ulogdb)) {
+        dberrprint(&db, "DB::tune_update_trigger failed");
+        return 1;
+      }
+    } else {
+      dberrprint(&db, "UpdateLogger::open failed");
+      return 1;
+    }
+  }
   if (!db.open(path, kc::BasicDB::OREADER | oflags)) {
     dberrprint(&db, "DB::open failed");
     return 1;
@@ -1297,6 +1995,12 @@ static int32_t proccheck(const char* path, int32_t oflags) {
   if (!db.close()) {
     dberrprint(&db, "DB::close failed");
     err = true;
+  }
+  if (ulogpath) {
+    if (!ulog.close()) {
+      dberrprint(&db, "UpdateLogger::close failed");
+      err = true;
+    }
   }
   if (!err) iprintf("%lld records were checked successfully\n", (long long)cnt);
   return err ? 1 : 0;

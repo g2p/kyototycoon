@@ -17,6 +17,8 @@
 #define _KTTIMEDDB_H
 
 #include <ktcommon.h>
+#include <ktutil.h>
+#include <ktulog.h>
 
 namespace kyototycoon {                  // common namespace
 
@@ -30,6 +32,7 @@ const int64_t JDBXTSCUNIT = 256;         ///< score unit of expiratoin
 const int64_t JDBXTREADFREQ = 8;         ///< inverse frequency of reading expiration
 const int64_t JDBXTITERFREQ = 4;         ///< inverse frequency of iterating expiration
 const int64_t JDBXTUNIT = 8;             ///< unit step number of expiration
+const size_t JDBLOGBUFSIZ = 1024;        ///< size of the logging buffer
 }
 
 
@@ -47,8 +50,10 @@ class TimedDB {
 public:
   class Cursor;
   class Visitor;
+  class UpdateTrigger;
 private:
   class TimedVisitor;
+  class TimedMetaTrigger;
   struct MergeLine;
 public:
   /** The width of expiration time. */
@@ -580,6 +585,33 @@ public:
     }
   };
   /**
+   * Interface to trigger update operations.
+   */
+  class UpdateTrigger {
+  public:
+    /**
+     * Destructor.
+     */
+    virtual ~UpdateTrigger() {
+      _assert_(true);
+    }
+    /**
+     * Trigger an update operation.
+     * @param mbuf the pointer to the message region.
+     * @param msiz the size of the message region.
+     */
+    virtual void trigger(const char* mbuf, size_t msiz) = 0;
+    /**
+     * Begin transaction.
+     */
+    virtual void begin_transaction() = 0;
+    /**
+     * End transaction.
+     * @param commit true to commit the transaction, or false to abort the transaction.
+     */
+    virtual void end_transaction(bool commit) = 0;
+  };
+  /**
    * Merge modes.
    */
   enum MergeMode {
@@ -592,8 +624,10 @@ public:
    * Default constructor.
    */
   explicit TimedDB() :
-    xlock_(), db_(), omode_(0), opts_(0), capcnt_(0), capsiz_(0), xcur_(NULL), xsc_(0) {
+    xlock_(), db_(), mtrigger_(this), utrigger_(NULL), omode_(0),
+    opts_(0), capcnt_(0), capsiz_(0), xcur_(NULL), xsc_(0) {
     _assert_(true);
+    db_.tune_meta_trigger(&mtrigger_);
   }
   /**
    * Constructor.
@@ -601,8 +635,10 @@ public:
    * object is deleted automatically.
    */
   explicit TimedDB(kc::BasicDB* db) :
-    xlock_(), db_(db), omode_(0), opts_(0), xcur_(NULL), xsc_(0) {
+    xlock_(), db_(db), mtrigger_(this), utrigger_(NULL), omode_(0),
+    opts_(0), capcnt_(0), capsiz_(0), xcur_(NULL), xsc_(0) {
     _assert_(true);
+    db_.tune_meta_trigger(&mtrigger_);
   }
   /**
    * Destructor.
@@ -1564,6 +1600,78 @@ public:
     return !err;
   }
   /**
+   * Recover the database with an update log message.
+   * @param mbuf the pointer to the message region.
+   * @param msiz the size of the message region.
+   * @return true on success, or false on failure.
+   */
+  bool recover(const char* mbuf, size_t msiz) {
+    _assert_(mbuf && msiz <= kc::MEMMAXSIZ);
+    bool err = false;
+    if (msiz < 1) {
+      set_error(kc::BasicDB::Error::INVALID, "invalid message format");
+      return false;
+    }
+    const char* rp = mbuf;
+    uint8_t op = *(uint8_t*)(rp++);
+    msiz--;
+    switch (op) {
+      case USET: {
+        if (msiz < 2) {
+          set_error(kc::BasicDB::Error::INVALID, "invalid message format");
+          return false;
+        }
+        uint64_t ksiz;
+        size_t step = kc::readvarnum(rp, msiz, &ksiz);
+        rp += step;
+        msiz -= step;
+        uint64_t vsiz;
+        step = kc::readvarnum(rp, msiz, &vsiz);
+        rp += step;
+        msiz -= step;
+        const char* kbuf = rp;
+        const char* vbuf = rp + ksiz;
+        if (msiz != ksiz + vsiz) {
+          set_error(kc::BasicDB::Error::INVALID, "invalid message format");
+          return false;
+        }
+        if (!db_.set(kbuf, ksiz, vbuf, vsiz)) err = true;
+        if (utrigger_) log_update(utrigger_, kbuf, ksiz, vbuf, vsiz);
+        break;
+      }
+      case UREMOVE: {
+        if (msiz < 1) {
+          set_error(kc::BasicDB::Error::INVALID, "invalid message format");
+          return false;
+        }
+        uint64_t ksiz;
+        size_t step = kc::readvarnum(rp, msiz, &ksiz);
+        rp += step;
+        msiz -= step;
+        const char* kbuf = rp;
+        if (msiz != ksiz) {
+          set_error(kc::BasicDB::Error::INVALID, "invalid message format");
+          return false;
+        }
+        if (!db_.remove(kbuf, ksiz) && db_.error() != kc::BasicDB::Error::NOREC) err = true;
+        if (utrigger_) log_update(utrigger_, kbuf, ksiz, TimedVisitor::REMOVE, 0);
+        break;
+      }
+      case UCLEAR: {
+        if (msiz != 0) {
+          set_error(kc::BasicDB::Error::INVALID, "invalid message format");
+          return false;
+        }
+        if (!db_.clear()) err = true;
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+    return !err;
+  }
+  /**
    * Get keys matching a prefix string.
    * @param prefix the prefix string.
    * @param strvec a string vector to contain the result.
@@ -1695,12 +1803,38 @@ public:
     _assert_(logger);
     return db_.tune_logger(logger, kinds);
   }
+  /**
+   * Set the internal update trigger.
+   * @param trigger the trigger object.
+   * @return true on success, or false on failure.
+   */
+  bool tune_update_trigger(UpdateTrigger* trigger) {
+    _assert_(trigger);
+    utrigger_ = trigger;
+    return true;
+  }
 private:
   /**
    * Tuning Options.
    */
   enum Option {
     TPERSIST = 1 << 1                    ///< disable expiration
+  };
+  /**
+   * Update Operations.
+   */
+  enum UpdateOperation {
+    USET = 0xa0,                         ///< setting the value
+    UREMOVE,                             ///< removing the record
+    UOPEN,                               ///< opening
+    UCLOSE,                              ///< closing
+    UCLEAR,                              ///< clearing
+    UITERATE,                            ///< iteration
+    USYNCHRONIZE,                        ///< synchronization
+    UBEGINTRAN,                          ///< beginning transaction
+    UCOMMITTRAN,                         ///< committing transaction
+    UABORTTRAN,                          ///< aborting transaction
+    UUNKNOWN                             ///< unknown operation
   };
   /**
    * Visitor to handle records with time stamps.
@@ -1724,8 +1858,12 @@ private:
                            const char* vbuf, size_t vsiz, size_t* sp) {
       _assert_(kbuf && vbuf && sp);
       if (db_->opts_ & TimedDB::TPERSIST) {
+        size_t rsiz;
         int64_t xt = INT64_MAX;
-        return visitor_->visit_full(kbuf, ksiz, vbuf, vsiz, sp, &xt);
+        const char* rbuf = visitor_->visit_full(kbuf, ksiz, vbuf, vsiz, &rsiz, &xt);
+        *sp = rsiz;
+        if (db_->utrigger_) log_update(db_->utrigger_, kbuf, ksiz, rbuf, rsiz);
+        return rbuf;
       }
       if (vsiz < (size_t)XTWIDTH) return NOP;
       int64_t xt = kc::readfixnum(vbuf, XTWIDTH);
@@ -1740,7 +1878,10 @@ private:
         if (rbuf == TimedDB::Visitor::NOP) return NOP;
         if (rbuf == TimedDB::Visitor::REMOVE) return REMOVE;
         xt = modify_exptime(xt, ct_);
-        jbuf_ = make_record_value(rbuf, rsiz, xt, sp);
+        size_t jsiz;
+        jbuf_ = make_record_value(rbuf, rsiz, xt, &jsiz);
+        *sp = jsiz;
+        if (db_->utrigger_) log_update(db_->utrigger_, kbuf, ksiz, jbuf_, jsiz);
         return jbuf_;
       }
       vbuf += XTWIDTH;
@@ -1748,15 +1889,25 @@ private:
       size_t rsiz;
       const char* rbuf = visitor_->visit_full(kbuf, ksiz, vbuf, vsiz, &rsiz, &xt);
       if (rbuf == TimedDB::Visitor::NOP) return NOP;
-      if (rbuf == TimedDB::Visitor::REMOVE) return REMOVE;
+      if (rbuf == TimedDB::Visitor::REMOVE) {
+        if (db_->utrigger_) log_update(db_->utrigger_, kbuf, ksiz, REMOVE, 0);
+        return REMOVE;
+      }
       xt = modify_exptime(xt, ct_);
-      jbuf_ = make_record_value(rbuf, rsiz, xt, sp);
+      size_t jsiz;
+      jbuf_ = make_record_value(rbuf, rsiz, xt, &jsiz);
+      *sp = jsiz;
+      if (db_->utrigger_) log_update(db_->utrigger_, kbuf, ksiz, jbuf_, jsiz);
       return jbuf_;
     }
     const char* visit_empty(const char* kbuf, size_t ksiz, size_t* sp) {
       if (db_->opts_ & TimedDB::TPERSIST) {
+        size_t rsiz;
         int64_t xt = INT64_MAX;
-        return visitor_->visit_empty(kbuf, ksiz, sp, &xt);
+        const char* rbuf = visitor_->visit_empty(kbuf, ksiz, &rsiz, &xt);
+        *sp = rsiz;
+        if (db_->utrigger_) log_update(db_->utrigger_, kbuf, ksiz, rbuf, rsiz);
+        return rbuf;
       }
       size_t rsiz;
       int64_t xt = -1;
@@ -1764,7 +1915,10 @@ private:
       if (rbuf == TimedDB::Visitor::NOP) return NOP;
       if (rbuf == TimedDB::Visitor::REMOVE) return REMOVE;
       xt = modify_exptime(xt, ct_);
-      jbuf_ = make_record_value(rbuf, rsiz, xt, sp);
+      size_t jsiz;
+      jbuf_ = make_record_value(rbuf, rsiz, xt, &jsiz);
+      *sp = jsiz;
+      if (db_->utrigger_) log_update(db_->utrigger_, kbuf, ksiz, jbuf_, jsiz);
       return jbuf_;
     }
     TimedDB* db_;
@@ -1773,6 +1927,44 @@ private:
     bool isiter_;
     char* jbuf_;
     bool again_;
+  };
+  /**
+   * Trigger of meta database operations.
+   */
+  class TimedMetaTrigger : public kc::BasicDB::MetaTrigger {
+  public:
+    TimedMetaTrigger(TimedDB* db) : db_(db) {
+      _assert_(db);
+    }
+  private:
+    void trigger(Kind kind, const char* message) {
+      _assert_(message);
+      if (!db_->utrigger_) return;
+      switch (kind) {
+        case CLEAR: {
+          char mbuf[1];
+          *mbuf = UCLEAR;
+          db_->utrigger_->trigger(mbuf, 1);
+          break;
+        }
+        case BEGINTRAN: {
+          db_->utrigger_->begin_transaction();
+          break;
+        }
+        case COMMITTRAN: {
+          db_->utrigger_->end_transaction(true);
+          break;
+        }
+        case ABORTTRAN: {
+          db_->utrigger_->end_transaction(false);
+          break;
+        }
+        default: {
+          break;
+        }
+      }
+    }
+    TimedDB* db_;
   };
   /**
    * Front line of a merging list.
@@ -1923,10 +2115,56 @@ private:
     if (xt > XTMAX) xt = XTMAX;
     return xt;
   }
+  /**
+   * Log a record update operation.
+   * @param utrigger the update trigger.
+   * @param kbuf the pointer to the key region.
+   * @param ksiz the size of the key region.
+   * @param vbuf the pointer to the value region.
+   * @param vsiz the size of the value region.
+   */
+  static void log_update(UpdateTrigger* utrigger, const char* kbuf, size_t ksiz,
+                         const char* vbuf, size_t vsiz) {
+    _assert_(utrigger && kbuf);
+    if (vbuf == TimedVisitor::REMOVE) {
+      size_t msiz = 1 + sizeof(uint64_t) + ksiz;
+      char stack[JDBLOGBUFSIZ];
+      char* mbuf = msiz > sizeof(stack) ? new char[msiz] : stack;
+      char* wp = mbuf;
+      *(wp++) = UREMOVE;
+      wp += kc::writevarnum(wp, ksiz);
+      std::memcpy(wp, kbuf, ksiz);
+      wp += ksiz;
+      utrigger->trigger(mbuf, wp - mbuf);
+      if (mbuf != stack) delete[] mbuf;
+    } else if (vbuf != TimedVisitor::NOP) {
+      size_t msiz = 1 + sizeof(uint64_t) * 2 + ksiz + vsiz;
+      char stack[JDBLOGBUFSIZ];
+      char* mbuf = msiz > sizeof(stack) ? new char[msiz] : stack;
+      char* wp = mbuf;
+      *(wp++) = USET;
+      wp += kc::writevarnum(wp, ksiz);
+      wp += kc::writevarnum(wp, vsiz);
+      std::memcpy(wp, kbuf, ksiz);
+      wp += ksiz;
+      std::memcpy(wp, vbuf, vsiz);
+      wp += vsiz;
+      utrigger->trigger(mbuf, wp - mbuf);
+      if (mbuf != stack) delete[] mbuf;
+    }
+  }
+  /** Dummy constructor to forbid the use. */
+  TimedDB(const TimedDB&);
+  /** Dummy Operator to forbid the use. */
+  TimedDB& operator =(const TimedDB&);
   /** The expiration cursor lock. */
   kc::SpinLock xlock_;
   /** The internal database. */
   kc::PolyDB db_;
+  /** The internal meta trigger. */
+  TimedMetaTrigger mtrigger_;
+  /** The internal update trigger. */
+  UpdateTrigger* utrigger_;
   /** The open mode. */
   uint32_t omode_;
   /** The options. */

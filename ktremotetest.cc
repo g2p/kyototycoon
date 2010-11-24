@@ -225,7 +225,7 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
       err = true;
     }
   }
-  if (!dbs[0].clear()) {
+  if (mode != 'g' && mode != 'r' && !dbs[0].clear()) {
     dberrprint(dbs, __LINE__, "DB::clear");
     err = true;
   }
@@ -885,21 +885,10 @@ static int32_t procwicked(int64_t rnum, int32_t thnum, int32_t itnum,
               dberrprint(db_, __LINE__, "DB::clear");
               err_ = true;
             } else {
-
-              /*
-              class SyncProcessor : public kt::RemoteDB::FileProcessor {
-              private:
-                bool process(const std::string& path, int64_t count, int64_t size) {
-                  yield();
-                  return true;
-                }
-              } syncprocessor;
-              if (!db_->synchronize(false, &syncprocessor)) {
+              if (!db_->synchronize(false)) {
                 dberrprint(db_, __LINE__, "DB::synchronize");
                 err_ = true;
               }
-              */
-
             }
           }
           if (id_ < 1 && rnum_ > 250 && i % (rnum_ / 250) == 0) {

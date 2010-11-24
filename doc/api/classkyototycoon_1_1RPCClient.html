@@ -56,8 +56,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Default constructor.  <a href="#a645bd538a899df77c832734761048355"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCClient.html#aa1d08d59770f0573d28cbac8d25afe5d">~RPCClient</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Destructor.  <a href="#aa1d08d59770f0573d28cbac8d25afe5d"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCClient.html#aa20af5e813f2ae1b5baf1552b707be11">open</a> (const std::string &amp;host, int32_t port=<a class="el" href="namespacekyototycoon.html#aebd15b3b803e2e0d38f51c0385b66c43">DEFPORT</a>, double timeout=-1)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Open the connection.  <a href="#aa20af5e813f2ae1b5baf1552b707be11"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCClient.html#a2f128a3a41b1eb1816053ca9d9e3a4cb">open</a> (const std::string &amp;host=&quot;&quot;, int32_t port=<a class="el" href="namespacekyototycoon.html#aebd15b3b803e2e0d38f51c0385b66c43">DEFPORT</a>, double timeout=-1)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Open the connection.  <a href="#a2f128a3a41b1eb1816053ca9d9e3a4cb"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCClient.html#a44f2d820a8ad8edccdaa0241609a4c17">close</a> (bool grace=true)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Close the connection.  <a href="#a44f2d820a8ad8edccdaa0241609a4c17"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classkyototycoon_1_1RPCClient.html#a28ef084c8cd53f3ad35f98849df55336">ReturnValue</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCClient.html#a4c93f79bb8b5a834ad877e99af1727c1">call</a> (const std::string &amp;name, const std::map&lt; std::string, std::string &gt; *inmap=NULL, std::map&lt; std::string, std::string &gt; *outmap=NULL)</td></tr>
@@ -149,7 +149,7 @@
 </div>
 </div>
 <hr/><h2>Member Function Documentation</h2>
-<a class="anchor" id="aa20af5e813f2ae1b5baf1552b707be11"></a><!-- doxytag: member="kyototycoon::RPCClient::open" ref="aa20af5e813f2ae1b5baf1552b707be11" args="(const std::string &amp;host, int32_t port=DEFPORT, double timeout=&#45;1)" -->
+<a class="anchor" id="a2f128a3a41b1eb1816053ca9d9e3a4cb"></a><!-- doxytag: member="kyototycoon::RPCClient::open" ref="a2f128a3a41b1eb1816053ca9d9e3a4cb" args="(const std::string &amp;host=&quot;&quot;, int32_t port=DEFPORT, double timeout=&#45;1)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -157,7 +157,7 @@
           <td class="memname">bool kyototycoon::RPCClient::open </td>
           <td>(</td>
           <td class="paramtype">const std::string &amp;&nbsp;</td>
-          <td class="paramname"> <em>host</em>, </td>
+          <td class="paramname"> <em>host</em> = <code>&quot;&quot;</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -285,7 +285,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Fri Nov 12 22:18:29 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Nov 24 12:14:17 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

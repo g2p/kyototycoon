@@ -73,6 +73,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the number of connections.  <a href="#ae1b250ee799eef3bdab8d5a7190d80ce"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ThreadedServer.html#abedfb927902b7eb1b6fd1f8d23e41fbf">task_count</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the number of tasks in the queue.  <a href="#abedfb927902b7eb1b6fd1f8d23e41fbf"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ThreadedServer.html#a87c1d8a83bf49fc589716322e4207419">aborted</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Check whether the thread is to be aborted.  <a href="#a87c1d8a83bf49fc589716322e4207419"></a><br/></td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>Interface of poolable I/O event. </p>
@@ -404,8 +406,28 @@
 
 </div>
 </div>
+<a class="anchor" id="a87c1d8a83bf49fc589716322e4207419"></a><!-- doxytag: member="kyototycoon::ThreadedServer::aborted" ref="a87c1d8a83bf49fc589716322e4207419" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::ThreadedServer::aborted </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Fri Nov 12 22:18:30 2010 for Kyoto Tycoon by&nbsp;
+<div class="memdoc">
+
+<p>Check whether the thread is to be aborted. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true if the thread is to be aborted, or false if not. </dd></dl>
+
+</div>
+</div>
+</div>
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Nov 24 12:14:17 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

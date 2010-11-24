@@ -155,6 +155,8 @@ namespace kyototycoon {}
  * @file ktthserv.h     threaded server
  * @file kthttp.h       HTTP utilities
  * @file ktrpc.h        RPC utilities
+ * @file ktulog.h       update logger
  * @file kttimeddb.h    timed database
+ * @file ktdbext.h      database extension
  * @file ktremotedb.h   remote database
  */

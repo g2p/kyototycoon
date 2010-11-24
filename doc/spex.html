@@ -46,6 +46,8 @@
 
 <p>The server features high concurrency due to thread-pool modeled implementation and the epoll/kqueue mechanism of the modern Linux/*BSD kernel.  It can handle more than 10 thousand connections at the same time.  Because such system-specific features as epoll/kqueue are encapsulated and abstracted as the same interface, Kyoto Tycoon has high portability and works almost all UNIX-like systems and Windows.</p>
 
+<p>The server provides hot backup so that you can make backup data without stopping the server while copying the database files.  Update logging is also supported and it compensates for the difference between the contents of backup files and the current database.  Moreover, the server implements asynchronous replication.  A server sends update logs to other servers, which evaluate the logs immediately and keep their databases catching up to the master database.</p>
+
 <p>The server and its clients communicate with each other by HTTP.  So, you can write client applications and client libraries in almost all popular languages.  Both of RESTful-style interface by the GET, HEAD, PUT, DELETE methods and RPC-style inteface by the POST method are supported.  The RPC-style interface is based on the protocol called TSV-RPC.  The entity bodies of the request and the response are text data formatted as tab-separated-values so that parsing them is very easy.</p>
 
 <p>The server can embed Lua, a lightweight script language.  Even if you cannot find any built-in operation matching your requirement among the client API of Kyoto Tycoon, you can define arbitrary operations by defining functions in Lua.  The API for Lua scripts provides full set of database operations of Kyoto Cabinet including visitor, cursor, and transaction mechanisms.</p>
@@ -110,6 +112,7 @@
 /usr/local/include/ktthserv.h
 /usr/local/include/kthttp.h
 /usr/local/include/ktrpc.h
+/usr/local/include/ktulog.h
 /usr/local/include/kttimeddb.h
 /usr/local/include/ktremotedb.h
 /usr/local/lib/libkyototycoon.a
@@ -462,14 +465,14 @@ $ kill -HUP `cat /var/data/ktserver.pid`
 
 <h3 id="tips_onmemoryserver">On-memory Server Setting</h3>
 
-<p>You can use Kyoto Tycoon as a volatile (non-persistent) cache server with an on-memory database.  In most cases, space efficiency of Kyoto Tycoon is better than that of memcached.  If it is expected that 10 million records are cached in the database using 10GB memory, the following setting is suggested.</p>
+<p>You can use Kyoto Tycoon as a volatile (not persistent) cache server with an on-memory database.  In most cases, space efficiency of Kyoto Tycoon is better than that of memcached.  If it is expected that 10 million records are cached in the database using 10GB memory, the following setting is suggested.</p>
 
 <pre>$ ktserver ':#bnum=20000000#ktcapsiz=10g'
 </pre>
 
 <p>Note that the capacity tuning parameter limits the total size of memory allocation in the "user land" layer.  So, acctual memory usage will be probably higher than the limit size.  For peaceful operation, the limit should be up to 65% of the total memory size of the machine.</p>
 
-<p>In addition, auto deletion by the capacity limit is performed at random.  In that case, fresh records may also be deleted soon.  So, setting effectual expiration time not to reach the limit is very important.  If you cannot calculate effectual expiration time, use the cache hash database instead of the default stash database.  The following setting is suggested.</p>
+<p>In addition, auto deletion by the capacity limit is performed at random.  In that case, fresh records may also be deleted soon.  So, setting effectual expiration time not to reach the limit is very important.  If you cannot calculate effectual expiration time beforehand, use the cache hash database instead of the default stash database.  The following setting is suggested.</p>
 
 <pre>$ ktserver '*#bnum=20000000#capsiz=8g'
 </pre>
@@ -482,7 +485,7 @@ $ kill -HUP `cat /var/data/ktserver.pid`
 
 <pre>#! /bin/sh
 srcfile="$1"
-destfile="$1.`date '+%Y%M%d%H%M%S'`"
+destfile="$1.$2"
 cp -f "$srcfile" "$destfile"
 </pre>
 
@@ -496,7 +499,7 @@ cp -f "$srcfile" "$destfile"
 <pre>$ ktremotemgr sync -cmd dbbackup
 </pre>
 
-<p>The "sync" sub command of the client utility makes the database synchronize, which means dirty buffers on memory are written into the database file.  If the "-cmd" option is specified, an outer command is executed with one argument which is the path of the database file.  You can call arbitrary scripts other than the above sample.  Using "snapshot" mechanism of the underlying operating system is a good idea to shorten the time to make a backup file.</p>
+<p>The "sync" sub command of the client utility makes the database synchronize, which means dirty buffers on memory are written into the database file.  If the "-cmd" option is specified, an outer command is executed with two arguments.  The first argument is the path of the database file.  The second argument is the current time stamp.  You can call arbitrary scripts other than the above sample.  Using "snapshot" mechanism of the underlying operating system is a good idea to shorten the time to make a backup file.</p>
 
 <h3 id="tips_expiration">Inside Expiration</h3>
 

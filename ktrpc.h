@@ -78,7 +78,7 @@ public:
    * timeout is specified.
    * @return true on success, or false on failure.
    */
-  bool open(const std::string& host, int32_t port = DEFPORT, double timeout = -1) {
+  bool open(const std::string& host = "", int32_t port = DEFPORT, double timeout = -1) {
     _assert_(true);
     if (open_ || port < 1) return false;
     if (!ua_.open(host, port, timeout)) return false;
@@ -174,6 +174,8 @@ public:
     ReturnValue rv;
     if (code < 1) {
       rv = RVENETWORK;
+      ua_.close(false);
+      alive_ = false;
     } else if (code >= 200 && code < 300) {
       rv = RVSUCCESS;
     } else if (code >= 400 && code < 500) {
@@ -294,6 +296,16 @@ public:
       return 501;
     }
     /**
+     * Process each binary request.
+     * @param serv the server.
+     * @param sess the session with the client.
+     * @return true to reuse the session, or false to close the session.
+     */
+    virtual bool process_binary(ThreadedServer* serv, ThreadedServer::Session* sess) {
+      _assert_(serv && sess);
+      return false;
+    }
+    /**
      * Process each idle event.
      * @param serv the server.
      */
@@ -317,7 +329,7 @@ public:
     /**
      * Interface of session local data.
      */
-    class Data  : public HTTPServer::Session::Data {
+    class Data : public HTTPServer::Session::Data {
     public:
       /**
        * Destructor.
@@ -565,6 +577,9 @@ private:
       if (enc != 0) tsvmapencode(&outmap, enc);
       maptotsv(outmap, &resbody);
       return code;
+    }
+    bool process_binary(ThreadedServer* serv, ThreadedServer::Session* sess) {
+      return worker_->process_binary(serv, sess);
     }
     void process_idle(HTTPServer* serv) {
       worker_->process_idle(serv_);

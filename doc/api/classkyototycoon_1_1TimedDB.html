@@ -42,8 +42,12 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Cursor.html" title="Cursor to indicate a record.">Cursor</a> to indicate a record.  <a href="classkyototycoon_1_1TimedDB_1_1Cursor.html#_details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">struct &nbsp;</td><td class="memItemRight" valign="bottom"><b>MergeLine</b></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Front line of a merging list. <br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><b>TimedMetaTrigger</b></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Trigger of meta database operations. <br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><b>TimedVisitor</b></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Visitor.html" title="Interface to access a record.">Visitor</a> to handle records with time stamps. <br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB_1_1UpdateTrigger.html">UpdateTrigger</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Interface to trigger update operations.  <a href="classkyototycoon_1_1TimedDB_1_1UpdateTrigger.html#_details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Visitor.html">Visitor</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Interface to access a record.  <a href="classkyototycoon_1_1TimedDB_1_1Visitor.html#_details">More...</a><br/></td></tr>
 <tr><td colspan="2"><h2>Public Types</h2></td></tr>
@@ -143,6 +147,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Reveal the inner database object.  <a href="#a764079e4e6ad2dd1651454a45da02028"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a55966b82776b51d167fac05597de4622">vacuum</a> (int64_t step=0)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Scan the database and eliminate regions of expired records.  <a href="#a55966b82776b51d167fac05597de4622"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a9b84ef29e7ba25f59fd98e22ad45b2fa">recover</a> (const char *mbuf, size_t msiz)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Recover the database with an update log message.  <a href="#a9b84ef29e7ba25f59fd98e22ad45b2fa"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a33d48a58dd9127756da2b22fafe53777">match_prefix</a> (const std::string &amp;prefix, std::vector&lt; std::string &gt; *strvec, int64_t max=-1, kc::BasicDB::ProgressChecker *checker=NULL)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get keys matching a prefix string.  <a href="#a33d48a58dd9127756da2b22fafe53777"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a1ca05ebafef224e3ec3b12e7a30b9526">match_regex</a> (const std::string &amp;regex, std::vector&lt; std::string &gt; *strvec, int64_t max=-1, kc::BasicDB::ProgressChecker *checker=NULL)</td></tr>
@@ -151,10 +157,10 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Merge records from other databases.  <a href="#a7b77f684161670da7aff694e58c8877b"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Cursor.html">Cursor</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a55b5f73fa02f9c898a7a0c998eeb2d0c">cursor</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Create a cursor object.  <a href="#a55b5f73fa02f9c898a7a0c998eeb2d0c"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a14729ddf477c1cac0f1a3922b846a385">tune_options</a> (int8_t opts)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the optional features.  <a href="#a14729ddf477c1cac0f1a3922b846a385"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#acd6c95039eb2e1e7f1cb191c08cc272a">tune_logger</a> (kc::BasicDB::Logger *logger, uint32_t kinds=kc::BasicDB::Logger::WARN|kc::BasicDB::Logger::ERROR)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the internal logger.  <a href="#acd6c95039eb2e1e7f1cb191c08cc272a"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a6271031b9d1120e9bf30a18d410c02ad">tune_update_trigger</a> (<a class="el" href="classkyototycoon_1_1TimedDB_1_1UpdateTrigger.html">UpdateTrigger</a> *trigger)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the internal update trigger.  <a href="#a6271031b9d1120e9bf30a18d410c02ad"></a><br/></td></tr>
 <tr><td colspan="2"><h2>Static Public Attributes</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">static const int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a2435e4d31a0b3b23aed3f8b5c09b75d8">XTWIDTH</a> = 5</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The width of expiration time.  <a href="#a2435e4d31a0b3b23aed3f8b5c09b75d8"></a><br/></td></tr>
@@ -346,7 +352,7 @@
 <p>Open a database file. </p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
-    <tr><td valign="top"></td><td valign="top"><em>path</em>&nbsp;</td><td>the path of a database file. The same as with kc::PolyDB. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>path</em>&nbsp;</td><td>the path of a database file. The same as with kc::PolyDB. In addition, the following tuning parameters are supported. "ktopts" sets options and the value can contain "p" for the persistent option. "ktcapcnt" sets the capacity by record number. "ktcapsiz" sets the capacity by database size. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>mode</em>&nbsp;</td><td>the connection mode. The same as with kc::PolyDB. </td></tr>
   </table>
   </dd>
@@ -1803,6 +1809,43 @@
 
 </div>
 </div>
+<a class="anchor" id="a9b84ef29e7ba25f59fd98e22ad45b2fa"></a><!-- doxytag: member="kyototycoon::TimedDB::recover" ref="a9b84ef29e7ba25f59fd98e22ad45b2fa" args="(const char *mbuf, size_t msiz)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::TimedDB::recover </td>
+          <td>(</td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>mbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&nbsp;</td>
+          <td class="paramname"> <em>msiz</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Recover the database with an update log message. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>mbuf</em>&nbsp;</td><td>the pointer to the message region. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>msiz</em>&nbsp;</td><td>the size of the message region. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a33d48a58dd9127756da2b22fafe53777"></a><!-- doxytag: member="kyototycoon::TimedDB::match_prefix" ref="a33d48a58dd9127756da2b22fafe53777" args="(const std::string &amp;prefix, std::vector&lt; std::string &gt; *strvec, int64_t max=&#45;1, kc::BasicDB::ProgressChecker *checker=NULL)" -->
 <div class="memitem">
 <div class="memproto">
@@ -1977,33 +2020,6 @@
 
 </div>
 </div>
-<a class="anchor" id="a14729ddf477c1cac0f1a3922b846a385"></a><!-- doxytag: member="kyototycoon::TimedDB::tune_options" ref="a14729ddf477c1cac0f1a3922b846a385" args="(int8_t opts)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool kyototycoon::TimedDB::tune_options </td>
-          <td>(</td>
-          <td class="paramtype">int8_t&nbsp;</td>
-          <td class="paramname"> <em>opts</em></td>
-          <td>&nbsp;)&nbsp;</td>
-          <td></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>Set the optional features. </p>
-<dl><dt><b>Parameters:</b></dt><dd>
-  <table border="0" cellspacing="2" cellpadding="0">
-    <tr><td valign="top"></td><td valign="top"><em>opts</em>&nbsp;</td><td>the optional features by bitwise-or: TimedDB::TPERSIST to disable expiration. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
-
-</div>
-</div>
 <a class="anchor" id="acd6c95039eb2e1e7f1cb191c08cc272a"></a><!-- doxytag: member="kyototycoon::TimedDB::tune_logger" ref="acd6c95039eb2e1e7f1cb191c08cc272a" args="(kc::BasicDB::Logger *logger, uint32_t kinds=kc::BasicDB::Logger::WARN|kc::BasicDB::Logger::ERROR)" -->
 <div class="memitem">
 <div class="memproto">
@@ -2034,6 +2050,33 @@
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"></td><td valign="top"><em>logger</em>&nbsp;</td><td>the logger object. The same as with kc::BasicDB. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>kinds</em>&nbsp;</td><td>kinds of logged messages by bitwise-or: The same as with kc::BasicDB. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a6271031b9d1120e9bf30a18d410c02ad"></a><!-- doxytag: member="kyototycoon::TimedDB::tune_update_trigger" ref="a6271031b9d1120e9bf30a18d410c02ad" args="(UpdateTrigger *trigger)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::TimedDB::tune_update_trigger </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classkyototycoon_1_1TimedDB_1_1UpdateTrigger.html">UpdateTrigger</a> *&nbsp;</td>
+          <td class="paramname"> <em>trigger</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Set the internal update trigger. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>trigger</em>&nbsp;</td><td>the trigger object. </td></tr>
   </table>
   </dd>
 </dl>
@@ -2073,7 +2116,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Fri Nov 12 22:18:30 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Nov 24 12:14:17 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

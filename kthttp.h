@@ -401,7 +401,7 @@ public:
    * timeout is specified.
    * @return true on success, or false on failure.
    */
-  bool open(const std::string& host, int32_t port = 80, double timeout = -1) {
+  bool open(const std::string& host = "", int32_t port = 80, double timeout = -1) {
     _assert_(true);
     const std::string& thost = host.empty() ? Socket::get_local_host_name() : host;
     const std::string& addr = Socket::get_host_address(thost);
@@ -726,6 +726,16 @@ public:
                             std::string& resbody,
                             const std::map<std::string, std::string>& misc) = 0;
     /**
+     * Process each binary request.
+     * @param serv the server.
+     * @param sess the session with the client.
+     * @return true to reuse the session, or false to close the session.
+     */
+    virtual bool process_binary(ThreadedServer* serv, ThreadedServer::Session* sess) {
+      _assert_(serv && sess);
+      return false;
+    }
+    /**
      * Process each idle event.
      * @param serv the server.
      */
@@ -749,7 +759,7 @@ public:
     /**
      * Interface of session local data.
      */
-    class Data  : public ThreadedServer::Session::Data {
+    class Data : public ThreadedServer::Session::Data {
     public:
       /**
        * Destructor.
@@ -1100,6 +1110,10 @@ private:
   private:
     bool process(ThreadedServer* serv, ThreadedServer::Session* sess) {
       _assert_(true);
+      int32_t magic = sess->receive_byte();
+      if (magic < 0) return false;
+      sess->undo_receive_byte(magic);
+      if (magic == 0 || magic >= 0x80) return worker_->process_binary(serv, sess);
       char line[HTLINEBUFSIZ];
       if (!sess->receive_line(&line, sizeof(line))) return false;
       std::map<std::string, std::string> misc;
@@ -1228,9 +1242,9 @@ private:
           kc::xfree(body);
         }
       }
+      Session mysess(sess);
       std::string resbody;
       std::map<std::string, std::string> resheads;
-      Session mysess(sess);
       int32_t code = worker_->process(serv_, &mysess, path, method, reqheads, reqbody,
                                       resheads, resbody, misc);
       serv->log(Logger::INFO, "(%s): %s: %d",

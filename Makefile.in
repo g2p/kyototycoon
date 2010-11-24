@@ -90,7 +90,8 @@ all : $(LIBRARYFILES) $(COMMANDFILES)
 clean :
 	rm -rf $(LIBRARYFILES) $(LIBOBJFILES) $(COMMANDFILES) $(CGIFILES) \
 	  *.o *.gch a.out check.in check.out gmon.out *.log *.vlog words.tsv \
-	  casket* *.kch *.kct *.kcd *.kcf *.wal *.tmpkc* *.kcss *~ hoge moge tako ika
+	  casket* *.kch *.kct *.kcd *.kcf *.wal *.tmpkc* *.kcss *.pid *-ulog *.rts \
+	  *~ hoge moge tako ika
 
 
 version :
@@ -172,6 +173,11 @@ check-util :
 	rm -rf casket*
 	$(RUNENV) $(RUNCMD) ./ktutilmgr date -ds '1978-02-11T18:05:00+09:00' -wf
 	$(RUNENV) $(RUNCMD) ./ktutilmgr date -ds '1977-10-07T12:00:00+09:00' -rf
+	rm -rf *-ulog
+	$(RUNENV) $(RUNCMD) ./ktutiltest ulog -ulim 10k 0001-ulog 10000
+	rm -rf *-ulog
+	$(RUNENV) $(RUNCMD) ./ktutiltest ulog -th 4 -ulim 10k 0001-ulog 10000
+	$(RUNENV) $(RUNCMD) ./ktutilmgr ulog -ts 1234 0001-ulog > check.out
 
 
 check-timed :
@@ -296,6 +302,34 @@ check-timed :
 	  'casket.kch#bnum=100#ktcapcnt=5000' 10000
 	$(RUNENV) $(RUNCMD) ./kttimedtest order -set -th 4 -rnd \
 	  'casket.kch#bnum=100#ktcapsiz=200000' 10000
+	rm -rf casket* *-ulog
+	$(RUNENV) $(RUNCMD) ./kttimedmgr create -ulog 0001-ulog -sid 1 -dbid 0 \
+	  casket-0001.kch
+	$(RUNENV) $(RUNCMD) ./kttimedmgr set -ulog 0001-ulog -sid 1 -dbid 0 \
+	  casket-0001.kch abc defg
+	$(RUNENV) $(RUNCMD) ./kttimedmgr set -ulog 0001-ulog -sid 1 -dbid 0 \
+	  casket-0001.kch hij klmn
+	$(RUNENV) $(RUNCMD) ./kttimedmgr clear -ulog 0001-ulog -sid 1 -dbid 0 \
+	  casket-0001.kch
+	$(RUNENV) $(RUNCMD) ./kttimedmgr set -ulog 0001-ulog -sid 1 -dbid 0 \
+	  casket-0001.kch tako ika
+	$(RUNENV) $(RUNCMD) ./kttimedmgr set -ulog 0001-ulog -sid 1 -dbid 0 \
+	  casket-0001.kch uni kani
+	$(RUNENV) $(RUNCMD) ./kttimedmgr set -ulog 0001-ulog -sid 1 -dbid 0 \
+	  casket-0001.kch ebi ikura
+	$(RUNENV) $(RUNCMD) ./kttimedmgr remove -ulog 0001-ulog -sid 1 -dbid 0 \
+	  casket-0001.kch uni
+	$(RUNENV) $(RUNCMD) ./ktutilmgr ulog 0001-ulog
+	$(RUNENV) $(RUNCMD) ./kttimedmgr create -ulog 0002-ulog -sid 2 -dbid 0 \
+	  casket-0002.kch
+	$(RUNENV) $(RUNCMD) ./kttimedmgr recover -ulog 0002-ulog -sid 2 -dbid 0 \
+	  casket-0002.kch 0001-ulog
+	$(RUNENV) $(RUNCMD) ./kttimedmgr set -ulog 0002-ulog -sid 2 -dbid 0 \
+	  casket-0002.kch new NEWBY
+	$(RUNENV) $(RUNCMD) ./ktutilmgr ulog 0002-ulog
+	$(RUNENV) $(RUNCMD) ./kttimedmgr get casket-0002.kch tako
+	$(RUNENV) $(RUNCMD) ./kttimedmgr get casket-0002.kch ebi
+	$(RUNENV) $(RUNCMD) ./kttimedmgr get casket-0002.kch new
 
 
 check-remote :
@@ -462,20 +496,22 @@ kthttp.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h myconf.h
 
 ktrpc.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h myconf.h
 
-kttimeddb.o : ktcommon.h ktutil.h kttimeddb.h myconf.h
+ktulog.o : ktcommon.h ktutil.h ktulog.h myconf.h
 
-ktdbext.o : ktcommon.h ktutil.h kttimeddb.h ktdbext.h myconf.h
+kttimeddb.o : ktcommon.h ktutil.h ktulog.h kttimeddb.h myconf.h
+
+ktdbext.o : ktcommon.h ktutil.h ktulog.h kttimeddb.h ktdbext.h myconf.h
 
 ktremotedb.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h \
-  kttimeddb.h ktdbext.h ktremotedb.h myconf.h
+  ktulog.h kttimeddb.h ktdbext.h ktremotedb.h myconf.h
 
 myscript.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h \
-  kttimeddb.h ktdbext.h ktremotedb.h myconf.h myscript.h
+  ktulog.h kttimeddb.h ktdbext.h ktremotedb.h myconf.h myscript.h
 
 ktutiltest.o ktutilmgr.o ktutilserv.o kttimedtest.o kttimedmgr.o \
   ktserver.o ktremotetest.o ktremotemgr.o : \
-  ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h kttimeddb.h ktdbext.h \
-  ktremotedb.h cmdcommon.h myconf.h myscript.h
+  ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h \
+  ktulog.h kttimeddb.h ktdbext.h ktremotedb.h cmdcommon.h myconf.h myscript.h
 
 
 

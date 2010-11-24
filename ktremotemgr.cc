@@ -36,6 +36,7 @@ static int32_t runget(int argc, char** argv);
 static int32_t runlist(int argc, char** argv);
 static int32_t runimport(int argc, char** argv);
 static int32_t runvacuum(int argc, char** argv);
+static int32_t runrepl(int argc, char** argv);
 static int32_t procreport(const char* host, int32_t port, double tout);
 static int32_t procscript(const char* proc, const char* host, int32_t port, double tout,
                           const std::map<std::string, std::string>& params);
@@ -58,7 +59,9 @@ static int32_t proclist(const char* kbuf, size_t ksiz,
 static int32_t procimport(const char* file, const char* host, int32_t port, double tout,
                           const char* dbexpr, bool sx, int64_t xt);
 static int32_t procvacuum(const char* host, int32_t port, double tout, const char* dbexpr,
-                            int64_t step);
+                          int64_t step);
+static int32_t procrepl(const char* host, int32_t port, double tout,
+                        uint64_t ts, int32_t sid, bool uw);
 
 
 // print the usage and exit
@@ -89,6 +92,8 @@ int main(int argc, char** argv) {
     rv = runimport(argc, argv);
   } else if (!std::strcmp(argv[1], "vacuum")) {
     rv = runvacuum(argc, argv);
+  } else if (!std::strcmp(argv[1], "repl")) {
+    rv = runrepl(argc, argv);
   } else if (!std::strcmp(argv[1], "version") || !std::strcmp(argv[1], "--version")) {
     printversion();
   } else {
@@ -121,6 +126,8 @@ static void usage() {
           g_progname);
   eprintf("  %s vacuum [-host str] [-port num] [-tout num] [-db str] [-step num]\n",
           g_progname);
+  eprintf("  %s repl [-host str] [-port num] [-tout num] [-ts num] [-sid num] [-uw]\n",
+          g_progname);
   eprintf("\n");
   std::exit(1);
 }
@@ -149,7 +156,7 @@ static int32_t runreport(int argc, char** argv) {
         host = argv[i];
       } else if (!std::strcmp(argv[i], "-port")) {
         if (++i >= argc) usage();
-        port = kc::atoi(argv[i]);
+        port = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-tout")) {
         if (++i >= argc) usage();
         tout = kc::atof(argv[i]);
@@ -184,7 +191,7 @@ static int32_t runscript(int argc, char** argv) {
         host = argv[i];
       } else if (!std::strcmp(argv[i], "-port")) {
         if (++i >= argc) usage();
-        port = kc::atoi(argv[i]);
+        port = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-tout")) {
         if (++i >= argc) usage();
         tout = kc::atof(argv[i]);
@@ -224,7 +231,7 @@ static int32_t runinform(int argc, char** argv) {
         host = argv[i];
       } else if (!std::strcmp(argv[i], "-port")) {
         if (++i >= argc) usage();
-        port = kc::atoi(argv[i]);
+        port = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-tout")) {
         if (++i >= argc) usage();
         tout = kc::atof(argv[i]);
@@ -263,7 +270,7 @@ static int32_t runclear(int argc, char** argv) {
         host = argv[i];
       } else if (!std::strcmp(argv[i], "-port")) {
         if (++i >= argc) usage();
-        port = kc::atoi(argv[i]);
+        port = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-tout")) {
         if (++i >= argc) usage();
         tout = kc::atof(argv[i]);
@@ -302,7 +309,7 @@ static int32_t runsync(int argc, char** argv) {
         host = argv[i];
       } else if (!std::strcmp(argv[i], "-port")) {
         if (++i >= argc) usage();
-        port = kc::atoi(argv[i]);
+        port = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-tout")) {
         if (++i >= argc) usage();
         tout = kc::atof(argv[i]);
@@ -349,7 +356,7 @@ static int32_t runset(int argc, char** argv) {
         host = argv[i];
       } else if (!std::strcmp(argv[i], "-port")) {
         if (++i >= argc) usage();
-        port = kc::atoi(argv[i]);
+        port = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-tout")) {
         if (++i >= argc) usage();
         tout = kc::atof(argv[i]);
@@ -429,7 +436,7 @@ static int32_t runremove(int argc, char** argv) {
         host = argv[i];
       } else if (!std::strcmp(argv[i], "-port")) {
         if (++i >= argc) usage();
-        port = kc::atoi(argv[i]);
+        port = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-tout")) {
         if (++i >= argc) usage();
         tout = kc::atof(argv[i]);
@@ -489,7 +496,7 @@ static int32_t runget(int argc, char** argv) {
         host = argv[i];
       } else if (!std::strcmp(argv[i], "-port")) {
         if (++i >= argc) usage();
-        port = kc::atoi(argv[i]);
+        port = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-tout")) {
         if (++i >= argc) usage();
         tout = kc::atof(argv[i]);
@@ -557,7 +564,7 @@ static int32_t runlist(int argc, char** argv) {
         host = argv[i];
       } else if (!std::strcmp(argv[i], "-port")) {
         if (++i >= argc) usage();
-        port = kc::atoi(argv[i]);
+        port = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-tout")) {
         if (++i >= argc) usage();
         tout = kc::atof(argv[i]);
@@ -629,7 +636,7 @@ static int32_t runimport(int argc, char** argv) {
         host = argv[i];
       } else if (!std::strcmp(argv[i], "-port")) {
         if (++i >= argc) usage();
-        port = kc::atoi(argv[i]);
+        port = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-tout")) {
         if (++i >= argc) usage();
         tout = kc::atof(argv[i]);
@@ -674,7 +681,7 @@ static int32_t runvacuum(int argc, char** argv) {
         host = argv[i];
       } else if (!std::strcmp(argv[i], "-port")) {
         if (++i >= argc) usage();
-        port = kc::atoi(argv[i]);
+        port = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-tout")) {
         if (++i >= argc) usage();
         tout = kc::atof(argv[i]);
@@ -694,6 +701,54 @@ static int32_t runvacuum(int argc, char** argv) {
   }
   if (port < 1) usage();
   int32_t rv = procvacuum(host, port, tout, dbexpr, step);
+  return rv;
+}
+
+
+// parse arguments of repl command
+static int32_t runrepl(int argc, char** argv) {
+  bool argbrk = false;
+  const char* host = "";
+  int32_t port = kt::DEFPORT;
+  double tout = 0;
+  uint64_t ts = 0;
+  int32_t sid = 0;
+  bool uw = false;
+  for (int32_t i = 2; i < argc; i++) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-host")) {
+        if (++i >= argc) usage();
+        host = argv[i];
+      } else if (!std::strcmp(argv[i], "-port")) {
+        if (++i >= argc) usage();
+        port = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-tout")) {
+        if (++i >= argc) usage();
+        tout = kc::atof(argv[i]);
+      } else if (!std::strcmp(argv[i], "-ts")) {
+        if (++i >= argc) usage();
+        if (!std::strcmp(argv[i], "now") || !std::strcmp(argv[i], "-")) {
+          ts = kt::UpdateLogger::clock_pure();
+        } else {
+          ts = kc::atoix(argv[i]);
+        }
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-uw")) {
+        uw = true;
+      } else {
+        usage();
+      }
+    } else {
+      argbrk = true;
+      usage();
+    }
+  }
+  if (port < 1) usage();
+  int32_t rv = procrepl(host, port, tout, ts, sid, uw);
   return rv;
 }
 
@@ -1115,7 +1170,7 @@ static int32_t procimport(const char* file, const char* host, int32_t port, doub
 
 // perform vacuum command
 static int32_t procvacuum(const char* host, int32_t port, double tout, const char* dbexpr,
-                            int64_t step) {
+                          int64_t step) {
   kt::RemoteDB db;
   if (!db.open(host, port, tout)) {
     dberrprint(&db, "DB::open failed");
@@ -1129,6 +1184,44 @@ static int32_t procvacuum(const char* host, int32_t port, double tout, const cha
   }
   if (!db.close()) {
     dberrprint(&db, "DB::close failed");
+    err = true;
+  }
+  return err ? 1 : 0;
+}
+
+
+// perform repl command
+static int32_t procrepl(const char* host, int32_t port, double tout,
+                        uint64_t ts, int32_t sid, bool uw) {
+  ReplicationClient rc;
+  if (!rc.open(host, port, tout, ts, sid)) {
+    eprintf("%s: %s:%d: open error\n", g_progname, host, port);
+    return 1;
+  }
+  bool err = false;
+  while (true) {
+    size_t msiz;
+    uint64_t mts;
+    char* mbuf = rc.read(&msiz, &mts);
+    if (mbuf) {
+      size_t rsiz;
+      uint16_t rsid, rdbid;
+      const char* rbuf = DBUpdateLogger::parse(mbuf, msiz, &rsiz, &rsid, &rdbid);
+      if (rbuf) {
+        printf("%llu\t%u\t%u\t", (unsigned long long)mts, rsid, rdbid);
+        printdata(rbuf, rsiz, true);
+        iprintf("\n");
+      } else {
+        eprintf("%s: parsing a message failed", g_progname);
+        err = true;
+      }
+      delete[] mbuf;
+    } else if (!rc.alive() || !uw) {
+      break;
+    }
+  }
+  if (!rc.close()) {
+    eprintf("%s: close error\n", g_progname);
     err = true;
   }
   return err ? 1 : 0;

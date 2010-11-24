@@ -47,7 +47,7 @@
 <p>The command `<code>ktserver</code>' runs the server managing database instances.  This command is used in the following format.  `<var>db</var>' specifies a database name.  If no database is specified, an unnamed on-memory database is opened.</p>
 
 <dl class="api">
-<dt><code>ktserver [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-th <var>num</var>] [-log <var>file</var>] [-li|-ls|-le|-lz] [-ord] [-oat|-oas|-onl|-otl|-onr] [-asi <var>num</var>] [-ash] [-dmn] [-pid <var>file</var>] [-scr <var>file</var>] [<var>db</var>...]</code></dt>
+<dt><code>ktserver [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-th <var>num</var>] [-log <var>file</var>] [-li|-ls|-le|-lz] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-ord] [-oat|-oas|-onl|-otl|-onr] [-asi <var>num</var>] [-ash] [-dmn] [-pid <var>file</var>] [-scr <var>file</var>] [-mhost <var>str</var>] [-mport <var>num</var>] [-rts <var>file</var>] [<var>db</var>...]</code></dt>
 </dl>
 
 <p>Options feature the following.</p>
@@ -62,6 +62,9 @@
 <li><code>-ls</code> : sets the logging level "SYSTEM".</li>
 <li><code>-le</code> : sets the logging level "ERROR".</li>
 <li><code>-lz</code> : sets the logging level "NONE".</li>
+<li><code>-ulog <var>str</var></code> : specifies the update log directory.</li>
+<li><code>-ulim <var>num</var></code> : specifies the limit size of each update log file.</li>
+<li><code>-sid <var>num</var></code> : specifies the server ID number.</li>
 <li><code>-ord</code> : opens the database as a reader.</li>
 <li><code>-oat</code> : opens the database with the auto transaction option.</li>
 <li><code>-oas</code> : opens the database with the auto synchronization option.</li>
@@ -74,6 +77,9 @@
 <li><code>-pid <var>file</var></code> : specifies the file to contain the process ID to send signals by.</li>
 <li><code>-cmd <var>dir</var></code> : specifies the command search path for outer commands.  By default, it is the current directroy.</li>
 <li><code>-scr <var>file</var></code> : specifies the script file for the scripting extention.</li>
+<li><code>-mhost <var>str</var></code> : specifies the host name of the master server of replication.</li>
+<li><code>-mport <var>num</var></code> : specifies the port number of the master server of replication.</li>
+<li><code>-rts <var>file</var></code> : specifies the file to contain the replication time stamp.</li>
 </ul>
 
 <p>This command returns 0 on success, another on failure.</p>
@@ -88,13 +94,15 @@
 
 <h2 id="ktutiltest">ktutiltest</h2>
 
-<p>The command `<code>ktutiltest</code>' is a utility for facility test and performance test of the utility functions.  This command is used in the following format.  `<var>url</var>' specifies the target URL.  `<var>rnum</var>' specifies the number of iterations.  `<var>proc</var>' specifies the name of the procedure to call.  `<var>name</var>' and `<var>value</var>' specify a pair of the key and the value of an input parameter.</p>
+<p>The command `<code>ktutiltest</code>' is a utility for facility test and performance test of the utility functions.  This command is used in the following format.  `<var>url</var>' specifies the target URL.  `<var>rnum</var>' specifies the number of iterations.  `<var>proc</var>' specifies the name of the procedure to call.  `<var>name</var>' and `<var>value</var>' specify a pair of the key and the value of an input parameter.  `<var>path</var>' specifies the path of a repository.</p>
 
 <dl class="api">
 <dt><code>ktutiltest http [-th <var>num</var>] [-get|-head|-post|-put|-delete] [-body <var>file</var>] [-ah <var>name</var> <var>value</var>] [-qs <var>name</var> <var>value</var>] [-tout <var>num</var>] [-ka] <var>url</var> <var>rnum</var></code></dt>
 <dd>Performs test of HTTP sessions.</dd>
-<dt><code>ktutiltest rpc [-th <var>num</var>] [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] proc <var>rnum</var> [<var>name</var> <var>value</var> ...]</code></dt>
+<dt><code>ktutiltest rpc [-th <var>num</var>] [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] <var>proc</var> <var>rnum</var> [<var>name</var> <var>value</var> ...]</code></dt>
 <dd>Performs test of RPC sessions.</dd>
+<dt><code>ktutiltest ulog [-th <var>num</var>] [-ulim <var>num</var>] <var>path</var> <var>rnum</var> [<var>name</var> <var>value</var> ...]</code></dt>
+<dd>Performs test of update logging.</dd>
 </dl>
 
 <p>Options feature the following.</p>
@@ -113,6 +121,7 @@
 <li><code>-ka</code> : use keep-alive connection.</li>
 <li><code>-host <var>str</var></code> : specifies the host name of the server.</li>
 <li><code>-port <var>num</var></code> : specifies the port number of the server.</li>
+<li><code>-ulim <var>num</var></code> : specifies the limit size of each update log file.</li>
 </ul>
 
 <p>This command returns 0 on success, another on failure.</p>
@@ -121,7 +130,7 @@
 
 <h2 id="ktutilmgr">ktutilmgr</h2>
 
-<p>The command `<code>ktutilmgr</code>' is a tool of miscellaneous utilities, and to show the configuration.  This command is used in the following format.  `<var>url</var>' specifies the target URL.  `<var>proc</var>' specifies the name of the procedure to call.  `<var>name</var>' and `<var>value</var>' specify a pair of the key and the value of an input parameter.</p>
+<p>The command `<code>ktutilmgr</code>' is a tool of miscellaneous utilities, and to show the configuration.  This command is used in the following format.  `<var>url</var>' specifies the target URL.  `<var>proc</var>' specifies the name of the procedure to call.  `<var>name</var>' and `<var>value</var>' specify a pair of the key and the value of an input parameter.  `<var>path</var>' specifies the path of a repository.</p>
 
 <dl class="api">
 <dt><code>ktutilmgr date [-ds <var>str</var>] [-jl <var>num</var>] [-wf] [-rf]</code></dt>
@@ -130,6 +139,8 @@
 <dd>Performs an HTTP session.</dd>
 <dt><code>ktutilmgr rpc [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-ienc <var>str</var>] [-oenc <var>str</var>] <var>proc</var> [<var>name</var> <var>value</var> ...]</code></dt>
 <dd>Performs an RPC session.</dd>
+<dt><code>ktutilmgr ulog [-ts <var>num</var>] [-uw] <var>path</var></code></dt>
+<dd>Prints update logs.</dd>
 <dt><code>ktutilmgr conf [-v|-i|-l|-p]</code></dt>
 <dd>Shows the configuration of Kyoto Tycoon.</dd>
 <dt><code>ktutilmgr version</code></dt>
@@ -158,6 +169,8 @@
 <li><code>-port <var>num</var></code> : specifies the port number of the server.</li>
 <li><code>-ienc <var>str</var></code> : specifies the encoding of the input data.</li>
 <li><code>-oenc <var>str</var></code> : specifies the encoding of the output data.</li>
+<li><code>-ts <var>num</var></code> : specifies the largest time stamp of already read logs.  "now" means the current time stamp.</li>
+<li><code>-uw</code> : waits for update forever.</li>
 <li><code>-v</code> : show the version number of Kyoto Tycoon.</li>
 <li><code>-i</code> : show options to include the headers of Tokyo Tycoon.</li>
 <li><code>-l</code> : show options to link the library of Tokyo Tycoon.</li>
@@ -203,15 +216,15 @@
 <p>The command `<code>kttimedtest</code>' is a utility for facility test and performance test of the timed database.  This command is used in the following format.  `<var>path</var>' specifies the path of a database file.  `<var>rnum</var>' specifies the number of iterations.</p>
 
 <dl class="api">
-<dt><code>kttimedtest order [-th <var>num</var>] [-rnd] [-set|-get|-getw|-rem|-etc] [-tran] [-oat|-onl|-onl|-otl|-onr] <var>path</var> <var>rnum</var></code></dt>
+<dt><code>kttimedtest order [-th <var>num</var>] [-rnd] [-set|-get|-getw|-rem|-etc] [-tran] [-oat|-onl|-onl|-otl|-onr] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-dbid <var>num</var>] [-lv] <var>path</var> <var>rnum</var></code></dt>
 <dd>Performs in-order tests.</dd>
-<dt><code>kttimedtest queue [-th <var>num</var>] [-it <var>num</var>] [-rnd] [-oat|-onl|-onl|-otl|-onr] <var>path</var> <var>rnum</var></code></dt>
+<dt><code>kttimedtest queue [-th <var>num</var>] [-it <var>num</var>] [-rnd] [-oat|-onl|-onl|-otl|-onr] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-dbid <var>num</var>] [-lv] <var>path</var> <var>rnum</var></code></dt>
 <dd>Performs queuing operations.</dd>
-<dt><code>kttimedtest wicked [-th <var>num</var>] [-it <var>num</var>] [-oat|-onl|-onl|-otl|-onr] <var>path</var> <var>rnum</var></code></dt>
+<dt><code>kttimedtest wicked [-th <var>num</var>] [-it <var>num</var>] [-oat|-onl|-onl|-otl|-onr] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-dbid <var>num</var>] [-lv] <var>path</var> <var>rnum</var></code></dt>
 <dd>Performs mixed operations selected at random.</dd>
-<dt><code>kttimedtest tran [-th <var>num</var>] [-it <var>num</var>] [-hard] [-oat|-onl|-onl|-otl|-onr] <var>path</var> <var>rnum</var></code></dt>
+<dt><code>kttimedtest tran [-th <var>num</var>] [-it <var>num</var>] [-hard] [-oat|-onl|-onl|-otl|-onr] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-dbid <var>num</var>] [-lv] <var>path</var> <var>rnum</var></code></dt>
 <dd>Performs test of transaction.</dd>
-<dt><code>kctimedtest mapred [-rnd] [-oat|-onl|-onl|-otl|-onr] [-lv] [-tmp <var>str</var>] [-dbnum <var>num</var>] [-clim <var>num</var>] [-cbnum <var>num</var>] [-xnl] [-xnc] <var>path</var> <var>rnum</var></code></dt>
+<dt><code>kctimedtest mapred [-rnd] [-oat|-onl|-onl|-otl|-onr] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-dbid <var>num</var>] [-lv] [-tmp <var>str</var>] [-dbnum <var>num</var>] [-clim <var>num</var>] [-cbnum <var>num</var>] [-xnl] [-xnc] <var>path</var> <var>rnum</var></code></dt>
 <dd>Performs MapReduce operations.</dd>
 <dt><code>kttimedtest misc <var>path</var></code></dt>
 <dd>Performs miscellaneous tests.</dd>
@@ -233,6 +246,11 @@
 <li><code>-onl</code> : opens the database with the no locking option.</li>
 <li><code>-otl</code> : opens the database with the try locking option.</li>
 <li><code>-onr</code> : opens the database with the no auto repair option.</li>
+<li><code>-ulog <var>str</var></code> : specifies the update log directory.</li>
+<li><code>-ulim <var>num</var></code> : specifies the limit size of each update log file.</li>
+<li><code>-sid <var>num</var></code> : specifies the server ID number.</li>
+<li><code>-dbid <var>num</var></code> : specifies the database ID number.</li>
+<li><code>-lv</code> : reports all errors.</li>
 <li><code>-it <var>num</var></code> : specifies the number of repetition.</li>
 <li><code>-hard</code> : performs physical synchronization.</li>
 <li><code>-tmp <var>str</var></code> : specifies the path of a directory for temporary storage.</li>
@@ -249,36 +267,38 @@
 
 <h2 id="kttimedmgr">kttimedmgr</h2>
 
-<p>The command `<code>kttimedmgr</code>' is a utility for test and debugging of the timed database and its applications.  `<var>path</var>' specifies the path of a database file.  `<var>key</var>' specifies the key of a record.  `<var>value</var>' specifies the value of a record.  `<var>file</var>' specifies the input/output file.  `<var>src</var>' specifies other database files.</p>
+<p>The command `<code>kttimedmgr</code>' is a utility for test and debugging of the timed database and its applications.  `<var>path</var>' specifies the path of a database file.  `<var>key</var>' specifies the key of a record.  `<var>value</var>' specifies the value of a record.  `<var>file</var>' specifies the input/output file.  `<var>dir</var>' specifies the input/output directory.  `<var>src</var>' specifies other database files.</p>
 
 <dl class="api">
-<dt><code>kttimedmgr create [-otr] [-onl|-otl|-onr] <var>path</var></code></dt>
+<dt><code>kttimedmgr create [-otr] [-onl|-otl|-onr] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-dbid <var>num</var>] <var>path</var></code></dt>
 <dd>Creates a database file.</dd>
-<dt><code>kttimedmgr inform [-onl|-otl|-onr] [-st] <var>path</var></code></dt>
+<dt><code>kttimedmgr inform [-onl|-otl|-onr] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-dbid <var>num</var>] [-st] <var>path</var></code></dt>
 <dd>Prints status information.</dd>
-<dt><code>kttimedmgr set [-onl|-otl|-onr] [-add|-app|-rep|-inci|-incd] [-sx] [-xt <var>num</var>] <var>path</var> <var>key</var> <var>value</var></code></dt>
+<dt><code>kttimedmgr set [-onl|-otl|-onr] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-dbid <var>num</var>] [-add|-app|-rep|-inci|-incd] [-sx] [-xt <var>num</var>] <var>path</var> <var>key</var> <var>value</var></code></dt>
 <dd>Stores a record.</dd>
-<dt><code>kttimedmgr remove [-onl|-otl|-onr] [-sx] <var>path</var> <var>key</var></code></dt>
+<dt><code>kttimedmgr remove [-onl|-otl|-onr] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-dbid <var>num</var>] [-sx] <var>path</var> <var>key</var></code></dt>
 <dd>Removes a record.</dd>
-<dt><code>kttimedmgr get [-onl|-otl|-onr] [-sx] [-px] [-pt] [-pz] <var>path</var> <var>key</var></code></dt>
+<dt><code>kttimedmgr get [-onl|-otl|-onr] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-dbid <var>num</var>] [-sx] [-px] [-pt] [-pz] <var>path</var> <var>key</var></code></dt>
 <dd>Prints the value of a record.</dd>
-<dt><code>kttimedmgr list [-onl|-otl|-onr] [-des] [-max <var>num</var>] [-sx] [-pv] [-px] [-pt] <var>path</var> [<var>key</var>]</code></dt>
+<dt><code>kttimedmgr list [-onl|-otl|-onr] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-dbid <var>num</var>] [-des] [-max <var>num</var>] [-sx] [-pv] [-px] [-pt] <var>path</var> [<var>key</var>]</code></dt>
 <dd>Prints keys of all records, separated by line feeds.</dd>
-<dt><code>kttimedmgr clear [-onl|-otl|-onr] <var>path</var></code></dt>
+<dt><code>kttimedmgr clear [-onl|-otl|-onr] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-dbid <var>num</var>] <var>path</var></code></dt>
 <dd>Removes all records of a database.</dd>
-<dt><code>kttimedmgr import [-onl|-otl|-onr] [-sx] [-xt <var>num</var>] <var>path</var> [<var>file</var>]</code></dt>
+<dt><code>kttimedmgr import [-onl|-otl|-onr] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-dbid <var>num</var>] [-sx] [-xt <var>num</var>] <var>path</var> [<var>file</var>]</code></dt>
 <dd>Imports records from a TSV file.</dd>
-<dt><code>kttimedmgr copy [-onl|-otl|-onr] <var>path</var> <var>file</var></code></dt>
+<dt><code>kttimedmgr copy [-onl|-otl|-onr] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-dbid <var>num</var>] <var>path</var> <var>file</var></code></dt>
 <dd>Copies the whole database.</dd>
-<dt><code>kttimedmgr dump [-onl|-otl|-onr] <var>path</var> [<var>file</var>]</code></dt>
+<dt><code>kttimedmgr dump [-onl|-otl|-onr] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-dbid <var>num</var>] <var>path</var> [<var>file</var>]</code></dt>
 <dd>Dumps records into a snapshot file.</dd>
-<dt><code>kttimedmgr load [-otr] [-onl|-otl|-onr] <var>path</var> [<var>file</var>]</code></dt>
+<dt><code>kttimedmgr load [-otr] [-onl|-otl|-onr] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-dbid <var>num</var>] <var>path</var> [<var>file</var>]</code></dt>
 <dd>Loads records from a snapshot file.</dd>
-<dt><code>kttimedmgr vacuum [-onl|-otl|-onr] <var>path</var></code></dt>
+<dt><code>kttimedmgr vacuum [-onl|-otl|-onr] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-dbid <var>num</var>] <var>path</var></code></dt>
 <dd>Eliminates regions of expired records.</dd>
-<dt><code>kttimedmgr merge [-onl|-otl|-onr] [-add|-app|-rep] <var>path</var> <var>src</var>...</code></dt>
+<dt><code>kttimedmgr recover [-onl|-otl|-onr] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-dbid <var>num</var>] [-ts <var>num</var>] <var>path</var></code> <var>dir</var></dt>
+<dd>Recover the database with update log data.</dd>
+<dt><code>kttimedmgr merge [-onl|-otl|-onr] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-dbid <var>num</var>] [-add|-app|-rep] <var>path</var> <var>src</var>...</code></dt>
 <dd>Merge records from other databases.</dd>
-<dt><code>kttimedmgr check [-onl|-otl|-onr] <var>path</var></code></dt>
+<dt><code>kttimedmgr check [-onl|-otl|-onr] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-dbid <var>num</var>] <var>path</var></code></dt>
 <dd>Checks consistency.</dd>
 </dl>
 
@@ -289,6 +309,10 @@
 <li><code>-onl</code> : opens the database with the no locking option.</li>
 <li><code>-otl</code> : opens the database with the try locking option.</li>
 <li><code>-onr</code> : opens the database with the no auto repair option.</li>
+<li><code>-ulog <var>str</var></code> : specifies the update log directory.</li>
+<li><code>-ulim <var>num</var></code> : specifies the limit size of each update log file.</li>
+<li><code>-sid <var>num</var></code> : specifies the server ID number.</li>
+<li><code>-dbid <var>num</var></code> : specifies the database ID number.</li>
 <li><code>-st</code> : prints miscellaneous information.</li>
 <li><code>-add</code> : performs adding operation.</li>
 <li><code>-app</code> : performs appending operation.</li>
@@ -303,6 +327,7 @@
 <li><code>-des</code> : visits records in descending order.</li>
 <li><code>-max <var>num</var></code> : specifies the maximum number of shown records.</li>
 <li><code>-pv</code> : prints values of records also.</li>
+<li><code>-ts <var>num</var></code> : specifies the largest time stamp of already read logs.  "now" means the current time stamp.</li>
 </ul>
 
 <p>This command returns 0 on success, another on failure.</p>
@@ -366,6 +391,8 @@
 <dd>Imports records from a TSV file.</dd>
 <dt><code>ktremotemgr vacuum [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-db <var>str</var>] [-step <var>num</var>] <var>path</var></code></dt>
 <dd>Eliminates regions of expired records.</dd>
+<dt><code>ktremotemgr repl [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-ts <var>num</var>] [-sid <var>num</var>] [-uw]</code></dt>
+<dd>Simulates a client of replication and prints update logs.</dd>
 </dl>
 
 <p>Options feature the following.</p>
@@ -392,6 +419,9 @@
 <li><code>-max <var>num</var></code> : specifies the maximum number of shown records.</li>
 <li><code>-pv</code> : prints values of records also.</li>
 <li><code>-step <var>num</var></code> : specifies the number of steps.</li>
+<li><code>-ts <var>num</var></code> : specifies the largest time stamp of already read logs.  "now" means the current time stamp.</li>
+<li><code>-sid <var>num</var></code> : specifies the server ID number.</li>
+<li><code>-uw</code> : waits for update forever.</li>
 </ul>
 
 <p>This command returns 0 on success, another on failure.</p>

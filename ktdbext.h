@@ -17,6 +17,8 @@
 #define _KTDBEXT_H
 
 #include <ktcommon.h>
+#include <ktutil.h>
+#include <ktulog.h>
 #include <kttimeddb.h>
 
 namespace kyototycoon {                  // common namespace

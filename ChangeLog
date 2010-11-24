@@ -1,5 +1,21 @@
 2010-11-12  Mikio Hirabayashi  <info@fallabs.com>
 
+	* ktulog.h, ktulog.cc: new files.
+
+	* ktutiltest.cc (runulog, proculog): new functions.
+
+	* kttimeddb.h (TimedDB::tune_update_trigger, TimedDB::recover): new functions.
+
+	* ktserver.cc (main, proc): "-ulog", "-ulim", and "-sid" options were added.
+
+	* ktserver.cc (Worker::process_binary, Worker::do_replication): new functions.
+
+	* ktserver.cc (Worker::do_synchronize): the second parameter was added to the command.
+
+	- Release: 0.9.9
+
+2010-11-12  Mikio Hirabayashi  <info@fallabs.com>
+
 	* kttimeddb.h (TimedDB::tune_options): abolished.
 
 	* kttimeddb.h (TimedDB::open): some tuning parameters was added.

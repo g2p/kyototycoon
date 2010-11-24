@@ -35,16 +35,21 @@ static int32_t runtran(int argc, char** argv);
 static int32_t runmapred(int argc, char** argv);
 static int32_t runmisc(int argc, char** argv);
 static int32_t procorder(const char* path, int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
-                         bool tran, int32_t oflags, bool lv);
+                         bool tran, int32_t oflags, const char* ulogpath, int64_t ulim,
+                         uint16_t sid, uint16_t dbid, bool lv);
 static int32_t procqueue(const char* path, int64_t rnum, int32_t thnum, int32_t itnum, bool rnd,
-                         int32_t oflags, bool lv);
+                         int32_t oflags, const char* ulogpath, int64_t ulim,
+                         uint16_t sid, uint16_t dbid, bool lv);
 static int32_t procwicked(const char* path, int64_t rnum, int32_t thnum, int32_t itnum,
-                          int32_t oflags, bool lv);
+                          int32_t oflags, const char* ulogpath, int64_t ulim,
+                          uint16_t sid, uint16_t dbid, bool lv);
 static int32_t proctran(const char* path, int64_t rnum, int32_t thnum, int32_t itnum, bool hard,
-                        int32_t oflags, bool lv);
-static int32_t procmapred(const char* path, int64_t rnum, bool rnd, int32_t oflags, bool lv,
-                          const char* tmp, int64_t dbnum, int64_t clim, int64_t cbnum,
-                          int32_t opts);
+                        int32_t oflags, const char* ulogpath, int64_t ulim, uint16_t sid,
+                        uint16_t dbid, bool lv);
+static int32_t procmapred(const char* path, int64_t rnum, bool rnd, int32_t oflags,
+                          const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid,
+                          bool lv, const char* tmpdir, int64_t dbnum,
+                          int64_t clim, int64_t cbnum, int32_t opts);
 static int32_t procmisc(const char* path);
 
 
@@ -90,14 +95,16 @@ static void usage() {
   eprintf("\n");
   eprintf("usage:\n");
   eprintf("  %s order [-th num] [-rnd] [-set|-get|-getw|-rem|-etc] [-tran]"
-          " [-oat|-oas|-onl|-otl|-onr] [-tp] path rnum\n", g_progname);
-  eprintf("  %s queue [-th num] [-it num] [-rnd] [-oat|-oas|-onl|-otl|-onr] [-tp]"
-          " path rnum\n", g_progname);
-  eprintf("  %s wicked [-th num] [-it num] [-oat|-oas|-onl|-otl|-onr] [-tp]"
-          " path rnum\n", g_progname);
-  eprintf("  %s tran [-th num] [-it num] [-hard] [-oat|-oas|-onl|-otl|-onr] [-tp]"
-          " path rnum\n", g_progname);
-  eprintf("  %s mapred [-rnd] [-oat|-oas|-onl|-otl|-onr] [-lv] [-tmp str]"
+          " [-oat|-oas|-onl|-otl|-onr] [-ulog str] [-ulim num] [-sid num] [-dbid num]"
+          " [-lv] path rnum\n", g_progname);
+  eprintf("  %s queue [-th num] [-it num] [-rnd] [-oat|-oas|-onl|-otl|-onr]"
+          " [-ulog str] [-ulim num] [-sid num] [-dbid num] [-lv] path rnum\n", g_progname);
+  eprintf("  %s wicked [-th num] [-it num] [-oat|-oas|-onl|-otl|-onr]"
+          " [-ulog str] [-ulim num] [-sid num] [-dbid num] [-lv] path rnum\n", g_progname);
+  eprintf("  %s tran [-th num] [-it num] [-hard] [-oat|-oas|-onl|-otl|-onr]"
+          " [-ulog str] [-ulim num] [-sid num] [-dbid num] [-lv] path rnum\n", g_progname);
+  eprintf("  %s mapred [-rnd] [-oat|-oas|-onl|-otl|-onr]"
+          " [-ulog str] [-ulim num] [-sid num] [-dbid num] [-lv] [-tmp str]"
           " [-dbnum num] [-clim num] [-cbnum num] [-xnl] [-xnc] path rnum\n", g_progname);
   eprintf("  %s misc path\n", g_progname);
   eprintf("\n");
@@ -144,6 +151,10 @@ static int32_t runorder(int argc, char** argv) {
   int32_t mode = 0;
   bool tran = false;
   int32_t oflags = 0;
+  const char* ulogpath = NULL;
+  int64_t ulim = DEFULIM;
+  uint16_t sid = 0;
+  uint16_t dbid = 0;
   bool lv = false;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
@@ -176,6 +187,20 @@ static int32_t runorder(int argc, char** argv) {
         oflags |= kc::BasicDB::OTRYLOCK;
       } else if (!std::strcmp(argv[i], "-onr")) {
         oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-ulog")) {
+        if (++i >= argc) usage();
+        ulogpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-dbid")) {
+        if (++i >= argc) usage();
+        dbid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-lv")) {
+        lv = true;
       } else {
         usage();
       }
@@ -192,7 +217,8 @@ static int32_t runorder(int argc, char** argv) {
   int64_t rnum = kc::atoix(rstr);
   if (rnum < 1 || thnum < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
-  int32_t rv = procorder(path, rnum, thnum, rnd, mode, tran, oflags, lv);
+  int32_t rv = procorder(path, rnum, thnum, rnd, mode, tran, oflags,
+                         ulogpath, ulim, sid, dbid, lv);
   return rv;
 }
 
@@ -206,6 +232,10 @@ static int32_t runqueue(int argc, char** argv) {
   int32_t itnum = 1;
   bool rnd = false;
   int32_t oflags = 0;
+  const char* ulogpath = NULL;
+  int64_t ulim = DEFULIM;
+  uint16_t sid = 0;
+  uint16_t dbid = 0;
   bool lv = false;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
@@ -229,6 +259,20 @@ static int32_t runqueue(int argc, char** argv) {
         oflags |= kc::BasicDB::OTRYLOCK;
       } else if (!std::strcmp(argv[i], "-onr")) {
         oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-ulog")) {
+        if (++i >= argc) usage();
+        ulogpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-dbid")) {
+        if (++i >= argc) usage();
+        dbid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-lv")) {
+        lv = true;
       } else {
         usage();
       }
@@ -245,7 +289,7 @@ static int32_t runqueue(int argc, char** argv) {
   int64_t rnum = kc::atoix(rstr);
   if (rnum < 1 || thnum < 1 || itnum < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
-  int32_t rv = procqueue(path, rnum, thnum, itnum, rnd, oflags, lv);
+  int32_t rv = procqueue(path, rnum, thnum, itnum, rnd, oflags, ulogpath, ulim, sid, dbid, lv);
   return rv;
 }
 
@@ -258,6 +302,10 @@ static int32_t runwicked(int argc, char** argv) {
   int32_t thnum = 1;
   int32_t itnum = 1;
   int32_t oflags = 0;
+  const char* ulogpath = NULL;
+  int64_t ulim = DEFULIM;
+  uint16_t sid = 0;
+  uint16_t dbid = 0;
   bool lv = false;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
@@ -279,6 +327,20 @@ static int32_t runwicked(int argc, char** argv) {
         oflags |= kc::BasicDB::OTRYLOCK;
       } else if (!std::strcmp(argv[i], "-onr")) {
         oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-ulog")) {
+        if (++i >= argc) usage();
+        ulogpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-dbid")) {
+        if (++i >= argc) usage();
+        dbid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-lv")) {
+        lv = true;
       } else {
         usage();
       }
@@ -295,7 +357,7 @@ static int32_t runwicked(int argc, char** argv) {
   int64_t rnum = kc::atoix(rstr);
   if (rnum < 1 || thnum < 1 || itnum < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
-  int32_t rv = procwicked(path, rnum, thnum, itnum, oflags, lv);
+  int32_t rv = procwicked(path, rnum, thnum, itnum, oflags, ulogpath, ulim, sid, dbid, lv);
   return rv;
 }
 
@@ -309,6 +371,10 @@ static int32_t runtran(int argc, char** argv) {
   int32_t itnum = 1;
   bool hard = false;
   int32_t oflags = 0;
+  const char* ulogpath = NULL;
+  int64_t ulim = DEFULIM;
+  uint16_t sid = 0;
+  uint16_t dbid = 0;
   bool lv = false;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
@@ -332,6 +398,20 @@ static int32_t runtran(int argc, char** argv) {
         oflags |= kc::BasicDB::OTRYLOCK;
       } else if (!std::strcmp(argv[i], "-onr")) {
         oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-ulog")) {
+        if (++i >= argc) usage();
+        ulogpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-dbid")) {
+        if (++i >= argc) usage();
+        dbid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-lv")) {
+        lv = true;
       } else {
         usage();
       }
@@ -348,7 +428,7 @@ static int32_t runtran(int argc, char** argv) {
   int64_t rnum = kc::atoix(rstr);
   if (rnum < 1 || thnum < 1 || itnum < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
-  int32_t rv = proctran(path, rnum, thnum, itnum, hard, oflags, lv);
+  int32_t rv = proctran(path, rnum, thnum, itnum, hard, oflags, ulogpath, ulim, sid, dbid, lv);
   return rv;
 }
 
@@ -360,8 +440,12 @@ static int32_t runmapred(int argc, char** argv) {
   const char* rstr = NULL;
   bool rnd = false;
   int32_t oflags = 0;
+  const char* ulogpath = NULL;
+  int64_t ulim = DEFULIM;
+  uint16_t sid = 0;
+  uint16_t dbid = 0;
   bool lv = false;
-  const char* tmp = "";
+  const char* tmpdir = "";
   int64_t dbnum = -1;
   int64_t clim = -1;
   int64_t cbnum = -1;
@@ -382,11 +466,23 @@ static int32_t runmapred(int argc, char** argv) {
         oflags |= kc::BasicDB::OTRYLOCK;
       } else if (!std::strcmp(argv[i], "-onr")) {
         oflags |= kc::BasicDB::ONOREPAIR;
+      } else if (!std::strcmp(argv[i], "-ulog")) {
+        if (++i >= argc) usage();
+        ulogpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-dbid")) {
+        if (++i >= argc) usage();
+        dbid = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-lv")) {
         lv = true;
       } else if (!std::strcmp(argv[i], "-tmp")) {
         if (++i >= argc) usage();
-        tmp = argv[i];
+        tmpdir = argv[i];
       } else if (!std::strcmp(argv[i], "-dbnum")) {
         if (++i >= argc) usage();
         dbnum = kc::atoix(argv[i]);
@@ -415,7 +511,8 @@ static int32_t runmapred(int argc, char** argv) {
   if (!path || !rstr) usage();
   int64_t rnum = kc::atoix(rstr);
   if (rnum < 1) usage();
-  int32_t rv = procmapred(path, rnum, rnd, oflags, lv, tmp, dbnum, clim, cbnum, opts);
+  int32_t rv = procmapred(path, rnum, rnd, oflags, ulogpath, ulim, sid, dbid,
+                          lv, tmpdir, dbnum, clim, cbnum, opts);
   return rv;
 }
 
@@ -444,16 +541,32 @@ static int32_t runmisc(int argc, char** argv) {
 
 // perform order command
 static int32_t procorder(const char* path, int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
-                         bool tran, int32_t oflags, bool lv) {
+                         bool tran, int32_t oflags, const char* ulogpath, int64_t ulim,
+                         uint16_t sid, uint16_t dbid, bool lv) {
   iprintf("<In-order Test>\n  seed=%u  path=%s  rnum=%lld  thnum=%d  rnd=%d  mode=%d  tran=%d"
-          "  oflags=%d  lv=%d\n\n",
-          g_randseed, path, (long long)rnum, thnum, rnd, mode, tran, oflags, lv);
+          "  oflags=%d  ulog=%s  ulim=%lld  sid=%u  dbid=%u  lv=%d\n\n",
+          g_randseed, path, (long long)rnum, thnum, rnd, mode, tran, oflags,
+          ulogpath ? ulogpath : "", (long long)ulim, sid, dbid, lv);
   bool err = false;
   kt::TimedDB db;
   iprintf("opening the database:\n");
   double stime = kc::time();
   db.tune_logger(stddblogger(g_progname, &std::cout),
                  lv ? UINT32_MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
+  kt::UpdateLogger ulog;
+  DBUpdateLogger ulogdb;
+  if (ulogpath) {
+    if (ulog.open(ulogpath, ulim)) {
+      ulogdb.initialize(&ulog, sid, dbid);
+      if (!db.tune_update_trigger(&ulogdb)) {
+        dberrprint(&db, __LINE__, "DB::tune_update_trigger");
+        err = true;
+      }
+    } else {
+      dberrprint(&db, __LINE__, "UpdateLogger::open");
+      err = true;
+    }
+  }
   uint32_t omode = kc::BasicDB::OWRITER | kc::BasicDB::OCREATE | kc::BasicDB::OTRUNCATE;
   if (mode == 'r') {
     omode = kc::BasicDB::OWRITER | kc::BasicDB::OCREATE;
@@ -1450,6 +1563,10 @@ static int32_t procorder(const char* path, int64_t rnum, int32_t thnum, bool rnd
     dberrprint(&db, __LINE__, "DB::close");
     err = true;
   }
+  if (ulogpath && !ulog.close()) {
+    dberrprint(&db, __LINE__, "UpdateLogger::close");
+    err = true;
+  }
   etime = kc::time();
   iprintf("time: %.3f\n", etime - stime);
   iprintf("%s\n\n", err ? "error" : "ok");
@@ -1459,14 +1576,30 @@ static int32_t procorder(const char* path, int64_t rnum, int32_t thnum, bool rnd
 
 // perform queue command
 static int32_t procqueue(const char* path, int64_t rnum, int32_t thnum, int32_t itnum, bool rnd,
-                         int32_t oflags, bool lv) {
+                         int32_t oflags, const char* ulogpath, int64_t ulim,
+                         uint16_t sid, uint16_t dbid, bool lv) {
   iprintf("<Queue Test>\n  seed=%u  path=%s  rnum=%lld  thnum=%d  itnum=%d  rnd=%d"
-          "  oflags=%d  lv=%d\n\n",
-          g_randseed, path, (long long)rnum, thnum, itnum, rnd, oflags, lv);
+          "  oflags=%d  ulog=%s  ulim=%lld  sid=%u  dbid=%u  lv=%d\n\n",
+          g_randseed, path, (long long)rnum, thnum, itnum, rnd, oflags,
+          ulogpath ? ulogpath : "", (long long)ulim, sid, dbid, lv);
   bool err = false;
   kt::TimedDB db;
   db.tune_logger(stddblogger(g_progname, &std::cout),
                  lv ? UINT32_MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
+  kt::UpdateLogger ulog;
+  DBUpdateLogger ulogdb;
+  if (ulogpath) {
+    if (ulog.open(ulogpath, ulim)) {
+      ulogdb.initialize(&ulog, sid, dbid);
+      if (!db.tune_update_trigger(&ulogdb)) {
+        dberrprint(&db, __LINE__, "DB::tune_update_trigger");
+        err = true;
+      }
+    } else {
+      dberrprint(&db, __LINE__, "UpdateLogger::open");
+      err = true;
+    }
+  }
   for (int32_t itcnt = 1; itcnt <= itnum; itcnt++) {
     if (itnum > 1) iprintf("iteration %d:\n", itcnt);
     double stime = kc::time();
@@ -1620,6 +1753,10 @@ static int32_t procqueue(const char* path, int64_t rnum, int32_t thnum, int32_t 
     }
     iprintf("time: %.3f\n", kc::time() - stime);
   }
+  if (ulogpath && !ulog.close()) {
+    dberrprint(&db, __LINE__, "UpdateLogger::close");
+    err = true;
+  }
   iprintf("%s\n\n", err ? "error" : "ok");
   return err ? 1 : 0;
 }
@@ -1627,14 +1764,30 @@ static int32_t procqueue(const char* path, int64_t rnum, int32_t thnum, int32_t 
 
 // perform wicked command
 static int32_t procwicked(const char* path, int64_t rnum, int32_t thnum, int32_t itnum,
-                          int32_t oflags, bool lv) {
+                          int32_t oflags, const char* ulogpath, int64_t ulim,
+                          uint16_t sid, uint16_t dbid, bool lv) {
   iprintf("<Wicked Test>\n  seed=%u  path=%s  rnum=%lld  thnum=%d  itnum=%d"
-          "  oflags=%d  lv=%d\n\n",
-          g_randseed, path, (long long)rnum, thnum, itnum, oflags, lv);
+          "  oflags=%d  ulog=%s  ulim=%lld  sid=%u  dbid=%u  lv=%d\n\n",
+          g_randseed, path, (long long)rnum, thnum, itnum, oflags,
+          ulogpath ? ulogpath : "", (long long)ulim, sid, dbid, lv);
   bool err = false;
   kt::TimedDB db;
   db.tune_logger(stddblogger(g_progname, &std::cout),
                  lv ? UINT32_MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
+  kt::UpdateLogger ulog;
+  DBUpdateLogger ulogdb;
+  if (ulogpath) {
+    if (ulog.open(ulogpath, ulim)) {
+      ulogdb.initialize(&ulog, sid, dbid);
+      if (!db.tune_update_trigger(&ulogdb)) {
+        dberrprint(&db, __LINE__, "DB::tune_update_trigger");
+        err = true;
+      }
+    } else {
+      dberrprint(&db, __LINE__, "UpdateLogger::open");
+      err = true;
+    }
+  }
   for (int32_t itcnt = 1; itcnt <= itnum; itcnt++) {
     if (itnum > 1) iprintf("iteration %d:\n", itcnt);
     double stime = kc::time();
@@ -1915,6 +2068,10 @@ static int32_t procwicked(const char* path, int64_t rnum, int32_t thnum, int32_t
     }
     iprintf("time: %.3f\n", kc::time() - stime);
   }
+  if (ulogpath && !ulog.close()) {
+    dberrprint(&db, __LINE__, "UpdateLogger::close");
+    err = true;
+  }
   iprintf("%s\n\n", err ? "error" : "ok");
   return err ? 1 : 0;
 }
@@ -1922,10 +2079,12 @@ static int32_t procwicked(const char* path, int64_t rnum, int32_t thnum, int32_t
 
 // perform tran command
 static int32_t proctran(const char* path, int64_t rnum, int32_t thnum, int32_t itnum, bool hard,
-                        int32_t oflags, bool lv) {
+                        int32_t oflags, const char* ulogpath, int64_t ulim, uint16_t sid,
+                        uint16_t dbid, bool lv) {
   iprintf("<Transaction Test>\n  seed=%u  path=%s  rnum=%lld  thnum=%d  itnum=%d  hard=%d"
-          "  oflags=%d  lv=%d\n\n",
-          g_randseed, path, (long long)rnum, thnum, itnum, hard, oflags, lv);
+          "  oflags=%d  ulog=%s  ulim=%lld  sid=%u  dbid=%u  lv=%d\n\n",
+          g_randseed, path, (long long)rnum, thnum, itnum, hard, oflags,
+          ulogpath ? ulogpath : "", (long long)ulim, sid, dbid, lv);
   bool err = false;
   kt::TimedDB db;
   kt::TimedDB paradb;
@@ -1933,6 +2092,20 @@ static int32_t proctran(const char* path, int64_t rnum, int32_t thnum, int32_t i
                  lv ? UINT32_MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
   paradb.tune_logger(stddblogger(g_progname, &std::cout),
                      lv ? UINT32_MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
+  kt::UpdateLogger ulog;
+  DBUpdateLogger ulogdb;
+  if (ulogpath) {
+    if (ulog.open(ulogpath, ulim)) {
+      ulogdb.initialize(&ulog, sid, dbid);
+      if (!db.tune_update_trigger(&ulogdb)) {
+        dberrprint(&db, __LINE__, "DB::tune_update_trigger");
+        err = true;
+      }
+    } else {
+      dberrprint(&db, __LINE__, "UpdateLogger::open");
+      err = true;
+    }
+  }
   for (int32_t itcnt = 1; itcnt <= itnum; itcnt++) {
     iprintf("iteration %d updating:\n", itcnt);
     double stime = kc::time();
@@ -2139,24 +2312,45 @@ static int32_t proctran(const char* path, int64_t rnum, int32_t thnum, int32_t i
     }
     iprintf("time: %.3f\n", kc::time() - stime);
   }
+  if (ulogpath && !ulog.close()) {
+    dberrprint(&db, __LINE__, "UpdateLogger::close");
+    err = true;
+  }
   iprintf("%s\n\n", err ? "error" : "ok");
   return err ? 1 : 0;
 }
 
 
 // perform mapred command
-static int32_t procmapred(const char* path, int64_t rnum, bool rnd, int32_t oflags, bool lv,
-                          const char* tmp, int64_t dbnum, int64_t clim, int64_t cbnum,
-                          int32_t opts) {
-  iprintf("<MapReduce Test>\n  seed=%u  path=%s  rnum=%lld  rnd=%d  oflags=%d  lv=%d"
-          "  tmp=%s  dbnum=%lld  clim=%lld  cbnum=%lld  opts=%d\n\n",
-          g_randseed, path, (long long)rnum, rnd, oflags, lv,
-          tmp, (long long)dbnum, (long long)clim, (long long)cbnum, opts);
+static int32_t procmapred(const char* path, int64_t rnum, bool rnd, int32_t oflags,
+                          const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid,
+                          bool lv, const char* tmpdir, int64_t dbnum,
+                          int64_t clim, int64_t cbnum, int32_t opts) {
+  iprintf("<MapReduce Test>\n  seed=%u  path=%s  rnum=%lld  rnd=%d  oflags=%d"
+          "  ulog=%s  ulim=%lld  sid=%u  dbid=%u  lv=%d  tmp=%s  dbnum=%lld"
+          "  clim=%lld  cbnum=%lld  opts=%d\n\n",
+          g_randseed, path, (long long)rnum, rnd, oflags,
+          ulogpath ? ulogpath : "", (long long)ulim, sid, dbid, lv,
+          tmpdir, (long long)dbnum, (long long)clim, (long long)cbnum, opts);
   bool err = false;
   kt::TimedDB db;
   db.tune_logger(stddblogger(g_progname, &std::cout),
                  lv ? UINT32_MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
   double stime = kc::time();
+  kt::UpdateLogger ulog;
+  DBUpdateLogger ulogdb;
+  if (ulogpath) {
+    if (ulog.open(ulogpath, ulim)) {
+      ulogdb.initialize(&ulog, sid, dbid);
+      if (!db.tune_update_trigger(&ulogdb)) {
+        dberrprint(&db, __LINE__, "DB::tune_update_trigger");
+        err = true;
+      }
+    } else {
+      dberrprint(&db, __LINE__, "UpdateLogger::open");
+      err = true;
+    }
+  }
   uint32_t omode = kc::BasicDB::OWRITER | kc::BasicDB::OCREATE | kc::BasicDB::OTRUNCATE;
   if (!db.open(path, omode | oflags)) {
     dberrprint(&db, __LINE__, "DB::open");
@@ -2207,7 +2401,7 @@ static int32_t procmapred(const char* path, int64_t rnum, bool rnd, int32_t ofla
       err = true;
     }
   }
-  if (!mr.execute(&db, tmp, opts)) {
+  if (!mr.execute(&db, tmpdir, opts)) {
     dberrprint(&db, __LINE__, "MapReduce::execute");
     err = true;
   }
@@ -2221,6 +2415,10 @@ static int32_t procmapred(const char* path, int64_t rnum, bool rnd, int32_t ofla
   }
   if (!db.close()) {
     dberrprint(&db, __LINE__, "DB::close");
+    err = true;
+  }
+  if (ulogpath && !ulog.close()) {
+    dberrprint(&db, __LINE__, "UpdateLogger::close");
     err = true;
   }
   iprintf("time: %.3f\n", kc::time() - stime);

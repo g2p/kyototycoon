@@ -44,6 +44,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Process each request of RPC.  <a href="#a7a9ace4529218c4632ff49024a83d6f2"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCServer_1_1Worker.html#a7f5602bb3868e83805fc49eb9e06bda4">process</a> (<a class="el" href="classkyototycoon_1_1HTTPServer.html">HTTPServer</a> *serv, <a class="el" href="classkyototycoon_1_1HTTPServer_1_1Session.html">HTTPServer::Session</a> *sess, const std::string &amp;path, <a class="el" href="classkyototycoon_1_1HTTPClient.html#aae547c07cce765679e5ab7808c748de7">HTTPClient::Method</a> method, const std::map&lt; std::string, std::string &gt; &amp;reqheads, const std::string &amp;reqbody, std::map&lt; std::string, std::string &gt; &amp;resheads, std::string &amp;resbody, const std::map&lt; std::string, std::string &gt; &amp;misc)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Process each request of the others.  <a href="#a7f5602bb3868e83805fc49eb9e06bda4"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCServer_1_1Worker.html#af06d88782b22ca0d5cab882c1c0bfa8c">process_binary</a> (<a class="el" href="classkyototycoon_1_1ThreadedServer.html">ThreadedServer</a> *serv, <a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Session.html">ThreadedServer::Session</a> *sess)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Process each binary request.  <a href="#af06d88782b22ca0d5cab882c1c0bfa8c"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCServer_1_1Worker.html#af4b6a736ad8fcd8b31c4449196d16ea3">process_idle</a> (<a class="el" href="classkyototycoon_1_1RPCServer.html">RPCServer</a> *serv)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Process each idle event.  <a href="#af4b6a736ad8fcd8b31c4449196d16ea3"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCServer_1_1Worker.html#a2f54da0b41e71156c23bdaa26e0356e3">process_timer</a> (<a class="el" href="classkyototycoon_1_1RPCServer.html">RPCServer</a> *serv)</td></tr>
@@ -216,6 +218,43 @@
 
 </div>
 </div>
+<a class="anchor" id="af06d88782b22ca0d5cab882c1c0bfa8c"></a><!-- doxytag: member="kyototycoon::RPCServer::Worker::process_binary" ref="af06d88782b22ca0d5cab882c1c0bfa8c" args="(ThreadedServer *serv, ThreadedServer::Session *sess)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool kyototycoon::RPCServer::Worker::process_binary </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classkyototycoon_1_1ThreadedServer.html">ThreadedServer</a> *&nbsp;</td>
+          <td class="paramname"> <em>serv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classkyototycoon_1_1ThreadedServer_1_1Session.html">ThreadedServer::Session</a> *&nbsp;</td>
+          <td class="paramname"> <em>sess</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td><code> [virtual]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Process each binary request. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>serv</em>&nbsp;</td><td>the server. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>sess</em>&nbsp;</td><td>the session with the client. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true to reuse the session, or false to close the session. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="af4b6a736ad8fcd8b31c4449196d16ea3"></a><!-- doxytag: member="kyototycoon::RPCServer::Worker::process_idle" ref="af4b6a736ad8fcd8b31c4449196d16ea3" args="(RPCServer *serv)" -->
 <div class="memitem">
 <div class="memproto">
@@ -269,7 +308,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Fri Nov 12 22:18:30 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Nov 24 12:14:17 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

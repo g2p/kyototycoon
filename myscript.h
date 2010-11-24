@@ -22,6 +22,7 @@
 #include <ktthserv.h>
 #include <kthttp.h>
 #include <ktrpc.h>
+#include <ktulog.h>
 #include <kttimeddb.h>
 #include <ktdbext.h>
 #include <ktremotedb.h>

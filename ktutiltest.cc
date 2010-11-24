@@ -28,6 +28,7 @@ static void usage();
 static void errprint(int32_t line, const char* format, ...);
 static int32_t runhttp(int32_t argc, char** argv);
 static int32_t runrpc(int32_t argc, char** argv);
+static int32_t runulog(int32_t argc, char** argv);
 static int32_t prochttp(const char* url, int64_t rnum, int32_t thnum,
                         kt::HTTPClient::Method meth, const char* body,
                         std::map<std::string, std::string>* reqheads,
@@ -35,6 +36,7 @@ static int32_t prochttp(const char* url, int64_t rnum, int32_t thnum,
 static int32_t procrpc(const char* proc, int64_t rnum,
                        std::map<std::string, std::string>* params, int32_t thnum,
                        const char* host, int32_t port, double tout);
+static int32_t proculog(const char* path, int64_t rnum, int32_t thnum, int64_t ulim);
 
 
 // main routine
@@ -51,6 +53,8 @@ int main(int argc, char** argv) {
     rv = runhttp(argc, argv);
   } else if (!std::strcmp(argv[1], "rpc")) {
     rv = runrpc(argc, argv);
+  } else if (!std::strcmp(argv[1], "ulog")) {
+    rv = runulog(argc, argv);
   } else {
     usage();
   }
@@ -74,6 +78,7 @@ static void usage() {
           " [-qs name value] [-tout num] [-ka] url rnum\n", g_progname);
   eprintf("  %s rpc [-th num] [-host str] [-port num] [-tout num] proc rnum [name value ...]\n",
           g_progname);
+  eprintf("  %s ulog [-th num] [-ulim num] path rnum\n", g_progname);
   eprintf("\n");
   std::exit(1);
 }
@@ -111,7 +116,7 @@ static int32_t runhttp(int32_t argc, char** argv) {
         argbrk = true;
       } else if (!std::strcmp(argv[i], "-th")) {
         if (++i >= argc) usage();
-        thnum = kc::atoi(argv[i]);
+        thnum = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-get")) {
         meth = kt::HTTPClient::MGET;
       } else if (!std::strcmp(argv[i], "-head")) {
@@ -177,13 +182,13 @@ static int32_t runrpc(int32_t argc, char** argv) {
         argbrk = true;
       } else if (!std::strcmp(argv[i], "-th")) {
         if (++i >= argc) usage();
-        thnum = kc::atoi(argv[i]);
+        thnum = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-host")) {
         if (++i >= argc) usage();
         host = argv[i];
       } else if (!std::strcmp(argv[i], "-port")) {
         if (++i >= argc) usage();
-        port = kc::atoi(argv[i]);
+        port = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-tout")) {
         if (++i >= argc) usage();
         tout = kc::atof(argv[i]);
@@ -205,6 +210,44 @@ static int32_t runrpc(int32_t argc, char** argv) {
   if (rnum < 1 || thnum < 1 || port < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
   int32_t rv = procrpc(proc, rnum, &params, thnum, host, port, tout);
+  return rv;
+}
+
+
+// parse arguments of ulog command
+static int32_t runulog(int32_t argc, char** argv) {
+  bool argbrk = false;
+  const char* path = NULL;
+  const char* rstr = NULL;
+  int32_t thnum = 1;
+  int64_t ulim = -1;
+  for (int32_t i = 2; i < argc; i++) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-th")) {
+        if (++i >= argc) usage();
+        thnum = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else {
+        usage();
+      }
+    } else if (!path) {
+      argbrk = false;
+      path = argv[i];
+    } else if (!rstr) {
+      rstr = argv[i];
+    } else {
+      usage();
+    }
+  }
+  if (!path || !rstr) usage();
+  int64_t rnum = kc::atoix(rstr);
+  if (rnum < 1 || thnum < 1) usage();
+  if (thnum > THREADMAX) thnum = THREADMAX;
+  int32_t rv = proculog(path, rnum, thnum, ulim);
   return rv;
 }
 
@@ -465,6 +508,138 @@ static int32_t procrpc(const char* proc, int64_t rnum,
   iprintf("time: %.3f\n", etime - stime);
   iprintf("throughput: %.3f req/s\n", okcnt / (etime - stime));
   delete[] workers;
+  iprintf("%s\n\n", err ? "error" : "ok");
+  return err ? 1 : 0;
+}
+
+
+// perform ulog command
+static int32_t proculog(const char* path, int64_t rnum, int32_t thnum, int64_t ulim) {
+  iprintf("<Update Logging Test>\n  seed=%u  path=%s  rnum=%lld  thnum=%d  ulim=%lld\n\n",
+          g_randseed, path, (long long)rnum, thnum, (long long)ulim);
+  bool err = false;
+  kt::UpdateLogger ulog;
+  if (!ulog.open(path, ulim)) {
+    errprint(__LINE__, "opening the logger failed");
+    err = true;
+  }
+  class Writer : public kc::Thread {
+  public:
+    Writer() : ulog_(NULL), rnum_(0), err_(false) {}
+    void setparams(int32_t id, kt::UpdateLogger* ulog, int64_t rnum) {
+      id_ = id;
+      ulog_ = ulog;
+      rnum_ = rnum;
+    }
+    bool error() {
+      return err_;
+    }
+  private:
+    void run() {
+      for (int64_t i = 1; i <= rnum_; i++) {
+        char rbuf[RECBUFSIZ];
+        size_t rsiz = std::sprintf(rbuf, "%lld", (long long)i);
+        if (!ulog_->write(rbuf, rsiz)) {
+          errprint(__LINE__, "writing a log failed");
+          err_ = true;
+        }
+        if (id_ < 1 && rnum_ > 250 && i % (rnum_ / 250) == 0) {
+          iputchar('.');
+          if (i == rnum_ || i % (rnum_ / 10) == 0) iprintf(" (%08lld)\n", (long long)i);
+        }
+      }
+    }
+    int32_t id_;
+    kt::UpdateLogger* ulog_;
+    int64_t rnum_;
+    bool err_;
+  };
+  class Reader : public kc::Thread {
+  public:
+    Reader() : ulog_(NULL), rnum_(0), alive_(true), cnt_(0), err_(false) {}
+    void setparams(int32_t id, kt::UpdateLogger* ulog, int64_t rnum) {
+      id_ = id;
+      ulog_ = ulog;
+      rnum_ = rnum;
+    }
+    void stop() {
+      alive_ = false;
+    }
+    int64_t count() {
+      return cnt_;
+    }
+    bool error() {
+      return err_;
+    }
+  private:
+    void run() {
+      kt::UpdateLogger::Reader ulrd;
+      if (!ulrd.open(ulog_, 0)) {
+        errprint(__LINE__, "opening a reader failed");
+        err_ = true;
+      }
+      while (alive_) {
+        const char* mbuf;
+        size_t msiz;
+        uint64_t mts;
+        while ((mbuf = ulrd.read(&msiz, &mts)) != NULL) {
+          cnt_ += 1;
+          delete[] mbuf;
+        }
+        kc::Thread::sleep(0.1);
+      }
+      if (!ulrd.close()) {
+        errprint(__LINE__, "opening a reader failed");
+        err_ = true;
+      }
+    }
+    int32_t id_;
+    kt::UpdateLogger* ulog_;
+    int64_t rnum_;
+    bool alive_;
+    kc::AtomicInt64 cnt_;
+    bool err_;
+  };
+  double stime = kc::time();
+  Reader readers[THREADMAX];
+  for (int32_t i = 0; i < thnum; i++) {
+    readers[i].setparams(i, &ulog, rnum);
+    readers[i].start();
+  }
+  Writer writers[THREADMAX];
+  for (int32_t i = 0; i < thnum; i++) {
+    writers[i].setparams(i, &ulog, rnum);
+    writers[i].start();
+  }
+  for (int32_t i = 0; i < thnum; i++) {
+    writers[i].join();
+    if (writers[i].error()) {
+      errprint(__LINE__, "writing logs failed");
+      err = true;
+    }
+  }
+  for (int32_t i = 0; i < thnum; i++) {
+    for (int32_t j = 0; j < 100; j++) {
+      if (readers[i].count() >= rnum * thnum) break;
+      kc::Thread::sleep(0.1);
+    }
+    readers[i].stop();
+    readers[i].join();
+    if (readers[i].error()) {
+      errprint(__LINE__, "reading logs failed");
+      err = true;
+    }
+    if (readers[i].count() != rnum * thnum) {
+      errprint(__LINE__, "reading logs failed");
+      err = true;
+    }
+  }
+  if (!ulog.close()) {
+    errprint(__LINE__, "closing the logger failed");
+    err = true;
+  }
+  double etime = kc::time();
+  iprintf("time: %.3f\n", etime - stime);
   iprintf("%s\n\n", err ? "error" : "ok");
   return err ? 1 : 0;
 }

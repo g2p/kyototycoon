@@ -26,6 +26,7 @@ static void usage();
 static int32_t rundate(int32_t argc, char** argv);
 static int32_t runhttp(int32_t argc, char** argv);
 static int32_t runrpc(int32_t argc, char** argv);
+static int32_t runulog(int32_t argc, char** argv);
 static int32_t runconf(int argc, char** argv);
 static int32_t procdate(const char* str, int32_t jl, bool wf, bool rf);
 static int32_t prochttp(const char* url, kt::HTTPClient::Method meth, const char* body,
@@ -34,6 +35,7 @@ static int32_t prochttp(const char* url, kt::HTTPClient::Method meth, const char
                         double tout, bool ph, int32_t ec);
 static int32_t procrpc(const char* proc, std::map<std::string, std::string>* params,
                        const char* host, int32_t port, double tout, int32_t ienc, int32_t oenc);
+static int32_t proculog(const char* path, uint64_t ts, bool uw);
 static int32_t procconf(int32_t mode);
 
 
@@ -49,6 +51,8 @@ int main(int argc, char** argv) {
     rv = runhttp(argc, argv);
   } else if (!std::strcmp(argv[1], "rpc")) {
     rv = runrpc(argc, argv);
+  } else if (!std::strcmp(argv[1], "ulog")) {
+    rv = runulog(argc, argv);
   } else if (!std::strcmp(argv[1], "conf")) {
     rv = runconf(argc, argv);
   } else if (!std::strcmp(argv[1], "version") || !std::strcmp(argv[1], "--version")) {
@@ -72,6 +76,7 @@ static void usage() {
           " [-qs name value] [-tout num] [-ph] [-ec num] url\n", g_progname);
   eprintf("  %s rpc [-host str] [-port num] [-tout num] [-ienc str] [-oenc str]"
           " proc [name value ...]\n", g_progname);
+  eprintf("  %s ulog [-ts num] [-uw] path\n", g_progname);
   eprintf("  %s conf [-v|-i|-l|-p]\n", g_progname);
   eprintf("  %s version\n", g_progname);
   eprintf("\n");
@@ -221,6 +226,41 @@ static int32_t runrpc(int32_t argc, char** argv) {
 }
 
 
+// parse arguments of ulog command
+static int32_t runulog(int32_t argc, char** argv) {
+  bool argbrk = false;
+  const char* path = NULL;
+  uint64_t ts = 0;
+  bool uw = false;
+  for (int32_t i = 2; i < argc; i++) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-ts")) {
+        if (++i >= argc) usage();
+        if (!std::strcmp(argv[i], "now") || !std::strcmp(argv[i], "-")) {
+          ts = kt::UpdateLogger::clock_pure();
+        } else {
+          ts = kc::atoix(argv[i]);
+        }
+      } else if (!std::strcmp(argv[i], "-uw")) {
+        uw = true;
+      } else {
+        usage();
+      }
+    } else if (!path) {
+      argbrk = true;
+      path = argv[i];
+    } else {
+      usage();
+    }
+  }
+  if (!path) usage();
+  int32_t rv = proculog(path, ts, uw);
+  return rv;
+}
+
+
 // parse arguments of conf command
 static int32_t runconf(int argc, char** argv) {
   bool argbrk = false;
@@ -256,7 +296,7 @@ static int32_t procdate(const char* str, int32_t jl, bool wf, bool rf) {
   if (wf) {
     char buf[48];
     kt::datestrwww(t, jl, buf);
-    printf("%s\n", buf);
+    iprintf("%s\n", buf);
   } else if (rf) {
     char buf[48];
     kt::datestrhttp(t, jl, buf);
@@ -388,7 +428,7 @@ static int32_t prochttp(const char* url, kt::HTTPClient::Method meth, const char
 }
 
 
-// perform http command
+// perform rpc command
 static int32_t procrpc(const char* proc, std::map<std::string, std::string>* params,
                        const char* host, int32_t port, double tout, int32_t ienc, int32_t oenc) {
   std::string lhost = kt::Socket::get_local_host_name();
@@ -419,10 +459,7 @@ static int32_t procrpc(const char* proc, std::map<std::string, std::string>* par
     default: name = "RVEMISC"; break;
   }
   iprintf("RV\t%d: %s\n", (int)rv, name);
-
-
   if (oenc != 0) kt::tsvmapencode(&outmap, oenc);
-
   std::map<std::string, std::string>::iterator it = outmap.begin();
   std::map<std::string, std::string>::iterator itend = outmap.end();
   while (it != itend) {
@@ -431,6 +468,56 @@ static int32_t procrpc(const char* proc, std::map<std::string, std::string>* par
   }
   if (!rpc.close()) {
     eprintf("%s: closing the connection failed\n", g_progname);
+    err = true;
+  }
+  return err ? 1 : 0;
+}
+
+
+// perform ulog command
+static int32_t proculog(const char* path, uint64_t ts, bool uw) {
+  kt::UpdateLogger ulog;
+  if (!kc::File::status(path)) {
+    if (!ulog.open(path, 0)) {
+      eprintf("%s: opening the logger failed\n", g_progname);
+      return 1;
+    }
+    if (!ulog.close()) {
+      eprintf("%s: closing the logger failed\n", g_progname);
+      return 1;
+    }
+  }
+  if (!ulog.open(path, INT64_MIN)) {
+    eprintf("%s: opening the logger failed\n", g_progname);
+    return 1;
+  }
+  bool err = false;
+  kt::UpdateLogger::Reader ulrd;
+  if (!ulrd.open(&ulog, ts)) {
+    eprintf("%s: opening the reader failed\n", g_progname);
+    err = true;
+  }
+  while (true) {
+    size_t msiz;
+    uint64_t mts;
+    char* mbuf = ulrd.read(&msiz, &mts);
+    if (mbuf) {
+      iprintf("%llu\t", (unsigned long long)mts);
+      printdata(mbuf, msiz, true);
+      iprintf("\n");
+      delete[] mbuf;
+    } else if (uw) {
+      kc::Thread::sleep(0.1);
+    } else {
+      break;
+    }
+  }
+  if (!ulrd.close()) {
+    eprintf("%s: closing the reader failed\n", g_progname);
+    err = true;
+  }
+  if (!ulog.close()) {
+    eprintf("%s: closing the logger failed\n", g_progname);
     err = true;
   }
   return err ? 1 : 0;

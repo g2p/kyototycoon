@@ -414,6 +414,14 @@ public:
     _assert_(true);
     return queue_.count();
   }
+  /**
+   * Check whether the thread is to be aborted.
+   * @return true if the thread is to be aborted, or false if not.
+   */
+  bool aborted() {
+    _assert_(true);
+    return !run_;
+  }
 private:
   /** The magic pointer of an idle session. */
   static Session* const SESSIDLE;

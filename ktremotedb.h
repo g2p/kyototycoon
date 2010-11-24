@@ -22,6 +22,7 @@
 #include <ktthserv.h>
 #include <kthttp.h>
 #include <ktrpc.h>
+#include <ktulog.h>
 #include <kttimeddb.h>
 #include <ktdbext.h>
 
@@ -1410,6 +1411,10 @@ private:
       emsg_ = "unexpected error";
     }
   }
+  /** Dummy constructor to forbid the use. */
+  RemoteDB(const RemoteDB&);
+  /** Dummy Operator to forbid the use. */
+  RemoteDB& operator =(const RemoteDB&);
   /** The RPC client. */
   RPCClient rpc_;
   /** The last happened error code. */

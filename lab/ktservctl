@@ -10,9 +10,17 @@ prog="ktservctl"
 cmd="ktserver"
 basedir="/var/ktserver"
 port="1978"
+tout="30"
+thnum="8"
 pidfile="$basedir/pid"
 logfile="$basedir/log"
 #miscopts="-oat"
+#ulogdir="$basedir/ulog"
+#ulim=1g
+#sid=1
+#mhost="anotherhost.localdomain"
+#mport="1978"
+#rtsfile="$basedir/rts"
 dbname="$basedir/casket.kch#bnum=2000000#msiz=128m#dfunit=8"
 retval=0
 
@@ -21,7 +29,8 @@ retval=0
 LANG=C
 LC_ALL=C
 PATH="$PATH:/sbin:/usr/sbin:/usr/local/sbin"
-export LANG LC_ALL PATH
+LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib"
+export LANG LC_ALL PATH LD_LIBRARY_PATH
 
 
 # start the server
@@ -41,15 +50,21 @@ start(){
       kill -TERM "$pid"
       sleep 1
     fi
-    cmd="$cmd -port $port -dmn -pid $pidfile"
+    cmd="$cmd -port $port -tout $tout -th $thnum -dmn -pid $pidfile"
     if [ -n "$logfile" ] ; then
       cmd="$cmd -log $logfile -ls"
+    fi
+    if [ -n "$ulogdir" ] ; then
+      cmd="$cmd -ulog $ulogdir -ulim $ulim -sid $sid"
     fi
     if [ -n "$miscopts" ] ; then
       cmd="$cmd $miscopts"
     fi
-    printf "Executing: %s\n" "$cmd"
+    if [ -n "$mhost" ] ; then
+      cmd="$cmd -mhost $mhost -mport $mport -rts $rtsfile"
+    fi
     cmd="$cmd $dbname"
+    printf "Executing: %s\n" "$cmd"
     $cmd
     if [ "$?" -eq 0 ] ; then
       printf 'Done\n'

@@ -32,8 +32,10 @@ static void killserver(int signum);
 static int32_t run(int argc, char** argv);
 static int32_t proc(const std::vector<std::string>& dbpaths,
                     const char* host, int32_t port, double tout, int32_t thnum,
-                    const char* logpath, uint32_t logkinds, int32_t omode, double asi, bool ash,
-                    bool dmn, const char* pidpath, const char* cmdpath, const char* scrpath);
+                    const char* logpath, uint32_t logkinds, const char* ulogpath, int64_t ulim,
+                    int32_t sid, int32_t omode, double asi, bool ash, bool dmn,
+                    const char* pidpath, const char* cmdpath, const char* scrpath,
+                    const char* mhost, int32_t mport, const char* rtspath);
 
 
 // logger implementation
@@ -116,6 +118,143 @@ private:
 };
 
 
+// replication slave implemantation
+class Slave : public kc::Thread {
+public:
+  // constructor
+  Slave(uint16_t sid, const char* rtspath, const char* host, int32_t port,
+        kt::RPCServer* serv, kt::TimedDB* dbs, int32_t dbnum,
+        kt::UpdateLogger* ulog, DBUpdateLogger* ulogdbs) :
+    lock_(), sid_(sid), rtspath_(rtspath), host_(""), port_(port),
+    serv_(serv), dbs_(dbs), dbnum_(dbnum), ulog_(ulog), ulogdbs_(ulogdbs),
+    rts_(0), alive_(true), hup_(false) {
+    if (host) host_ = host;
+  }
+  // stop the slave
+  void stop() {
+    alive_ = false;
+  }
+  // restart the slave
+  void restart() {
+    hup_ = true;
+  }
+  // set the configuration of the master
+  void set_master(const std::string& host, int32_t port) {
+    kc::ScopedSpinLock lock(&lock_);
+    host_ = host;
+    port_ = port;
+  }
+  // get the host name of the master
+  std::string host() {
+    kc::ScopedSpinLock lock(&lock_);
+    return host_;
+  }
+  // get the port number name of the master
+  int32_t port() {
+    kc::ScopedSpinLock lock(&lock_);
+    return port_;
+  }
+  // get the replication time stamp
+  uint64_t rts() {
+    return rts_;
+  }
+private:
+  static const size_t RTSFILESIZ = 21;
+  // perform replication
+  void run(void) {
+    if (!rtspath_) return;
+    kc::File rtsfile;
+    if (!rtsfile.open(rtspath_, kc::File::OWRITER | kc::File::OCREATE, kc::NUMBUFSIZ) ||
+        !rtsfile.truncate(RTSFILESIZ)) {
+      serv_->log(Logger::ERROR, "opening the RTS file failed: path=%s", rtspath_);
+      return;
+    }
+    rts_ = read_rts(&rtsfile);
+    write_rts(&rtsfile, rts_);
+    kc::Thread::sleep(0.5);
+    bool deferred = false;
+    while (true) {
+      lock_.lock();
+      std::string host = host_;
+      int32_t port = port_;
+      lock_.unlock();
+      if (!host.empty()) {
+        ReplicationClient rc;
+        if (rc.open(host, port, 60, rts_, sid_)) {
+          serv_->log(Logger::SYSTEM, "replication started: host=%s port=%d rts=%llu",
+                     host.c_str(), port, (unsigned long long)rts_);
+          while (alive_ && !hup_ && rc.alive()) {
+            size_t msiz;
+            uint64_t mts;
+            char* mbuf = rc.read(&msiz, &mts);
+            if (mbuf) {
+              size_t rsiz;
+              uint16_t rsid, rdbid;
+              const char* rbuf = DBUpdateLogger::parse(mbuf, msiz, &rsiz, &rsid, &rdbid);
+              if (rbuf && rsid != sid_ && rdbid < dbnum_) {
+                kt::TimedDB* db = dbs_ + rdbid;
+                DBUpdateLogger* ulogdb = ulogdbs_ ? ulogdbs_ + rdbid : NULL;
+                if (ulogdb) ulogdb->set_rsid(rsid);
+                if (!db->recover(rbuf, rsiz)) {
+                  const kc::BasicDB::Error& e = db->error();
+                  serv_->log(Logger::ERROR, "recovering a database failed: %s: %s",
+                             e.name(), e.message());
+                }
+                if (ulogdb) ulogdb->clear_rsid();
+              }
+              delete[] mbuf;
+            }
+            if (mts > rts_) rts_ = mts;
+          }
+          rc.close();
+          serv_->log(Logger::SYSTEM, "replication finished: host=%s port=%d",
+                     host.c_str(), port);
+          write_rts(&rtsfile, rts_);
+          deferred = false;
+        } else {
+          if (!deferred) serv_->log(Logger::SYSTEM, "replication was deferred: host=%s port=%d",
+                                    host.c_str(), port);
+          deferred = true;
+        }
+      }
+      if (alive_) {
+        kc::Thread::sleep(1);
+      } else {
+        break;
+      }
+    }
+    if (!rtsfile.close()) serv_->log(Logger::ERROR, "closing the RTS file failed");
+  }
+  // read the replication time stamp
+  uint64_t read_rts(kc::File* file) {
+    char buf[RTSFILESIZ];
+    file->read_fast(0, buf, RTSFILESIZ);
+    buf[sizeof(buf)-1] = '\0';
+    return kc::atoi(buf);
+  }
+  // write the replication time stamp
+  void write_rts(kc::File* file, uint64_t rts) {
+    char buf[kc::NUMBUFSIZ];
+    std::sprintf(buf, "%020llu\n", (unsigned long long)rts);
+    if (!file->write_fast(0, buf, RTSFILESIZ))
+      serv_->log(Logger::SYSTEM, "writing the time stamp failed");
+  }
+  kc::SpinLock lock_;
+  const uint16_t sid_;
+  const char* const rtspath_;
+  std::string host_;
+  int32_t port_;
+  kt::RPCServer* const serv_;
+  kt::TimedDB* const dbs_;
+  const int32_t dbnum_;
+  kt::UpdateLogger* const ulog_;
+  DBUpdateLogger* const ulogdbs_;
+  uint64_t rts_;
+  bool alive_;
+  bool hup_;
+};
+
+
 // worker implementation
 class Worker : public kt::RPCServer::Worker {
 private:
@@ -125,12 +264,17 @@ public:
   // constructor
   Worker(int32_t thnum, kt::TimedDB* dbs, int32_t dbnum,
          const std::map<std::string, int32_t>& dbmap, int32_t omode, double asi, bool ash,
+         kt::UpdateLogger* ulog, DBUpdateLogger* ulogdbs,
          const char* cmdpath, ScriptProcessor* scrprocs) :
     thnum_(thnum), dbs_(dbs), dbnum_(dbnum), dbmap_(dbmap),
-    omode_(omode), asi_(asi), ash_(ash),
-    cmdpath_(cmdpath), scrprocs_(scrprocs), idlecnt_(0), asnext_(0) {}
+    omode_(omode), asi_(asi), ash_(ash), ulog_(ulog), ulogdbs_(ulogdbs),
+    cmdpath_(cmdpath), scrprocs_(scrprocs), idlecnt_(0), asnext_(0), slave_(NULL) {}
   // destructor
   ~Worker() {}
+  // set miscellaneous configuration
+  void set_misc_conf(Slave* slave) {
+    slave_ = slave;
+  }
 private:
   // process each request of RPC.
   RV process(kt::RPCServer* serv, kt::RPCServer::Session* sess, const std::string& name,
@@ -302,36 +446,51 @@ private:
     delete[] kbuf;
     return code;
   }
-  // process each idle event
-  void process_idle(kt::RPCServer* serv) {
-    if (!(omode_ & kc::BasicDB::OWRITER)) return;
-    int32_t dbidx = idlecnt_++ % dbnum_;
-    kt::TimedDB* db = dbs_ + dbidx;
-    kt::ThreadedServer* thserv = serv->reveal_core()->reveal_core();
-    for (int32_t i = 0; i < 8; i++) {
-      if (thserv->task_count() > 0) break;
-      if (!db->vacuum(4)) {
-        const kc::BasicDB::Error& e = db->error();
-        log_db_error(serv, e);
+  // process each binary request
+  bool process_binary(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess) {
+    int32_t magic = sess->receive_byte();
+    switch (magic) {
+      case REPLMAGIC: {
+        return do_replication(serv, sess);
+      }
+      default: {
         break;
       }
-      kc::Thread::yield();
+    }
+    return false;
+  }
+  // process each idle event
+  void process_idle(kt::RPCServer* serv) {
+    if (omode_ & kc::BasicDB::OWRITER) {
+      int32_t dbidx = idlecnt_++ % dbnum_;
+      kt::TimedDB* db = dbs_ + dbidx;
+      kt::ThreadedServer* thserv = serv->reveal_core()->reveal_core();
+      for (int32_t i = 0; i < 4; i++) {
+        if (thserv->task_count() > 0) break;
+        if (!db->vacuum(4)) {
+          const kc::BasicDB::Error& e = db->error();
+          log_db_error(serv, e);
+          break;
+        }
+        kc::Thread::yield();
+      }
     }
   }
   // process each timer event
   void process_timer(kt::RPCServer* serv) {
-    if (asi_ <= 0 || !(omode_ & kc::BasicDB::OWRITER)) return;
-    if (kc::time() < asnext_) return;
-    for (int32_t i = 0; i < dbnum_; i++) {
-      kt::TimedDB* db = dbs_ + i;
-      if (!db->synchronize(ash_)) {
-        const kc::BasicDB::Error& e = db->error();
-        log_db_error(serv, e);
-        break;
+    if ((asi_ > 0) && (omode_ & kc::BasicDB::OWRITER)) {
+      if (kc::time() < asnext_) return;
+      for (int32_t i = 0; i < dbnum_; i++) {
+        kt::TimedDB* db = dbs_ + i;
+        if (!db->synchronize(ash_)) {
+          const kc::BasicDB::Error& e = db->error();
+          log_db_error(serv, e);
+          break;
+        }
+        kc::Thread::yield();
       }
-      kc::Thread::yield();
+      asnext_ = kc::time() + asi_;
     }
-    asnext_ = kc::time() + asi_;
   }
   // set the error message
   void set_message(std::map<std::string, std::string>& outmap, const char* key,
@@ -353,8 +512,7 @@ private:
   }
   // log the database error message
   void log_db_error(kt::HTTPServer* serv, const kc::BasicDB::Error& e) {
-    serv->log(kt::RPCServer::Logger::ERROR, "database error: %d: %s: %s",
-               e.code(), e.name(), e.message());
+    serv->log(Logger::ERROR, "database error: %d: %s: %s", e.code(), e.name(), e.message());
   }
   // process the echo procedure
   RV do_echo(kt::RPCServer* serv, kt::RPCServer::Session* sess,
@@ -400,6 +558,16 @@ private:
       kc::strprintf(&key, "sys_%s", it->first.c_str());
       set_message(outmap, key.c_str(), it->second.c_str());
       it++;
+    }
+    const std::string& mhost = slave_->host();
+    if (!mhost.empty()) {
+      set_message(outmap, "repl_master_host", "%s", mhost.c_str());
+      set_message(outmap, "repl_master_port", "%d", slave_->port());
+      uint64_t rts = slave_->rts();
+      set_message(outmap, "repl_timestamp", "%llu", (unsigned long long)rts);
+      uint64_t cc = kt::UpdateLogger::clock_pure();
+      uint64_t delay = cc > rts ? cc - rts : 0;
+      set_message(outmap, "repl_delay", "%.6f", delay / 1000000000.0);
     }
     return kt::RPCClient::RVSUCCESS;
   }
@@ -517,7 +685,7 @@ private:
         const char* cmd = command_.c_str();
         if (std::strchr(cmd, kc::File::PATHCHR) || !std::strcmp(cmd, kc::File::CDIRSTR) ||
             !std::strcmp(cmd, kc::File::PDIRSTR)) {
-          serv_->log(kt::RPCServer::Logger::ERROR, "invalid command name: %s", cmd);
+          serv_->log(Logger::ERROR, "invalid command name: %s", cmd);
           return false;
         }
         std::string cmdpath;
@@ -525,10 +693,18 @@ private:
         std::vector<std::string> args;
         args.push_back(cmdpath);
         args.push_back(path);
-        serv_->log(kt::RPCServer::Logger::SYSTEM, "executing: %s \"%s\"", cmd, path.c_str());
+
+
+        std::string tsstr;
+        uint64_t cc = kt::UpdateLogger::clock_pure();
+        kc::strprintf(&tsstr, "%020llu", (unsigned long long)cc);
+        args.push_back(tsstr);
+
+
+
+        serv_->log(Logger::SYSTEM, "executing: %s \"%s\"", cmd, path.c_str());
         if (kt::executecommand(args) != 0) {
-          serv_->log(kt::RPCServer::Logger::ERROR, "execution failed: %s \"%s\"",
-                     cmd, path.c_str());
+          serv_->log(Logger::ERROR, "execution failed: %s \"%s\"", cmd, path.c_str());
           return false;
         }
         return true;
@@ -1477,6 +1653,84 @@ private:
     }
     return code;
   }
+  // process the replication command
+  bool do_replication(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess) {
+    char tbuf[sizeof(uint64_t)+sizeof(uint16_t)];
+    if (!sess->receive(tbuf, sizeof(tbuf))) return false;
+    const char* rp = tbuf;
+    uint64_t ts = kc::readfixnum(rp, sizeof(ts));
+    rp += sizeof(ts);
+    uint16_t sid = kc::readfixnum(rp, sizeof(sid));
+    bool err = false;
+    if (ulog_) {
+      kt::UpdateLogger::Reader ulrd;
+      if (ulrd.open(ulog_, ts)) {
+        char c = REPLMAGIC;
+        if (sess->send(&c, 1)) {
+          serv->log(kt::ThreadedServer::Logger::SYSTEM, "a slave was connected: ts=%llu sid=%u",
+                    (unsigned long long)ts, sid);
+          char stack[kc::NUMBUFSIZ+RECBUFSIZ*2];
+          uint64_t rts = 0;
+          while (!err && !serv->aborted()) {
+            size_t msiz;
+            uint64_t mts;
+            char* mbuf = ulrd.read(&msiz, &mts);
+            if (mbuf) {
+              size_t rsiz;
+              uint16_t rsid, rdbid;
+              const char* rbuf = DBUpdateLogger::parse(mbuf, msiz, &rsiz, &rsid, &rdbid);
+              if (rbuf && rsid != sid) {
+                size_t nsiz = 1 + sizeof(uint64_t) + sizeof(uint32_t) + msiz;
+                char* nbuf = nsiz > sizeof(stack) ? new char[nsiz] : stack;
+                char* wp = nbuf;
+                *(wp++) = REPLMAGIC;
+                kc::writefixnum(wp, mts, sizeof(uint64_t));
+                wp += sizeof(uint64_t);
+                kc::writefixnum(wp, msiz, sizeof(uint32_t));
+                wp += sizeof(uint32_t);
+                std::memcpy(wp, mbuf, msiz);
+                if (!sess->send(nbuf, nsiz)) err = true;
+                if (nbuf != stack) delete[] nbuf;
+              }
+              if (mts > rts) rts = mts;
+              delete[] mbuf;
+            } else {
+              uint64_t cc = kt::UpdateLogger::clock_pure();
+              if (cc > 1000000000) cc -= 1000000000;
+              if (cc < rts) cc = rts;
+              char hbuf[1+sizeof(uint64_t)];
+              char* wp = hbuf;
+              *(wp++) = 0;
+              kc::writefixnum(wp, cc, sizeof(uint64_t));
+              if (!sess->send(hbuf, sizeof(hbuf)) || sess->receive_byte() != REPLMAGIC) {
+                serv->log(kt::ThreadedServer::Logger::SYSTEM, "a slave was disconnected: sid=%u",
+                          sid);
+                break;
+              }
+              kc::Thread::sleep(0.1);
+            }
+          }
+          if (!ulrd.close()) {
+            serv->log(kt::ThreadedServer::Logger::ERROR, "closing an update log reader failed");
+            err = true;
+          }
+        } else {
+          err = true;
+        }
+      } else {
+        serv->log(kt::ThreadedServer::Logger::ERROR, "opening an update log reader failed");
+        char c = 0;
+        sess->send(&c, 1);
+        err = true;
+      }
+    } else {
+      char c = 0;
+      sess->send(&c, 1);
+      serv->log(kt::ThreadedServer::Logger::INFO, "no update log allows no replication");
+      err = true;
+    }
+    return !err;
+  }
   // session local storage
   class SLS : public kt::RPCServer::Session::Data {
     friend class Worker;
@@ -1506,12 +1760,15 @@ private:
   const int32_t dbnum_;
   const std::map<std::string, int32_t>& dbmap_;
   const int32_t omode_;
-  double asi_;
-  bool ash_;
-  const char* cmdpath_;
-  ScriptProcessor* scrprocs_;
+  const double asi_;
+  const bool ash_;
+  kt::UpdateLogger* const ulog_;
+  DBUpdateLogger* const ulogdbs_;
+  const char* const cmdpath_;
+  ScriptProcessor* const scrprocs_;
   uint64_t idlecnt_;
   uint64_t asnext_;
+  Slave* slave_;
 };
 
 
@@ -1537,8 +1794,9 @@ static void usage() {
   eprintf("\n");
   eprintf("usage:\n");
   eprintf("  %s [-host str] [-port num] [-tout num] [-th num] [-log file] [-li|-ls|-le|-lz]"
-          " [-ord] [-oat|-oas|-onl|-otl|-onr] [-asi num] [-ash]"
-          " [-dmn] [-pid file] [-cmd dir] [-scr file] [db...]\n", g_progname);
+          " [-ulog str] [-ulim num] [-sid num] [-ord] [-oat|-oas|-onl|-otl|-onr]"
+          " [-asi num] [-ash] [-dmn] [-pid file] [-cmd dir] [-scr file]"
+          " [-mhost str] [-mport num] [-rts file] [db...]\n", g_progname);
   eprintf("\n");
   std::exit(1);
 }
@@ -1564,6 +1822,9 @@ static int32_t run(int argc, char** argv) {
   int32_t thnum = DEFTHNUM;
   const char* logpath = NULL;
   uint32_t logkinds = UINT32_MAX;
+  const char* ulogpath = NULL;
+  int64_t ulim = DEFULIM;
+  int32_t sid = -1;
   int32_t omode = kc::BasicDB::OWRITER | kc::BasicDB::OCREATE;
   double asi = 0;
   bool ash = false;
@@ -1571,6 +1832,9 @@ static int32_t run(int argc, char** argv) {
   const char* pidpath = NULL;
   const char* cmdpath = NULL;
   const char* scrpath = NULL;
+  const char* mhost = NULL;
+  int32_t mport = kt::DEFPORT;
+  const char* rtspath = NULL;
   for (int32_t i = 1; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -1580,7 +1844,7 @@ static int32_t run(int argc, char** argv) {
         host = argv[i];
       } else if (!std::strcmp(argv[i], "-port")) {
         if (++i >= argc) usage();
-        port = kc::atoi(argv[i]);
+        port = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-tout")) {
         if (++i >= argc) usage();
         tout = kc::atof(argv[i]);
@@ -1591,14 +1855,22 @@ static int32_t run(int argc, char** argv) {
         if (++i >= argc) usage();
         logpath = argv[i];
       } else if (!std::strcmp(argv[i], "-li")) {
-        logkinds = kt::RPCServer::Logger::INFO | kt::RPCServer::Logger::SYSTEM |
-          kt::RPCServer::Logger::ERROR;
+        logkinds = Logger::INFO | Logger::SYSTEM | Logger::ERROR;
       } else if (!std::strcmp(argv[i], "-ls")) {
-        logkinds = kt::RPCServer::Logger::SYSTEM | kt::RPCServer::Logger::ERROR;
+        logkinds = Logger::SYSTEM | Logger::ERROR;
       } else if (!std::strcmp(argv[i], "-le")) {
-        logkinds = kt::RPCServer::Logger::ERROR;
+        logkinds = Logger::ERROR;
       } else if (!std::strcmp(argv[i], "-lz")) {
         logkinds = 0;
+      } else if (!std::strcmp(argv[i], "-ulog")) {
+        if (++i >= argc) usage();
+        ulogpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-ulim")) {
+        if (++i >= argc) usage();
+        ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-sid")) {
+        if (++i >= argc) usage();
+        sid = kc::atoix(argv[i]);
       } else if (!std::strcmp(argv[i], "-ord")) {
         omode &= ~kc::BasicDB::OWRITER;
         omode |= kc::BasicDB::OREADER;
@@ -1628,6 +1900,15 @@ static int32_t run(int argc, char** argv) {
       } else if (!std::strcmp(argv[i], "-scr")) {
         if (++i >= argc) usage();
         scrpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-mhost")) {
+        if (++i >= argc) usage();
+        mhost = argv[i];
+      } else if (!std::strcmp(argv[i], "-mport")) {
+        if (++i >= argc) usage();
+        mport = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-rts")) {
+        if (++i >= argc) usage();
+        rtspath = argv[i];
       } else {
         usage();
       }
@@ -1636,11 +1917,11 @@ static int32_t run(int argc, char** argv) {
       dbpaths.push_back(argv[i]);
     }
   }
-  if (port < 1 || thnum < 1) usage();
+  if (port < 1 || thnum < 1 || mport < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
   if (dbpaths.empty()) dbpaths.push_back(":");
-  int32_t rv = proc(dbpaths, host, port, tout, thnum, logpath, logkinds, omode,
-                    asi, ash, dmn, pidpath, cmdpath, scrpath);
+  int32_t rv = proc(dbpaths, host, port, tout, thnum, logpath, logkinds, ulogpath, ulim, sid,
+                    omode, asi, ash, dmn, pidpath, cmdpath, scrpath, mhost, mport, rtspath);
   return rv;
 }
 
@@ -1648,13 +1929,19 @@ static int32_t run(int argc, char** argv) {
 // perform rpc command
 static int32_t proc(const std::vector<std::string>& dbpaths,
                     const char* host, int32_t port, double tout, int32_t thnum,
-                    const char* logpath, uint32_t logkinds, int32_t omode, double asi, bool ash,
-                    bool dmn, const char* pidpath, const char* cmdpath, const char* scrpath) {
+                    const char* logpath, uint32_t logkinds, const char* ulogpath, int64_t ulim,
+                    int32_t sid, int32_t omode, double asi, bool ash, bool dmn,
+                    const char* pidpath, const char* cmdpath, const char* scrpath,
+                    const char* mhost, int32_t mport, const char* rtspath) {
   g_daemon = false;
   if (dmn) {
     if (kc::File::PATHCHR == '/') {
       if (logpath && *logpath != kc::File::PATHCHR) {
         eprintf("%s: %s: a daemon can accept absolute path only\n", g_progname, logpath);
+        return 1;
+      }
+      if (ulogpath && *ulogpath != kc::File::PATHCHR) {
+        eprintf("%s: %s: a daemon can accept absolute path only\n", g_progname, ulogpath);
         return 1;
       }
       if (pidpath && *pidpath != kc::File::PATHCHR) {
@@ -1669,6 +1956,10 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
         eprintf("%s: %s: a daemon can accept absolute path only\n", g_progname, scrpath);
         return 1;
       }
+      if (rtspath && *rtspath != kc::File::PATHCHR) {
+        eprintf("%s: %s: a daemon can accept absolute path only\n", g_progname, rtspath);
+        return 1;
+      }
     }
     if (!kt::daemonize()) {
       eprintf("%s: switching to a daemon failed\n", g_progname);
@@ -1677,7 +1968,21 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
     g_procid = kc::getpid();
     g_daemon = true;
   }
+  if (ulogpath && sid < 0) {
+    eprintf("%s: update log requires the server ID\n", g_progname);
+    return 1;
+  }
   if (!cmdpath) cmdpath = kc::File::CDIRSTR;
+  if (mhost) {
+    if (sid < 0) {
+      eprintf("%s: replication requires the server ID\n", g_progname);
+      return 1;
+    }
+    if (!rtspath) {
+      eprintf("%s: replication requires the replication time stamp file\n", g_progname);
+      return 1;
+    }
+  }
   kc::File::Status sbuf;
   if (!kc::File::status(cmdpath, &sbuf) || !sbuf.isdir) {
     eprintf("%s: %s: no such directory\n", g_progname, cmdpath);
@@ -1694,31 +1999,49 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
     return 1;
   }
   serv.set_logger(&logger, logkinds);
-  serv.log(kt::RPCServer::Logger::SYSTEM, "================ [START]: pid=%d", g_procid);
+  serv.log(Logger::SYSTEM, "================ [START]: pid=%d", g_procid);
   std::string addr = "";
   if (host) {
     addr = kt::Socket::get_host_address(host);
     if (addr.empty()) {
-      serv.log(kt::RPCServer::Logger::ERROR, "%s: unknown host", g_progname, host);
+      serv.log(Logger::ERROR, "unknown host: %s", host);
       return 1;
     }
   }
   std::string expr = kc::strprintf("%s:%d", addr.c_str(), port);
   serv.set_network(expr, tout);
   int32_t dbnum = dbpaths.size();
+  kt::UpdateLogger* ulog = NULL;
+  DBUpdateLogger* ulogdbs = NULL;
+  if (ulogpath) {
+    ulog = new kt::UpdateLogger();
+    serv.log(Logger::SYSTEM, "opening the update log: path=%s sid=%u", ulogpath, sid);
+    if (!ulog->open(ulogpath, ulim)) {
+      serv.log(Logger::ERROR, "could not open the update log: %s", ulogpath);
+      delete ulog;
+      return 1;
+    }
+    ulogdbs = new DBUpdateLogger[dbnum];
+  }
   kt::TimedDB* dbs = new kt::TimedDB[dbnum];
   DBLogger dblogger(&logger, logkinds);
   std::map<std::string, int32_t> dbmap;
   for (int32_t i = 0; i < dbnum; i++) {
     const std::string& dbpath = dbpaths[i];
-    serv.log(kt::RPCServer::Logger::SYSTEM, "opening a database: path=%s", dbpath.c_str());
+    serv.log(Logger::SYSTEM, "opening a database: path=%s", dbpath.c_str());
     if (logkinds != 0)
       dbs[i].tune_logger(&dblogger, kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
+    if (ulog) {
+      ulogdbs[i].initialize(ulog, sid, i);
+      dbs[i].tune_update_trigger(ulogdbs + i);
+    }
     if (!dbs[i].open(dbpath, omode)) {
       const kc::BasicDB::Error& e = dbs[i].error();
-      serv.log(kt::RPCServer::Logger::ERROR, "%s: could not open a database file: %s: %s",
+      serv.log(Logger::ERROR, "could not open a database file: %s: %s: %s",
                dbpath.c_str(), e.name(), e.message());
       delete[] dbs;
+      delete[] ulogdbs;
+      delete ulog;
       return 1;
     }
     std::string path = dbs[i].path();
@@ -1729,24 +2052,28 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
   }
   ScriptProcessor* scrprocs = NULL;
   if (scrpath) {
-    serv.log(kt::RPCServer::Logger::SYSTEM, "loading a script file: path=%s", scrpath);
+    serv.log(Logger::SYSTEM, "loading a script file: path=%s", scrpath);
     scrprocs = new ScriptProcessor[thnum];
     for (int32_t i = 0; i < thnum; i++) {
       if (!scrprocs[i].set_resources(i, &serv, dbs, dbnum, &dbmap)) {
-        serv.log(kt::RPCServer::Logger::ERROR, "could not initialize the scripting processor");
+        serv.log(Logger::ERROR, "could not initialize the scripting processor");
         delete[] scrprocs;
         delete[] dbs;
+        delete[] ulogdbs;
+        delete ulog;
         return 1;
       }
       if (!scrprocs[i].load(scrpath)) {
-        serv.log(kt::RPCServer::Logger::ERROR, "%s: could not load a script file", scrpath);
+        serv.log(Logger::ERROR, "could not load a script file: %s", scrpath);
         delete[] scrprocs;
         delete[] dbs;
+        delete[] ulogdbs;
+        delete ulog;
         return 1;
       }
     }
   }
-  Worker worker(thnum, dbs, dbnum, dbmap, omode, asi, ash, cmdpath, scrprocs);
+  Worker worker(thnum, dbs, dbnum, dbmap, omode, asi, ash, ulog, ulogdbs, cmdpath, scrprocs);
   serv.set_worker(&worker, thnum);
   if (pidpath) {
     char numbuf[kc::NUMBUFSIZ];
@@ -1758,12 +2085,17 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
   while (g_restart) {
     g_restart = false;
     g_serv = &serv;
+    Slave slave(sid, rtspath, mhost, mport, &serv, dbs, dbnum, ulog, ulogdbs);
+    slave.start();
+    worker.set_misc_conf(&slave);
     if (serv.start()) {
       if (serv.finish()) err = true;
     } else {
       err = true;
-      break;
     }
+    slave.stop();
+    slave.join();
+    if (err) break;
     logger.close();
     if (!logger.open(logpath)) {
       eprintf("%s: %s: could not open the log file\n", g_progname, logpath ? logpath : "-");
@@ -1773,8 +2105,16 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
   }
   delete[] scrprocs;
   delete[] dbs;
+  if (ulog) {
+    delete[] ulogdbs;
+    if (!ulog->close()) {
+      eprintf("%s: closing the update log faild\n", g_progname);
+      err = true;
+    }
+    delete ulog;
+  }
   if (pidpath) kc::File::remove(pidpath);
-  serv.log(kt::RPCServer::Logger::SYSTEM, "================ [FINISH]: pid=%d", g_procid);
+  serv.log(Logger::SYSTEM, "================ [FINISH]: pid=%d", g_procid);
   return err ? 1 : 0;
 }
 
