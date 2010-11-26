@@ -174,10 +174,12 @@ check-util :
 	$(RUNENV) $(RUNCMD) ./ktutilmgr date -ds '1978-02-11T18:05:00+09:00' -wf
 	$(RUNENV) $(RUNCMD) ./ktutilmgr date -ds '1977-10-07T12:00:00+09:00' -rf
 	rm -rf *-ulog
-	$(RUNENV) $(RUNCMD) ./ktutiltest ulog -ulim 10k 0001-ulog 10000
+	$(RUNENV) $(RUNCMD) ./ktutiltest ulog -ulim 100k 0001-ulog 50000
 	rm -rf *-ulog
-	$(RUNENV) $(RUNCMD) ./ktutiltest ulog -th 4 -ulim 10k 0001-ulog 10000
+	$(RUNENV) $(RUNCMD) ./ktutiltest ulog -th 4 -ulim 100k 0001-ulog 50000
+	$(RUNENV) $(RUNCMD) ./ktutiltest ulog -th 2 -ulim 100k 0001-ulog 50000
 	$(RUNENV) $(RUNCMD) ./ktutilmgr ulog -ts 1234 0001-ulog > check.out
+	$(RUNENV) $(RUNCMD) ./ktutilmgr ulog -ts 1234 -uf 0001-ulog > check.out
 
 
 check-timed :

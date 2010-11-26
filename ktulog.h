@@ -28,9 +28,9 @@ namespace kyototycoon {                  // common namespace
 namespace {
 const char* ULPATHEXT = "ulog";          ///< extension of each file
 const size_t ULCACHEMAX = 65536;         ///< maximum size of cached logs
-const uint8_t ULBEGMAGIC = 0xaa;         ///< magic data for beginning mark
-const uint8_t ULENDMAGIC = 0xbb;         ///< magic data for ending mark
-const int64_t ULSKIPTSALW = 30;          ///< allowance of skipping logs
+const uint8_t ULMETAMAGIC = 0xa0;        ///< magic data for meta data
+const uint8_t ULBEGMAGIC = 0xa1;         ///< magic data for beginning mark
+const uint8_t ULENDMAGIC = 0xa2;         ///< magic data for ending mark
 const uint64_t ULTSWACC = 1000;          ///< accuracy of wall clock time stamp
 const uint64_t ULTSLACC = 1000 * 1000;   ///< accuracy of logical time stamp
 const double ULFLUSHWAIT = 0.1;          ///< waiting seconds of auto flush
@@ -41,6 +41,9 @@ const double ULFLUSHWAIT = 0.1;          ///< waiting seconds of auto flush
  * Update logger.
  */
 class UpdateLogger {
+public:
+  class Reader;
+  struct FileStatus;
 private:
   struct Log;
   /** An alias of cached logs. */
@@ -76,34 +79,42 @@ public:
       ulog_ = ulog;
       ts_ = ts;
       id_ = 0;
-      off_ = 0;
       std::vector<std::string> names;
       kc::File::read_directory(ulog_->path_, &names);
       std::sort(names.begin(), names.end(), std::greater<std::string>());
       std::vector<std::string>::iterator it = names.begin();
       std::vector<std::string>::iterator itend = names.end();
+      uint32_t lid = 0;
       while (it != itend && id_ < 1) {
         const std::string& path = ulog_->path_ + kc::File::PATHCHR + *it;
         if (file_.open(path, kc::File::OREADER | kc::File::ONOLOCK, 0)) {
           ulog_->flock_.lock_reader();
-          size_t msiz;
-          uint64_t mts;
-          char* mbuf = read_impl(&msiz, &mts);
-          ulog_->flock_.unlock();
-          if (mbuf) {
-            if (mts + ULSKIPTSALW * ULTSWACC * ULTSLACC < ts) id_ = kc::atoi(it->c_str());
-            delete[] mbuf;
+          uint32_t cid = kc::atoi(it->c_str());
+          if (file_.refresh()) {
+            int64_t fsiz;
+            uint64_t fts;
+            if (read_meta(&fsiz, &fts) && fts + ULTSWACC * ULTSLACC < ts) id_ = lid;
           }
+          ulog_->flock_.unlock();
           file_.close();
-          off_ = 0;
+          lid = cid;
         }
         it++;
       }
-      if (id_ < 1) id_ = 1;
+      if (id_ < 1) id_ = lid > 0 ? lid : 1;
       ulog_->flock_.lock_reader();
       std::string path = ulog_->generate_path(id_);
       if (!file_.open(path, kc::File::OREADER | kc::File::ONOLOCK, 0)) {
         ulog_ = NULL;
+        ulog_->flock_.unlock();
+        return false;
+      }
+      int64_t fsiz;
+      uint64_t fts;
+      if (!read_meta(&fsiz, &fts)) {
+        file_.close();
+        ulog_ = NULL;
+        ulog_->flock_.unlock();
         return false;
       }
       ulog_->flock_.unlock();
@@ -145,6 +156,29 @@ public:
     }
   private:
     /**
+     * Read the meta data.
+     * @param sp the pointer to the variable into which the size of the region of the return
+     * value is assigned.
+     * @param tsp the pointer to the variable into which the time stamp is assigned.
+     * @return true on success, or false on failure.
+     */
+    bool read_meta(int64_t* sp, uint64_t* tsp) {
+      _assert_(sp && tsp);
+      char hbuf[1+sizeof(uint64_t)+sizeof(uint64_t)];
+      int64_t psiz = file_.size();
+      if (psiz < (int64_t)sizeof(hbuf) || !file_.read(0, hbuf, sizeof(hbuf))) return false;
+      const char* rp = hbuf;
+      if (*(uint8_t*)(rp++) != ULMETAMAGIC) return false;
+      int64_t fsiz = kc::readfixnum(rp, sizeof(uint64_t));
+      rp += sizeof(uint64_t);
+      uint64_t fts = kc::readfixnum(rp, sizeof(uint64_t));
+      if (psiz < fsiz) return false;
+      *sp = fsiz;
+      *tsp = fts;
+      off_ = sizeof(hbuf);
+      return true;
+    }
+    /**
      * Read the next message.
      * @param sp the pointer to the variable into which the size of the region of the return
      * value is assigned.
@@ -165,8 +199,10 @@ public:
           if (kc::File::status(path)) {
             if (!file_.close()) return NULL;
             if (!file_.open(path, kc::File::OREADER | kc::File::ONOLOCK, 0)) return NULL;
+            int64_t fsiz;
+            uint64_t fts;
+            if (!read_meta(&fsiz, &fts)) return NULL;
             id_ = nid;
-            off_ = 0;
             if (!file_.read(off_, buf, sizeof(buf))) return NULL;
             ok = true;
             break;
@@ -212,7 +248,7 @@ public:
             if (id_ == oldid) {
               off_ = oldoff;
             } else {
-              off_ = 0;
+              off_ = 1 + sizeof(uint64_t) + sizeof(uint64_t);
             }
             break;
           }
@@ -233,11 +269,19 @@ public:
     int64_t off_;
   };
   /**
+   * Status of each log file.
+   */
+  struct FileStatus {
+    std::string path;                    ///< path
+    uint64_t size;                       ///< file size
+    uint64_t ts;                         ///< maximum time stamp
+  };
+  /**
    * Default constructor.
    */
   explicit UpdateLogger() :
     path_(), limsiz_(0), id_(0), file_(),
-    cache_(), csiz_(), clock_(), flock_(), tslock_(),
+    cache_(), csiz_(0), cts_(0), clock_(), flock_(), tslock_(),
     flusher_(this), tran_(false), tswall_(0), tslogic_(0) {
     _assert_(true);
   }
@@ -285,15 +329,26 @@ public:
     limsiz_ = limsiz > 0 ? limsiz : INT64_MAX;
     id_ = id > 0 ? id : 1;
     std::string tpath = generate_path(id_);
-    uint32_t mode;
     if (limsiz == INT64_MIN) {
-      mode = kc::File::OREADER | kc::File::ONOLOCK;
+      if (!file_.open(tpath, kc::File::OREADER | kc::File::ONOLOCK, 0)) {
+        path_.clear();
+        return false;
+      }
     } else {
-      mode = kc::File::OWRITER | kc::File::OCREATE;
-    }
-    if (!file_.open(tpath, mode, 0)) {
-      path_.clear();
-      return false;
+      if (!file_.open(tpath, kc::File::OWRITER | kc::File::OCREATE, 0)) {
+        path_.clear();
+        return false;
+      }
+      if (file_.size() < 1 && !write_meta()) {
+        file_.close();
+        path_.clear();
+        return false;
+      }
+      if (!validate_meta()) {
+        file_.close();
+        path_.clear();
+        return false;
+      }
     }
     flusher_.start();
     return true;
@@ -347,6 +402,7 @@ public:
     Log log = { mbuf, msiz, ts };
     cache_.push_back(log);
     csiz_ += 2 + sizeof(uint64_t) + sizeof(uint32_t) + msiz;
+    if (ts > cts_) cts_ = ts;
     if (!tran_ && csiz_ > ULCACHEMAX) flush();
     return !err;
   }
@@ -379,6 +435,44 @@ public:
     _assert_(true);
     kc::ScopedSpinLock lock(&tslock_);
     return clock_impl();
+  }
+  /**
+   * Get status of each log files.
+   * @param a vector to store status structures of each log files.
+   */
+  void list_files(std::vector<FileStatus>* fstvec) {
+    _assert_(fstvec);
+    if (path_.empty()) return;
+    fstvec->clear();
+    std::vector<std::string> names;
+    kc::File::read_directory(path_, &names);
+    std::sort(names.begin(), names.end());
+    std::vector<std::string>::iterator it = names.begin();
+    std::vector<std::string>::iterator itend = names.end();
+    while (it != itend) {
+      const std::string& path = path_ + kc::File::PATHCHR + *it;
+      kc::File file;
+      if (file.open(path, kc::File::OREADER | kc::File::ONOLOCK, 0)) {
+        flock_.lock_reader();
+        if (file.refresh()) {
+          char hbuf[1+sizeof(uint64_t)+sizeof(uint64_t)];
+          int64_t psiz = file.size();
+          if (psiz >= (int64_t)sizeof(hbuf) && file.read(0, hbuf, sizeof(hbuf))) {
+            const char* rp = hbuf;
+            if (*(uint8_t*)(rp++) == ULMETAMAGIC) {
+              int64_t fsiz = kc::readfixnum(rp, sizeof(uint64_t));
+              rp += sizeof(uint64_t);
+              uint64_t fts = kc::readfixnum(rp, sizeof(uint64_t));
+              FileStatus fs = { path, fsiz, fts };
+              fstvec->push_back(fs);
+            }
+          }
+        }
+        flock_.unlock();
+        file.close();
+      }
+      it++;
+    }
   }
   /**
    * Get the current pure clock data for time stamp.
@@ -453,6 +547,41 @@ private:
                          id, kc::File::EXTCHR, ULPATHEXT);
   }
   /**
+   * Write meta data.
+   * @return true on success, or false on failure.
+   */
+  bool write_meta() {
+    _assert_(true);
+    char hbuf[1+sizeof(uint64_t)+sizeof(uint64_t)];
+    char* wp = hbuf;
+    *(wp++) = ULMETAMAGIC;
+    int64_t psiz = file_.size();
+    if (psiz < (int64_t)sizeof(hbuf)) psiz = sizeof(hbuf);
+    kc::writefixnum(wp, psiz, sizeof(uint64_t));
+    wp += sizeof(uint64_t);
+    kc::writefixnum(wp, cts_, sizeof(uint64_t));
+    return file_.write(0, hbuf, sizeof(hbuf));
+  }
+  /**
+   * Validate the meta data.
+   * @return true on success, or false on failure.
+   */
+  bool validate_meta() {
+    _assert_(true);
+    char hbuf[1+sizeof(uint64_t)+sizeof(uint64_t)];
+    int64_t psiz = file_.size();
+    if (psiz < (int64_t)sizeof(hbuf) || !file_.read(0, hbuf, sizeof(hbuf))) return false;
+    const char* rp = hbuf;
+    if (*(uint8_t*)(rp++) != ULMETAMAGIC) return false;
+    int64_t fsiz = kc::readfixnum(rp, sizeof(uint64_t));
+    rp += sizeof(uint64_t);
+    uint64_t fts = kc::readfixnum(rp, sizeof(uint64_t));
+    if (psiz < fsiz || fsiz < (int64_t)sizeof(hbuf)) return false;
+    if (psiz > fsiz && !file_.truncate(fsiz)) return false;
+    tswall_ = fts / ULTSLACC + 1;
+    return true;
+  }
+  /**
    * Flush cached logs into a file.
    * @return true on success, or false on failure.
    */
@@ -466,6 +595,7 @@ private:
       std::string tpath = generate_path(id_);
       if (!file_.open(tpath, kc::File::OWRITER | kc::File::OCREATE | kc::File::OTRUNCATE, 0))
         err = true;
+      if (!write_meta()) err = true;
     }
     char* cbuf = new char[csiz_];
     char* wp = cbuf;
@@ -485,6 +615,7 @@ private:
       it++;
     }
     if (!file_.append(cbuf, csiz_)) err = true;
+    if (!err && !write_meta()) err = true;
     delete[] cbuf;
     cache_.clear();
     csiz_ = 0;
@@ -564,6 +695,8 @@ private:
   Cache cache_;
   /** The size of the cache. */
   size_t csiz_;
+  /** The last time stamp in the cache. */
+  uint64_t cts_;
   /** The cache lock. */
   kc::SpinLock clock_;
   /** The file lock. */

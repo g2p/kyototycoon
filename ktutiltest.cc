@@ -518,10 +518,11 @@ static int32_t proculog(const char* path, int64_t rnum, int32_t thnum, int64_t u
   iprintf("<Update Logging Test>\n  seed=%u  path=%s  rnum=%lld  thnum=%d  ulim=%lld\n\n",
           g_randseed, path, (long long)rnum, thnum, (long long)ulim);
   bool err = false;
+  bool init = !kc::File::status(path);
   kt::UpdateLogger ulog;
   if (!ulog.open(path, ulim)) {
     errprint(__LINE__, "opening the logger failed");
-    err = true;
+    return false;
   }
   class Writer : public kc::Thread {
   public:
@@ -629,7 +630,7 @@ static int32_t proculog(const char* path, int64_t rnum, int32_t thnum, int64_t u
       errprint(__LINE__, "reading logs failed");
       err = true;
     }
-    if (readers[i].count() != rnum * thnum) {
+    if (init && readers[i].count() != rnum * thnum) {
       errprint(__LINE__, "reading logs failed");
       err = true;
     }

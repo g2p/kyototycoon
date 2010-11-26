@@ -20,11 +20,17 @@ export LANG LC_ALL PATH LD_LIBRARY_PATH
 
 # start the server
 start(){
-  rm -rf casket-* *.log *-ulog *.rts
-  ktserver -port 1978 -log "$basedir/0001.log" -ls -ulog "$basedir/0001-ulog" -sid 1 \
-    -dmn -pid "$basedir/0001.pid" -mhost localhost -mport 1979 -rts "$basedir/0001.rts"
-  ktserver -port 1979 -log "$basedir/0002.log" -ls -ulog "$basedir/0002-ulog" -sid 2 \
-    -dmn -pid "$basedir/0002.pid" -mhost localhost -mport 1978 -rts "$basedir/0002.rts"
+  rm -rf *.kch *.kct *.log *-ulog *.rts
+  ktserver -port 1978 -log "$basedir/0001.log" -ls \
+    -ulog "$basedir/0001-ulog" -ulim 10m -sid 1 \
+    -dmn -pid "$basedir/0001.pid" \
+    -mhost localhost -mport 1979 -rts "$basedir/0001.rts" \
+    -cmd "$basedir/lab" "$basedir/0001-01.kch" "$basedir/0001-02.kct"
+  ktserver -port 1979 -log "$basedir/0002.log" -ls \
+    -ulog "$basedir/0002-ulog" -ulim 10m -sid 2 \
+    -dmn -pid "$basedir/0002.pid" -mhost localhost -mport 1978 \
+    -rts "$basedir/0002.rts" \
+    -cmd "$basedir/lab" "$basedir/0002-01.kch" "$basedir/0002-02.kct"
   sleep 1
   ktremotemgr report -port 1978
   ktremotemgr report -port 1979

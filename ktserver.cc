@@ -693,15 +693,10 @@ private:
         std::vector<std::string> args;
         args.push_back(cmdpath);
         args.push_back(path);
-
-
         std::string tsstr;
-        uint64_t cc = kt::UpdateLogger::clock_pure();
+        uint64_t cc = worker_->ulog_ ? worker_->ulog_->clock() : kt::UpdateLogger::clock_pure();
         kc::strprintf(&tsstr, "%020llu", (unsigned long long)cc);
         args.push_back(tsstr);
-
-
-
         serv_->log(Logger::SYSTEM, "executing: %s \"%s\"", cmd, path.c_str());
         if (kt::executecommand(args) != 0) {
           serv_->log(Logger::ERROR, "execution failed: %s \"%s\"", cmd, path.c_str());

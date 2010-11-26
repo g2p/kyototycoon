@@ -448,7 +448,7 @@ end
 
 <p>To improve performance, the bucket number of the hash table by the "bnum" parameter should be two times or more of the number of records.  The size of mapped memory by the "msiz" parameter should be largest as far as the main memory is available.  The unit number of auto defragmentation by the "dfunit" parameter should be about 8 which means every eight detected fragmentations causes a series of auto defragmentation steps.  If you want more high availability at the cost of performance, using auto transaction by the "-oat" option is a good idea.  For detail about database tuning, see <a href="http://fallabs.com/kyotocabinet/spex.html#tips">the tips of Kyoto Cabinet</a>.</p>
 
-<p>The option "-dmn" switches the process into the background, which is called daemon.  To stop or restart a daemon process, the PID files should be specified by the "-pid" parameter.  The PID file contains the process ID by which you can send signals.</p>
+<p>The option "-dmn" switches the process into the background, which is called daemon.  To stop or restart a daemon process, the PID files should be specified by the "-pid" option.  The PID file contains the process ID by which you can send signals.</p>
 
 <p>By default, verbose log messages are output and printed into the standard output.  For usual use case, the "-ls" option which filters them is suggested.  The "-log" option specifies the file to store log messages.</p>
 
@@ -470,7 +470,7 @@ $ kill -HUP `cat /var/data/ktserver.pid`
 <pre>$ ktserver ':#bnum=20000000#ktcapsiz=10g'
 </pre>
 
-<p>Note that the capacity tuning parameter limits the total size of memory allocation in the "user land" layer.  So, acctual memory usage will be probably higher than the limit size.  For peaceful operation, the limit should be up to 65% of the total memory size of the machine.</p>
+<p>Note that the capacity tuning parameter limits the total size of memory allocation in the "user land" layer.  So, actual memory usage will be probably higher than the limit size.  For peaceful operation, the limit should be up to 65% of the total memory size of the machine.</p>
 
 <p>In addition, auto deletion by the capacity limit is performed at random.  In that case, fresh records may also be deleted soon.  So, setting effectual expiration time not to reach the limit is very important.  If you cannot calculate effectual expiration time beforehand, use the cache hash database instead of the default stash database.  The following setting is suggested.</p>
 
@@ -478,28 +478,6 @@ $ kill -HUP `cat /var/data/ktserver.pid`
 </pre>
 
 <p>Note that the space effiency of the cache hash database is worse than that of the stash database.  The limit should be up to 50% of the total memory size of the machine.  However, auto deletion by the "capsiz" parameter (not "ktcapsiz") of the cache hash database is based on LRU algorithm, which prevents fresh records from sudden deletion.</p>
-
-<h3 id="tips_hotbackup">Hot Backup</h3>
-
-<p>You can make backup files while the server is running, which is called "hot backup".  To do it, prepare the following shell script beforehand and save it as "/ktbin/dbbackup".  It must have exetutable permissions.</p>
-
-<pre>#! /bin/sh
-srcfile="$1"
-destfile="$1.$2"
-cp -f "$srcfile" "$destfile"
-</pre>
-
-<p>Run the server specifiying the command search path "/ktbin".</p>
-
-<pre>$ ktserver -cmd /ktbin casket.kch
-</pre>
-
-<p>When you want to make a backup file, execute the following command to call the backup script.</p>
-
-<pre>$ ktremotemgr sync -cmd dbbackup
-</pre>
-
-<p>The "sync" sub command of the client utility makes the database synchronize, which means dirty buffers on memory are written into the database file.  If the "-cmd" option is specified, an outer command is executed with two arguments.  The first argument is the path of the database file.  The second argument is the current time stamp.  You can call arbitrary scripts other than the above sample.  Using "snapshot" mechanism of the underlying operating system is a good idea to shorten the time to make a backup file.</p>
 
 <h3 id="tips_expiration">Inside Expiration</h3>
 
@@ -513,6 +491,157 @@ cp -f "$srcfile" "$destfile"
 </pre>
 
 <p>If you use Kyoto Tycoon for data storage not for cache, create the database with the persistent option by "#ktopts=p" parameter to disable the GC cursor and omit the time stamp region of each record, for the sake of time and space efficiency.  Note that the persistent option works when creating a database and it does not work for existing databases.</p>
+
+<h3 id="tips_hotbackup">Hot Backup</h3>
+
+<p>You can make backup files while the server is running, which is called "hot backup".  To do it, prepare the following shell script beforehand and save it as "/ktbin/dbbackup".  It must have executable permissions.</p>
+
+<pre>#! /bin/sh
+srcfile="$1"
+destfile="$1.$2"
+cp -f "$srcfile" "$destfile"
+</pre>
+
+<p>Run the server specifying the command search path "/ktbin".</p>
+
+<pre>$ ktserver -cmd /ktbin casket.kch
+</pre>
+
+<p>When you want to make a backup file, execute the following command to call the backup script.</p>
+
+<pre>$ ktremotemgr sync -cmd dbbackup
+</pre>
+
+<p>The "sync" sub command of the client utility makes the database synchronize, which means dirty buffers on memory are written into the database file.  If the "-cmd" option is specified, an outer command is executed with two arguments.  The first argument is the path of the database file.  The second argument is the current time stamp.  You can call arbitrary scripts other than the above sample.  Using "snapshot" mechanism of the underlying operating system is a good idea to shorten the time to make a backup file.</p>
+
+<h3 id="tips_updatelog">Update Logging</h3>
+
+<p>Even if you take hot backup a day, update operations in 24 hours at most might be lost when an accident occurred.  "update log" is provided to compensate for such data loss.  It keeps track of every update operation in "record-base" model, which is called "row-base" in the context of RDBMS.  You can recover the database entirely by applying update logs to the latest backup database file.</p>
+
+<p>Run the server with update logging enabled.  The "-ulog" option specifies the directory to contain the update log files.  The "-sid" option specifies the server ID between 0 to 65535.  The "-cmd" option enables hot backup by the above instruction.</p>
+
+<pre>$ ktserver -ulog 0001-ulog -sid 1 casket.kch -cmd /ktbin casket.kch
+</pre>
+
+<p>Insert some records.</p>
+
+<pre>$ ktremotemgr set one first
+$ ktremotemgr set two second
+</pre>
+
+<p>Take a backup file.</p>
+
+<pre>$ ktremotemgr sync -cmd dbbackup
+</pre>
+
+<p>Insert more records.</p>
+
+<pre>$ ktremotemgr set three third
+$ ktremotemgr set four fourth
+</pre>
+
+<p>Terminate the server by Ctrl-C and remove the database to simulate database crash.</p>
+
+<pre>$ rm casket.kch
+</pre>
+
+<p>Recover the database by applying update logs.  "xxx..." means the time stamp of the backup database file.  The "-ts" option specifies the time stamp until which old update logs are skipped.</p>
+
+<pre>$ cp casket.kch.xxxxxxxxxxxxxxxxxxxx casket.kch
+$ kttimedmgr recover -ts xxxxxxxxxxxxxxxxxxxx casket.kch 0001-ulog
+.. (2)
+</pre>
+
+<p>Confirm the records in the recovered database.</p>
+
+<pre>$ kttimedmgr list -pv casket.kch
+one     first
+two     second
+three   third
+four    fourth
+</pre>
+
+<p>Update logs are saved in respective files by constant size, which is 256MB by default.  After you take a backup database file, you can remove older update logs than the time stamp of the backup database file.  The command "ktutilmgr ulog -uf" prints the maximum time stamp in each update log file.</p>
+
+<pre>$ ktutilmgr ulog -uf 0001-ulog
+0001-ulog/0000000001.ulog       268458906       1290785652985000714
+0001-ulog/0000000002.ulog       268454950       1290785658832000566
+0001-ulog/0000000003.ulog       268437175       1290785665973002820
+0001-ulog/0000000004.ulog       268467425       1290785674515001949
+0001-ulog/0000000005.ulog       268482363       1290785680925001536
+0001-ulog/0000000006.ulog       268497323       1290785689024002042
+0001-ulog/0000000007.ulog       268443005       1290785695789001021
+0001-ulog/0000000008.ulog       268489073       1290785707323002488
+0001-ulog/0000000009.ulog       250047728       1290785715612001421
+</pre>
+
+<h3 id="tips_replication">Asynchronous Replication</h3>
+
+<p>Even if you take hot backup and update logs, all data might be lost when the storage device or the computer itself broke down.  Keep in mind that everything is vanity.  To overcome such critical situation, data replication is supported.  It is a mechanism to synchronize two or more database servers for high availability and high integrity.  The replication source server is called "master" and each destination server is called "slave".  Replication requires the following preconditions.</p>
+
+<ul>
+<li>The master must record the update log.</li>
+<li>The master must specify the unique server ID.</li>
+<li>Each slave must record the update log because it may become the master when fail over.</li>
+<li>Each slave must specify the unique server ID because of the same reason.</li>
+<li>Each slave must specify the address and the port number of the master server.</li>
+<li>Each slave must specify the replication time stamp file.</li>
+</ul>
+
+<p>This section describes how to set up one master (at port 1978) and one slave (at port 1979) replication.  First, run the master server.</p>
+
+<pre>$ ktserver -port 1978 -ulog 0001-ulog -sid 1 casket-0001.kch
+</pre>
+
+<p>Next, run the slave server.</p>
+
+<pre>$ ktserver -port 1979 -ulog 0002-ulog -sid 2 \
+  -mhost localhost -mport 1978 -rts 0002.rts casket-0002.kch
+</pre>
+
+<p>Insert some records into the master.</p>
+
+<pre>$ ktremotemgr set -port 1978 one first
+$ ktremotemgr set -port 1978 two second
+</pre>
+
+<p>Check consistency of stored records in the master and the slave.</p>
+
+<pre>$ ktremotemgr list -port 1978 -pv
+one     first
+two     second
+$ ktremotemgr list -port 1979 -pv
+one     first
+two     second
+</pre>
+
+<p>Simulate the case that the master is crashed.  Terminate the master by Ctrl-C and remove the database file.</p>
+
+<pre>$ rm casket-0001.kch
+</pre>
+
+<p>Terminate the slave by Ctrl-C and restart it as the new master.</p>
+
+<pre>$ ktserver -port 1979 -ulog 0002-ulog -sid 2 casket-0002.kch
+</pre>
+
+<p>Add a new slave at port 1980.</p>
+
+<pre>$ ktserver -port 1980 -ulog 0003-ulog -sid 3 \
+  -mhost localhost -mport 1979 -rts 0003.rts casket-0003.kch
+</pre>
+
+<p>Check consistency of stored records in the new master and the new slave.</p>
+
+<pre>$ ktremotemgr list -port 1979 -pv
+one     first
+two     second
+$ ktremotemgr list -port 1980 -pv
+one     first
+two     second
+</pre>
+
+<p>Kyoto Tycoon supports "dual master" replication which realizes higher availability.  To do it, run two servers which replicate each other.  Note that updating both of the masters at the same time might cause inconsistency of their databases.</p>
 
 <hr />
 

@@ -1,3 +1,9 @@
+2010-11-26  Mikio Hirabayashi  <info@fallabs.com>
+
+	* ktulog.h (UpdateLogger::write_meta, validate_meta): new functions.
+
+	- Release: 0.9.10
+
 2010-11-12  Mikio Hirabayashi  <info@fallabs.com>
 
 	* ktulog.h, ktulog.cc: new files.

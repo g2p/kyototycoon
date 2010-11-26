@@ -139,7 +139,7 @@
 <dd>Performs an HTTP session.</dd>
 <dt><code>ktutilmgr rpc [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-ienc <var>str</var>] [-oenc <var>str</var>] <var>proc</var> [<var>name</var> <var>value</var> ...]</code></dt>
 <dd>Performs an RPC session.</dd>
-<dt><code>ktutilmgr ulog [-ts <var>num</var>] [-uw] <var>path</var></code></dt>
+<dt><code>ktutilmgr ulog [-ts <var>num</var>] [-uw] [-uf] <var>path</var></code></dt>
 <dd>Prints update logs.</dd>
 <dt><code>ktutilmgr conf [-v|-i|-l|-p]</code></dt>
 <dd>Shows the configuration of Kyoto Tycoon.</dd>
@@ -171,6 +171,7 @@
 <li><code>-oenc <var>str</var></code> : specifies the encoding of the output data.</li>
 <li><code>-ts <var>num</var></code> : specifies the largest time stamp of already read logs.  "now" means the current time stamp.</li>
 <li><code>-uw</code> : waits for update forever.</li>
+<li><code>-uf</code> : prints status of each update og file.</li>
 <li><code>-v</code> : show the version number of Kyoto Tycoon.</li>
 <li><code>-i</code> : show options to include the headers of Tokyo Tycoon.</li>
 <li><code>-l</code> : show options to link the library of Tokyo Tycoon.</li>

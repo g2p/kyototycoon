@@ -35,7 +35,7 @@ static int32_t prochttp(const char* url, kt::HTTPClient::Method meth, const char
                         double tout, bool ph, int32_t ec);
 static int32_t procrpc(const char* proc, std::map<std::string, std::string>* params,
                        const char* host, int32_t port, double tout, int32_t ienc, int32_t oenc);
-static int32_t proculog(const char* path, uint64_t ts, bool uw);
+static int32_t proculog(const char* path, uint64_t ts, bool uw, bool uf);
 static int32_t procconf(int32_t mode);
 
 
@@ -76,7 +76,7 @@ static void usage() {
           " [-qs name value] [-tout num] [-ph] [-ec num] url\n", g_progname);
   eprintf("  %s rpc [-host str] [-port num] [-tout num] [-ienc str] [-oenc str]"
           " proc [name value ...]\n", g_progname);
-  eprintf("  %s ulog [-ts num] [-uw] path\n", g_progname);
+  eprintf("  %s ulog [-ts num] [-uw] [-uf] path\n", g_progname);
   eprintf("  %s conf [-v|-i|-l|-p]\n", g_progname);
   eprintf("  %s version\n", g_progname);
   eprintf("\n");
@@ -232,6 +232,7 @@ static int32_t runulog(int32_t argc, char** argv) {
   const char* path = NULL;
   uint64_t ts = 0;
   bool uw = false;
+  bool uf = false;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -245,6 +246,8 @@ static int32_t runulog(int32_t argc, char** argv) {
         }
       } else if (!std::strcmp(argv[i], "-uw")) {
         uw = true;
+      } else if (!std::strcmp(argv[i], "-uf")) {
+        uf = true;
       } else {
         usage();
       }
@@ -256,7 +259,7 @@ static int32_t runulog(int32_t argc, char** argv) {
     }
   }
   if (!path) usage();
-  int32_t rv = proculog(path, ts, uw);
+  int32_t rv = proculog(path, ts, uw, uf);
   return rv;
 }
 
@@ -475,7 +478,7 @@ static int32_t procrpc(const char* proc, std::map<std::string, std::string>* par
 
 
 // perform ulog command
-static int32_t proculog(const char* path, uint64_t ts, bool uw) {
+static int32_t proculog(const char* path, uint64_t ts, bool uw, bool uf) {
   kt::UpdateLogger ulog;
   if (!kc::File::status(path)) {
     if (!ulog.open(path, 0)) {
@@ -492,29 +495,42 @@ static int32_t proculog(const char* path, uint64_t ts, bool uw) {
     return 1;
   }
   bool err = false;
-  kt::UpdateLogger::Reader ulrd;
-  if (!ulrd.open(&ulog, ts)) {
-    eprintf("%s: opening the reader failed\n", g_progname);
-    err = true;
-  }
-  while (true) {
-    size_t msiz;
-    uint64_t mts;
-    char* mbuf = ulrd.read(&msiz, &mts);
-    if (mbuf) {
-      iprintf("%llu\t", (unsigned long long)mts);
-      printdata(mbuf, msiz, true);
-      iprintf("\n");
-      delete[] mbuf;
-    } else if (uw) {
-      kc::Thread::sleep(0.1);
-    } else {
-      break;
+  if (uf) {
+    std::vector<kt::UpdateLogger::FileStatus> files;
+    ulog.list_files(&files);
+    std::vector<kt::UpdateLogger::FileStatus>::iterator it = files.begin();
+    std::vector<kt::UpdateLogger::FileStatus>::iterator itend = files.end();
+    while (it != itend) {
+      if (it->ts >= ts)
+        iprintf("%s\t%llu\t%llu\n",
+                it->path.c_str(), (unsigned long long)it->size, (unsigned long long)it->ts);
+      it++;
     }
-  }
-  if (!ulrd.close()) {
-    eprintf("%s: closing the reader failed\n", g_progname);
-    err = true;
+  } else {
+    kt::UpdateLogger::Reader ulrd;
+    if (!ulrd.open(&ulog, ts)) {
+      eprintf("%s: opening the reader failed\n", g_progname);
+      err = true;
+    }
+    while (true) {
+      size_t msiz;
+      uint64_t mts;
+      char* mbuf = ulrd.read(&msiz, &mts);
+      if (mbuf) {
+        iprintf("%llu\t", (unsigned long long)mts);
+        printdata(mbuf, msiz, true);
+        iprintf("\n");
+        delete[] mbuf;
+      } else if (uw) {
+        kc::Thread::sleep(0.1);
+      } else {
+        break;
+      }
+    }
+    if (!ulrd.close()) {
+      eprintf("%s: closing the reader failed\n", g_progname);
+      err = true;
+    }
   }
   if (!ulog.close()) {
     eprintf("%s: closing the logger failed\n", g_progname);
