@@ -27,6 +27,7 @@ static void usage();
 static void dberrprint(kt::RemoteDB* db, const char* info);
 static int32_t runreport(int argc, char** argv);
 static int32_t runscript(int argc, char** argv);
+static int32_t runtunerepl(int argc, char** argv);
 static int32_t runinform(int argc, char** argv);
 static int32_t runclear(int argc, char** argv);
 static int32_t runsync(int argc, char** argv);
@@ -36,10 +37,12 @@ static int32_t runget(int argc, char** argv);
 static int32_t runlist(int argc, char** argv);
 static int32_t runimport(int argc, char** argv);
 static int32_t runvacuum(int argc, char** argv);
-static int32_t runrepl(int argc, char** argv);
+static int32_t runslave(int argc, char** argv);
 static int32_t procreport(const char* host, int32_t port, double tout);
 static int32_t procscript(const char* proc, const char* host, int32_t port, double tout,
                           const std::map<std::string, std::string>& params);
+static int32_t proctunerepl(const char* mhost, const char* host, int32_t port, double tout,
+                            int32_t mport, uint64_t ts, double iv);
 static int32_t procinform(const char* host, int32_t port, double tout, const char* dbexpr,
                           bool st);
 static int32_t procclear(const char* host, int32_t port, double tout, const char* dbexpr);
@@ -60,8 +63,8 @@ static int32_t procimport(const char* file, const char* host, int32_t port, doub
                           const char* dbexpr, bool sx, int64_t xt);
 static int32_t procvacuum(const char* host, int32_t port, double tout, const char* dbexpr,
                           int64_t step);
-static int32_t procrepl(const char* host, int32_t port, double tout,
-                        uint64_t ts, int32_t sid, bool uw);
+static int32_t procslave(const char* host, int32_t port, double tout,
+                         uint64_t ts, int32_t sid, bool uw);
 
 
 // print the usage and exit
@@ -74,6 +77,8 @@ int main(int argc, char** argv) {
     rv = runreport(argc, argv);
   } else if (!std::strcmp(argv[1], "script")) {
     rv = runscript(argc, argv);
+  } else if (!std::strcmp(argv[1], "tunerepl")) {
+    rv = runtunerepl(argc, argv);
   } else if (!std::strcmp(argv[1], "inform")) {
     rv = runinform(argc, argv);
   } else if (!std::strcmp(argv[1], "clear")) {
@@ -92,8 +97,8 @@ int main(int argc, char** argv) {
     rv = runimport(argc, argv);
   } else if (!std::strcmp(argv[1], "vacuum")) {
     rv = runvacuum(argc, argv);
-  } else if (!std::strcmp(argv[1], "repl")) {
-    rv = runrepl(argc, argv);
+  } else if (!std::strcmp(argv[1], "slave")) {
+    rv = runslave(argc, argv);
   } else if (!std::strcmp(argv[1], "version") || !std::strcmp(argv[1], "--version")) {
     printversion();
   } else {
@@ -111,6 +116,8 @@ static void usage() {
   eprintf("  %s report [-host str] [-port num] [-tout num]\n", g_progname);
   eprintf("  %s script [-host str] [-port num] [-tout num] [-arg name value] proc\n",
           g_progname);
+  eprintf("  %s tunerepl [-host str] [-port num] [-tout num] [-mport num] [-ts num] [-iv num]"
+          " [mhost]\n", g_progname);
   eprintf("  %s inform [-host str] [-port num] [-tout num] [-db str] [-st]\n", g_progname);
   eprintf("  %s clear [-host str] [-port num] [-tout num] [-db str]\n", g_progname);
   eprintf("  %s sync [-host str] [-port num] [-tout num] [-db str] [-hard] [-cmd str]\n",
@@ -126,7 +133,7 @@ static void usage() {
           g_progname);
   eprintf("  %s vacuum [-host str] [-port num] [-tout num] [-db str] [-step num]\n",
           g_progname);
-  eprintf("  %s repl [-host str] [-port num] [-tout num] [-ts num] [-sid num] [-uw]\n",
+  eprintf("  %s slave [-host str] [-port num] [-tout num] [-ts num] [-sid num] [-uw]\n",
           g_progname);
   eprintf("\n");
   std::exit(1);
@@ -210,6 +217,58 @@ static int32_t runscript(int argc, char** argv) {
   }
   if (!proc || port < 1) usage();
   int32_t rv = procscript(proc, host, port, tout, params);
+  return rv;
+}
+
+
+// parse arguments of tunerepl command
+static int32_t runtunerepl(int argc, char** argv) {
+  bool argbrk = false;
+  const char* mhost = NULL;
+  const char* host = "";
+  int32_t port = kt::DEFPORT;
+  double tout = 0;
+  int32_t mport = kt::DEFPORT;
+  uint64_t ts = UINT64_MAX;
+  double iv = -1;
+  for (int32_t i = 2; i < argc; i++) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-host")) {
+        if (++i >= argc) usage();
+        host = argv[i];
+      } else if (!std::strcmp(argv[i], "-port")) {
+        if (++i >= argc) usage();
+        port = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-tout")) {
+        if (++i >= argc) usage();
+        tout = kc::atof(argv[i]);
+      } else if (!std::strcmp(argv[i], "-mport")) {
+        if (++i >= argc) usage();
+        mport = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-ts")) {
+        if (++i >= argc) usage();
+        if (!std::strcmp(argv[i], "now") || !std::strcmp(argv[i], "-")) {
+          ts = UINT64_MAX - 1;
+        } else {
+          ts = kc::atoix(argv[i]);
+        }
+      } else if (!std::strcmp(argv[i], "-iv")) {
+        if (++i >= argc) usage();
+        iv = kc::atof(argv[i]);
+      } else {
+        usage();
+      }
+    } else if (!mhost) {
+      argbrk = true;
+      mhost = argv[i];
+    } else {
+      usage();
+    }
+  }
+  if (port < 1 || mport < 1) usage();
+  int32_t rv = proctunerepl(mhost, host, port, tout, mport, ts, iv);
   return rv;
 }
 
@@ -705,8 +764,8 @@ static int32_t runvacuum(int argc, char** argv) {
 }
 
 
-// parse arguments of repl command
-static int32_t runrepl(int argc, char** argv) {
+// parse arguments of slave command
+static int32_t runslave(int argc, char** argv) {
   bool argbrk = false;
   const char* host = "";
   int32_t port = kt::DEFPORT;
@@ -748,7 +807,7 @@ static int32_t runrepl(int argc, char** argv) {
     }
   }
   if (port < 1) usage();
-  int32_t rv = procrepl(host, port, tout, ts, sid, uw);
+  int32_t rv = procslave(host, port, tout, ts, sid, uw);
   return rv;
 }
 
@@ -800,6 +859,27 @@ static int32_t procscript(const char* proc, const char* host, int32_t port, doub
     }
   } else {
     dberrprint(&db, "DB::play_script failed");
+    err = true;
+  }
+  if (!db.close()) {
+    dberrprint(&db, "DB::close failed");
+    err = true;
+  }
+  return err ? 1 : 0;
+}
+
+
+// perform tunerepl command
+static int32_t proctunerepl(const char* mhost, const char* host, int32_t port, double tout,
+                            int32_t mport, uint64_t ts, double iv) {
+  kt::RemoteDB db;
+  if (!db.open(host, port, tout)) {
+    dberrprint(&db, "DB::open failed");
+    return 1;
+  }
+  bool err = false;
+  if (!db.tune_replication(mhost ? mhost : "", mport, ts, iv)) {
+    dberrprint(&db, "DB::tune_replication failed");
     err = true;
   }
   if (!db.close()) {
@@ -1190,9 +1270,9 @@ static int32_t procvacuum(const char* host, int32_t port, double tout, const cha
 }
 
 
-// perform repl command
-static int32_t procrepl(const char* host, int32_t port, double tout,
-                        uint64_t ts, int32_t sid, bool uw) {
+// perform slave command
+static int32_t procslave(const char* host, int32_t port, double tout,
+                         uint64_t ts, int32_t sid, bool uw) {
   ReplicationClient rc;
   if (!rc.open(host, port, tout, ts, sid)) {
     eprintf("%s: %s:%d: open error\n", g_progname, host, port);
@@ -1204,16 +1284,18 @@ static int32_t procrepl(const char* host, int32_t port, double tout,
     uint64_t mts;
     char* mbuf = rc.read(&msiz, &mts);
     if (mbuf) {
-      size_t rsiz;
-      uint16_t rsid, rdbid;
-      const char* rbuf = DBUpdateLogger::parse(mbuf, msiz, &rsiz, &rsid, &rdbid);
-      if (rbuf) {
-        printf("%llu\t%u\t%u\t", (unsigned long long)mts, rsid, rdbid);
-        printdata(rbuf, rsiz, true);
-        iprintf("\n");
-      } else {
-        eprintf("%s: parsing a message failed", g_progname);
-        err = true;
+      if (msiz > 0) {
+        size_t rsiz;
+        uint16_t rsid, rdbid;
+        const char* rbuf = DBUpdateLogger::parse(mbuf, msiz, &rsiz, &rsid, &rdbid);
+        if (rbuf) {
+          printf("%llu\t%u\t%u\t", (unsigned long long)mts, rsid, rdbid);
+          printdata(rbuf, rsiz, true);
+          iprintf("\n");
+        } else {
+          eprintf("%s: parsing a message failed\n", g_progname);
+          err = true;
+        }
       }
       delete[] mbuf;
     } else if (!rc.alive() || !uw) {

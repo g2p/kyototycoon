@@ -706,6 +706,36 @@ public:
     return true;
   }
   /**
+   * Set the replication configuration.
+   * @param host the name or the address of the master server.  If it is an empty string,
+   * replication is disabled.
+   * @param port the port numger of the server.
+   * @param ts the maximum time stamp of already read logs.  If it is UINT64_MAX, the current
+   * setting is not modified.  If it is UINT64_MAX - 1, the current time is specified.
+   * @param iv the interval of each replication operation in milliseconds.  If it is negative,
+   * the current interval is not modified.
+   * @return true on success, or false on failure.
+   */
+  bool tune_replication(const std::string& host = "", int32_t port = DEFPORT,
+                        uint64_t ts = UINT64_MAX, double iv = -1) {
+    std::map<std::string, std::string> inmap;
+    if (!host.empty()) inmap["host"] = host;
+    if (port != DEFPORT) kc::strprintf(&inmap["port"], "%d", port);
+    if (ts == UINT64_MAX - 1) {
+      inmap["ts"] = "now";
+    } else if (ts != UINT64_MAX) {
+      kc::strprintf(&inmap["ts"], "%llu", (unsigned long long)ts);
+    }
+    if (iv >= 0) kc::strprintf(&inmap["iv"], "%.6f", iv);
+    std::map<std::string, std::string> outmap;
+    RPCClient::ReturnValue rv = rpc_.call("tune_replication", &inmap, &outmap);
+    if (rv != RPCClient::RVSUCCESS) {
+      set_rpc_error(rv, outmap);
+      return false;
+    }
+    return true;
+  }
+  /**
    * Get the miscellaneous status information.
    * @param strmap a string map to contain the result.
    * @return true on success, or false on failure.

@@ -588,7 +588,7 @@ four    fourth
 <li>Each slave must specify the replication time stamp file.</li>
 </ul>
 
-<p>This section describes how to set up one master (at port 1978) and one slave (at port 1979) replication.  First, run the master server.</p>
+<p>This section describes how to set up one master at port 1978 and one slave at port 1979 replication.  First, run the master server.</p>
 
 <pre>$ ktserver -port 1978 -ulog 0001-ulog -sid 1 casket-0001.kch
 </pre>
@@ -641,7 +641,91 @@ one     first
 two     second
 </pre>
 
-<p>Kyoto Tycoon supports "dual master" replication which realizes higher availability.  To do it, run two servers which replicate each other.  Note that updating both of the masters at the same time might cause inconsistency of their databases.</p>
+<h3 id="tips_dualmaster">Dual-Master Topology</h3>
+
+<p>Kyoto Tycoon supports "dual master" replication topology which realizes higher availability.  It means that two servers replicate each other so that you don't have to restart the survivor when one of them crashed.</p>
+
+<p>This section describes how to set up two masters called A and B which replicate each other.  First, run the server A.</p>
+
+<pre>$ ktserver -port 10001 -ulog 0001-ulog -sid 1 \
+  -mhost localhost -mport 10002 -rts 0001.rts casket-0001.kch
+</pre>
+
+<p>Next, run the server B.</p>
+
+<pre>$ ktserver -port 10002 -ulog 0002-ulog -sid 2 \
+  -mhost localhost -mport 10001 -rts 0002.rts casket-0002.kch
+</pre>
+
+<p>Insert some records into the server A.</p>
+
+<pre>$ ktremotemgr set -port 10001 one first
+$ ktremotemgr set -port 10001 two second
+</pre>
+
+<p>Insert some records into the server B.</p>
+
+<pre>$ ktremotemgr set -port 10002 three third
+$ ktremotemgr set -port 10002 four fourth
+</pre>
+
+<p>Check consistency of stored records in the two servers.</p>
+
+<pre>$ ktremotemgr list -port 10001 -pv
+one     first
+two     second
+three   third
+four    fourth
+$ ktremotemgr list -port 10002 -pv
+one     first
+two     second
+three   third
+four    fourth
+</pre>
+
+<p>Simulate the case that the server A is crashed.  Terminate the server A by Ctrl-C and remove the database file.</p>
+
+<pre>$ rm casket-0001.kch
+</pre>
+
+<p>Run a new server called C which replicates the server B.</p>
+
+<pre>$ ktserver -port 10003 -ulog 0003-ulog -sid 3 \
+  -mhost localhost -mport 10002 -rts 0003.rts casket-0003.kch
+</pre>
+
+<p>Modify the replication configuration of the server B to replicate the server C.</p>
+
+<pre>$ ktremotemgr tunerepl -port 10002 -mport 10003 localhost
+</pre>
+
+<p>Insert some records into the server C.</p>
+
+<pre>$ ktremotemgr set -port 10003 five fifth
+$ ktremotemgr set -port 10003 six sixth
+</pre>
+
+<p>Check consistency of stored records in the current servers.</p>
+
+<pre>$ ktremotemgr list -port 10002 -pv
+one     first
+two     second
+three   third
+four    fourth
+five    fifth
+six     sixth
+$ ktremotemgr list -port 10003 -pv
+one     first
+two     second
+three   third
+four    fourth
+five    fifth
+six     sixth
+</pre>
+
+<p>Of course, using a backup database file to apply "difference recovery" instead of "full recovery" when adding a new server is a good idea.  To apply difference recovery, specify the time stamp of the backup database file with the "-ts" option of the "ktremotemgr tunerepl" command.</p>
+
+<p>Note that updating both of the servers at the same time might cause inconsistency of their databases.  That is, you should use one master as a "active master" and the other as a "standby master".</p>
 
 <hr />
 
@@ -800,6 +884,16 @@ key     mikio
 <dd>input: (optional): arbitrary records whose keys trail the character "_".</dd>
 <dd>output: (optional): arbitrary keys which trail the character "_".</dd>
 <dd>status code: 200, 450 (arbitrary logical error).</dd>
+</dl>
+
+<dl>
+<dt><code>/rpc/tune_replication</code></dt>
+<dd>Set the replication configuration.</dd>
+<dd>input: <code>host</code>: (optional): the name or the address of the master server.  If it is omitted, replication is disabled.</dd>
+<dd>input: <code>port</code>: (optional): the port numger of the server.  If it is omitted, the default port is specified.</dd>
+<dd>input: <code>ts</code>: (optional): the maximum time stamp of already read logs.  If it is omitted, the current setting is not modified.  If it is "now", the current time is specified.</dd>
+<dd>input: <code>iv</code>: (optional): the interval of each replication operation in milliseconds.  If it is omitted, the current setting is not modified.</dd>
+<dd>status code: 200.</dd>
 </dl>
 
 <dl>

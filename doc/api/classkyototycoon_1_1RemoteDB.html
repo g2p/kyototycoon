@@ -57,6 +57,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the report of the server information.  <a href="#afe7f55262f393a650ff6c5eee2d0b305"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#af194333ba1637669dc8fbd8b9d271434">play_script</a> (const std::string &amp;name, const std::map&lt; std::string, std::string &gt; &amp;params, std::map&lt; std::string, std::string &gt; *result)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Call a procedure of the scripting extension.  <a href="#af194333ba1637669dc8fbd8b9d271434"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a112bdcfad5d2ee531de136353a80857a">tune_replication</a> (const std::string &amp;host=&quot;&quot;, int32_t port=<a class="el" href="namespacekyototycoon.html#aebd15b3b803e2e0d38f51c0385b66c43">DEFPORT</a>, uint64_t ts=UINT64_MAX, double iv=-1)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the replication configuration.  <a href="#a112bdcfad5d2ee531de136353a80857a"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a4fe09abd9cbaf886c7c11696ce2437ad">status</a> (std::map&lt; std::string, std::string &gt; *strmap)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the miscellaneous status information.  <a href="#a4fe09abd9cbaf886c7c11696ce2437ad"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a875c26b9bd91299054e22f4f427b0e5e">clear</a> ()</td></tr>
@@ -320,6 +322,57 @@
     <tr><td valign="top"></td><td valign="top"><em>name</em>&nbsp;</td><td>the name of the procedure to call. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>params</em>&nbsp;</td><td>a string map containing the input parameters. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>result</em>&nbsp;</td><td>a string map to contain the output data. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a112bdcfad5d2ee531de136353a80857a"></a><!-- doxytag: member="kyototycoon::RemoteDB::tune_replication" ref="a112bdcfad5d2ee531de136353a80857a" args="(const std::string &amp;host=&quot;&quot;, int32_t port=DEFPORT, uint64_t ts=UINT64_MAX, double iv=&#45;1)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::tune_replication </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>host</em> = <code>&quot;&quot;</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t&nbsp;</td>
+          <td class="paramname"> <em>port</em> = <code><a class="el" href="namespacekyototycoon.html#aebd15b3b803e2e0d38f51c0385b66c43">DEFPORT</a></code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&nbsp;</td>
+          <td class="paramname"> <em>ts</em> = <code>UINT64_MAX</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&nbsp;</td>
+          <td class="paramname"> <em>iv</em> = <code>-1</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Set the replication configuration. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>host</em>&nbsp;</td><td>the name or the address of the master server. If it is an empty string, replication is disabled. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>port</em>&nbsp;</td><td>the port numger of the server. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>ts</em>&nbsp;</td><td>the maximum time stamp of already read logs. If it is UINT64_MAX, the current setting is not modified. If it is UINT64_MAX - 1, the current time is specified. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>iv</em>&nbsp;</td><td>the interval of each replication operation in milliseconds. If it is negative, the current interval is not modified. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1544,7 +1597,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Sat Nov 27 01:07:27 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Mon Nov 29 04:10:23 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

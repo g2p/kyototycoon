@@ -1,4 +1,16 @@
-2010-11-26  Mikio Hirabayashi  <info@fallabs.com>
+2010-11-27  Mikio Hirabayashi  <info@fallabs.com>
+
+	* ktsocket.h (Poller::deposit): EPOLLRDHUP was abolished to support old kernels.
+
+	* ktremotedb.h (RemoteDB::tune_replication): new function.
+
+	* ktserver.cc (Worker::do_tune_replication): new function.
+
+	* ktremotemgr.cc (runtunerepl, proctunerepl): new functions.
+
+	- Release: 0.9.11
+
+2010-11-20  Mikio Hirabayashi  <info@fallabs.com>
 
 	* ktulog.h (UpdateLogger::write_meta, validate_meta): new functions.
 

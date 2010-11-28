@@ -32,8 +32,8 @@ start(){
     -rts "$basedir/0002.rts" \
     -cmd "$basedir/lab" "$basedir/0002-01.kch" "$basedir/0002-02.kct"
   sleep 1
-  ktremotemgr report -port 1978
-  ktremotemgr report -port 1979
+  printf "0001: %s\n" "`cat 0001.pid`"
+  printf "0002: %s\n" "`cat 0002.pid`"
 }
 
 
@@ -43,6 +43,7 @@ stop(){
   [ -n "$pid" ] && kill -TERM "$pid"
   pid=`cat 0002.pid`
   [ -n "$pid" ] && kill -TERM "$pid"
+  sleep 3
 }
 
 
@@ -52,6 +53,7 @@ hup(){
   [ -n "$pid" ] && kill -HUP "$pid"
   pid=`cat 0002.pid`
   [ -n "$pid" ] && kill -HUP "$pid"
+  sleep 3
 }
 
 

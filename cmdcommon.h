@@ -37,7 +37,8 @@ const size_t RECBUFSIZ = 64;             // buffer size for a record
 const size_t RECBUFSIZL = 1024;          // buffer size for a long record
 const size_t LINEBUFSIZ = 8192;          // buffer size for a line
 const double DEFTOUT = 30;               // default timeout
-const double DEFTHNUM = 8;               // default number of threads
+const int32_t DEFTHNUM = 8;              // default number of threads
+const double DEFRIV = 0.05;              // default interval of replication
 const int64_t DEFULIM = 256LL << 20;     // default limit size of update log file
 const uint8_t REPLMAGIC = 0xa0;          // magic number of replication request
 

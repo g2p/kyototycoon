@@ -1107,7 +1107,7 @@ bool Poller::deposit(Pollable* event) {
   ev.events = EPOLLONESHOT;
   if (flags & Pollable::EVINPUT) ev.events |= EPOLLIN;
   if (flags & Pollable::EVOUTPUT) ev.events |= EPOLLOUT;
-  if (flags & Pollable::EVEXCEPT) ev.events |= EPOLLHUP | EPOLLRDHUP | EPOLLPRI;
+  if (flags & Pollable::EVEXCEPT) ev.events |= EPOLLHUP | EPOLLPRI;
   ev.data.ptr = event;
   if (::epoll_ctl(core->fd, EPOLL_CTL_ADD, event->descriptor(), &ev) != 0) {
     pollseterrmsg(core, "epoll_ctl failed");

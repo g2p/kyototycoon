@@ -438,7 +438,7 @@ public:
   }
   /**
    * Get status of each log files.
-   * @param a vector to store status structures of each log files.
+   * @param fstvec a vector to store status structures of each log files.
    */
   void list_files(std::vector<FileStatus>* fstvec) {
     _assert_(fstvec);

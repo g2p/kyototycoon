@@ -179,7 +179,7 @@ public:
   /**
    * Destructor.
    */
-  ~MapReduce() {
+  virtual ~MapReduce() {
     _assert_(true);
   }
   /**

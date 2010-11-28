@@ -1824,7 +1824,8 @@ private:
    * Update Operations.
    */
   enum UpdateOperation {
-    USET = 0xa0,                         ///< setting the value
+    UNOP = 0xa0,                         ///< no operation
+    USET,                                ///< setting the value
     UREMOVE,                             ///< removing the record
     UOPEN,                               ///< opening
     UCLOSE,                              ///< closing

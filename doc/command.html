@@ -47,7 +47,7 @@
 <p>The command `<code>ktserver</code>' runs the server managing database instances.  This command is used in the following format.  `<var>db</var>' specifies a database name.  If no database is specified, an unnamed on-memory database is opened.</p>
 
 <dl class="api">
-<dt><code>ktserver [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-th <var>num</var>] [-log <var>file</var>] [-li|-ls|-le|-lz] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-ord] [-oat|-oas|-onl|-otl|-onr] [-asi <var>num</var>] [-ash] [-dmn] [-pid <var>file</var>] [-scr <var>file</var>] [-mhost <var>str</var>] [-mport <var>num</var>] [-rts <var>file</var>] [<var>db</var>...]</code></dt>
+<dt><code>ktserver [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-th <var>num</var>] [-log <var>file</var>] [-li|-ls|-le|-lz] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-ord] [-oat|-oas|-onl|-otl|-onr] [-asi <var>num</var>] [-ash] [-dmn] [-pid <var>file</var>] [-scr <var>file</var>] [-mhost <var>str</var>] [-mport <var>num</var>] [-rts <var>file</var>] [-riv <var>num</var>] [<var>db</var>...]</code></dt>
 </dl>
 
 <p>Options feature the following.</p>
@@ -80,6 +80,7 @@
 <li><code>-mhost <var>str</var></code> : specifies the host name of the master server of replication.</li>
 <li><code>-mport <var>num</var></code> : specifies the port number of the master server of replication.</li>
 <li><code>-rts <var>file</var></code> : specifies the file to contain the replication time stamp.</li>
+<li><code>-riv <var>num</var></code> : specifies the interval of each replication operation in milliseconds.  By default, it is 0.05.</li>
 </ul>
 
 <p>This command returns 0 on success, another on failure.</p>
@@ -169,7 +170,7 @@
 <li><code>-port <var>num</var></code> : specifies the port number of the server.</li>
 <li><code>-ienc <var>str</var></code> : specifies the encoding of the input data.</li>
 <li><code>-oenc <var>str</var></code> : specifies the encoding of the output data.</li>
-<li><code>-ts <var>num</var></code> : specifies the largest time stamp of already read logs.  "now" means the current time stamp.</li>
+<li><code>-ts <var>num</var></code> : specifies the maximum time stamp of already read logs.  "now" means the current time stamp.</li>
 <li><code>-uw</code> : waits for update forever.</li>
 <li><code>-uf</code> : prints status of each update og file.</li>
 <li><code>-v</code> : show the version number of Kyoto Tycoon.</li>
@@ -328,7 +329,7 @@
 <li><code>-des</code> : visits records in descending order.</li>
 <li><code>-max <var>num</var></code> : specifies the maximum number of shown records.</li>
 <li><code>-pv</code> : prints values of records also.</li>
-<li><code>-ts <var>num</var></code> : specifies the largest time stamp of already read logs.  "now" means the current time stamp.</li>
+<li><code>-ts <var>num</var></code> : specifies the maximum time stamp of already read logs.  "now" means the current time stamp.</li>
 </ul>
 
 <p>This command returns 0 on success, another on failure.</p>
@@ -367,13 +368,15 @@
 
 <h2 id="ktremotemgr">ktremotemgr</h2>
 
-<p>The command `<code>ktremotedmgr</code>' is a utility for test and debugging of the remote database and its applications.  `<var>proc</var>' specifies the name of a procedure.  `<var>key</var>' specifies the key of a record.  `<var>value</var>' specifies the value of a record.</p>
+<p>The command `<code>ktremotedmgr</code>' is a utility for test and debugging of the remote database and its applications.  `<var>proc</var>' specifies the name of a procedure.  `<var>mhost</var>' specifies the host name of the master server.  `<var>key</var>' specifies the key of a record.  `<var>value</var>' specifies the value of a record.</p>
 
 <dl class="api">
 <dt><code>ktremotemgr report [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>]</code></dt>
 <dd>Prints statistics of the server.</dd>
 <dt><code>ktremotemgr script [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-arg <var>name</var> <var>value</var>] <var>proc</var></code></dt>
 <dd>Calls a procedure of the scripting extension.</dd>
+<dt><code>ktremotemgr tunerepl [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-mport <var>str</var>] [-ts <var>num</var>] [-iv <var>num</var>] [<var>mhost</var>]</code></dt>
+<dd>Sets the replication configuration.</dd>
 <dt><code>ktremotemgr inform [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-db <var>str</var>] [-st]</code></dt>
 <dd>Prints status information of a database.</dd>
 <dt><code>ktremotemgr clear [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-db <var>str</var>]</code></dt>
@@ -392,7 +395,7 @@
 <dd>Imports records from a TSV file.</dd>
 <dt><code>ktremotemgr vacuum [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-db <var>str</var>] [-step <var>num</var>] <var>path</var></code></dt>
 <dd>Eliminates regions of expired records.</dd>
-<dt><code>ktremotemgr repl [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-ts <var>num</var>] [-sid <var>num</var>] [-uw]</code></dt>
+<dt><code>ktremotemgr slave [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-ts <var>num</var>] [-sid <var>num</var>] [-uw]</code></dt>
 <dd>Simulates a client of replication and prints update logs.</dd>
 </dl>
 
@@ -402,6 +405,9 @@
 <li><code>-host <var>str</var></code> : specifies the host name of the server.</li>
 <li><code>-port <var>num</var></code> : specifies the port number of the server.</li>
 <li><code>-tout <var>num</var></code> : specifies the timeout in seconds.</li>
+<li><code>-mport <var>num</var></code> : specifies the port number of the master server.</li>
+<li><code>-ts <var>num</var></code> : specifies the maximum time stamp of already read logs.  "now" means the current time stamp.</li>
+<li><code>-iv <var>num</var></code> : specifies the interval of each replication operation in milliseconds.</li>
 <li><code>-db <var>str</var></code> : specifies the target database.</li>
 <li><code>-st</code> : prints miscellaneous information.</li>
 <li><code>-hard</code> : performs physical synchronization with the device.</li>
@@ -420,7 +426,6 @@
 <li><code>-max <var>num</var></code> : specifies the maximum number of shown records.</li>
 <li><code>-pv</code> : prints values of records also.</li>
 <li><code>-step <var>num</var></code> : specifies the number of steps.</li>
-<li><code>-ts <var>num</var></code> : specifies the largest time stamp of already read logs.  "now" means the current time stamp.</li>
 <li><code>-sid <var>num</var></code> : specifies the server ID number.</li>
 <li><code>-uw</code> : waits for update forever.</li>
 </ul>
