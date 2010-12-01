@@ -42,13 +42,13 @@
 
 <h2 id="introduction">Introduction</h2>
 
-<p>Kyoto Tycoon is a lightweight database server with auto expiration mechanism, which is useful to handle cache data of various applications.  Kyoto Tycoon is also a package of network interface to the DBM called Kyoto Cabinet.  Although the DBM has high performance and high concurrency, you might bother in case that multiple processes share the same database, or remote processes access the database.  Thus, Kyoto Tycoon is provided for concurrent and remote connections to Kyoto Cabinet.  Kyoto Tycoon is composed of the server process managing multiple databases and its access library for client applications.</p>
+<p>Kyoto Tycoon is a lightweight database server with automatic expiration mechanism, which is useful to handle cache data of various applications.  Kyoto Tycoon is also a package of network interface to the DBM called Kyoto Cabinet.  Although the DBM has high performance and high concurrency, you might bother in case that multiple processes share the same database, or remote processes access the database.  Thus, Kyoto Tycoon is provided for concurrent and remote connections to Kyoto Cabinet.  Kyoto Tycoon is composed of the server process managing multiple databases and its access library for client applications.</p>
 
 <p>The server features high concurrency due to thread-pool modeled implementation and the epoll/kqueue mechanism of the modern Linux/*BSD kernel.  It can handle more than 10 thousand connections at the same time.  Because such system-specific features as epoll/kqueue are encapsulated and abstracted as the same interface, Kyoto Tycoon has high portability and works almost all UNIX-like systems and Windows.</p>
 
 <p>The server provides hot backup so that you can make backup data without stopping the server while copying the database files.  Update logging is also supported and it compensates for the difference between the contents of backup files and the current database.  Moreover, the server implements asynchronous replication.  A server sends update logs to other servers, which evaluate the logs immediately and keep their databases catching up to the master database.</p>
 
-<p>The server and its clients communicate with each other by HTTP.  So, you can write client applications and client libraries in almost all popular languages.  Both of RESTful-style interface by the GET, HEAD, PUT, DELETE methods and RPC-style inteface by the POST method are supported.  The RPC-style interface is based on the protocol called TSV-RPC.  The entity bodies of the request and the response are text data formatted as tab-separated-values so that parsing them is very easy.</p>
+<p>The server and its clients communicate with each other by HTTP.  So, you can write client applications and client libraries in almost all popular languages.  Both of RESTful-style interface by the GET, HEAD, PUT, DELETE methods and RPC-style inteface by the POST method are supported.  The RPC-style interface is based on the protocol called TSV-RPC.  The entity bodies of the request and the response are text data formatted as tab-separated-values so that parsing them is very easy.  In addition, several operations are available in an efficient binary protocol.</p>
 
 <p>The server can embed Lua, a lightweight script language.  Even if you cannot find any built-in operation matching your requirement among the client API of Kyoto Tycoon, you can define arbitrary operations by defining functions in Lua.  The API for Lua scripts provides full set of database operations of Kyoto Cabinet including visitor, cursor, and transaction mechanisms.</p>
 
@@ -75,7 +75,7 @@
 
 <ul>
 <li><a href="http://www.zlib.net/">ZLIB</a> : for loss-less data compression.  1.2.3 or later is required.</li>
-<li><a href="http://fallabs.com/kyotocabinet/">Kyoto Cabinet</a> : lightweight embedded database library.  1.2.15 or later is required.</li>
+<li><a href="http://fallabs.com/kyotocabinet/">Kyoto Cabinet</a> : lightweight embedded database library.  1.2.26 or later is required.</li>
 </ul>
 
 <h3 id="installation_installation">Installation</h3>
@@ -446,7 +446,7 @@ end
   '/var/data/casket.kch#opts=l#bnum=20000000#msiz=12g#dfunit=8'
 </pre>
 
-<p>To improve performance, the bucket number of the hash table by the "bnum" parameter should be two times or more of the number of records.  The size of mapped memory by the "msiz" parameter should be largest as far as the main memory is available.  The unit number of auto defragmentation by the "dfunit" parameter should be about 8 which means every eight detected fragmentations causes a series of auto defragmentation steps.  If you want more high availability at the cost of performance, using auto transaction by the "-oat" option is a good idea.  For detail about database tuning, see <a href="http://fallabs.com/kyotocabinet/spex.html#tips">the tips of Kyoto Cabinet</a>.</p>
+<p>To improve performance, the bucket number of the hash table by the "bnum" parameter should be two times or more of the number of records.  The size of mapped memory by the "msiz" parameter should be largest as far as the main memory is available.  The unit number of automatic defragmentation by the "dfunit" parameter should be about 8 which means every eight detected fragmentations causes a series of automatic defragmentation steps.  If you want higher availability at the cost of performance, using automatic transaction by the "-oat" option is a good idea.  For detail about database tuning, see <a href="http://fallabs.com/kyotocabinet/spex.html#tips">the tips of Kyoto Cabinet</a>.</p>
 
 <p>The option "-dmn" switches the process into the background, which is called daemon.  To stop or restart a daemon process, the PID files should be specified by the "-pid" option.  The PID file contains the process ID by which you can send signals.</p>
 
@@ -472,12 +472,12 @@ $ kill -HUP `cat /var/data/ktserver.pid`
 
 <p>Note that the capacity tuning parameter limits the total size of memory allocation in the "user land" layer.  So, actual memory usage will be probably higher than the limit size.  For peaceful operation, the limit should be up to 65% of the total memory size of the machine.</p>
 
-<p>In addition, auto deletion by the capacity limit is performed at random.  In that case, fresh records may also be deleted soon.  So, setting effectual expiration time not to reach the limit is very important.  If you cannot calculate effectual expiration time beforehand, use the cache hash database instead of the default stash database.  The following setting is suggested.</p>
+<p>In addition, automatic deletion by the capacity limit is performed at random.  In that case, fresh records may also be deleted soon.  So, setting effectual expiration time not to reach the limit is very important.  If you cannot calculate effectual expiration time beforehand, use the cache hash database instead of the default stash database.  The following setting is suggested.</p>
 
 <pre>$ ktserver '*#bnum=20000000#capsiz=8g'
 </pre>
 
-<p>Note that the space effiency of the cache hash database is worse than that of the stash database.  The limit should be up to 50% of the total memory size of the machine.  However, auto deletion by the "capsiz" parameter (not "ktcapsiz") of the cache hash database is based on LRU algorithm, which prevents fresh records from sudden deletion.</p>
+<p>Note that the space effiency of the cache hash database is worse than that of the stash database.  The limit should be up to 50% of the total memory size of the machine.  However, automatic deletion by the "capsiz" parameter (not "ktcapsiz") of the cache hash database is based on LRU algorithm, which prevents fresh records from sudden deletion.</p>
 
 <h3 id="tips_expiration">Inside Expiration</h3>
 
@@ -1198,6 +1198,75 @@ key     mikio
 <p>The path of the URL in the request line must be encoded by URL encoding.  If the path begins with "/", the character is ignored and the trailing string is decoded.  Moreover, if the path includes "/" in the middle, the segment before the middle "/" is treated as the database identifier and the next segment is decoded as the key.  For example, the record whose key is "I love you" in the database "words.kch" is expressed "/words.kch/I%20love%20you" in the request line.</p>
 
 <p>The format of date strings by the "X-Kt-Xt" header is the RFC 1123 date format of GMT.  The server understands the W3CDTF format, the RFC 822 (1123) format, and the decimal integer of seconds from the epoch.</p>
+
+<h3 id="protocol_binary">Binary Protocol</h3>
+
+<p>In order to realize the best performance, several commands in an efficient binary protocol are supported.  As they are available at the same port as other HTTP commands, they can be identified by the first one byte of each request.  Every numeric value are expressed in big-endian order.  If some error occurred in the server, the magic data of the output would be 0xBF and no data trails.</p>
+
+<dl>
+<dt><code>replication</code></dt>
+<dd>Continue to send update logs.</dd>
+<dd>input: <code>magic</code>: (uint8_t): <code>0xB1</code>: identifier.</dd>
+<dd>input: <code>flags</code>: (uint32_t): reserved and not used now.</dd>
+<dd>input: <code>ts</code>: (uint64_t): the maximum time stamp of already read logs.</dd>
+<dd>input: <code>sid</code>: (uint16_t): the server ID number.</dd>
+<dd>output: <code>magic</code>: (uint8_t): <code>0xB1</code>: identifier.</dd>
+<dd>output: <code>ts</code>: (uint64_t): (iteration): the time stamp of the log.</dd>
+<dd>output: <code>size</code>: (uint32_t): (iteration): the size of the log.</dd>
+<dd>output: <code>log</code>: (variable): (iteration): the data of the log.</dd>
+<dd>note: The magic data of the output can be <code>0xB0</code>.  It means that the log reader has reached the current status and been waiting for the next update.  In this case, the current time stamp of uint64_t trails the magic data.  Clients must respond and send a one-byte message of <code>0xB0</code>.</dd>
+</dl>
+
+<dl>
+<dt><code>set_bulk</code></dt>
+<dd>Store records at once.</dd>
+<dd>input: <code>magic</code>: (uint8_t): <code>0xB2</code>: identifier.</dd>
+<dd>input: <code>flags</code>: (uint32_t): reserved and not used now.</dd>
+<dd>input: <code>rnum</code>: (uint32_t): the number of records in the request.</dd>
+<dd>input: <code>dbidx</code>: (uint16_t): (iteration): the index of the target database.</dd>
+<dd>input: <code>ksiz</code>: (uint32_t): (iteration): the size of the key.</dd>
+<dd>input: <code>vsiz</code>: (uint32_t): (iteration): the size of the value.</dd>
+<dd>input: <code>xt</code>: (int64_t): (iteration): the expiration time.</dd>
+<dd>input: <code>key</code>: (variable): (iteration): the data of the key.</dd>
+<dd>input: <code>value</code>: (variable): (iteration): the data of the value.</dd>
+<dd>output: <code>magic</code>: (uint8_t): <code>0xB2</code>: identifier.</dd>
+<dd>output: <code>hits</code>: (uint32_t): the number of stored records.</dd>
+<dd>note: If an error occurred, the output would be a one-byte message of <code>0xBF</code>.</dd>
+</dl>
+
+<dl>
+<dt><code>remove_bulk</code></dt>
+<dd>Remove records at once.</dd>
+<dd>input: <code>magic</code>: (uint8_t): <code>0xB3</code>: identifier.</dd>
+<dd>input: <code>flags</code>: (uint32_t): reserved and not used now.</dd>
+<dd>input: <code>rnum</code>: (uint32_t): the number of records in the request.</dd>
+<dd>input: <code>dbidx</code>: (uint16_t): (iteration): the index of the target database.</dd>
+<dd>input: <code>ksiz</code>: (uint32_t): (iteration): the size of the key.</dd>
+<dd>input: <code>key</code>: (variable): (iteration): the data of the key.</dd>
+<dd>output: <code>magic</code>: (uint8_t): <code>0xB3</code>: identifier.</dd>
+<dd>output: <code>hits</code>: (uint32_t): the number of removed records.</dd>
+<dd>note: If an error occurred, the output would be a one-byte message of <code>0xBF</code>.</dd>
+</dl>
+
+<dl>
+<dt><code>get_bulk</code></dt>
+<dd>Retrieve records at once.</dd>
+<dd>input: <code>magic</code>: (uint8_t): <code>0xB4</code>: identifier.</dd>
+<dd>input: <code>flags</code>: (uint32_t): reserved and not used now.</dd>
+<dd>input: <code>rnum</code>: (uint32_t): the number of records in the request.</dd>
+<dd>input: <code>dbidx</code>: (uint16_t): (iteration): the index of the target database.</dd>
+<dd>input: <code>ksiz</code>: (uint32_t): (iteration): the size of the key.</dd>
+<dd>input: <code>key</code>: (variable): (iteration): the data of the key.</dd>
+<dd>output: <code>magic</code>: (uint8_t): <code>0xB4</code>: identifier.</dd>
+<dd>output: <code>hits</code>: (uint32_t): the number of retrieved records.</dd>
+<dd>output: <code>dbidx</code>: (uint16_t): (iteration): the index of the target database.</dd>
+<dd>output: <code>ksiz</code>: (uint32_t): (iteration): the size of the key.</dd>
+<dd>output: <code>vsiz</code>: (uint32_t): (iteration): the size of the value.</dd>
+<dd>output: <code>xt</code>: (int64_t): (iteration): the expiration time.</dd>
+<dd>output: <code>key</code>: (variable): (iteration): the data of the key.</dd>
+<dd>output: <code>value</code>: (variable): (iteration): the data of the value.</dd>
+<dd>note: If an error occurred, the output would be a one-byte message of <code>0xBF</code>.</dd>
+</dl>
 
 <hr />
 

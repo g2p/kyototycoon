@@ -30,6 +30,14 @@ namespace kyototycoon {                  // common namespace
 
 
 /**
+ * Constants for implementation.
+ */
+namespace {
+const int32_t RDBRECBUFSIZ = 2048;       ///< size for a record buffer
+}
+
+
+/**
  * Remote database.
  * @note This class is a concrete class to access remote database servers.  This class can be
  * inherited but overwriting methods is forbidden.  Before every database operation, it is
@@ -43,10 +51,13 @@ class RemoteDB {
 public:
   class Cursor;
   class Error;
+  struct BulkRecord;
 private:
   /** An alias of list of cursors. */
   typedef std::list<Cursor*> CursorList;
 public:
+  /** The maximum size of each record data. */
+  static const size_t DATAMAXSIZ = 1ULL << 28;
   /**
    * Cursor to indicate a record.
    */
@@ -122,7 +133,6 @@ public:
       return jump(key.c_str(), key.size());
     }
     /**
-
      * Jump the cursor to the last record for backward scan.
      * @return true on success, or false on failure.
      * @note This method is dedicated to tree databases.  Some database types, especially hash
@@ -591,6 +601,26 @@ public:
     Code code_;
     /** The supplement message. */
     std::string message_;
+  };
+  /**
+   * Record for bulk operation.
+   */
+  struct BulkRecord {
+    uint16_t dbidx;                      ///< index of the target database
+    std::string key;                     ///< key
+    std::string value;                   ///< value
+    int64_t xt;                          ///< expiration time
+  };
+  /**
+   * Magic data in binary protocol.
+   */
+  enum BinaryMagic {
+    BMNOP = 0xb0,                        ///< no operation
+    BMREPLICATION,                       ///< replication
+    BMSETBULK,                           ///< set in bulk
+    BMREMOVEBULK,                        ///< remove in bulk
+    BMGETBULK,                           ///< get in bulk
+    BMERROR = 0xbf                       ///< error
   };
   /**
    * Default constructor.
@@ -1387,6 +1417,250 @@ public:
     dbexpr_ = expr;
   }
   /**
+   * Store records at once in the binary protocol.
+   * @param recs the records to store.
+   * @return the number of stored records, or -1 on failure.
+   */
+  int64_t set_bulk_binary(const std::vector<BulkRecord>& recs) {
+    _assert_(true);
+    size_t rsiz = 1 + sizeof(uint32_t) + sizeof(uint32_t);
+    std::vector<BulkRecord>::const_iterator it = recs.begin();
+    std::vector<BulkRecord>::const_iterator itend = recs.end();
+    while (it != itend) {
+      rsiz += sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(int64_t);
+      rsiz += it->key.size() + it->value.size();
+      it++;
+    }
+    char* rbuf = new char[rsiz];
+    char* wp = rbuf;
+    *(wp++) = BMSETBULK;
+    kc::writefixnum(wp, 0, sizeof(uint32_t));
+    wp += sizeof(uint32_t);
+    kc::writefixnum(wp, recs.size(), sizeof(uint32_t));
+    wp += sizeof(uint32_t);
+    it = recs.begin();
+    while (it != itend) {
+      kc::writefixnum(wp, it->dbidx, sizeof(uint16_t));
+      wp += sizeof(uint16_t);
+      kc::writefixnum(wp, it->key.size(), sizeof(uint32_t));
+      wp += sizeof(uint32_t);
+      kc::writefixnum(wp, it->value.size(), sizeof(uint32_t));
+      wp += sizeof(uint32_t);
+      kc::writefixnum(wp, it->xt, sizeof(int64_t));
+      wp += sizeof(int64_t);
+      std::memcpy(wp, it->key.data(), it->key.size());
+      wp += it->key.size();
+      std::memcpy(wp, it->value.data(), it->value.size());
+      wp += it->value.size();
+      it++;
+    }
+    Socket* sock = rpc_.reveal_core()->reveal_core();
+    int64_t rv;
+    if (sock->send(rbuf, rsiz)) {
+      char hbuf[sizeof(uint32_t)];
+      int32_t c = sock->receive_byte();
+      if (c == BMSETBULK) {
+        if (sock->receive(hbuf, sizeof(hbuf))) {
+          rv = kc::readfixnum(hbuf, sizeof(uint32_t));
+        } else {
+          ecode_ = RPCClient::RVENETWORK;
+          emsg_ = "receive failed";
+          rv = -1;
+        }
+      } else if (c == BMERROR) {
+        ecode_ = RPCClient::RVEINTERNAL;
+        emsg_ = "internal error";
+        rv = -1;
+      } else {
+        ecode_ = RPCClient::RVENETWORK;
+        emsg_ = "receive failed";
+        rv = -1;
+      }
+    } else {
+      ecode_ = RPCClient::RVENETWORK;
+      emsg_ = "send failed";
+      rv = -1;
+    }
+    delete[] rbuf;
+    return rv;
+  }
+  /**
+   * Store records at once in the binary protocol.
+   * @param recs the records to remove.
+   * @return the number of removed records, or -1 on failure.
+   */
+  int64_t remove_bulk_binary(const std::vector<BulkRecord>& recs) {
+    _assert_(true);
+    size_t rsiz = 1 + sizeof(uint32_t) + sizeof(uint32_t);
+    std::vector<BulkRecord>::const_iterator it = recs.begin();
+    std::vector<BulkRecord>::const_iterator itend = recs.end();
+    while (it != itend) {
+      rsiz += sizeof(uint16_t) + sizeof(uint32_t);
+      rsiz += it->key.size();
+      it++;
+    }
+    char* rbuf = new char[rsiz];
+    char* wp = rbuf;
+    *(wp++) = BMREMOVEBULK;
+    kc::writefixnum(wp, 0, sizeof(uint32_t));
+    wp += sizeof(uint32_t);
+    kc::writefixnum(wp, recs.size(), sizeof(uint32_t));
+    wp += sizeof(uint32_t);
+    it = recs.begin();
+    while (it != itend) {
+      kc::writefixnum(wp, it->dbidx, sizeof(uint16_t));
+      wp += sizeof(uint16_t);
+      kc::writefixnum(wp, it->key.size(), sizeof(uint32_t));
+      wp += sizeof(uint32_t);
+      std::memcpy(wp, it->key.data(), it->key.size());
+      wp += it->key.size();
+      it++;
+    }
+    Socket* sock = rpc_.reveal_core()->reveal_core();
+    int64_t rv;
+    if (sock->send(rbuf, rsiz)) {
+      char hbuf[sizeof(uint32_t)];
+      int32_t c = sock->receive_byte();
+      if (c == BMREMOVEBULK) {
+        if (sock->receive(hbuf, sizeof(hbuf))) {
+          rv = kc::readfixnum(hbuf, sizeof(uint32_t));
+        } else {
+          ecode_ = RPCClient::RVENETWORK;
+          emsg_ = "receive failed";
+          rv = -1;
+        }
+      } else if (c == BMERROR) {
+        ecode_ = RPCClient::RVEINTERNAL;
+        emsg_ = "internal error";
+        rv = -1;
+      } else {
+        ecode_ = RPCClient::RVENETWORK;
+        emsg_ = "receive failed";
+        rv = -1;
+      }
+    } else {
+      ecode_ = RPCClient::RVENETWORK;
+      emsg_ = "send failed";
+      rv = -1;
+    }
+    delete[] rbuf;
+    return rv;
+  }
+  /**
+   * Retrieve records at once in the binary protocol.
+   * @param recs the records to retrieve.  The value member and the xt member of each retrieved
+   * record will be set appropriately.  The xt member of each missing record will be -1.
+   * @return the number of retrieved records, or -1 on failure.
+   */
+  int64_t get_bulk_binary(std::vector<BulkRecord>* recs) {
+    _assert_(recs);
+    size_t rsiz = 1 + sizeof(uint32_t) + sizeof(uint32_t);
+    std::vector<BulkRecord>::iterator it = recs->begin();
+    std::vector<BulkRecord>::iterator itend = recs->end();
+    while (it != itend) {
+      rsiz += sizeof(uint16_t) + sizeof(uint32_t);
+      rsiz += it->key.size();
+      it++;
+    }
+    char* rbuf = new char[rsiz];
+    char* wp = rbuf;
+    *(wp++) = BMGETBULK;
+    kc::writefixnum(wp, 0, sizeof(uint32_t));
+    wp += sizeof(uint32_t);
+    kc::writefixnum(wp, recs->size(), sizeof(uint32_t));
+    wp += sizeof(uint32_t);
+    std::map<std::string, BulkRecord*> map;
+    it = recs->begin();
+    while (it != itend) {
+      kc::writefixnum(wp, it->dbidx, sizeof(uint16_t));
+      wp += sizeof(uint16_t);
+      kc::writefixnum(wp, it->key.size(), sizeof(uint32_t));
+      wp += sizeof(uint32_t);
+      std::memcpy(wp, it->key.data(), it->key.size());
+      wp += it->key.size();
+      it->xt = -1;
+      std::string mkey((char*)&it->dbidx, sizeof(uint16_t));
+      mkey.append(it->key);
+      map[mkey] = &*it;
+      it++;
+    }
+    Socket* sock = rpc_.reveal_core()->reveal_core();
+    char stack[RDBRECBUFSIZ];
+    int64_t rv = -1;
+    bool err = false;
+    if (sock->send(rbuf, rsiz)) {
+      char hbuf[sizeof(uint32_t)];
+      int32_t c = sock->receive_byte();
+      if (c == BMGETBULK) {
+        if (sock->receive(hbuf, sizeof(hbuf))) {
+          rv = kc::readfixnum(hbuf, sizeof(uint32_t));
+          for (int64_t i = 0; !err && i < rv; i++) {
+            char ubuf[sizeof(uint16_t)+sizeof(uint32_t)+sizeof(uint32_t)+sizeof(int64_t)];
+            if (sock->receive(ubuf, sizeof(ubuf))) {
+              const char* rp = ubuf;
+              uint16_t dbidx = kc::readfixnum(rp, sizeof(uint16_t));
+              rp += sizeof(uint16_t);
+              size_t ksiz = kc::readfixnum(rp, sizeof(uint32_t));
+              rp += sizeof(uint32_t);
+              size_t vsiz = kc::readfixnum(rp, sizeof(uint32_t));
+              rp += sizeof(uint32_t);
+              int64_t xt = kc::readfixnum(rp, sizeof(uint64_t));
+              if (ksiz <= DATAMAXSIZ && vsiz <= DATAMAXSIZ) {
+                size_t jsiz = ksiz + vsiz;
+                char* jbuf = jsiz > sizeof(stack) ? new char[jsiz] : stack;
+                if (sock->receive(jbuf, jsiz)) {
+                  std::string key(jbuf, ksiz);
+                  std::string value(jbuf + ksiz, vsiz);
+
+                  std::string mkey((char*)&dbidx, sizeof(uint16_t));
+                  mkey.append(jbuf, ksiz);
+
+                  std::map<std::string, BulkRecord*>::iterator it = map.find(mkey);
+                  if (it != map.end()) {
+                    BulkRecord* rec = it->second;
+                    rec->value = value;
+                    rec->xt = xt;
+                  }
+                } else {
+                  ecode_ = RPCClient::RVENETWORK;
+                  emsg_ = "receive failed";
+                  err = true;
+                }
+                if (jbuf != stack) delete[] jbuf;
+              } else {
+                ecode_ = RPCClient::RVEINTERNAL;
+                emsg_ = "internal error";
+                err = true;
+              }
+            } else {
+              ecode_ = RPCClient::RVENETWORK;
+              emsg_ = "receive failed";
+              err = true;
+            }
+          }
+        } else {
+          ecode_ = RPCClient::RVENETWORK;
+          emsg_ = "receive failed";
+          err = true;
+        }
+      } else if (c == BMERROR) {
+        ecode_ = RPCClient::RVEINTERNAL;
+        emsg_ = "internal error";
+        err = true;
+      } else {
+        ecode_ = RPCClient::RVENETWORK;
+        emsg_ = "receive failed";
+        err = true;
+      }
+    } else {
+      ecode_ = RPCClient::RVENETWORK;
+      emsg_ = "send failed";
+      err = true;
+    }
+    delete[] rbuf;
+    return err ? -1 : rv;
+  }
+  /**
    * Get the expression of the socket.
    * @return the expression of the socket or an empty string on failure.
    */
@@ -1457,6 +1731,127 @@ private:
   CursorList curs_;
   /** The count of cursor generation. */
   int64_t curcnt_;
+};
+
+
+/**
+ * Replication client.
+ */
+class ReplicationClient {
+public:
+  /**
+   * Default constructor.
+   */
+  explicit ReplicationClient() : sock_(), alive_(false) {
+    _assert_(true);
+  }
+  /**
+   * Open the connection.
+   * @param host the name or the address of the server.  If it is an empty string, the local host
+   * is specified.
+   * @param port the port numger of the server.
+   * @param timeout the timeout of each operation in seconds.  If it is not more than 0, no
+   * timeout is specified.
+   * @param ts the maximum time stamp of already read logs.
+   * @param sid the server ID number.
+   * @return true on success, or false on failure.
+   */
+  bool open(const std::string& host = "", int32_t port = DEFPORT, double timeout = -1,
+            uint64_t ts = 0, uint16_t sid = 0) {
+    _assert_(true);
+    const std::string& thost = host.empty() ? Socket::get_local_host_name() : host;
+    const std::string& addr = Socket::get_host_address(thost);
+    if (addr.empty() || port < 1) return false;
+    std::string expr;
+    kc::strprintf(&expr, "%s:%d", addr.c_str(), port);
+    if (timeout > 0) sock_.set_timeout(timeout);
+    if (!sock_.open(expr)) return false;
+    uint32_t flags = 0;
+    char tbuf[1+sizeof(flags)+sizeof(ts)+sizeof(sid)];
+    char* wp = tbuf;
+    *(wp++) = RemoteDB::BMREPLICATION;
+    kc::writefixnum(wp, flags, sizeof(flags));
+    wp += sizeof(flags);
+    kc::writefixnum(wp, ts, sizeof(ts));
+    wp += sizeof(ts);
+    kc::writefixnum(wp, sid, sizeof(sid));
+    wp += sizeof(sid);
+    if (!sock_.send(tbuf, sizeof(tbuf)) || sock_.receive_byte() != RemoteDB::BMREPLICATION) {
+      sock_.close();
+      return false;
+    }
+    alive_ = true;
+    return true;
+  }
+  /**
+   * Close the connection.
+   * @return true on success, or false on failure.
+   */
+  bool close() {
+    _assert_(true);
+    return sock_.close(false);
+  }
+  /**
+   * Read the next message.
+   * @param sp the pointer to the variable into which the size of the region of the return
+   * value is assigned.
+   * @param tsp the pointer to the variable into which the time stamp is assigned.
+   * @return the pointer to the region of the message, or NULL on failure.  Because the region
+   * of the return value is allocated with the the new[] operator, it should be released with
+   * the delete[] operator when it is no longer in use.
+   */
+  char* read(size_t* sp, uint64_t* tsp) {
+    _assert_(sp && tsp);
+    *sp = 0;
+    *tsp = 0;
+    int32_t magic = sock_.receive_byte();
+    if (magic == RemoteDB::BMREPLICATION) {
+      char hbuf[sizeof(uint64_t)+sizeof(uint32_t)];
+      if (!sock_.receive(hbuf, sizeof(hbuf))) {
+        alive_ = false;
+        return NULL;
+      }
+      const char* rp = hbuf;
+      uint64_t ts = kc::readfixnum(rp, sizeof(uint64_t));
+      rp += sizeof(uint64_t);
+      size_t msiz = kc::readfixnum(rp, sizeof(uint32_t));
+      rp += sizeof(uint32_t);
+      char* mbuf = new char[msiz];
+      if (!sock_.receive(mbuf, msiz)) {
+        delete[] mbuf;
+        alive_ = false;
+        return NULL;
+      }
+      *sp = msiz;
+      *tsp = ts;
+      return mbuf;
+    } else if (magic == RemoteDB::BMNOP) {
+      char hbuf[sizeof(uint64_t)];
+      if (!sock_.receive(hbuf, sizeof(hbuf))) {
+        alive_ = false;
+        return NULL;
+      }
+      *tsp = kc::readfixnum(hbuf, sizeof(uint64_t));
+      char c = RemoteDB::BMREPLICATION;
+      sock_.send(&c, 1);
+    } else {
+      alive_ = false;
+    }
+    return NULL;
+  }
+  /**
+   * Check whether the connection is alive.
+   * @return true if alive, false if not.
+   */
+  bool alive() {
+    _assert_(true);
+    return alive_;
+  }
+private:
+  /** The client socket. */
+  Socket sock_;
+  /** The alive flag. */
+  bool alive_;
 };
 
 

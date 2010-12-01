@@ -38,9 +38,8 @@ const size_t RECBUFSIZL = 1024;          // buffer size for a long record
 const size_t LINEBUFSIZ = 8192;          // buffer size for a line
 const double DEFTOUT = 30;               // default timeout
 const int32_t DEFTHNUM = 8;              // default number of threads
-const double DEFRIV = 0.05;              // default interval of replication
+const double DEFRIV = 0.04;              // default interval of replication
 const int64_t DEFULIM = 256LL << 20;     // default limit size of update log file
-const uint8_t REPLMAGIC = 0xa0;          // magic number of replication request
 
 
 // global variables
@@ -136,13 +135,13 @@ public:
   }
   static const char* parse(const char* mbuf, size_t msiz,
                            size_t* sp, uint16_t* sidp, uint16_t* dbidp) {
-    if (msiz < sizeof(sid_) + sizeof(dbid_)) return NULL;
+    if (msiz < sizeof(uint16_t) + sizeof(uint16_t)) return NULL;
     const char* rp = mbuf;
-    *sidp = kc::readfixnum(rp, sizeof(sid_));
-    rp += sizeof(sid_);
-    *dbidp = kc::readfixnum(rp, sizeof(sid_));
-    rp += sizeof(dbid_);
-    *sp = msiz - sizeof(sid_) - sizeof(dbid_);
+    *sidp = kc::readfixnum(rp, sizeof(uint16_t));
+    rp += sizeof(uint16_t);
+    *dbidp = kc::readfixnum(rp, sizeof(uint16_t));
+    rp += sizeof(uint16_t);
+    *sp = msiz - sizeof(uint16_t) - sizeof(uint16_t);
     return rp;
   }
 private:
@@ -150,82 +149,6 @@ private:
   uint16_t sid_;
   uint16_t dbid_;
   kc::TSDKey rsid_;
-};
-
-
-// client of replication
-class ReplicationClient {
-public:
-  explicit ReplicationClient() : sock_(), alive_(false) {}
-  bool open(const std::string& host, int32_t port, double timeout, uint64_t ts, uint16_t sid) {
-    const std::string& thost = host.empty() ? kt::Socket::get_local_host_name() : host;
-    const std::string& addr = kt::Socket::get_host_address(thost);
-    if (addr.empty() || port < 1) return false;
-    std::string expr;
-    kc::strprintf(&expr, "%s:%d", addr.c_str(), port);
-    sock_.set_timeout(timeout);
-    if (!sock_.open(expr)) return false;
-    char tbuf[1+sizeof(ts)+sizeof(sid)];
-    char* wp = tbuf;
-    *(wp++) = REPLMAGIC;
-    kc::writefixnum(wp, ts, sizeof(ts));
-    wp += sizeof(ts);
-    kc::writefixnum(wp, sid, sizeof(sid));
-    wp += sizeof(sid);
-    if (!sock_.send(tbuf, sizeof(tbuf)) || sock_.receive_byte() != REPLMAGIC) {
-      sock_.close();
-      return false;
-    }
-    alive_ = true;
-    return true;
-  }
-  bool close() {
-    return sock_.close(false);
-  }
-  char* read(size_t* sp, uint64_t* tsp) {
-    *sp = 0;
-    *tsp = 0;
-    int32_t magic = sock_.receive_byte();
-    if (magic == REPLMAGIC) {
-      char hbuf[sizeof(uint64_t)+sizeof(uint32_t)];
-      if (!sock_.receive(hbuf, sizeof(hbuf))) {
-        alive_ = false;
-        return NULL;
-      }
-      const char* rp = hbuf;
-      uint64_t ts = kc::readfixnum(rp, sizeof(uint64_t));
-      rp += sizeof(uint64_t);
-      size_t msiz = kc::readfixnum(rp, sizeof(uint32_t));
-      rp += sizeof(uint32_t);
-      char* mbuf = new char[msiz];
-      if (!sock_.receive(mbuf, msiz)) {
-        delete[] mbuf;
-        alive_ = false;
-        return NULL;
-      }
-      *sp = msiz;
-      *tsp = ts;
-      return mbuf;
-    } else if (magic == 0) {
-      char hbuf[sizeof(uint64_t)];
-      if (!sock_.receive(hbuf, sizeof(hbuf))) {
-        alive_ = false;
-        return NULL;
-      }
-      *tsp = kc::readfixnum(hbuf, sizeof(uint64_t));
-      char c = REPLMAGIC;
-      sock_.send(&c, 1);
-    } else {
-      alive_ = false;
-    }
-    return NULL;
-  }
-  bool alive() {
-    return alive_;
-  }
-private:
-  kt::Socket sock_;
-  bool alive_;
 };
 
 

@@ -47,7 +47,7 @@
 <p>The command `<code>ktserver</code>' runs the server managing database instances.  This command is used in the following format.  `<var>db</var>' specifies a database name.  If no database is specified, an unnamed on-memory database is opened.</p>
 
 <dl class="api">
-<dt><code>ktserver [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-th <var>num</var>] [-log <var>file</var>] [-li|-ls|-le|-lz] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-ord] [-oat|-oas|-onl|-otl|-onr] [-asi <var>num</var>] [-ash] [-dmn] [-pid <var>file</var>] [-scr <var>file</var>] [-mhost <var>str</var>] [-mport <var>num</var>] [-rts <var>file</var>] [-riv <var>num</var>] [<var>db</var>...]</code></dt>
+<dt><code>ktserver [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-th <var>num</var>] [-log <var>file</var>] [-li|-ls|-le|-lz] [-ulog <var>str</var>] [-ulim <var>num</var>] [-uasi <var>num</var>] [-sid <var>num</var>] [-ord] [-oat|-oas|-onl|-otl|-onr] [-asi <var>num</var>] [-ash] [-dmn] [-pid <var>file</var>] [-scr <var>file</var>] [-mhost <var>str</var>] [-mport <var>num</var>] [-rts <var>file</var>] [-riv <var>num</var>] [<var>db</var>...]</code></dt>
 </dl>
 
 <p>Options feature the following.</p>
@@ -64,6 +64,7 @@
 <li><code>-lz</code> : sets the logging level "NONE".</li>
 <li><code>-ulog <var>str</var></code> : specifies the update log directory.</li>
 <li><code>-ulim <var>num</var></code> : specifies the limit size of each update log file.</li>
+<li><code>-uasi <var>num</var></code> : specifies the interval of synchronization of update log files.  By default, it is disabled.</li>
 <li><code>-sid <var>num</var></code> : specifies the server ID number.</li>
 <li><code>-ord</code> : opens the database as a reader.</li>
 <li><code>-oat</code> : opens the database with the auto transaction option.</li>
@@ -71,7 +72,7 @@
 <li><code>-onl</code> : opens the database with the no locking option.</li>
 <li><code>-otl</code> : opens the database with the try locking option.</li>
 <li><code>-onr</code> : opens the database with the no auto repair option.</li>
-<li><code>-asi <var>num</var></code> : specifies the interval of auto synchronization.  By default, auto synchronization is disabled.</li>
+<li><code>-asi <var>num</var></code> : specifies the interval of auto synchronization.  By default, it is disabled.</li>
 <li><code>-ash</code> : does physical synchronization while auto synchronization.</li>
 <li><code>-dmn</code> : switches to a daemon process.</li>
 <li><code>-pid <var>file</var></code> : specifies the file to contain the process ID to send signals by.</li>
@@ -80,7 +81,7 @@
 <li><code>-mhost <var>str</var></code> : specifies the host name of the master server of replication.</li>
 <li><code>-mport <var>num</var></code> : specifies the port number of the master server of replication.</li>
 <li><code>-rts <var>file</var></code> : specifies the file to contain the replication time stamp.</li>
-<li><code>-riv <var>num</var></code> : specifies the interval of each replication operation in milliseconds.  By default, it is 0.05.</li>
+<li><code>-riv <var>num</var></code> : specifies the interval of each replication operation in milliseconds.  By default, it is 0.04.</li>
 </ul>
 
 <p>This command returns 0 on success, another on failure.</p>
@@ -343,6 +344,8 @@
 <dl class="api">
 <dt><code>ktremotetest order [-th <var>num</var>] [-rnd] [-set|-get|-rem|-etc] [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] <var>rnum</var></code></dt>
 <dd>Performs in-order tests.</dd>
+<dt><code>ktremotetest bulk [-th <var>num</var>] [-bin] [-rnd] [-set|-get|-rem|-etc] [-bulk <var>num</var>] [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] <var>rnum</var></code></dt>
+<dd>Performs bulk operation tests.</dd>
 <dt><code>ktremotetest wicked [-th <var>num</var>] [-it <var>num</var>] [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] <var>rnum</var></code></dt>
 <dd>Performs mixed operations selected at random.</dd>
 </dl>
@@ -359,6 +362,8 @@
 <li><code>-host <var>str</var></code> : specifies the host name of the server.</li>
 <li><code>-port <var>num</var></code> : specifies the port number of the server.</li>
 <li><code>-tout <var>num</var></code> : specifies the timeout in seconds.</li>
+<li><code>-bin</code> : uses the binary protocol.</li>
+<li><code>-bulk <var>num</var></code> : specifies the number of records in a bulk operation.</li>
 <li><code>-it <var>num</var></code> : specifies the number of repetition.</li>
 </ul>
 
@@ -397,6 +402,12 @@
 <dd>Eliminates regions of expired records.</dd>
 <dt><code>ktremotemgr slave [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-ts <var>num</var>] [-sid <var>num</var>] [-uw]</code></dt>
 <dd>Simulates a client of replication and prints update logs.</dd>
+<dt><code>ktremotemgr setbulk [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-bin] [-db <var>str</var>] [-sx] [-xt <var>num</var>] <var>key</var> <var>value</var> ...</code></dt>
+<dd>Store records at once.</dd>
+<dt><code>ktremotemgr removebulk [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-bin] [-db <var>str</var>] [-sx] <var>key</var> ...</code></dt>
+<dd>Remove records at once.</dd>
+<dt><code>ktremotemgr getbulk [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-bin] [-db <var>str</var>] [-sx] [-px] <var>key</var> ...</code></dt>
+<dd>Retrieve records at once.</dd>
 </dl>
 
 <p>Options feature the following.</p>
@@ -428,6 +439,7 @@
 <li><code>-step <var>num</var></code> : specifies the number of steps.</li>
 <li><code>-sid <var>num</var></code> : specifies the server ID number.</li>
 <li><code>-uw</code> : waits for update forever.</li>
+<li><code>-bin</code> : uses the binary protocol.</li>
 </ul>
 
 <p>This command returns 0 on success, another on failure.</p>

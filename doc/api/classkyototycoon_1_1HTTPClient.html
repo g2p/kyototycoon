@@ -61,6 +61,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Close the connection.  <a href="#adbc23114f173a7180aa5a09296f4cb0a"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPClient.html#a91efd388b16cdf59ae3e982ea402d5ba">fetch</a> (const std::string &amp;pathquery, <a class="el" href="classkyototycoon_1_1HTTPClient.html#aae547c07cce765679e5ab7808c748de7">Method</a> method=MGET, std::string *resbody=NULL, std::map&lt; std::string, std::string &gt; *resheads=NULL, const std::string *reqbody=NULL, const std::map&lt; std::string, std::string &gt; *reqheads=NULL)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Fetch a resource.  <a href="#a91efd388b16cdf59ae3e982ea402d5ba"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classkyototycoon_1_1Socket.html">Socket</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPClient.html#ae51d42b598436d2b7818564fa4b12f11">reveal_core</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Reveal the internal TCP socket.  <a href="#ae51d42b598436d2b7818564fa4b12f11"></a><br/></td></tr>
 <tr><td colspan="2"><h2>Static Public Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">static int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPClient.html#a4f7799064593e4dfb6b15b2b659a9778">fetch_once</a> (const std::string &amp;url, <a class="el" href="classkyototycoon_1_1HTTPClient.html#aae547c07cce765679e5ab7808c748de7">Method</a> method=MGET, std::string *resbody=NULL, std::map&lt; std::string, std::string &gt; *resheads=NULL, const std::string *reqbody=NULL, const std::map&lt; std::string, std::string &gt; *reqheads=NULL, double timeout=-1)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Fetch a resource at once.  <a href="#a4f7799064593e4dfb6b15b2b659a9778"></a><br/></td></tr>
@@ -282,6 +284,26 @@
 
 </div>
 </div>
+<a class="anchor" id="ae51d42b598436d2b7818564fa4b12f11"></a><!-- doxytag: member="kyototycoon::HTTPClient::reveal_core" ref="ae51d42b598436d2b7818564fa4b12f11" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classkyototycoon_1_1Socket.html">Socket</a>* kyototycoon::HTTPClient::reveal_core </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Reveal the internal TCP socket. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the internal TCP socket. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a4f7799064593e4dfb6b15b2b659a9778"></a><!-- doxytag: member="kyototycoon::HTTPClient::fetch_once" ref="a4f7799064593e4dfb6b15b2b659a9778" args="(const std::string &amp;url, Method method=MGET, std::string *resbody=NULL, std::map&lt; std::string, std::string &gt; *resheads=NULL, const std::string *reqbody=NULL, const std::map&lt; std::string, std::string &gt; *reqheads=NULL, double timeout=&#45;1)" -->
 <div class="memitem">
 <div class="memproto">
@@ -355,7 +377,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Mon Nov 29 04:10:23 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Dec 2 01:44:57 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

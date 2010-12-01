@@ -1,5 +1,15 @@
 2010-11-27  Mikio Hirabayashi  <info@fallabs.com>
 
+	* cmdcommon.h (DBUpdateLogger::parse): invalid use of member variables was cleared.
+
+	* ktserver.cc (Worker::do_bin_set_bulk, Worker::do_bin_get_bulk) new functions.
+
+	* kcserver.cc (run, proc): "-uasi" option was added.
+
+	- Release: 0.9.12
+
+2010-11-27  Mikio Hirabayashi  <info@fallabs.com>
+
 	* ktsocket.h (Poller::deposit): EPOLLRDHUP was abolished to support old kernels.
 
 	* ktremotedb.h (RemoteDB::tune_replication): new function.

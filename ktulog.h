@@ -70,7 +70,7 @@ public:
     /**
      * Open the reader.
      * @param ulog the update logger.
-     * @param ts the largest time stamp of already read logs.
+     * @param ts the maximum time stamp of already read logs.
      * @return true on success, or false on failure.
      */
     bool open(UpdateLogger* ulog, uint64_t ts = 0) {
@@ -280,7 +280,7 @@ public:
    * Default constructor.
    */
   explicit UpdateLogger() :
-    path_(), limsiz_(0), id_(0), file_(),
+    path_(), limsiz_(0), asi_(0), id_(0), file_(),
     cache_(), csiz_(0), cts_(0), clock_(), flock_(), tslock_(),
     flusher_(this), tran_(false), tswall_(0), tslogic_(0) {
     _assert_(true);
@@ -297,9 +297,11 @@ public:
    * @param path the path of the base directory.
    * @param limsiz the limit size of each log file.  If it is not more than 0, no limit is
    * specified.  If it is INT64_MIN, the logger is opened as reader.
+   * @param asi the interval of auto synchronization.  If it is not more than 0, auto
+   * synchronization is not performed.
    * @return true on success, or false on failure.
    */
-  bool open(const std::string& path, int64_t limsiz = -1) {
+  bool open(const std::string& path, int64_t limsiz = -1, double asi = -1) {
     _assert_(true);
     if (!path_.empty()) return false;
     size_t psiz = path.size();
@@ -327,6 +329,7 @@ public:
     }
     path_ = cpath;
     limsiz_ = limsiz > 0 ? limsiz : INT64_MAX;
+    asi_ = asi;
     id_ = id > 0 ? id : 1;
     std::string tpath = generate_path(id_);
     if (limsiz == INT64_MIN) {
@@ -497,11 +500,18 @@ private:
   public:
     AutoFlusher(UpdateLogger* ulog) : ulog_(ulog), alive_(true), error_(false) {}
     void run() {
+      double asnext = 0;
       while (alive_ && !error_) {
         kc::Thread::sleep(ULFLUSHWAIT);
         if (ulog_->clock_.lock_try()) {
           if (!ulog_->tran_ && ulog_->csiz_ > 0 && !ulog_->flush()) error_ = true;
           ulog_->clock_.unlock();
+        }
+        if (ulog_->asi_ > 0 && kc::time() >= asnext) {
+          ulog_->clock_.lock();
+          ulog_->file_.synchronize(true);
+          ulog_->clock_.unlock();
+          asnext = kc::time() + ulog_->asi_;
         }
       }
     }
@@ -590,6 +600,7 @@ private:
     bool err = false;
     flock_.lock_writer();
     if (file_.size() >= limsiz_) {
+      if (asi_ > 0 && !file_.synchronize(true)) err = true;
       if (!file_.close()) err = true;
       id_++;
       std::string tpath = generate_path(id_);
@@ -687,6 +698,8 @@ private:
   std::string path_;
   /** The limit size of each file. */
   int64_t limsiz_;
+  /** The inverval of auto synchronization. */
+  double asi_;
   /** The ID number of the current file. */
   uint32_t id_;
   /** The current file. */

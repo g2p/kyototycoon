@@ -38,6 +38,9 @@ static int32_t runlist(int argc, char** argv);
 static int32_t runimport(int argc, char** argv);
 static int32_t runvacuum(int argc, char** argv);
 static int32_t runslave(int argc, char** argv);
+static int32_t runsetbulk(int argc, char** argv);
+static int32_t runremovebulk(int argc, char** argv);
+static int32_t rungetbulk(int argc, char** argv);
 static int32_t procreport(const char* host, int32_t port, double tout);
 static int32_t procscript(const char* proc, const char* host, int32_t port, double tout,
                           const std::map<std::string, std::string>& params);
@@ -65,6 +68,15 @@ static int32_t procvacuum(const char* host, int32_t port, double tout, const cha
                           int64_t step);
 static int32_t procslave(const char* host, int32_t port, double tout,
                          uint64_t ts, int32_t sid, bool uw);
+static int32_t procsetbulk(const std::map<std::string, std::string>& recs,
+                           const char* host, int32_t port, double tout, bool bin,
+                           const char* dbexpr, int64_t xt);
+static int32_t procremovebulk(const std::vector<std::string>& keys,
+                              const char* host, int32_t port, double tout, bool bin,
+                              const char* dbexpr);
+static int32_t procgetbulk(const std::vector<std::string>& keys,
+                           const char* host, int32_t port, double tout, bool bin,
+                           const char* dbexpr, bool px);
 
 
 // print the usage and exit
@@ -99,6 +111,12 @@ int main(int argc, char** argv) {
     rv = runvacuum(argc, argv);
   } else if (!std::strcmp(argv[1], "slave")) {
     rv = runslave(argc, argv);
+  } else if (!std::strcmp(argv[1], "setbulk")) {
+    rv = runsetbulk(argc, argv);
+  } else if (!std::strcmp(argv[1], "removebulk")) {
+    rv = runremovebulk(argc, argv);
+  } else if (!std::strcmp(argv[1], "getbulk")) {
+    rv = rungetbulk(argc, argv);
   } else if (!std::strcmp(argv[1], "version") || !std::strcmp(argv[1], "--version")) {
     printversion();
   } else {
@@ -135,6 +153,12 @@ static void usage() {
           g_progname);
   eprintf("  %s slave [-host str] [-port num] [-tout num] [-ts num] [-sid num] [-uw]\n",
           g_progname);
+  eprintf("  %s setbulk [-host str] [-port num] [-tout num] [-bin] [-db str] [-sx] [-xt num]"
+          " key value ...\n", g_progname);
+  eprintf("  %s removebulk [-host str] [-port num] [-tout num] [-bin] [-db str] [-sx]"
+          " key ...\n", g_progname);
+  eprintf("  %s getbulk [-host str] [-port num] [-tout num] [-bin] [-db str] [-sx] [-px]"
+          " key ...\n", g_progname);
   eprintf("\n");
   std::exit(1);
 }
@@ -812,6 +836,188 @@ static int32_t runslave(int argc, char** argv) {
 }
 
 
+// parse arguments of setbulk command
+static int32_t runsetbulk(int argc, char** argv) {
+  bool argbrk = false;
+  std::map<std::string, std::string> recs;
+  const char* host = "";
+  int32_t port = kt::DEFPORT;
+  double tout = 0;
+  bool bin = false;
+  const char* dbexpr = NULL;
+  bool sx = false;
+  int64_t xt = INT64_MAX;
+  for (int32_t i = 2; i < argc; i++) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-host")) {
+        if (++i >= argc) usage();
+        host = argv[i];
+      } else if (!std::strcmp(argv[i], "-port")) {
+        if (++i >= argc) usage();
+        port = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-tout")) {
+        if (++i >= argc) usage();
+        tout = kc::atof(argv[i]);
+      } else if (!std::strcmp(argv[i], "-bin")) {
+        bin = true;
+      } else if (!std::strcmp(argv[i], "-db")) {
+        if (++i >= argc) usage();
+        dbexpr = argv[i];
+      } else if (!std::strcmp(argv[i], "-sx")) {
+        sx = true;
+      } else if (!std::strcmp(argv[i], "-xt")) {
+        if (++i >= argc) usage();
+        xt = kc::atoix(argv[i]);
+      } else {
+        usage();
+      }
+    } else {
+      argbrk = true;
+      const char* kstr = argv[i];
+      if (++i >= argc) usage();
+      const char* vstr = argv[i];
+      char* kbuf;
+      size_t ksiz;
+      char* vbuf;
+      size_t vsiz;
+      if (sx) {
+        kbuf = kc::hexdecode(kstr, &ksiz);
+        kstr = kbuf;
+        vbuf = kc::hexdecode(vstr, &vsiz);
+        vstr = vbuf;
+      } else {
+        ksiz = std::strlen(kstr);
+        kbuf = NULL;
+        vsiz = std::strlen(vstr);
+        vbuf = NULL;
+      }
+      std::string key(kstr, ksiz);
+      std::string value(vstr, vsiz);
+      recs[key] = value;
+      delete[] kbuf;
+      delete[] vbuf;
+    }
+  }
+  int32_t rv = procsetbulk(recs, host, port, tout, bin, dbexpr, xt);
+  return rv;
+}
+
+
+// parse arguments of removebulk command
+static int32_t runremovebulk(int argc, char** argv) {
+  bool argbrk = false;
+  std::vector<std::string> keys;
+  const char* host = "";
+  int32_t port = kt::DEFPORT;
+  double tout = 0;
+  bool bin = false;
+  const char* dbexpr = NULL;
+  bool sx = false;
+  for (int32_t i = 2; i < argc; i++) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-host")) {
+        if (++i >= argc) usage();
+        host = argv[i];
+      } else if (!std::strcmp(argv[i], "-port")) {
+        if (++i >= argc) usage();
+        port = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-tout")) {
+        if (++i >= argc) usage();
+        tout = kc::atof(argv[i]);
+      } else if (!std::strcmp(argv[i], "-bin")) {
+        bin = true;
+      } else if (!std::strcmp(argv[i], "-db")) {
+        if (++i >= argc) usage();
+        dbexpr = argv[i];
+      } else if (!std::strcmp(argv[i], "-sx")) {
+        sx = true;
+      } else {
+        usage();
+      }
+    } else {
+      argbrk = true;
+      const char* kstr = argv[i];
+      char* kbuf;
+      size_t ksiz;
+      if (sx) {
+        kbuf = kc::hexdecode(kstr, &ksiz);
+        kstr = kbuf;
+      } else {
+        ksiz = std::strlen(kstr);
+        kbuf = NULL;
+      }
+      std::string key(kstr, ksiz);
+      keys.push_back(key);
+      delete[] kbuf;
+    }
+  }
+  int32_t rv = procremovebulk(keys, host, port, tout, bin, dbexpr);
+  return rv;
+}
+
+
+// parse arguments of getbulk command
+static int32_t rungetbulk(int argc, char** argv) {
+  bool argbrk = false;
+  std::vector<std::string> keys;
+  const char* host = "";
+  int32_t port = kt::DEFPORT;
+  double tout = 0;
+  bool bin = false;
+  const char* dbexpr = NULL;
+  bool sx = false;
+  bool px = false;
+  for (int32_t i = 2; i < argc; i++) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else if (!std::strcmp(argv[i], "-host")) {
+        if (++i >= argc) usage();
+        host = argv[i];
+      } else if (!std::strcmp(argv[i], "-port")) {
+        if (++i >= argc) usage();
+        port = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-tout")) {
+        if (++i >= argc) usage();
+        tout = kc::atof(argv[i]);
+      } else if (!std::strcmp(argv[i], "-bin")) {
+        bin = true;
+      } else if (!std::strcmp(argv[i], "-db")) {
+        if (++i >= argc) usage();
+        dbexpr = argv[i];
+      } else if (!std::strcmp(argv[i], "-sx")) {
+        sx = true;
+      } else if (!std::strcmp(argv[i], "-px")) {
+        px = true;
+      } else {
+        usage();
+      }
+    } else {
+      argbrk = true;
+      const char* kstr = argv[i];
+      char* kbuf;
+      size_t ksiz;
+      if (sx) {
+        kbuf = kc::hexdecode(kstr, &ksiz);
+        kstr = kbuf;
+      } else {
+        ksiz = std::strlen(kstr);
+        kbuf = NULL;
+      }
+      std::string key(kstr, ksiz);
+      keys.push_back(key);
+      delete[] kbuf;
+    }
+  }
+  int32_t rv = procgetbulk(keys, host, port, tout, bin, dbexpr, px);
+  return rv;
+}
+
+
 // perform report command
 static int32_t procreport(const char* host, int32_t port, double tout) {
   kt::RemoteDB db;
@@ -1273,7 +1479,7 @@ static int32_t procvacuum(const char* host, int32_t port, double tout, const cha
 // perform slave command
 static int32_t procslave(const char* host, int32_t port, double tout,
                          uint64_t ts, int32_t sid, bool uw) {
-  ReplicationClient rc;
+  kt::ReplicationClient rc;
   if (!rc.open(host, port, tout, ts, sid)) {
     eprintf("%s: %s:%d: open error\n", g_progname, host, port);
     return 1;
@@ -1304,6 +1510,146 @@ static int32_t procslave(const char* host, int32_t port, double tout,
   }
   if (!rc.close()) {
     eprintf("%s: close error\n", g_progname);
+    err = true;
+  }
+  return err ? 1 : 0;
+}
+
+
+// perform setbulk command
+static int32_t procsetbulk(const std::map<std::string, std::string>& recs,
+                           const char* host, int32_t port, double tout, bool bin,
+                           const char* dbexpr, int64_t xt) {
+  kt::RemoteDB db;
+  if (!db.open(host, port, tout)) {
+    dberrprint(&db, "DB::open failed");
+    return 1;
+  }
+  bool err = false;
+  if (bin) {
+    std::vector<kt::RemoteDB::BulkRecord> bulkrecs;
+    uint16_t dbidx = dbexpr ? kc::atoi(dbexpr) : 0;
+    std::map<std::string, std::string>::const_iterator it = recs.begin();
+    std::map<std::string, std::string>::const_iterator itend = recs.end();
+    while (it != itend) {
+      kt::RemoteDB::BulkRecord rec = { dbidx, it->first, it->second, xt };
+      bulkrecs.push_back(rec);
+      it++;
+    }
+    if (db.set_bulk_binary(bulkrecs) != (int64_t)recs.size()) {
+      dberrprint(&db, "DB::set_bulk_binary failed");
+      err = true;
+    }
+  } else {
+    if (dbexpr) db.set_target(dbexpr);
+    if (db.set_bulk(recs, xt) != (int64_t)recs.size()) {
+      dberrprint(&db, "DB::set_bulk failed");
+      err = true;
+    }
+  }
+  if (!db.close()) {
+    dberrprint(&db, "DB::close failed");
+    err = true;
+  }
+  return err ? 1 : 0;
+}
+
+
+// perform removebulk command
+static int32_t procremovebulk(const std::vector<std::string>& keys,
+                              const char* host, int32_t port, double tout, bool bin,
+                              const char* dbexpr) {
+  kt::RemoteDB db;
+  if (!db.open(host, port, tout)) {
+    dberrprint(&db, "DB::open failed");
+    return 1;
+  }
+  bool err = false;
+  if (bin) {
+    std::vector<kt::RemoteDB::BulkRecord> bulkrecs;
+    uint16_t dbidx = dbexpr ? kc::atoi(dbexpr) : 0;
+    std::vector<std::string>::const_iterator it = keys.begin();
+    std::vector<std::string>::const_iterator itend = keys.end();
+    while (it != itend) {
+      kt::RemoteDB::BulkRecord rec = { dbidx, *it, "", 0 };
+      bulkrecs.push_back(rec);
+      it++;
+    }
+    if (db.remove_bulk_binary(bulkrecs) < 0) {
+      dberrprint(&db, "DB::remove_bulk_binary failed");
+      err = true;
+    }
+  } else {
+    if (dbexpr) db.set_target(dbexpr);
+    if (db.remove_bulk(keys) < 0) {
+      dberrprint(&db, "DB::remove_bulk failed");
+      err = true;
+    }
+  }
+  if (!db.close()) {
+    dberrprint(&db, "DB::close failed");
+    err = true;
+  }
+  return err ? 1 : 0;
+}
+
+
+// perform getbulk command
+static int32_t procgetbulk(const std::vector<std::string>& keys,
+                           const char* host, int32_t port, double tout, bool bin,
+                           const char* dbexpr, bool px) {
+  kt::RemoteDB db;
+  if (!db.open(host, port, tout)) {
+    dberrprint(&db, "DB::open failed");
+    return 1;
+  }
+  bool err = false;
+  if (bin) {
+    std::vector<kt::RemoteDB::BulkRecord> bulkrecs;
+    uint16_t dbidx = dbexpr ? kc::atoi(dbexpr) : 0;
+    std::vector<std::string>::const_iterator it = keys.begin();
+    std::vector<std::string>::const_iterator itend = keys.end();
+    while (it != itend) {
+      kt::RemoteDB::BulkRecord rec = { dbidx, *it, "", 0 };
+      bulkrecs.push_back(rec);
+      it++;
+    }
+    if (db.get_bulk_binary(&bulkrecs) >= 0) {
+      std::vector<kt::RemoteDB::BulkRecord>::iterator rit = bulkrecs.begin();
+      std::vector<kt::RemoteDB::BulkRecord>::iterator ritend = bulkrecs.end();
+      while (rit != ritend) {
+        if (rit->xt > 0) {
+          printdata(rit->key.data(), rit->key.size(), px);
+          iprintf("\t");
+          printdata(rit->value.data(), rit->value.size(), px);
+          iprintf("\n");
+        }
+        rit++;
+      }
+    } else {
+      dberrprint(&db, "DB::get_bulk_binary failed");
+      err = true;
+    }
+  } else {
+    if (dbexpr) db.set_target(dbexpr);
+    std::map<std::string, std::string> recs;
+    if (db.get_bulk(keys, &recs) >= 0) {
+      std::map<std::string, std::string>::iterator it = recs.begin();
+      std::map<std::string, std::string>::iterator itend = recs.end();
+      while (it != itend) {
+        printdata(it->first.data(), it->first.size(), px);
+        iprintf("\t");
+        printdata(it->second.data(), it->second.size(), px);
+        iprintf("\n");
+        it++;
+      }
+    } else {
+      dberrprint(&db, "DB::get_bulk failed");
+      err = true;
+    }
+  }
+  if (!db.close()) {
+    dberrprint(&db, "DB::close failed");
     err = true;
   }
   return err ? 1 : 0;

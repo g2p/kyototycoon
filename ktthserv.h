@@ -24,7 +24,7 @@ namespace kyototycoon {                  // common namespace
 
 
 /**
- * Interface of poolable I/O event.
+ * Threaded TCP Server.
  */
 class ThreadedServer {
 public:

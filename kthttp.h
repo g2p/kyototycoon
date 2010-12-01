@@ -29,7 +29,7 @@ namespace kyototycoon {                  // common namespace
  */
 namespace {
 const int32_t HTLINEBUFSIZ = 8192;       ///< size for a line buffer
-const int32_t HTRECVMAXSIZ = 1 << 30;    ///< maximum size of received data
+const int32_t HTRECVMAXSIZ = 1 << 28;    ///< maximum size of received data
 }
 
 
@@ -605,6 +605,14 @@ public:
     return code;
   }
   /**
+   * Reveal the internal TCP socket.
+   * @return the internal TCP socket.
+   */
+  Socket* reveal_core() {
+    _assert_(true);
+    return &sock_;
+  }
+  /**
    * Fetch a resource at once
    * @param url the URL of the resource.
    * @param method the kind of the request methods.
@@ -935,10 +943,11 @@ public:
     serv_.log_v(kind, format, ap);
   }
   /**
-   * Reveal the internal server.
-   * @return the internal server.
+   * Reveal the internal TCP server.
+   * @return the internal TCP server.
    */
   ThreadedServer* reveal_core() {
+    _assert_(true);
     return &serv_;
   }
   /**

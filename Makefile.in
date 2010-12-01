@@ -361,6 +361,12 @@ check-remote :
 	$(RUNENV) $(RUNCMD) ./ktremotemgr import -xt 60 lab/numbers.tsv
 	$(RUNENV) $(RUNCMD) ./ktremotemgr vacuum -step 4
 	$(RUNENV) $(RUNCMD) ./ktremotemgr vacuum
+	$(RUNENV) $(RUNCMD) ./ktremotemgr setbulk aa aaa bb bbb cc ccc dd ddd
+	$(RUNENV) $(RUNCMD) ./ktremotemgr setbulk -bin AA AAA BB BBB CC CCC DD DDD
+	$(RUNENV) $(RUNCMD) ./ktremotemgr removebulk aa bb zz
+	$(RUNENV) $(RUNCMD) ./ktremotemgr removebulk -bin AA BB ZZ
+	$(RUNENV) $(RUNCMD) ./ktremotemgr getbulk aa bb cc dd
+	$(RUNENV) $(RUNCMD) ./ktremotemgr getbulk -bin AA BB CC DD
 	$(RUNENV) $(RUNCMD) ./ktremotetest order 10000
 	$(RUNENV) $(RUNCMD) ./ktremotetest order -rnd 10000
 	$(RUNENV) $(RUNCMD) ./ktremotetest order -etc 10000
@@ -369,6 +375,14 @@ check-remote :
 	$(RUNENV) $(RUNCMD) ./ktremotetest order -th 4 -rnd 10000
 	$(RUNENV) $(RUNCMD) ./ktremotetest order -th 4 -etc 10000
 	$(RUNENV) $(RUNCMD) ./ktremotetest order -th 4 -rnd -etc 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest bulk -bulk 10 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest bulk -rnd -bulk 10 -rnd 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest bulk -bin -bulk 10 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest bulk -bin -rnd -bulk 10 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest bulk -th 4 -bulk 10 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest bulk -th 4 -rnd -bulk 10 -rnd 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest bulk -th 4 -bin -bulk 10 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest bulk -th 4 -bin -rnd -bulk 10 10000
 	$(RUNENV) $(RUNCMD) ./ktremotetest wicked 10000
 	$(RUNENV) $(RUNCMD) ./ktremotetest wicked -it 4 10000
 	$(RUNENV) $(RUNCMD) ./ktremotetest wicked -th 4 -it 4 10000

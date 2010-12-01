@@ -21,7 +21,7 @@
 <div class="contents">
 <h1>Kyoto Tycoon: a persistent cache server </h1><h2><a class="anchor" id="Introduction">
 Introduction</a></h2>
-<p>Kyoto Tycoon is a lightweight database server with auto expiration mechanism, which is useful to handle cache data of various applications. Kyoto Tycoon is also a package of network interface to the DBM called Kyoto Cabinet. Although the DBM has high performance and high concurrency, you might bother in case that multiple processes share the same database, or remote processes access the database. Thus, Kyoto Tycoon is provided for concurrent and remote connections to Kyoto Cabinet. Kyoto Tycoon is composed of the server process managing multiple databases and its access library for client applications.</p>
+<p>Kyoto Tycoon is a lightweight database server with automatic expiration mechanism, which is useful to handle cache data of various applications. Kyoto Tycoon is also a package of network interface to the DBM called Kyoto Cabinet. Although the DBM has high performance and high concurrency, you might bother in case that multiple processes share the same database, or remote processes access the database. Thus, Kyoto Tycoon is provided for concurrent and remote connections to Kyoto Cabinet. Kyoto Tycoon is composed of the server process managing multiple databases and its access library for client applications.</p>
 <p>The network protocol between the server and clients is HTTP so that you can write client applications and client libraries in almost all popular languages. Both of RESTful-style interface by the GET, HEAD, PUT, DELETE methods and RPC-style inteface by the POST method are supported. The server can handle more than 10 thousand connections at the same time because it uses modern I/O event notification facilities such as "epoll" and "kqueue" of underlying systems. The server can embed Lua, a lightweight script language so that you can define arbitrary operations of the database.</p>
 <p>The following classes are the most important. If you are interested in writing applications of Kyoto Tycoon, all you have to learn is how to use the remote database interface.</p>
 <ul>
@@ -33,7 +33,7 @@ Introduction</a></h2>
 <li><a class="el" href="classkyototycoon_1_1RPCServer.html" title="RPC server.">kyototycoon::RPCServer</a> -- utilities to implement your own RPC server </li>
 <li><a class="el" href="classkyototycoon_1_1HTTPClient.html" title="HTTP client.">kyototycoon::HTTPClient</a> -- utilities to implement your own HTTP client </li>
 <li><a class="el" href="classkyototycoon_1_1HTTPServer.html" title="HTTP server.">kyototycoon::HTTPServer</a> -- utilities to implement your own HTTP server </li>
-<li><a class="el" href="classkyototycoon_1_1ThreadedServer.html" title="Interface of poolable I/O event.">kyototycoon::ThreadedServer</a> -- utilities to implement your own TCP server </li>
+<li><a class="el" href="classkyototycoon_1_1ThreadedServer.html" title="Threaded TCP Server.">kyototycoon::ThreadedServer</a> -- utilities to implement your own TCP server </li>
 <li><a class="el" href="classkyototycoon_1_1Poller.html" title="I/O event notification.">kyototycoon::Poller</a> -- abstraction of system-independent event notification mechanism </li>
 <li><a class="el" href="classkyototycoon_1_1Socket.html" title="Network stream abstraction based on TCP/IP.">kyototycoon::Socket</a> -- abstraction of system-independent client socket mechanism </li>
 <li><a class="el" href="classkyototycoon_1_1ServerSocket.html" title="Network server abstraction based on TCP/IP.">kyototycoon::ServerSocket</a> -- abstraction of system-independent server socket mechanism</li>
@@ -148,7 +148,7 @@ ThreadedServer* g_serv = NULL;
   <span class="keywordflow">return</span> 0;
 }
 </pre></div> </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Mon Nov 29 04:10:23 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Dec 2 01:44:57 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

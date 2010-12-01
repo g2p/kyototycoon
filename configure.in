@@ -7,11 +7,11 @@
 #================================================================
 
 # Package name
-AC_INIT(kyototycoon, 0.9.11)
+AC_INIT(kyototycoon, 0.9.12)
 
 # Package information
 MYLIBVER=1
-MYLIBREV=17
+MYLIBREV=18
 
 # Targets
 MYHEADERFILES="ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h ktulog.h"
@@ -207,8 +207,10 @@ fi
 if test "$GCC" != "yes"
 then
   AC_MSG_WARN([another compiler except for GCC was detected])
+  MYCFLAGS=""
   MYCXXFLAGS=""
 fi
+test -n "$CFLAGS" && MYCFLAGS="$CFLAGS $MYCFLAGS"
 test -n "$CXXFLAGS" && MYCXXFLAGS="$CXXFLAGS $MYCXXFLAGS"
 test -n "$CPPFLAGS" && MYCPPFLAGS="$CPPFLAGS $MYCPPFLAGS"
 test -n "$LDFLAGS" && MYLDFLAGS="$LDFLAGS $MYLDFLAGS"
@@ -269,7 +271,7 @@ fi
 if type pkg-config >config.tmp 2>&1
 then
   printf 'checking Kyoto Cabinet by pkg-config... '
-  if pkg-config --atleast-version=1.2.25 kyotocabinet
+  if pkg-config --atleast-version=1.2.26 kyotocabinet
   then
     printf 'yes\n'
   else

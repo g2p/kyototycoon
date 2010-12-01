@@ -32,7 +32,8 @@ static void killserver(int signum);
 static int32_t run(int argc, char** argv);
 static int32_t proc(const std::vector<std::string>& dbpaths,
                     const char* host, int32_t port, double tout, int32_t thnum,
-                    const char* logpath, uint32_t logkinds, const char* ulogpath, int64_t ulim,
+                    const char* logpath, uint32_t logkinds,
+                    const char* ulogpath, int64_t ulim, double uasi,
                     int32_t sid, int32_t omode, double asi, bool ash, bool dmn,
                     const char* pidpath, const char* cmdpath, const char* scrpath,
                     const char* mhost, int32_t mport, const char* rtspath, double riv);
@@ -195,7 +196,7 @@ private:
           write_rts(&rtsfile, rts_);
           lock_.unlock();
         }
-        ReplicationClient rc;
+        kt::ReplicationClient rc;
         if (rc.open(host, port, 60, rts_, sid_)) {
           serv_->log(Logger::SYSTEM, "replication started: host=%s port=%d rts=%llu",
                      host.c_str(), port, (unsigned long long)rts_);
@@ -480,15 +481,38 @@ private:
   // process each binary request
   bool process_binary(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess) {
     int32_t magic = sess->receive_byte();
+    const char* cmd;
+    bool rv;
     switch (magic) {
-      case REPLMAGIC: {
-        return do_replication(serv, sess);
+      case kt::RemoteDB::BMREPLICATION: {
+        cmd = "replication";
+        rv = do_bin_replication(serv, sess);
+        break;
+      }
+      case kt::RemoteDB::BMSETBULK: {
+        cmd = "set_bulk";
+        rv = do_bin_set_bulk(serv, sess);
+        break;
+      }
+      case kt::RemoteDB::BMREMOVEBULK: {
+        cmd = "remove_bulk";
+        rv = do_bin_remove_bulk(serv, sess);
+        break;
+      }
+      case kt::RemoteDB::BMGETBULK: {
+        cmd = "get_bulk";
+        rv = do_bin_get_bulk(serv, sess);
+        break;
       }
       default: {
+        cmd = "unknown";
+        rv = false;
         break;
       }
     }
-    return false;
+    std::string expr = sess->expression();
+    serv->log(kt::ThreadedServer::Logger::INFO, "(%s): %s: %d", expr.c_str(), cmd, rv);
+    return rv;
   }
   // process each idle event
   void process_idle(kt::RPCServer* serv) {
@@ -509,8 +533,7 @@ private:
   }
   // process each timer event
   void process_timer(kt::RPCServer* serv) {
-    if ((asi_ > 0) && (omode_ & kc::BasicDB::OWRITER)) {
-      if (kc::time() < asnext_) return;
+    if ((asi_ > 0) && (omode_ & kc::BasicDB::OWRITER) && kc::time() >= asnext_) {
       for (int32_t i = 0; i < dbnum_; i++) {
         kt::TimedDB* db = dbs_ + i;
         if (!db->synchronize(ash_)) {
@@ -1608,7 +1631,7 @@ private:
     }
     return rv;
   }
-  // process the GET method
+  // process the restful get command
   int32_t do_rest_get(kt::HTTPServer* serv, kt::HTTPServer::Session* sess,
                       kt::TimedDB* db, const char* kbuf, size_t ksiz,
                       const std::map<std::string, std::string>& reqheads,
@@ -1641,7 +1664,7 @@ private:
     }
     return code;
   }
-  // process the HEAD method
+  // process the restful head command
   int32_t do_rest_head(kt::HTTPServer* serv, kt::HTTPServer::Session* sess,
                        kt::TimedDB* db, const char* kbuf, size_t ksiz,
                        const std::map<std::string, std::string>& reqheads,
@@ -1675,7 +1698,7 @@ private:
     }
     return code;
   }
-  // process the PUT method
+  // process the restful put command
   int32_t do_rest_put(kt::HTTPServer* serv, kt::HTTPServer::Session* sess,
                       kt::TimedDB* db, const char* kbuf, size_t ksiz,
                       const std::map<std::string, std::string>& reqheads,
@@ -1699,7 +1722,7 @@ private:
     }
     return code;
   }
-  // process the DELETE method
+  // process the restful delete command
   int32_t do_rest_delete(kt::HTTPServer* serv, kt::HTTPServer::Session* sess,
                          kt::TimedDB* db, const char* kbuf, size_t ksiz,
                          const std::map<std::string, std::string>& reqheads,
@@ -1722,11 +1745,13 @@ private:
     }
     return code;
   }
-  // process the replication command
-  bool do_replication(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess) {
-    char tbuf[sizeof(uint64_t)+sizeof(uint16_t)];
+  // process the binary replication command
+  bool do_bin_replication(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess) {
+    char tbuf[sizeof(uint32_t)+sizeof(uint64_t)+sizeof(uint16_t)];
     if (!sess->receive(tbuf, sizeof(tbuf))) return false;
     const char* rp = tbuf;
+    uint32_t flags = kc::readfixnum(rp, sizeof(flags));
+    rp += sizeof(flags);
     uint64_t ts = kc::readfixnum(rp, sizeof(ts));
     rp += sizeof(ts);
     uint16_t sid = kc::readfixnum(rp, sizeof(sid));
@@ -1734,11 +1759,11 @@ private:
     if (ulog_) {
       kt::UpdateLogger::Reader ulrd;
       if (ulrd.open(ulog_, ts)) {
-        char c = REPLMAGIC;
+        char c = kt::RemoteDB::BMREPLICATION;
         if (sess->send(&c, 1)) {
           serv->log(kt::ThreadedServer::Logger::SYSTEM, "a slave was connected: ts=%llu sid=%u",
                     (unsigned long long)ts, sid);
-          char stack[kc::NUMBUFSIZ+RECBUFSIZ*2];
+          char stack[kc::NUMBUFSIZ+RECBUFSIZ*4];
           uint64_t rts = 0;
           int32_t miss = 0;
           while (!err && !serv->aborted()) {
@@ -1754,7 +1779,7 @@ private:
                 size_t nsiz = 1 + sizeof(uint64_t) + sizeof(uint32_t) + msiz;
                 char* nbuf = nsiz > sizeof(stack) ? new char[nsiz] : stack;
                 char* wp = nbuf;
-                *(wp++) = REPLMAGIC;
+                *(wp++) = kt::RemoteDB::BMREPLICATION;
                 kc::writefixnum(wp, mts, sizeof(uint64_t));
                 wp += sizeof(uint64_t);
                 kc::writefixnum(wp, msiz, sizeof(uint32_t));
@@ -1767,7 +1792,7 @@ private:
                 if (miss >= Slave::DUMMYFREQ) {
                   char hbuf[1+sizeof(uint64_t)+sizeof(uint32_t)];
                   char* wp = hbuf;
-                  *(wp++) = REPLMAGIC;
+                  *(wp++) = kt::RemoteDB::BMREPLICATION;
                   kc::writefixnum(wp, mts, sizeof(uint64_t));
                   wp += sizeof(uint64_t);
                   kc::writefixnum(wp, 0, sizeof(uint32_t));
@@ -1783,9 +1808,10 @@ private:
               if (cc < rts) cc = rts;
               char hbuf[1+sizeof(uint64_t)];
               char* wp = hbuf;
-              *(wp++) = 0;
+              *(wp++) = kt::RemoteDB::BMNOP;
               kc::writefixnum(wp, cc, sizeof(uint64_t));
-              if (!sess->send(hbuf, sizeof(hbuf)) || sess->receive_byte() != REPLMAGIC)
+              if (!sess->send(hbuf, sizeof(hbuf)) ||
+                  sess->receive_byte() != kt::RemoteDB::BMREPLICATION)
                 err = true;
               kc::Thread::sleep(0.1);
             }
@@ -1800,16 +1826,208 @@ private:
         }
       } else {
         serv->log(kt::ThreadedServer::Logger::ERROR, "opening an update log reader failed");
-        char c = 0;
+        char c = kt::RemoteDB::BMERROR;
         sess->send(&c, 1);
         err = true;
       }
     } else {
-      char c = 0;
+      char c = kt::RemoteDB::BMERROR;
       sess->send(&c, 1);
       serv->log(kt::ThreadedServer::Logger::INFO, "no update log allows no replication");
       err = true;
     }
+    return !err;
+  }
+  // process the binary set_bulk command
+  bool do_bin_set_bulk(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess) {
+    char tbuf[sizeof(uint32_t)+sizeof(uint32_t)];
+    if (!sess->receive(tbuf, sizeof(tbuf))) return false;
+    const char* rp = tbuf;
+    uint32_t flags = kc::readfixnum(rp, sizeof(flags));
+    rp += sizeof(flags);
+    uint32_t rnum = kc::readfixnum(rp, sizeof(rnum));
+    rp += sizeof(rnum);
+    bool err = false;
+    uint32_t hits = 0;
+    char stack[kc::NUMBUFSIZ+RECBUFSIZ*4];
+    for (uint32_t i = 0; !err && i < rnum; i++) {
+      char hbuf[sizeof(uint16_t)+sizeof(uint32_t)+sizeof(uint32_t)+sizeof(int64_t)];
+      if (sess->receive(hbuf, sizeof(hbuf))) {
+        rp = hbuf;
+        uint16_t dbidx = kc::readfixnum(rp, sizeof(dbidx));
+        rp += sizeof(dbidx);
+        uint32_t ksiz = kc::readfixnum(rp, sizeof(ksiz));
+        rp += sizeof(ksiz);
+        uint32_t vsiz = kc::readfixnum(rp, sizeof(vsiz));
+        rp += sizeof(vsiz);
+        int64_t xt = kc::readfixnum(rp, sizeof(xt));
+        rp += sizeof(xt);
+        if (ksiz <= kt::RemoteDB::DATAMAXSIZ && vsiz <= kt::RemoteDB::DATAMAXSIZ) {
+          size_t rsiz = ksiz + vsiz;
+          char* rbuf = rsiz > sizeof(stack) ? new char[rsiz] : stack;
+          if (sess->receive(rbuf, rsiz)) {
+            if (dbidx < dbnum_) {
+              kt::TimedDB* db = dbs_ + dbidx;
+              if (db->set(rbuf, ksiz, rbuf + ksiz, vsiz, xt)) {
+                hits++;
+              } else {
+                err = true;
+              }
+            }
+          } else {
+            err = true;
+          }
+          if (rbuf != stack) delete[] rbuf;
+        } else {
+          err = true;
+        }
+      } else {
+        err = true;
+      }
+    }
+    if (err) {
+      char c = kt::RemoteDB::BMERROR;
+      sess->send(&c, 1);
+    } else {
+      char hbuf[1+sizeof(hits)];
+      char* wp = hbuf;
+      *(wp++) = kt::RemoteDB::BMSETBULK;
+      kc::writefixnum(wp, hits, sizeof(hits));
+      if (!sess->send(hbuf, sizeof(hbuf))) err = true;
+    }
+    return !err;
+  }
+  // process the binary remove_bulk command
+  bool do_bin_remove_bulk(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess) {
+    char tbuf[sizeof(uint32_t)+sizeof(uint32_t)];
+    if (!sess->receive(tbuf, sizeof(tbuf))) return false;
+    const char* rp = tbuf;
+    uint32_t flags = kc::readfixnum(rp, sizeof(flags));
+    rp += sizeof(flags);
+    uint32_t rnum = kc::readfixnum(rp, sizeof(rnum));
+    rp += sizeof(rnum);
+    bool err = false;
+    uint32_t hits = 0;
+    char stack[kc::NUMBUFSIZ+RECBUFSIZ*2];
+    for (uint32_t i = 0; !err && i < rnum; i++) {
+      char hbuf[sizeof(uint16_t)+sizeof(uint32_t)];
+      if (sess->receive(hbuf, sizeof(hbuf))) {
+        rp = hbuf;
+        uint16_t dbidx = kc::readfixnum(rp, sizeof(dbidx));
+        rp += sizeof(dbidx);
+        uint32_t ksiz = kc::readfixnum(rp, sizeof(ksiz));
+        rp += sizeof(ksiz);
+        if (ksiz <= kt::RemoteDB::DATAMAXSIZ) {
+          char* kbuf = ksiz > sizeof(stack) ? new char[ksiz] : stack;
+          if (sess->receive(kbuf, ksiz)) {
+            if (dbidx < dbnum_) {
+              kt::TimedDB* db = dbs_ + dbidx;
+              if (db->remove(kbuf, ksiz)) {
+                hits++;
+              } else if (db->error() != kc::BasicDB::Error::NOREC) {
+                err = true;
+              }
+            }
+          } else {
+            err = true;
+          }
+          if (kbuf != stack) delete[] kbuf;
+        } else {
+          err = true;
+        }
+      } else {
+        err = true;
+      }
+    }
+    if (err) {
+      char c = kt::RemoteDB::BMERROR;
+      sess->send(&c, 1);
+    } else {
+      char hbuf[1+sizeof(hits)];
+      char* wp = hbuf;
+      *(wp++) = kt::RemoteDB::BMREMOVEBULK;
+      kc::writefixnum(wp, hits, sizeof(hits));
+      if (!sess->send(hbuf, sizeof(hbuf))) err = true;
+    }
+    return !err;
+  }
+  // process the binary get_bulk command
+  bool do_bin_get_bulk(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess) {
+    char tbuf[sizeof(uint32_t)+sizeof(uint32_t)];
+    if (!sess->receive(tbuf, sizeof(tbuf))) return false;
+    const char* rp = tbuf;
+    uint32_t flags = kc::readfixnum(rp, sizeof(flags));
+    rp += sizeof(flags);
+    uint32_t rnum = kc::readfixnum(rp, sizeof(rnum));
+    rp += sizeof(rnum);
+    bool err = false;
+    uint32_t hits = 0;
+    char stack[kc::NUMBUFSIZ+RECBUFSIZ*2];
+    size_t oasiz = kc::NUMBUFSIZ + RECBUFSIZ * 2;
+    char* obuf = (char*)kc::xmalloc(oasiz);
+    size_t osiz = 1 + sizeof(uint32_t);
+    std::memset(obuf, 0, osiz);
+    for (uint32_t i = 0; !err && i < rnum; i++) {
+      char hbuf[sizeof(uint16_t)+sizeof(uint32_t)];
+      if (sess->receive(hbuf, sizeof(hbuf))) {
+        rp = hbuf;
+        uint16_t dbidx = kc::readfixnum(rp, sizeof(dbidx));
+        rp += sizeof(dbidx);
+        uint32_t ksiz = kc::readfixnum(rp, sizeof(ksiz));
+        rp += sizeof(ksiz);
+        if (ksiz <= kt::RemoteDB::DATAMAXSIZ) {
+          char* kbuf = ksiz > sizeof(stack) ? new char[ksiz] : stack;
+          if (sess->receive(kbuf, ksiz)) {
+            if (dbidx < dbnum_) {
+              kt::TimedDB* db = dbs_ + dbidx;
+              size_t vsiz;
+              int64_t xt;
+              char* vbuf = db->get(kbuf, ksiz, &vsiz, &xt);
+              if (vbuf) {
+                hits++;
+                size_t usiz = sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t) +
+                  sizeof(int64_t) + ksiz + vsiz;
+                if (osiz + usiz > oasiz) {
+                  oasiz = oasiz * 2 + usiz;
+                  obuf = (char*)kc::xrealloc(obuf, oasiz);
+                }
+                kc::writefixnum(obuf + osiz, dbidx, sizeof(uint16_t));
+                osiz += sizeof(uint16_t);
+                kc::writefixnum(obuf + osiz, ksiz, sizeof(uint32_t));
+                osiz += sizeof(uint32_t);
+                kc::writefixnum(obuf + osiz, vsiz, sizeof(uint32_t));
+                osiz += sizeof(uint32_t);
+                kc::writefixnum(obuf + osiz, xt, sizeof(int64_t));
+                osiz += sizeof(int64_t);
+                std::memcpy(obuf + osiz, kbuf, ksiz);
+                osiz += ksiz;
+                std::memcpy(obuf + osiz, vbuf, vsiz);
+                osiz += vsiz;
+                delete[] vbuf;
+              } else if (db->error() != kc::BasicDB::Error::NOREC) {
+                err = true;
+              }
+            }
+          } else {
+            err = true;
+          }
+          if (kbuf != stack) delete[] kbuf;
+        } else {
+          err = true;
+        }
+      } else {
+        err = true;
+      }
+    }
+    if (err) {
+      char c = kt::RemoteDB::BMERROR;
+      sess->send(&c, 1);
+    } else {
+      *obuf = kt::RemoteDB::BMGETBULK;
+      kc::writefixnum(obuf + 1, hits, sizeof(hits));
+      if (!sess->send(obuf, osiz)) err = true;
+    }
+    kc::xfree(obuf);
     return !err;
   }
   // session local storage
@@ -1875,7 +2093,7 @@ static void usage() {
   eprintf("\n");
   eprintf("usage:\n");
   eprintf("  %s [-host str] [-port num] [-tout num] [-th num] [-log file] [-li|-ls|-le|-lz]"
-          " [-ulog str] [-ulim num] [-sid num] [-ord] [-oat|-oas|-onl|-otl|-onr]"
+          " [-ulog str] [-ulim num] [-uasi num] [-sid num] [-ord] [-oat|-oas|-onl|-otl|-onr]"
           " [-asi num] [-ash] [-dmn] [-pid file] [-cmd dir] [-scr file]"
           " [-mhost str] [-mport num] [-rts file] [-riv num] [db...]\n", g_progname);
   eprintf("\n");
@@ -1905,6 +2123,7 @@ static int32_t run(int argc, char** argv) {
   uint32_t logkinds = UINT32_MAX;
   const char* ulogpath = NULL;
   int64_t ulim = DEFULIM;
+  double uasi = 0;
   int32_t sid = -1;
   int32_t omode = kc::BasicDB::OWRITER | kc::BasicDB::OCREATE;
   double asi = 0;
@@ -1950,6 +2169,9 @@ static int32_t run(int argc, char** argv) {
       } else if (!std::strcmp(argv[i], "-ulim")) {
         if (++i >= argc) usage();
         ulim = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-uasi")) {
+        if (++i >= argc) usage();
+        uasi = kc::atof(argv[i]);
       } else if (!std::strcmp(argv[i], "-sid")) {
         if (++i >= argc) usage();
         sid = kc::atoix(argv[i]);
@@ -2005,8 +2227,9 @@ static int32_t run(int argc, char** argv) {
   if (port < 1 || thnum < 1 || mport < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
   if (dbpaths.empty()) dbpaths.push_back(":");
-  int32_t rv = proc(dbpaths, host, port, tout, thnum, logpath, logkinds, ulogpath, ulim, sid,
-                    omode, asi, ash, dmn, pidpath, cmdpath, scrpath, mhost, mport, rtspath, riv);
+  int32_t rv = proc(dbpaths, host, port, tout, thnum, logpath, logkinds,
+                    ulogpath, ulim, uasi, sid, omode, asi, ash,
+                    dmn, pidpath, cmdpath, scrpath, mhost, mport, rtspath, riv);
   return rv;
 }
 
@@ -2014,7 +2237,8 @@ static int32_t run(int argc, char** argv) {
 // perform rpc command
 static int32_t proc(const std::vector<std::string>& dbpaths,
                     const char* host, int32_t port, double tout, int32_t thnum,
-                    const char* logpath, uint32_t logkinds, const char* ulogpath, int64_t ulim,
+                    const char* logpath, uint32_t logkinds,
+                    const char* ulogpath, int64_t ulim, double uasi,
                     int32_t sid, int32_t omode, double asi, bool ash, bool dmn,
                     const char* pidpath, const char* cmdpath, const char* scrpath,
                     const char* mhost, int32_t mport, const char* rtspath, double riv) {
@@ -2102,7 +2326,7 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
   if (ulogpath) {
     ulog = new kt::UpdateLogger();
     serv.log(Logger::SYSTEM, "opening the update log: path=%s sid=%u", ulogpath, sid);
-    if (!ulog->open(ulogpath, ulim)) {
+    if (!ulog->open(ulogpath, ulim, uasi)) {
       serv.log(Logger::ERROR, "could not open the update log: %s", ulogpath);
       delete ulog;
       return 1;

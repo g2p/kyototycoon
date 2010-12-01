@@ -206,6 +206,14 @@ public:
     kc::strprintf(&expr, "%s:%d", host_.c_str(), port_);
     return expr;
   }
+  /**
+   * Reveal the internal HTTP client.
+   * @return the internal HTTP client.
+   */
+  HTTPClient* reveal_core() {
+    _assert_(true);
+    return &ua_;
+  }
 private:
   /** The HTTP client. */
   HTTPClient ua_;
@@ -491,10 +499,11 @@ public:
     serv_.log_v(kind, format, ap);
   }
   /**
-   * Reveal the internal server.
-   * @return the internal server.
+   * Reveal the internal HTTP server.
+   * @return the internal HTTP server.
    */
   HTTPServer* reveal_core() {
+    _assert_(true);
     return &serv_;
   }
 private:
