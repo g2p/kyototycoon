@@ -1207,7 +1207,7 @@ key     mikio
 <dt><code>replication</code></dt>
 <dd>Continue to send update logs.</dd>
 <dd>input: <code>magic</code>: (uint8_t): <code>0xB1</code>: identifier.</dd>
-<dd>input: <code>flags</code>: (uint32_t): reserved and not used now.</dd>
+<dd>input: <code>flags</code>: (uint32_t): reserved and not used now.  It should be 0.</dd>
 <dd>input: <code>ts</code>: (uint64_t): the maximum time stamp of already read logs.</dd>
 <dd>input: <code>sid</code>: (uint16_t): the server ID number.</dd>
 <dd>output: <code>magic</code>: (uint8_t): <code>0xB1</code>: identifier.</dd>
@@ -1218,10 +1218,30 @@ key     mikio
 </dl>
 
 <dl>
+<dt><code>play_script</code></dt>
+<dd>Call a procedure of the script language extension.</dd>
+<dd>input: <code>magic</code>: (uint8_t): <code>0xB4</code>: identifier.</dd>
+<dd>input: <code>flags</code>: (uint32_t): reserved and not used now.  It should be 0.</dd>
+<dd>input: <code>nsiz</code>: (uint32_t): the size of the procedure name.</dd>
+<dd>input: <code>rnum</code>: (uint32_t): the number of the records in the request.</dd>
+<dd>input: <code>name</code>: (variable): the data of the procedure name.</dd>
+<dd>input: <code>ksiz</code>: (uint32_t): (iteration): the size of the key.</dd>
+<dd>input: <code>vsiz</code>: (uint32_t): (iteration): the size of the value.</dd>
+<dd>input: <code>key</code>: (variable): (iteration): the data of the key.</dd>
+<dd>input: <code>value</code>: (variable): (iteration): the data of the value.</dd>
+<dd>output: <code>magic</code>: (uint8_t): <code>0xB4</code>: identifier.</dd>
+<dd>output: <code>rnum</code>: (uint32_t): the number of the result records.</dd>
+<dd>output: <code>ksiz</code>: (uint32_t): (iteration): the size of the key.</dd>
+<dd>output: <code>vsiz</code>: (uint32_t): (iteration): the size of the value.</dd>
+<dd>output: <code>key</code>: (variable): (iteration): the data of the key.</dd>
+<dd>output: <code>value</code>: (variable): (iteration): the data of the value.</dd>
+</dl>
+
+<dl>
 <dt><code>set_bulk</code></dt>
 <dd>Store records at once.</dd>
-<dd>input: <code>magic</code>: (uint8_t): <code>0xB2</code>: identifier.</dd>
-<dd>input: <code>flags</code>: (uint32_t): reserved and not used now.</dd>
+<dd>input: <code>magic</code>: (uint8_t): <code>0xB8</code>: identifier.</dd>
+<dd>input: <code>flags</code>: (uint32_t): reserved and not used now.  It should be 0.</dd>
 <dd>input: <code>rnum</code>: (uint32_t): the number of records in the request.</dd>
 <dd>input: <code>dbidx</code>: (uint16_t): (iteration): the index of the target database.</dd>
 <dd>input: <code>ksiz</code>: (uint32_t): (iteration): the size of the key.</dd>
@@ -1229,35 +1249,33 @@ key     mikio
 <dd>input: <code>xt</code>: (int64_t): (iteration): the expiration time.</dd>
 <dd>input: <code>key</code>: (variable): (iteration): the data of the key.</dd>
 <dd>input: <code>value</code>: (variable): (iteration): the data of the value.</dd>
-<dd>output: <code>magic</code>: (uint8_t): <code>0xB2</code>: identifier.</dd>
+<dd>output: <code>magic</code>: (uint8_t): <code>0xB8</code>: identifier.</dd>
 <dd>output: <code>hits</code>: (uint32_t): the number of stored records.</dd>
-<dd>note: If an error occurred, the output would be a one-byte message of <code>0xBF</code>.</dd>
 </dl>
 
 <dl>
 <dt><code>remove_bulk</code></dt>
 <dd>Remove records at once.</dd>
-<dd>input: <code>magic</code>: (uint8_t): <code>0xB3</code>: identifier.</dd>
-<dd>input: <code>flags</code>: (uint32_t): reserved and not used now.</dd>
+<dd>input: <code>magic</code>: (uint8_t): <code>0xB9</code>: identifier.</dd>
+<dd>input: <code>flags</code>: (uint32_t): reserved and not used now.  It should be 0.</dd>
 <dd>input: <code>rnum</code>: (uint32_t): the number of records in the request.</dd>
 <dd>input: <code>dbidx</code>: (uint16_t): (iteration): the index of the target database.</dd>
 <dd>input: <code>ksiz</code>: (uint32_t): (iteration): the size of the key.</dd>
 <dd>input: <code>key</code>: (variable): (iteration): the data of the key.</dd>
-<dd>output: <code>magic</code>: (uint8_t): <code>0xB3</code>: identifier.</dd>
+<dd>output: <code>magic</code>: (uint8_t): <code>0xB9</code>: identifier.</dd>
 <dd>output: <code>hits</code>: (uint32_t): the number of removed records.</dd>
-<dd>note: If an error occurred, the output would be a one-byte message of <code>0xBF</code>.</dd>
 </dl>
 
 <dl>
 <dt><code>get_bulk</code></dt>
 <dd>Retrieve records at once.</dd>
-<dd>input: <code>magic</code>: (uint8_t): <code>0xB4</code>: identifier.</dd>
-<dd>input: <code>flags</code>: (uint32_t): reserved and not used now.</dd>
+<dd>input: <code>magic</code>: (uint8_t): <code>0xBA</code>: identifier.</dd>
+<dd>input: <code>flags</code>: (uint32_t): reserved and not used now.  It should be 0.</dd>
 <dd>input: <code>rnum</code>: (uint32_t): the number of records in the request.</dd>
 <dd>input: <code>dbidx</code>: (uint16_t): (iteration): the index of the target database.</dd>
 <dd>input: <code>ksiz</code>: (uint32_t): (iteration): the size of the key.</dd>
 <dd>input: <code>key</code>: (variable): (iteration): the data of the key.</dd>
-<dd>output: <code>magic</code>: (uint8_t): <code>0xB4</code>: identifier.</dd>
+<dd>output: <code>magic</code>: (uint8_t): <code>0xBA</code>: identifier.</dd>
 <dd>output: <code>hits</code>: (uint32_t): the number of retrieved records.</dd>
 <dd>output: <code>dbidx</code>: (uint16_t): (iteration): the index of the target database.</dd>
 <dd>output: <code>ksiz</code>: (uint32_t): (iteration): the size of the key.</dd>
@@ -1265,7 +1283,6 @@ key     mikio
 <dd>output: <code>xt</code>: (int64_t): (iteration): the expiration time.</dd>
 <dd>output: <code>key</code>: (variable): (iteration): the data of the key.</dd>
 <dd>output: <code>value</code>: (variable): (iteration): the data of the value.</dd>
-<dd>note: If an error occurred, the output would be a one-byte message of <code>0xBF</code>.</dd>
 </dl>
 
 <hr />

@@ -1,8 +1,18 @@
+2010-12-01  Mikio Hirabayashi  <info@fallabs.com>
+
+	* ktserver.cc (Worker::do_bin_play_script): new function.
+
+	* ktremotedb.cc (RemoteDB::play_script_binary): new function;
+
+	* ktremotemgr.cc (runscript, procscript): "-bin" option was added.
+
+	- Release: 0.9.13
+
 2010-11-27  Mikio Hirabayashi  <info@fallabs.com>
 
 	* cmdcommon.h (DBUpdateLogger::parse): invalid use of member variables was cleared.
 
-	* ktserver.cc (Worker::do_bin_set_bulk, Worker::do_bin_get_bulk) new functions.
+	* ktserver.cc (Worker::do_bin_set_bulk, Worker::do_bin_get_bulk): new functions.
 
 	* kcserver.cc (run, proc): "-uasi" option was added.
 

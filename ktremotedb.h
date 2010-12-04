@@ -616,10 +616,11 @@ public:
    */
   enum BinaryMagic {
     BMNOP = 0xb0,                        ///< no operation
-    BMREPLICATION,                       ///< replication
-    BMSETBULK,                           ///< set in bulk
-    BMREMOVEBULK,                        ///< remove in bulk
-    BMGETBULK,                           ///< get in bulk
+    BMREPLICATION = 0xb1,                ///< replication
+    BMPLAYSCRIPT = 0xb4,                 ///< call a scripting procedure
+    BMSETBULK = 0xb8,                    ///< set in bulk
+    BMREMOVEBULK = 0xb9,                 ///< remove in bulk
+    BMGETBULK = 0xba,                    ///< get in bulk
     BMERROR = 0xbf                       ///< error
   };
   /**
@@ -1416,6 +1417,115 @@ public:
     _assert_(true);
     dbexpr_ = expr;
   }
+
+
+
+  /**
+   * Call a procedure of the scripting extension in the binary protocol.
+   * @param name the name of the procedure to call.
+   * @param params a string map containing the input parameters.
+   * @param result a string map to contain the output data.
+   * @return true on success, or false on failure.
+   */
+  bool play_script_binary(const std::string& name,
+                          const std::map<std::string, std::string>& params,
+                          std::map<std::string, std::string>* result) {
+    _assert_(result);
+    result->clear();
+    size_t rsiz = 1 + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t) + name.size();
+    std::map<std::string, std::string>::const_iterator it = params.begin();
+    std::map<std::string, std::string>::const_iterator itend = params.end();
+    while (it != itend) {
+      rsiz += sizeof(uint32_t) + sizeof(uint32_t);
+      rsiz += it->first.size() + it->second.size();
+      it++;
+    }
+    char* rbuf = new char[rsiz];
+    char* wp = rbuf;
+    *(wp++) = BMPLAYSCRIPT;
+    kc::writefixnum(wp, 0, sizeof(uint32_t));
+    wp += sizeof(uint32_t);
+    kc::writefixnum(wp, name.size(), sizeof(uint32_t));
+    wp += sizeof(uint32_t);
+    kc::writefixnum(wp, params.size(), sizeof(uint32_t));
+    wp += sizeof(uint32_t);
+    std::memcpy(wp, name.data(), name.size());
+    wp += name.size();
+    it = params.begin();
+    while (it != itend) {
+      kc::writefixnum(wp, it->first.size(), sizeof(uint32_t));
+      wp += sizeof(uint32_t);
+      kc::writefixnum(wp, it->second.size(), sizeof(uint32_t));
+      wp += sizeof(uint32_t);
+      std::memcpy(wp, it->first.data(), it->first.size());
+      wp += it->first.size();
+      std::memcpy(wp, it->second.data(), it->second.size());
+      wp += it->second.size();
+      it++;
+    }
+    Socket* sock = rpc_.reveal_core()->reveal_core();
+    char stack[RDBRECBUFSIZ];
+    bool err = false;
+    if (sock->send(rbuf, rsiz)) {
+      char hbuf[sizeof(uint32_t)];
+      int32_t c = sock->receive_byte();
+      if (c == BMPLAYSCRIPT) {
+        if (sock->receive(hbuf, sizeof(hbuf))) {
+          uint32_t rnum = kc::readfixnum(hbuf, sizeof(uint32_t));
+          for (int64_t i = 0; !err && i < rnum; i++) {
+            char ubuf[sizeof(uint32_t)+sizeof(uint32_t)];
+            if (sock->receive(ubuf, sizeof(ubuf))) {
+              const char* rp = ubuf;
+              size_t ksiz = kc::readfixnum(rp, sizeof(uint32_t));
+              rp += sizeof(uint32_t);
+              size_t vsiz = kc::readfixnum(rp, sizeof(uint32_t));
+              rp += sizeof(uint32_t);
+              if (ksiz <= DATAMAXSIZ && vsiz <= DATAMAXSIZ) {
+                size_t jsiz = ksiz + vsiz;
+                char* jbuf = jsiz > sizeof(stack) ? new char[jsiz] : stack;
+                if (sock->receive(jbuf, jsiz)) {
+                  std::string key(jbuf, ksiz);
+                  std::string value(jbuf + ksiz, vsiz);
+                  (*result)[key] = value;
+                } else {
+                  ecode_ = RPCClient::RVENETWORK;
+                  emsg_ = "receive failed";
+                  err = true;
+                }
+                if (jbuf != stack) delete[] jbuf;
+              } else {
+                ecode_ = RPCClient::RVEINTERNAL;
+                emsg_ = "internal error";
+                err = true;
+              }
+            } else {
+              ecode_ = RPCClient::RVENETWORK;
+              emsg_ = "receive failed";
+              err = true;
+            }
+          }
+        } else {
+          ecode_ = RPCClient::RVENETWORK;
+          emsg_ = "receive failed";
+          err = true;
+        }
+      } else if (c == BMERROR) {
+        ecode_ = RPCClient::RVEINTERNAL;
+        emsg_ = "internal error";
+        err = true;
+      } else {
+        ecode_ = RPCClient::RVENETWORK;
+        emsg_ = "receive failed";
+        err = true;
+      }
+    } else {
+      ecode_ = RPCClient::RVENETWORK;
+      emsg_ = "send failed";
+      err = true;
+    }
+    delete[] rbuf;
+    return !err;
+  }
   /**
    * Store records at once in the binary protocol.
    * @param recs the records to store.
@@ -1611,10 +1721,8 @@ public:
                 if (sock->receive(jbuf, jsiz)) {
                   std::string key(jbuf, ksiz);
                   std::string value(jbuf + ksiz, vsiz);
-
                   std::string mkey((char*)&dbidx, sizeof(uint16_t));
                   mkey.append(jbuf, ksiz);
-
                   std::map<std::string, BulkRecord*>::iterator it = map.find(mkey);
                   if (it != map.end()) {
                     BulkRecord* rec = it->second;

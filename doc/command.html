@@ -378,7 +378,7 @@
 <dl class="api">
 <dt><code>ktremotemgr report [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>]</code></dt>
 <dd>Prints statistics of the server.</dd>
-<dt><code>ktremotemgr script [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-arg <var>name</var> <var>value</var>] <var>proc</var></code></dt>
+<dt><code>ktremotemgr script [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-bin] [-arg <var>name</var> <var>value</var>] <var>proc</var></code></dt>
 <dd>Calls a procedure of the scripting extension.</dd>
 <dt><code>ktremotemgr tunerepl [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-mport <var>str</var>] [-ts <var>num</var>] [-iv <var>num</var>] [<var>mhost</var>]</code></dt>
 <dd>Sets the replication configuration.</dd>
@@ -416,6 +416,7 @@
 <li><code>-host <var>str</var></code> : specifies the host name of the server.</li>
 <li><code>-port <var>num</var></code> : specifies the port number of the server.</li>
 <li><code>-tout <var>num</var></code> : specifies the timeout in seconds.</li>
+<li><code>-bin</code> : uses the binary protocol.</li>
 <li><code>-mport <var>num</var></code> : specifies the port number of the master server.</li>
 <li><code>-ts <var>num</var></code> : specifies the maximum time stamp of already read logs.  "now" means the current time stamp.</li>
 <li><code>-iv <var>num</var></code> : specifies the interval of each replication operation in milliseconds.</li>
@@ -439,7 +440,6 @@
 <li><code>-step <var>num</var></code> : specifies the number of steps.</li>
 <li><code>-sid <var>num</var></code> : specifies the server ID number.</li>
 <li><code>-uw</code> : waits for update forever.</li>
-<li><code>-bin</code> : uses the binary protocol.</li>
 </ul>
 
 <p>This command returns 0 on success, another on failure.</p>

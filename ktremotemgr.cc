@@ -43,7 +43,7 @@ static int32_t runremovebulk(int argc, char** argv);
 static int32_t rungetbulk(int argc, char** argv);
 static int32_t procreport(const char* host, int32_t port, double tout);
 static int32_t procscript(const char* proc, const char* host, int32_t port, double tout,
-                          const std::map<std::string, std::string>& params);
+                          bool bin, const std::map<std::string, std::string>& params);
 static int32_t proctunerepl(const char* mhost, const char* host, int32_t port, double tout,
                             int32_t mport, uint64_t ts, double iv);
 static int32_t procinform(const char* host, int32_t port, double tout, const char* dbexpr,
@@ -132,7 +132,7 @@ static void usage() {
   eprintf("\n");
   eprintf("usage:\n");
   eprintf("  %s report [-host str] [-port num] [-tout num]\n", g_progname);
-  eprintf("  %s script [-host str] [-port num] [-tout num] [-arg name value] proc\n",
+  eprintf("  %s script [-host str] [-port num] [-tout num] [-bin] [-arg name value] proc\n",
           g_progname);
   eprintf("  %s tunerepl [-host str] [-port num] [-tout num] [-mport num] [-ts num] [-iv num]"
           " [mhost]\n", g_progname);
@@ -212,6 +212,7 @@ static int32_t runscript(int argc, char** argv) {
   const char* host = "";
   int32_t port = kt::DEFPORT;
   double tout = 0;
+  bool bin = false;
   std::map<std::string, std::string> params;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
@@ -226,6 +227,8 @@ static int32_t runscript(int argc, char** argv) {
       } else if (!std::strcmp(argv[i], "-tout")) {
         if (++i >= argc) usage();
         tout = kc::atof(argv[i]);
+      } else if (!std::strcmp(argv[i], "-bin")) {
+        bin = true;
       } else if (!std::strcmp(argv[i], "-arg")) {
         if ((i += 2) >= argc) usage();
         params[argv[i-1]] = argv[i];
@@ -240,7 +243,7 @@ static int32_t runscript(int argc, char** argv) {
     }
   }
   if (!proc || port < 1) usage();
-  int32_t rv = procscript(proc, host, port, tout, params);
+  int32_t rv = procscript(proc, host, port, tout, bin, params);
   return rv;
 }
 
@@ -1048,24 +1051,39 @@ static int32_t procreport(const char* host, int32_t port, double tout) {
 
 // perform script command
 static int32_t procscript(const char* proc, const char* host, int32_t port, double tout,
-                          const std::map<std::string, std::string>& params) {
+                          bool bin, const std::map<std::string, std::string>& params) {
   kt::RemoteDB db;
   if (!db.open(host, port, tout)) {
     dberrprint(&db, "DB::open failed");
     return 1;
   }
   bool err = false;
-  std::map<std::string, std::string> result;
-  if (db.play_script(proc, params, &result)) {
-    std::map<std::string, std::string>::iterator it = result.begin();
-    std::map<std::string, std::string>::iterator itend = result.end();
-    while (it != itend) {
-      iprintf("%s\t%s\n", it->first.c_str(), it->second.c_str());
-      it++;
+  if (bin) {
+    std::map<std::string, std::string> result;
+    if (db.play_script_binary(proc, params, &result)) {
+      std::map<std::string, std::string>::iterator it = result.begin();
+      std::map<std::string, std::string>::iterator itend = result.end();
+      while (it != itend) {
+        iprintf("%s\t%s\n", it->first.c_str(), it->second.c_str());
+        it++;
+      }
+    } else {
+      dberrprint(&db, "DB::play_script_binary failed");
+      err = true;
     }
   } else {
-    dberrprint(&db, "DB::play_script failed");
-    err = true;
+    std::map<std::string, std::string> result;
+    if (db.play_script(proc, params, &result)) {
+      std::map<std::string, std::string>::iterator it = result.begin();
+      std::map<std::string, std::string>::iterator itend = result.end();
+      while (it != itend) {
+        iprintf("%s\t%s\n", it->first.c_str(), it->second.c_str());
+        it++;
+      }
+    } else {
+      dberrprint(&db, "DB::play_script failed");
+      err = true;
+    }
   }
   if (!db.close()) {
     dberrprint(&db, "DB::close failed");

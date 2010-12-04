@@ -485,27 +485,32 @@ private:
     bool rv;
     switch (magic) {
       case kt::RemoteDB::BMREPLICATION: {
-        cmd = "replication";
+        cmd = "bin_replication";
         rv = do_bin_replication(serv, sess);
         break;
       }
+      case kt::RemoteDB::BMPLAYSCRIPT: {
+        cmd = "bin_play_script";
+        rv = do_bin_play_script(serv, sess);
+        break;
+      }
       case kt::RemoteDB::BMSETBULK: {
-        cmd = "set_bulk";
+        cmd = "bin_set_bulk";
         rv = do_bin_set_bulk(serv, sess);
         break;
       }
       case kt::RemoteDB::BMREMOVEBULK: {
-        cmd = "remove_bulk";
+        cmd = "bin_remove_bulk";
         rv = do_bin_remove_bulk(serv, sess);
         break;
       }
       case kt::RemoteDB::BMGETBULK: {
-        cmd = "get_bulk";
+        cmd = "bin_get_bulk";
         rv = do_bin_get_bulk(serv, sess);
         break;
       }
       default: {
-        cmd = "unknown";
+        cmd = "bin_unknown";
         rv = false;
         break;
       }
@@ -639,12 +644,12 @@ private:
       set_message(outmap, "ERROR", "the thread ID is invalid");
       return kt::RPCClient::RVEINTERNAL;
     }
+    ScriptProcessor* scrproc = scrprocs_ + thid;
     const char* nstr = kt::strmapget(inmap, "name");
     if (!nstr || *nstr == '\0' || !kt::strisalnum(nstr)) {
       set_message(outmap, "ERROR", "invalid parameters");
       return kt::RPCClient::RVEINVALID;
     }
-    ScriptProcessor* scrproc = scrprocs_ + thid;
     std::map<std::string, std::string> scrinmap;
     std::map<std::string, std::string>::const_iterator it = inmap.begin();
     std::map<std::string, std::string>::const_iterator itend = inmap.end();
@@ -1836,6 +1841,103 @@ private:
       serv->log(kt::ThreadedServer::Logger::INFO, "no update log allows no replication");
       err = true;
     }
+    return !err;
+  }
+  // process the binary play_script command
+  bool do_bin_play_script(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess) {
+    if (!scrprocs_) {
+      char c = kt::RemoteDB::BMERROR;
+      sess->send(&c, 1);
+      return false;
+    }
+    int32_t thid = sess->thread_id();
+    if (thid >= thnum_) {
+      char c = kt::RemoteDB::BMERROR;
+      sess->send(&c, 1);
+      return false;
+    }
+    ScriptProcessor* scrproc = scrprocs_ + thid;
+    char tbuf[sizeof(uint32_t)+sizeof(uint32_t)+sizeof(uint32_t)];
+    if (!sess->receive(tbuf, sizeof(tbuf))) return false;
+    const char* rp = tbuf;
+    uint32_t flags = kc::readfixnum(rp, sizeof(flags));
+    rp += sizeof(flags);
+    uint32_t nsiz = kc::readfixnum(rp, sizeof(nsiz));
+    rp += sizeof(nsiz);
+    uint32_t rnum = kc::readfixnum(rp, sizeof(rnum));
+    rp += sizeof(rnum);
+    if (nsiz > kt::RemoteDB::DATAMAXSIZ) return false;
+    bool err = false;
+    char nstack[kc::NUMBUFSIZ+RECBUFSIZ];
+    char* nbuf = nsiz + 1 > sizeof(nstack) ? new char[nsiz+1] : nstack;
+    if (sess->receive(nbuf, nsiz)) {
+      nbuf[nsiz] = '\0';
+      char stack[kc::NUMBUFSIZ+RECBUFSIZ*4];
+      std::map<std::string, std::string> scrinmap;
+      for (uint32_t i = 0; !err && i < rnum; i++) {
+        char hbuf[sizeof(uint32_t)+sizeof(uint32_t)];
+        if (sess->receive(hbuf, sizeof(hbuf))) {
+          rp = hbuf;
+          uint32_t ksiz = kc::readfixnum(rp, sizeof(ksiz));
+          rp += sizeof(ksiz);
+          uint32_t vsiz = kc::readfixnum(rp, sizeof(vsiz));
+          rp += sizeof(vsiz);
+          if (ksiz <= kt::RemoteDB::DATAMAXSIZ && vsiz <= kt::RemoteDB::DATAMAXSIZ) {
+            size_t rsiz = ksiz + vsiz;
+            char* rbuf = rsiz > sizeof(stack) ? new char[rsiz] : stack;
+            if (sess->receive(rbuf, rsiz)) {
+              std::string key(rbuf, ksiz);
+              std::string value(rbuf + ksiz, vsiz);
+              scrinmap[key] = value;
+            } else {
+              err = true;
+            }
+            if (rbuf != stack) delete[] rbuf;
+          } else {
+            err = true;
+          }
+        } else {
+          err = true;
+        }
+      }
+      if (!err) {
+        std::map<std::string, std::string> scroutmap;
+        RV rv = scrproc->call(nbuf, scrinmap, scroutmap);
+        if (rv == kt::RPCClient::RVSUCCESS) {
+          size_t osiz = 1 + sizeof(uint32_t);
+          std::map<std::string, std::string>::iterator it = scroutmap.begin();
+          std::map<std::string, std::string>::iterator itend = scroutmap.end();
+          while (it != itend) {
+            osiz += sizeof(uint32_t) + sizeof(uint32_t) + it->first.size() + it->second.size();
+            it++;
+          }
+          char* obuf = new char[osiz];
+          char* wp = obuf;
+          *(wp++) = kt::RemoteDB::BMPLAYSCRIPT;
+          kc::writefixnum(wp, scroutmap.size(), sizeof(uint32_t));
+          wp += sizeof(uint32_t);
+          it = scroutmap.begin();
+          itend = scroutmap.end();
+          while (it != itend) {
+            kc::writefixnum(wp, it->first.size(), sizeof(uint32_t));
+            wp += sizeof(uint32_t);
+            kc::writefixnum(wp, it->second.size(), sizeof(uint32_t));
+            wp += sizeof(uint32_t);
+            std::memcpy(wp, it->first.data(), it->first.size());
+            wp += it->first.size();
+            std::memcpy(wp, it->second.data(), it->second.size());
+            wp += it->second.size();
+            it++;
+          }
+          if (!sess->send(obuf, osiz)) err = true;
+          delete[] obuf;
+        } else {
+          char c = kt::RemoteDB::BMERROR;
+          sess->send(&c, 1);
+        }
+      }
+    }
+    if (nbuf != nstack) delete[] nbuf;
     return !err;
   }
   // process the binary set_bulk command
