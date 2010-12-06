@@ -19,6 +19,7 @@
 #include <ktcommon.h>
 #include <ktutil.h>
 #include <ktulog.h>
+#include <ktshlib.h>
 #include <kttimeddb.h>
 
 namespace kyototycoon {                  // common namespace

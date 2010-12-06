@@ -13,6 +13,7 @@
  *************************************************************************************************/
 
 
+#include <ktplugserv.h>
 #include "cmdcommon.h"
 
 
@@ -36,14 +37,15 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
                     const char* ulogpath, int64_t ulim, double uasi,
                     int32_t sid, int32_t omode, double asi, bool ash, bool dmn,
                     const char* pidpath, const char* cmdpath, const char* scrpath,
-                    const char* mhost, int32_t mport, const char* rtspath, double riv);
+                    const char* mhost, int32_t mport, const char* rtspath, double riv,
+                    const char* plpath, const char* plex);
 
 
 // logger implementation
 class Logger : public kt::RPCServer::Logger {
 public:
   // constructor
-  Logger() : strm_(NULL), lock_() {}
+  explicit Logger() : strm_(NULL), lock_() {}
   // destructor
   ~Logger() {
     if (strm_) close();
@@ -97,7 +99,7 @@ private:
 class DBLogger : public kc::BasicDB::Logger {
 public:
   // constructor
-  DBLogger(::Logger* logger, uint32_t kinds) : logger_(logger), kinds_(kinds) {}
+  explicit DBLogger(::Logger* logger, uint32_t kinds) : logger_(logger), kinds_(kinds) {}
   // process a log message.
   void log(const char* file, int32_t line, const char* func,
            kc::BasicDB::Logger::Kind kind, const char* message) {
@@ -124,9 +126,9 @@ class Slave : public kc::Thread {
   friend class Worker;
 public:
   // constructor
-  Slave(uint16_t sid, const char* rtspath, const char* host, int32_t port, double riv,
-        kt::RPCServer* serv, kt::TimedDB* dbs, int32_t dbnum,
-        kt::UpdateLogger* ulog, DBUpdateLogger* ulogdbs) :
+  explicit Slave(uint16_t sid, const char* rtspath, const char* host, int32_t port, double riv,
+                 kt::RPCServer* serv, kt::TimedDB* dbs, int32_t dbnum,
+                 kt::UpdateLogger* ulog, DBUpdateLogger* ulogdbs) :
     lock_(), sid_(sid), rtspath_(rtspath), host_(""), port_(port), riv_(riv),
     serv_(serv), dbs_(dbs), dbnum_(dbnum), ulog_(ulog), ulogdbs_(ulogdbs),
     wrts_(UINT64_MAX), rts_(0), alive_(true), hup_(false) {
@@ -180,7 +182,7 @@ private:
     }
     rts_ = read_rts(&rtsfile);
     write_rts(&rtsfile, rts_);
-    kc::Thread::sleep(0.5);
+    kc::Thread::sleep(0.2);
     bool deferred = false;
     while (true) {
       lock_.lock();
@@ -285,6 +287,30 @@ private:
 };
 
 
+// plug-in server driver
+class PlugInDriver : public kc::Thread {
+public:
+  // constructor
+  explicit PlugInDriver(kt::PluggableServer* serv) : serv_(serv), error_(false) {}
+  // get the error flag
+  bool error() {
+    return error_;
+  }
+private:
+  // perform service
+  void run(void) {
+    kc::Thread::sleep(0.4);
+    if (serv_->start()) {
+      if (!serv_->finish()) error_ = true;
+    } else {
+      error_ = true;
+    }
+  }
+  kt::PluggableServer* serv_;
+  bool error_;
+};
+
+
 // worker implementation
 class Worker : public kt::RPCServer::Worker {
 private:
@@ -292,15 +318,14 @@ private:
   typedef kt::RPCClient::ReturnValue RV;
 public:
   // constructor
-  Worker(int32_t thnum, kt::TimedDB* dbs, int32_t dbnum,
-         const std::map<std::string, int32_t>& dbmap, int32_t omode, double asi, bool ash,
-         kt::UpdateLogger* ulog, DBUpdateLogger* ulogdbs,
-         const char* cmdpath, ScriptProcessor* scrprocs) :
+  explicit Worker(int32_t thnum, kt::TimedDB* dbs, int32_t dbnum,
+                  const std::map<std::string, int32_t>& dbmap, int32_t omode,
+                  double asi, bool ash,
+                  kt::UpdateLogger* ulog, DBUpdateLogger* ulogdbs,
+                  const char* cmdpath, ScriptProcessor* scrprocs) :
     thnum_(thnum), dbs_(dbs), dbnum_(dbnum), dbmap_(dbmap),
     omode_(omode), asi_(asi), ash_(ash), ulog_(ulog), ulogdbs_(ulogdbs),
     cmdpath_(cmdpath), scrprocs_(scrprocs), idlecnt_(0), asnext_(0), slave_(NULL) {}
-  // destructor
-  ~Worker() {}
   // set miscellaneous configuration
   void set_misc_conf(Slave* slave) {
     slave_ = slave;
@@ -2197,7 +2222,8 @@ static void usage() {
   eprintf("  %s [-host str] [-port num] [-tout num] [-th num] [-log file] [-li|-ls|-le|-lz]"
           " [-ulog str] [-ulim num] [-uasi num] [-sid num] [-ord] [-oat|-oas|-onl|-otl|-onr]"
           " [-asi num] [-ash] [-dmn] [-pid file] [-cmd dir] [-scr file]"
-          " [-mhost str] [-mport num] [-rts file] [-riv num] [db...]\n", g_progname);
+          " [-mhost str] [-mport num] [-rts file] [-riv num] [-plsv file] [-plex str]"
+          " [db...]\n", g_progname);
   eprintf("\n");
   std::exit(1);
 }
@@ -2238,6 +2264,8 @@ static int32_t run(int argc, char** argv) {
   int32_t mport = kt::DEFPORT;
   const char* rtspath = NULL;
   double riv = DEFRIV;
+  const char* plpath = NULL;
+  const char* plex = "";
   for (int32_t i = 1; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -2318,6 +2346,12 @@ static int32_t run(int argc, char** argv) {
       } else if (!std::strcmp(argv[i], "-riv")) {
         if (++i >= argc) usage();
         riv = kc::atof(argv[i]);
+      } else if (!std::strcmp(argv[i], "-plsv")) {
+        if (++i >= argc) usage();
+        plpath = argv[i];
+      } else if (!std::strcmp(argv[i], "-plex")) {
+        if (++i >= argc) usage();
+        plex = argv[i];
       } else {
         usage();
       }
@@ -2331,7 +2365,7 @@ static int32_t run(int argc, char** argv) {
   if (dbpaths.empty()) dbpaths.push_back(":");
   int32_t rv = proc(dbpaths, host, port, tout, thnum, logpath, logkinds,
                     ulogpath, ulim, uasi, sid, omode, asi, ash,
-                    dmn, pidpath, cmdpath, scrpath, mhost, mport, rtspath, riv);
+                    dmn, pidpath, cmdpath, scrpath, mhost, mport, rtspath, riv, plpath, plex);
   return rv;
 }
 
@@ -2343,7 +2377,8 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
                     const char* ulogpath, int64_t ulim, double uasi,
                     int32_t sid, int32_t omode, double asi, bool ash, bool dmn,
                     const char* pidpath, const char* cmdpath, const char* scrpath,
-                    const char* mhost, int32_t mport, const char* rtspath, double riv) {
+                    const char* mhost, int32_t mport, const char* rtspath, double riv,
+                    const char* plpath, const char* plex) {
   g_daemon = false;
   if (dmn) {
     if (kc::File::PATHCHR == '/') {
@@ -2369,6 +2404,10 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
       }
       if (rtspath && *rtspath != kc::File::PATHCHR) {
         eprintf("%s: %s: a daemon can accept absolute path only\n", g_progname, rtspath);
+        return 1;
+      }
+      if (plpath && *plpath != kc::File::PATHCHR) {
+        eprintf("%s: %s: a daemon can accept absolute path only\n", g_progname, plpath);
         return 1;
       }
     }
@@ -2485,6 +2524,31 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
       }
     }
   }
+  kt::SharedLibrary plshlib;
+  kt::PluggableServer* plsv = NULL;
+  if (plpath) {
+    serv.log(Logger::SYSTEM, "loading a plug-in server file: path=%s", plpath);
+    if (!plshlib.open(plpath)) {
+      serv.log(Logger::ERROR, "could not load a plug-in server file: %s", plpath);
+      delete[] scrprocs;
+      delete[] dbs;
+      delete[] ulogdbs;
+      delete ulog;
+      return 1;
+    }
+    kt::KTSERVINIT init = (kt::KTSERVINIT)plshlib.symbol(kt::KTSERVINITNAME);
+    if (!init) {
+      serv.log(Logger::ERROR, "could not find the initializer: %s: %s",
+               plpath, kt::KTSERVINITNAME);
+      delete[] scrprocs;
+      delete[] dbs;
+      delete[] ulogdbs;
+      delete ulog;
+      return 1;
+    }
+    plsv = init();
+    plsv->configure(dbs, dbnum, &logger, logkinds, plex);
+  }
   Worker worker(thnum, dbs, dbnum, dbmap, omode, asi, ash, ulog, ulogdbs, cmdpath, scrprocs);
   serv.set_worker(&worker, thnum);
   if (pidpath) {
@@ -2500,10 +2564,19 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
     Slave slave(sid, rtspath, mhost, mport, riv, &serv, dbs, dbnum, ulog, ulogdbs);
     slave.start();
     worker.set_misc_conf(&slave);
+    PlugInDriver pldriver(plsv);
+    if (plsv) pldriver.start();
     if (serv.start()) {
       if (!serv.finish()) err = true;
     } else {
       err = true;
+    }
+    kc::Thread::sleep(0.5);
+    if (plsv) {
+      plsv->stop();
+      pldriver.join();
+      if (pldriver.error()) err = true;
+      kc::Thread::sleep(0.1);
     }
     slave.stop();
     slave.join();
@@ -2514,6 +2587,10 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
       err = true;
       break;
     }
+  }
+  if (plsv) {
+    delete plsv;
+    plshlib.close();
   }
   delete[] scrprocs;
   delete[] dbs;

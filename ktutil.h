@@ -79,6 +79,14 @@ const char* strmapget(const std::map<std::string, std::string>& map, const char*
 
 
 /**
+ * Print all records in a string vector.
+ * @param vec the target string vector.
+ * @param strm the output stream.
+ */
+void printstrvec(const std::vector<std::string>& vec, std::ostream& strm = std::cout);
+
+
+/**
  * Print all records in a string map.
  * @param map the target string map.
  * @param strm the output stream.
@@ -193,6 +201,14 @@ char* strcapitalize(char* str);
  * @return true if it is composed of alphabets or numbers only, or false if not.
  */
 bool strisalnum(const char* str);
+
+
+/**
+ * Tokenize a string separating by space characters.
+ * @param str the source string.
+ * @param tokens a string vector to contain the result tokens.
+ */
+void strtokenize(const char* str, std::vector<std::string>* tokens);
 
 
 /**
@@ -318,6 +334,20 @@ inline const char* strmapget(const std::map<std::string, std::string>& map, cons
   if (it == map.end()) return NULL;
   if (sp) *sp = it->second.size();
   return it->second.c_str();
+}
+
+
+/**
+ * Print all records in a string vector.
+ */
+inline void printstrvec(const std::vector<std::string>& vec, std::ostream& strm) {
+  _assert_(true);
+  std::vector<std::string>::const_iterator it = vec.begin();
+  std::vector<std::string>::const_iterator itend = vec.end();
+  while (it != itend) {
+    strm << *it << std::endl;
+    it++;
+  }
 }
 
 
@@ -866,6 +896,36 @@ inline bool strisalnum(const char* str) {
   return true;
 }
 
+
+/**
+ * Tokenize a string separating by space characters.
+ */
+inline void strtokenize(const char* str, std::vector<std::string>* tokens) {
+  _assert_(str && tokens);
+  tokens->clear();
+  while (*str == ' ' || *str == '\t') {
+    str++;
+  }
+  const char* pv = str;
+  while (*str != '\0') {
+    if (*str > '\0' && *str <= ' ') {
+      if (str > pv) {
+        std::string elem(pv, str - pv);
+        tokens->push_back(elem);
+      }
+      while (*str > '\0' && *str <= ' ') {
+        str++;
+      }
+      pv = str;
+    } else {
+      str++;
+    }
+  }
+  if (str > pv) {
+    std::string elem(pv, str - pv);
+    tokens->push_back(elem);
+  }
+}
 
 
 }                                        // common namespace

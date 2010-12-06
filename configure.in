@@ -7,18 +7,19 @@
 #================================================================
 
 # Package name
-AC_INIT(kyototycoon, 0.9.13)
+AC_INIT(kyototycoon, 0.9.14)
 
 # Package information
 MYLIBVER=1
-MYLIBREV=19
+MYLIBREV=20
 
 # Targets
-MYHEADERFILES="ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h ktulog.h"
-MYHEADERFILES="$MYHEADERFILES kttimeddb.h ktdbext.h ktremotedb.h"
+MYHEADERFILES="ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h ktulog.h ktshlib.h"
+MYHEADERFILES="$MYHEADERFILES kttimeddb.h ktdbext.h ktremotedb.h ktplugserv.h"
 MYLIBRARYFILES="libkyototycoon.a"
-MYLIBOBJFILES="ktutil.o ktsocket.o ktthserv.o kthttp.o ktrpc.o ktulog.o"
+MYLIBOBJFILES="ktutil.o ktsocket.o ktthserv.o kthttp.o ktrpc.o ktulog.o ktshlib.o"
 MYLIBOBJFILES="$MYLIBOBJFILES kttimeddb.o ktdbext.o ktremotedb.o"
+MYSHLIBFILES="ktplugservmemc.so"
 MYCOMMANDFILES="ktutiltest ktutilmgr ktutilserv kttimedtest kttimedmgr"
 MYCOMMANDFILES="$MYCOMMANDFILES ktserver ktremotetest ktremotemgr"
 MYMAN1FILES="ktutiltest.1 ktutilmgr.1 ktutilserv.1 kttimedtest.1 kttimedmgr.1"
@@ -295,6 +296,10 @@ then
     MYLIBRARYFILES="$MYLIBRARYFILES libkyototycoon.so"
   fi
 fi
+if uname | grep Darwin >config.tmp
+then
+  MYSHLIBFILES="ktplugservmemc.dylib"
+fi
 
 # Work around of bugs of some environments
 if uname | grep Darwin >config.tmp
@@ -316,6 +321,7 @@ AC_SUBST(MYFORMATVER)
 AC_SUBST(MYHEADERFILES)
 AC_SUBST(MYLIBRARYFILES)
 AC_SUBST(MYLIBOBJFILES)
+AC_SUBST(MYSHLIBFILES)
 AC_SUBST(MYCOMMANDFILES)
 AC_SUBST(MYMAN1FILES)
 AC_SUBST(MYDOCUMENTFILES)

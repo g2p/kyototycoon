@@ -38,6 +38,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">HTTP client.  <a href="classkyototycoon_1_1HTTPClient.html#_details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPServer.html">HTTPServer</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">HTTP server.  <a href="classkyototycoon_1_1HTTPServer.html#_details">More...</a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1PluggableServer.html">PluggableServer</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Interface of pluggable server abstraction.  <a href="classkyototycoon_1_1PluggableServer.html#_details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html">RemoteDB</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Remote database.  <a href="classkyototycoon_1_1RemoteDB.html#_details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ReplicationClient.html">ReplicationClient</a></td></tr>
@@ -46,6 +48,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">RPC client.  <a href="classkyototycoon_1_1RPCClient.html#_details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RPCServer.html">RPCServer</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">RPC server.  <a href="classkyototycoon_1_1RPCServer.html#_details">More...</a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1SharedLibrary.html">SharedLibrary</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Shared library.  <a href="classkyototycoon_1_1SharedLibrary.html#_details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1Pollable.html">Pollable</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Interface of poolable I/O event.  <a href="classkyototycoon_1_1Pollable.html#_details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1Socket.html">Socket</a></td></tr>
@@ -60,6 +64,9 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Timed database.  <a href="classkyototycoon_1_1TimedDB.html#_details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1UpdateLogger.html">UpdateLogger</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Update logger.  <a href="classkyototycoon_1_1UpdateLogger.html#_details">More...</a><br/></td></tr>
+<tr><td colspan="2"><h2>Typedefs</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="classkyototycoon_1_1PluggableServer.html">PluggableServer</a> *(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a97be806f4d76b088fb6315453663acc6">KTSERVINIT</a> )(void)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Initializer of a server implementation.  <a href="#a97be806f4d76b088fb6315453663acc6"></a><br/></td></tr>
 <tr><td colspan="2"><h2>Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a9ab27b9ecf56eedb045b412ef741d40e">setkillsignalhandler</a> (void(*handler)(int))</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the signal handler for termination signals.  <a href="#a9ab27b9ecf56eedb045b412ef741d40e"></a><br/></td></tr>
@@ -69,6 +76,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Execute a shell command.  <a href="#a70791cacbe8ac12208603e2830f02829"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">const char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#afebb6449b5a8fa42e288b1699db0a1f2">strmapget</a> (const std::map&lt; std::string, std::string &gt; &amp;map, const char *key, size_t *sp=NULL)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the C-style string value of a record in a string map.  <a href="#afebb6449b5a8fa42e288b1699db0a1f2"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a9f9dc5c487f1c207f58207b058b1860b">printstrvec</a> (const std::vector&lt; std::string &gt; &amp;vec, std::ostream &amp;strm=std::cout)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Print all records in a string vector.  <a href="#a9f9dc5c487f1c207f58207b058b1860b"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a236d0f15d1768d661b6e147d04a10f69">printstrmap</a> (const std::map&lt; std::string, std::string &gt; &amp;map, std::ostream &amp;strm=std::cout)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Print all records in a string map.  <a href="#a236d0f15d1768d661b6e147d04a10f69"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a6ac45374f36f35280d2d8203a5bcf253">urlbreak</a> (const char *url, std::map&lt; std::string, std::string &gt; *elems)</td></tr>
@@ -95,6 +104,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Capitalize letters of a string.  <a href="#aff047ef8d15604042a8349d54f344353"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#aaa999b301f358a83c5e114f166d933f8">strisalnum</a> (const char *str)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Check a string is composed of alphabets or numbers only.  <a href="#aaa999b301f358a83c5e114f166d933f8"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a1914e6367fc5124a7a92f9c04a8de1cd">strtokenize</a> (const char *str, std::vector&lt; std::string &gt; *tokens)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Tokenize a string separating by space characters.  <a href="#a1914e6367fc5124a7a92f9c04a8de1cd"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#ae0f925395a82daba3c4c81a25840d1e2">getcalendar</a> (int64_t t, int32_t jl, int32_t *yearp=NULL, int32_t *monp=NULL, int32_t *dayp=NULL, int32_t *hourp=NULL, int32_t *minp=NULL, int32_t *secp=NULL)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the Gregorian calendar of a time.  <a href="#ae0f925395a82daba3c4c81a25840d1e2"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a77b8bf8385b9b7d2b19f71835298364a">datestrwww</a> (int64_t t, int32_t jl, char *buf)</td></tr>
@@ -116,6 +127,8 @@
 <tr><td class="memItemLeft" align="right" valign="top">time_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#aacada38d495bc6a4a9f9eeee9563e241">mkgmtime</a> (struct std::tm *tm)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Make the GMT from a time structure.  <a href="#aacada38d495bc6a4a9f9eeee9563e241"></a><br/></td></tr>
 <tr><td colspan="2"><h2>Variables</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">const char *const&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a58dabb64ef175a6a674bd3fa48cae5b9">KTSERVINITNAME</a> = &quot;ktservinit&quot;</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The name of the initializer function.  <a href="#a58dabb64ef175a6a674bd3fa48cae5b9"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">const char *const&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#adacdf98cae86752dc99be348a3e35cab">VERSION</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The package version.  <a href="#adacdf98cae86752dc99be348a3e35cab"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">const int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a12680d9ba4327e7518dfafed27e9eed9">LIBVER</a></td></tr>
@@ -130,6 +143,22 @@
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>All symbols of Kyoto Tycoon. </p>
 <p>Common namespace of Kyoto Tycoon. </p>
+<hr/><h2>Typedef Documentation</h2>
+<a class="anchor" id="a97be806f4d76b088fb6315453663acc6"></a><!-- doxytag: member="kyototycoon::KTSERVINIT" ref="a97be806f4d76b088fb6315453663acc6" args=")(void)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef <a class="el" href="classkyototycoon_1_1PluggableServer.html">PluggableServer</a>*(* <a class="el" href="namespacekyototycoon.html#a97be806f4d76b088fb6315453663acc6">kyototycoon::KTSERVINIT</a>)(void)</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Initializer of a server implementation. </p>
+
+</div>
+</div>
 <hr/><h2>Function Documentation</h2>
 <a class="anchor" id="a9ab27b9ecf56eedb045b412ef741d40e"></a><!-- doxytag: member="kyototycoon::setkillsignalhandler" ref="a9ab27b9ecf56eedb045b412ef741d40e" args="(void(*handler)(int))" -->
 <div class="memitem">
@@ -247,6 +276,42 @@
   </dd>
 </dl>
 <dl class="return"><dt><b>Returns:</b></dt><dd>the C-style string value of the corresponding record, or NULL if there is no corresponding record. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a9f9dc5c487f1c207f58207b058b1860b"></a><!-- doxytag: member="kyototycoon::printstrvec" ref="a9f9dc5c487f1c207f58207b058b1860b" args="(const std::vector&lt; std::string &gt; &amp;vec, std::ostream &amp;strm=std::cout)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void kyototycoon::printstrvec </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&nbsp;</td>
+          <td class="paramname"> <em>vec</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::ostream &amp;&nbsp;</td>
+          <td class="paramname"> <em>strm</em> = <code>std::cout</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Print all records in a string vector. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>vec</em>&nbsp;</td><td>the target string vector. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>strm</em>&nbsp;</td><td>the output stream. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -670,6 +735,42 @@
 
 </div>
 </div>
+<a class="anchor" id="a1914e6367fc5124a7a92f9c04a8de1cd"></a><!-- doxytag: member="kyototycoon::strtokenize" ref="a1914e6367fc5124a7a92f9c04a8de1cd" args="(const char *str, std::vector&lt; std::string &gt; *tokens)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void kyototycoon::strtokenize </td>
+          <td>(</td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>str</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; std::string &gt; *&nbsp;</td>
+          <td class="paramname"> <em>tokens</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Tokenize a string separating by space characters. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>str</em>&nbsp;</td><td>the source string. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>tokens</em>&nbsp;</td><td>a string vector to contain the result tokens. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a class="anchor" id="ae0f925395a82daba3c4c81a25840d1e2"></a><!-- doxytag: member="kyototycoon::getcalendar" ref="ae0f925395a82daba3c4c81a25840d1e2" args="(int64_t t, int32_t jl, int32_t *yearp=NULL, int32_t *monp=NULL, int32_t *dayp=NULL, int32_t *hourp=NULL, int32_t *minp=NULL, int32_t *secp=NULL)" -->
 <div class="memitem">
 <div class="memproto">
@@ -1077,6 +1178,21 @@
 </div>
 </div>
 <hr/><h2>Variable Documentation</h2>
+<a class="anchor" id="a58dabb64ef175a6a674bd3fa48cae5b9"></a><!-- doxytag: member="kyototycoon::KTSERVINITNAME" ref="a58dabb64ef175a6a674bd3fa48cae5b9" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char* const <a class="el" href="namespacekyototycoon.html#a58dabb64ef175a6a674bd3fa48cae5b9">kyototycoon::KTSERVINITNAME</a> = &quot;ktservinit&quot;</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>The name of the initializer function. </p>
+
+</div>
+</div>
 <a class="anchor" id="adacdf98cae86752dc99be348a3e35cab"></a><!-- doxytag: member="kyototycoon::VERSION" ref="adacdf98cae86752dc99be348a3e35cab" args="" -->
 <div class="memitem">
 <div class="memproto">
@@ -1153,7 +1269,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Sat Dec 4 00:23:12 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Mon Dec 6 20:19:52 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

@@ -22,6 +22,7 @@ LIBREV = @MYLIBREV@
 HEADERFILES = @MYHEADERFILES@
 LIBRARYFILES = @MYLIBRARYFILES@
 LIBOBJFILES = @MYLIBOBJFILES@
+SHLIBFILES = @MYSHLIBFILES@
 COMMANDFILES = @MYCOMMANDFILES@
 MAN1FILES = @MYMAN1FILES@
 DOCUMENTFILES = @MYDOCUMENTFILES@
@@ -79,7 +80,7 @@ POSTCMD = @MYPOSTCMD@
 #================================================================
 
 
-all : $(LIBRARYFILES) $(COMMANDFILES)
+all : $(LIBRARYFILES) $(SHLIBFILES) $(COMMANDFILES)
 	@$(POSTCMD)
 	@printf '\n'
 	@printf '#================================================================\n'
@@ -88,7 +89,7 @@ all : $(LIBRARYFILES) $(COMMANDFILES)
 
 
 clean :
-	rm -rf $(LIBRARYFILES) $(LIBOBJFILES) $(COMMANDFILES) $(CGIFILES) \
+	rm -rf $(LIBRARYFILES) $(LIBOBJFILES) $(SHLIBFILES) $(COMMANDFILES) $(CGIFILES) \
 	  *.o *.gch a.out check.in check.out gmon.out *.log *.vlog words.tsv \
 	  casket* *.kch *.kct *.kcd *.kcf *.wal *.tmpkc* *.kcss *.pid *-ulog *.rts \
 	  *~ hoge moge tako ika
@@ -114,6 +115,8 @@ install :
 	cp -Rf $(HEADERFILES) $(DESTDIR)$(INCLUDEDIR)
 	mkdir -p $(DESTDIR)$(LIBDIR)
 	cp -Rf $(LIBRARYFILES) $(DESTDIR)$(LIBDIR)
+	mkdir -p $(DESTDIR)$(LIBEXECDIR)
+	cp -Rf $(SHLIBFILES) $(DESTDIR)$(LIBEXECDIR)
 	mkdir -p $(DESTDIR)$(BINDIR)
 	cp -Rf $(COMMANDFILES) $(DESTDIR)$(BINDIR)
 	mkdir -p $(DESTDIR)$(DATADIR)
@@ -137,6 +140,7 @@ install-strip :
 uninstall :
 	-cd $(DESTDIR)$(INCLUDEDIR) && rm -f $(HEADERFILES)
 	-cd $(DESTDIR)$(LIBDIR) && rm -f $(LIBRARYFILES)
+	-cd $(DESTDIR)$(LIBEXECDIR) && rm -f $(SHLIBFILES)
 	-cd $(DESTDIR)$(BINDIR) && rm -f $(COMMANDFILES)
 	-cd $(DESTDIR)$(MAN1DIR) && rm -f $(MAN1FILES)
 	-rm -rf $(DESTDIR)$(DATADIR)
@@ -469,6 +473,14 @@ libkyototycoon.dylib : libkyototycoon.$(LIBVER).$(LIBREV).0.dylib
 	ln -f -s libkyototycoon.$(LIBVER).$(LIBREV).0.dylib $@
 
 
+ktplugservmemc.so : ktplugservmemc.o $(LIBRARYFILES)
+	$(CXX) $(CXXFLAGS) -shared -o $@ $< $(LDFLAGS) -lkyototycoon $(LIBS)
+
+
+ktplugservmemc.dylib : ktplugservmemc.o $(LIBRARYFILES)
+	$(CXX) $(CXXFLAGS) -dynamiclib -o $@ $< $(LDFLAGS) -lkyototycoon $(LIBS)
+
+
 ktutiltest : ktutiltest.o $(LIBRARYFILES)
 	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
 
@@ -514,20 +526,26 @@ ktrpc.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h myconf.h
 
 ktulog.o : ktcommon.h ktutil.h ktulog.h myconf.h
 
-kttimeddb.o : ktcommon.h ktutil.h ktulog.h kttimeddb.h myconf.h
+ktshlib.o : ktcommon.h ktutil.h ktshlib.h myconf.h
 
-ktdbext.o : ktcommon.h ktutil.h ktulog.h kttimeddb.h ktdbext.h myconf.h
+kttimeddb.o : ktcommon.h ktutil.h ktulog.h ktshlib.h kttimeddb.h myconf.h
+
+ktdbext.o : ktcommon.h ktutil.h ktulog.h ktshlib.h kttimeddb.h ktdbext.h myconf.h
 
 ktremotedb.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h \
-  ktulog.h kttimeddb.h ktdbext.h ktremotedb.h myconf.h
+  ktulog.h ktshlib.h kttimeddb.h ktdbext.h ktremotedb.h myconf.h
+
+ktplugservmemc.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h \
+  ktulog.h ktshlib.h kttimeddb.h ktdbext.h ktremotedb.h ktplugserv.h myconf.h
 
 myscript.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h \
-  ktulog.h kttimeddb.h ktdbext.h ktremotedb.h myconf.h myscript.h
+  ktulog.h ktshlib.h kttimeddb.h ktdbext.h ktremotedb.h myconf.h myscript.h
 
 ktutiltest.o ktutilmgr.o ktutilserv.o kttimedtest.o kttimedmgr.o \
   ktserver.o ktremotetest.o ktremotemgr.o : \
   ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h \
-  ktulog.h kttimeddb.h ktdbext.h ktremotedb.h cmdcommon.h myconf.h myscript.h
+  ktulog.h ktshlib.h kttimeddb.h ktdbext.h ktremotedb.h ktplugserv.h \
+  cmdcommon.h myconf.h myscript.h
 
 
 

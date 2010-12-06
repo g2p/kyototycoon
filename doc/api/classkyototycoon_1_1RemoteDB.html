@@ -135,6 +135,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get keys matching a regular expression string.  <a href="#abbfe172a43c7105bd76a4fbaefea63eb"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ace5ab87b94e584ed121a7df5bb7b0eef">set_target</a> (const std::string &amp;expr)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the target database.  <a href="#ace5ab87b94e584ed121a7df5bb7b0eef"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ad49d6d0e6ac9729b5eaba3bb92d14d7a">play_script_binary</a> (const std::string &amp;name, const std::map&lt; std::string, std::string &gt; &amp;params, std::map&lt; std::string, std::string &gt; *result)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Call a procedure of the scripting extension in the binary protocol.  <a href="#ad49d6d0e6ac9729b5eaba3bb92d14d7a"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ad143bf4a462ea050e216a6d75afd2f9b">set_bulk_binary</a> (const std::vector&lt; <a class="el" href="structkyototycoon_1_1RemoteDB_1_1BulkRecord.html">BulkRecord</a> &gt; &amp;recs)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Store records at once in the binary protocol.  <a href="#ad143bf4a462ea050e216a6d75afd2f9b"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#abbec8187cc1c09f31e473906c05ae72d">remove_bulk_binary</a> (const std::vector&lt; <a class="el" href="structkyototycoon_1_1RemoteDB_1_1BulkRecord.html">BulkRecord</a> &gt; &amp;recs)</td></tr>
@@ -1621,6 +1623,50 @@
 
 </div>
 </div>
+<a class="anchor" id="ad49d6d0e6ac9729b5eaba3bb92d14d7a"></a><!-- doxytag: member="kyototycoon::RemoteDB::play_script_binary" ref="ad49d6d0e6ac9729b5eaba3bb92d14d7a" args="(const std::string &amp;name, const std::map&lt; std::string, std::string &gt; &amp;params, std::map&lt; std::string, std::string &gt; *result)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::play_script_binary </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::map&lt; std::string, std::string &gt; &amp;&nbsp;</td>
+          <td class="paramname"> <em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::map&lt; std::string, std::string &gt; *&nbsp;</td>
+          <td class="paramname"> <em>result</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Call a procedure of the scripting extension in the binary protocol. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>name</em>&nbsp;</td><td>the name of the procedure to call. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>params</em>&nbsp;</td><td>a string map containing the input parameters. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>result</em>&nbsp;</td><td>a string map to contain the output data. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ad143bf4a462ea050e216a6d75afd2f9b"></a><!-- doxytag: member="kyototycoon::RemoteDB::set_bulk_binary" ref="ad143bf4a462ea050e216a6d75afd2f9b" args="(const std::vector&lt; BulkRecord &gt; &amp;recs)" -->
 <div class="memitem">
 <div class="memproto">
@@ -1760,7 +1806,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Sat Dec 4 00:23:12 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Mon Dec 6 20:19:52 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

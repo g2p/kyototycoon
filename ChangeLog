@@ -1,3 +1,11 @@
+2010-12-03  Mikio Hirabayashi  <info@fallabs.com>
+
+	* ktshlib.h, ktshlib.cc, ktserver.h, ktplugserv.cc: new files.
+
+	* ktutil.h (printstrvec, strtokenize): new functions.
+
+	- Release: 0.9.14
+
 2010-12-01  Mikio Hirabayashi  <info@fallabs.com>
 
 	* ktserver.cc (Worker::do_bin_play_script): new function.
