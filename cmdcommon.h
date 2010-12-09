@@ -103,7 +103,8 @@ private:
 // update logger for timed database.
 class DBUpdateLogger : public kt::TimedDB::UpdateTrigger {
 public:
-  explicit DBUpdateLogger() : ulog_(NULL), sid_(0), dbid_(0), rsid_() {}
+  explicit DBUpdateLogger() :
+    ulog_(NULL), sid_(0), dbid_(0), rsid_(), tran_(false), trlock_(), trcache_() {}
   void initialize(kt::UpdateLogger* ulog, uint16_t sid, uint16_t dbid) {
     ulog_ = ulog;
     sid_ = sid;
@@ -120,13 +121,22 @@ public:
     kc::writefixnum(wp, dbid_, sizeof(dbid_));
     wp += sizeof(dbid_);
     std::memcpy(wp, mbuf, msiz);
-    ulog_->write_volatile(nbuf, nsiz);
+    if (tran_) {
+      trlock_.lock();
+      trcache_.push_back(std::string(nbuf, nsiz));
+      delete[] nbuf;
+      trlock_.unlock();
+    } else {
+      ulog_->write_volatile(nbuf, nsiz);
+    }
   }
   void begin_transaction() {
-    ulog_->begin_transaction();
+    tran_ = true;
   }
   void end_transaction(bool commit) {
-    ulog_->end_transaction(commit);
+    if (commit && !trcache_.empty()) ulog_->write_bulk(trcache_);
+    trcache_.clear();
+    tran_ = false;
   }
   void set_rsid(uint16_t sid) {
     rsid_.set((void*)(sid + 1));
@@ -150,6 +160,9 @@ private:
   uint16_t sid_;
   uint16_t dbid_;
   kc::TSDKey rsid_;
+  bool tran_;
+  kc::SpinLock trlock_;
+  std::vector<std::string> trcache_;
 };
 
 

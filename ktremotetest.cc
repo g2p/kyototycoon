@@ -1337,7 +1337,7 @@ static int32_t procwicked(int64_t rnum, int32_t thnum, int32_t itnum,
                   std::vector<std::string> keys;
                   std::string regex(kbuf, ksiz > 0 ? ksiz - 1 : 0);
                   if (db_->match_regex(regex, &keys, myrand(10)) == -1 &&
-                      db_->error() != kc::BasicDB::Error::LOGIC) {
+                      db_->error() != kt::RemoteDB::Error::LOGIC) {
                     dberrprint(db_, __LINE__, "DB::match_regex");
                     err_ = true;
                   }

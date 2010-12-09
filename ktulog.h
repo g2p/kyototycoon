@@ -282,7 +282,7 @@ public:
   explicit UpdateLogger() :
     path_(), limsiz_(0), asi_(0), id_(0), file_(),
     cache_(), csiz_(0), cts_(0), clock_(), flock_(), tslock_(),
-    flusher_(this), tran_(false), tswall_(0), tslogic_(0) {
+    flusher_(this), tswall_(0), tslogic_(0) {
     _assert_(true);
   }
   /**
@@ -367,7 +367,6 @@ public:
     flusher_.stop();
     flusher_.join();
     if (flusher_.error()) err = true;
-    if (tran_) abort_transaction();
     if (csiz_ > 0 && !flush()) err = true;
     if (!file_.close()) err = true;
     path_.clear();
@@ -406,29 +405,35 @@ public:
     cache_.push_back(log);
     csiz_ += 2 + sizeof(uint64_t) + sizeof(uint32_t) + msiz;
     if (ts > cts_) cts_ = ts;
-    if (!tran_ && csiz_ > ULCACHEMAX) flush();
+    if (csiz_ > ULCACHEMAX && !flush()) err = true;
     return !err;
   }
   /**
-   * Begin transaction.
+   * Write multiple log messages at once.
+   * @param mvec a string vector of log messages.
+   * @param ts the time stamp of the message.  If it is not more than 0, the current time stamp
+   * is specified.
    * @return true on success, or false on failure.
    */
-  bool begin_transaction() {
-    _assert_(true);
+  bool write_bulk(const std::vector<std::string>& mvec, uint64_t ts = 0) {
     if (path_.empty()) return false;
     kc::ScopedSpinLock lock(&clock_);
-    return begin_transaction_impl();
-  }
-  /**
-   * End transaction.
-   * @param commit true to commit the transaction, or false to abort the transaction.
-   * @return true on success, or false on failure.
-   */
-  bool end_transaction(bool commit) {
-    _assert_(true);
-    if (path_.empty()) return false;
-    kc::ScopedSpinLock lock(&clock_);
-    return commit ? commit_transaction() : abort_transaction();
+    bool err = false;
+    std::vector<std::string>::const_iterator it = mvec.begin();
+    std::vector<std::string>::const_iterator itend = mvec.end();
+    while (it != itend) {
+      size_t msiz = it->size();
+      char* mbuf = new char[msiz];
+      std::memcpy(mbuf, it->data(), msiz);
+      uint64_t mts = ts > 0 ? ts : clock_impl();
+      Log log = { mbuf, msiz, mts };
+      cache_.push_back(log);
+      csiz_ += 2 + sizeof(uint64_t) + sizeof(uint32_t) + msiz;
+      if (mts > cts_) cts_ = mts;
+      it++;
+    }
+    if (csiz_ > ULCACHEMAX && !flush()) err = true;
+    return !err;
   }
   /**
    * Get the current clock data for time stamp.
@@ -504,7 +509,7 @@ private:
       while (alive_ && !error_) {
         kc::Thread::sleep(ULFLUSHWAIT);
         if (ulog_->clock_.lock_try()) {
-          if (!ulog_->tran_ && ulog_->csiz_ > 0 && !ulog_->flush()) error_ = true;
+          if (ulog_->csiz_ > 0 && !ulog_->flush()) error_ = true;
           ulog_->clock_.unlock();
         }
         if (ulog_->asi_ > 0 && kc::time() >= asnext) {
@@ -634,48 +639,6 @@ private:
     return !err;
   }
   /**
-   * Begin transaction.
-   * @return true on success, or false on failure.
-   */
-  bool begin_transaction_impl() {
-    if (tran_) return false;
-    bool err = false;
-    if (csiz_ > 0 && !flush()) err = true;
-    tran_ = true;
-    return !err;
-  }
-  /**
-   * Commit transaction.
-   * @return true on success, or false on failure.
-   */
-  bool commit_transaction() {
-    if (!tran_) return false;
-    bool err = false;
-    if (csiz_ > 0 && !flush()) err = true;
-    tran_ = false;
-    return !err;
-  }
-  /**
-   * Abort transaction.
-   * @return true on success, or false on failure.
-   */
-  bool abort_transaction() {
-    if (!tran_) return false;
-    if (csiz_ > 0) {
-      Cache::iterator it = cache_.begin();
-      Cache::iterator itend = cache_.end();
-      while (it != itend) {
-        Log log = *it;
-        delete[] log.mbuf;
-        it++;
-      }
-      cache_.clear();
-      csiz_ = 0;
-    }
-    tran_ = false;
-    return true;
-  }
-  /**
    * Get the current clock data for time stamp.
    * @return the current clock data for time stamp.
    */
@@ -718,8 +681,6 @@ private:
   kc::SpinLock tslock_;
   /** The automatic flusher. */
   AutoFlusher flusher_;
-  /** The flag whether in transaction. */
-  bool tran_;
   /** The wall clock time stamp. */
   uint64_t tswall_;
   /** The logical time stamp. */

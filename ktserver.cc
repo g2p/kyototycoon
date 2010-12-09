@@ -1347,8 +1347,12 @@ private:
     } else {
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
-      log_db_error(serv, e);
-      rv = kt::RPCClient::RVEINTERNAL;
+      if (e == kc::BasicDB::Error::LOGIC) {
+        rv = kt::RPCClient::RVELOGIC;
+      } else {
+        log_db_error(serv, e);
+        rv = kt::RPCClient::RVEINTERNAL;
+      }
     }
     return rv;
   }

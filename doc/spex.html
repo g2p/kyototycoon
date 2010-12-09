@@ -23,7 +23,7 @@
 <h1 id="headline">Fundamental Specifications of Kyoto Tycoon Version 1</h1>
 
 <div class="note">Copyright (C) 2009-2010 FAL Labs</div>
-<div class="note">Last Update: Wed, 13 Oct 2010 03:23:49 +0900</div>
+<div class="note">Last Update: Thu, 09 Dec 2010 22:07:07 +0900</div>
 
 <hr />
 
@@ -77,7 +77,7 @@
 
 <ul>
 <li><a href="http://www.zlib.net/">ZLIB</a> : for loss-less data compression.  1.2.3 or later is required.</li>
-<li><a href="http://fallabs.com/kyotocabinet/">Kyoto Cabinet</a> : lightweight embedded database library.  1.2.26 or later is required.</li>
+<li><a href="http://fallabs.com/kyotocabinet/">Kyoto Cabinet</a> : lightweight embedded database library.  1.2.28 or later is required.</li>
 </ul>
 
 <h3 id="installation_installation">Installation</h3>
@@ -118,7 +118,7 @@
 /usr/local/include/ktshlib.h
 /usr/local/include/kttimeddb.h
 /usr/local/include/ktremotedb.h
-/usr/local/include/ktserver.h
+/usr/local/include/ktplugserv.h
 /usr/local/lib/libkyototycoon.a
 /usr/local/lib/libkyototycoon.so.x.y.z
 /usr/local/lib/libkyototycoon.so.x
@@ -400,7 +400,7 @@ while ((rec = cur.get_pair(true)) != NULL) {
 }
 </pre>
 
-<p>Please see the <a href="api/">the API documents</a> for detail.  Writing your own sample application is the best way to learn this library.</p>
+<p>Please see the <a href="api/">the API documents</a> for details.  Writing your own sample application is the best way to learn this library.</p>
 
 <h3 id="tutorial_script">Scripting Extension</h3>
 
@@ -451,7 +451,7 @@ end
   '/var/data/casket.kch#opts=l#bnum=20000000#msiz=12g#dfunit=8'
 </pre>
 
-<p>To improve performance, the bucket number of the hash table by the "bnum" parameter should be two times or more of the number of records.  The size of mapped memory by the "msiz" parameter should be largest as far as the main memory is available.  The unit number of automatic defragmentation by the "dfunit" parameter should be about 8 which means every eight detected fragmentations causes a series of automatic defragmentation steps.  If you want higher availability at the cost of performance, using automatic transaction by the "-oat" option is a good idea.  For detail about database tuning, see <a href="http://fallabs.com/kyotocabinet/spex.html#tips">the tips of Kyoto Cabinet</a>.</p>
+<p>To improve performance, the bucket number of the hash table by the "bnum" parameter should be two times or more of the number of records.  The size of mapped memory by the "msiz" parameter should be largest as far as the main memory is available.  The unit number of automatic defragmentation by the "dfunit" parameter should be about 8 which means every eight detected fragmentations causes a series of automatic defragmentation steps.  If you want higher availability at the cost of performance, using automatic transaction by the "-oat" option is a good idea.  For details about database tuning, see <a href="http://fallabs.com/kyotocabinet/spex.html#tips">the tips of Kyoto Cabinet</a>.</p>
 
 <p>The option "-dmn" switches the process into the background, which is called daemon.  To stop or restart a daemon process, the PID files should be specified by the "-pid" option.  The PID file contains the process ID by which you can send signals.</p>
 
@@ -742,7 +742,6 @@ six     sixth
 <p>Confirm the functionality by the telnet command.</p>
 
 <pre>$ telnet localhost 2010
-Trying ::1...
 Trying 127.0.0.1...
 Connected to localhost.
 Escape character is '^]'.
@@ -757,9 +756,9 @@ quit
 Connection closed by foreign host.
 </pre>
 
-<p>This implementation supports a portion of commands supported by the original memcached server.  As for now, "set", "add", "replace", "get", "delete", "stats", "flush_all", and "quit" are available.  Mechanisms of "flags", "cas unique", "noreply" are not implemented.</p>
+<p>This implementation supports a portion of commands supported by the original memcached server.  As for now, "set", "add", "replace", "get", "delete", "incr", "decr", "stats", "flush_all", and "quit" are available.  Mechanisms of "flags", "cas unique", "noreply" are not implemented.</p>
 
-<p>The most important advantage of the pluggable server mechanism is to share database objects with the main server.  Update operations by a pluggable server is reflected to the main server immediately and vice versa.  Moreover, update operations are written as update logs and picked up by slave servers of replication.  You can implement your own pluggable server.  See the source code in "ktplugservmemc.cc" for detail.</p>
+<p>The most important advantage of the pluggable server mechanism is to share database objects with the main server.  Update operations by a pluggable server is reflected to the main server immediately and vice versa.  Moreover, update operations are written as update logs and picked up by slave servers of replication.  You can implement your own pluggable server.  See the source code in "ktplugservmemc.cc" for details.</p>
 
 <hr />
 
@@ -1321,7 +1320,7 @@ key     mikio
 
 <h3 id="protocol_impl">Simplest Client Implementations</h3>
 
-<p>If there is no client library for Kyoto Tycoon in your favorite language, you have to write it by yourself.  However, it is very easy to implement client library for RESTful interface.</p>
+<p>If there is no client library for Kyoto Tycoon in your favorite language, you have to write it by yourself or use the memcached protocol by the pluggable memcached server module.  However, it is very easy to implement your own client library for the RESTful interface.</p>
 
 <p>In Python3, the `http.client' module is useful.  Use the `httplib' instead in Python2.</p>
 
