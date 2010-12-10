@@ -1034,7 +1034,7 @@ static int32_t procreport(const char* host, int32_t port, double tout) {
     std::map<std::string, std::string>::iterator it = status.begin();
     std::map<std::string, std::string>::iterator itend = status.end();
     while (it != itend) {
-      iprintf("%s: %s\n", it->first.c_str(), it->second.c_str());
+      oprintf("%s: %s\n", it->first.c_str(), it->second.c_str());
       it++;
     }
   } else {
@@ -1064,7 +1064,7 @@ static int32_t procscript(const char* proc, const char* host, int32_t port, doub
       std::map<std::string, std::string>::iterator it = result.begin();
       std::map<std::string, std::string>::iterator itend = result.end();
       while (it != itend) {
-        iprintf("%s\t%s\n", it->first.c_str(), it->second.c_str());
+        oprintf("%s\t%s\n", it->first.c_str(), it->second.c_str());
         it++;
       }
     } else {
@@ -1077,7 +1077,7 @@ static int32_t procscript(const char* proc, const char* host, int32_t port, doub
       std::map<std::string, std::string>::iterator it = result.begin();
       std::map<std::string, std::string>::iterator itend = result.end();
       while (it != itend) {
-        iprintf("%s\t%s\n", it->first.c_str(), it->second.c_str());
+        oprintf("%s\t%s\n", it->first.c_str(), it->second.c_str());
         it++;
       }
     } else {
@@ -1130,12 +1130,12 @@ static int32_t procinform(const char* host, int32_t port, double tout, const cha
       std::map<std::string, std::string>::iterator it = status.begin();
       std::map<std::string, std::string>::iterator itend = status.end();
       while (it != itend) {
-        iprintf("%s: %s\n", it->first.c_str(), it->second.c_str());
+        oprintf("%s: %s\n", it->first.c_str(), it->second.c_str());
         it++;
       }
     } else {
-      iprintf("count: %s\n", status["count"].c_str());
-      iprintf("size: %s\n", status["size"].c_str());
+      oprintf("count: %s\n", status["count"].c_str());
+      oprintf("size: %s\n", status["size"].c_str());
     }
   } else {
     dberrprint(&db, "DB::status failed");
@@ -1238,7 +1238,7 @@ static int32_t procset(const char* kbuf, size_t ksiz, const char* vbuf, size_t v
         dberrprint(&db, "DB::increment failed");
         err = true;
       } else {
-        iprintf("%lld\n", (long long)onum);
+        oprintf("%lld\n", (long long)onum);
       }
       break;
     }
@@ -1248,7 +1248,7 @@ static int32_t procset(const char* kbuf, size_t ksiz, const char* vbuf, size_t v
         dberrprint(&db, "DB::increment_double failed");
         err = true;
       } else {
-        iprintf("%f\n", onum);
+        oprintf("%f\n", onum);
       }
       break;
     }
@@ -1299,8 +1299,8 @@ static int32_t procget(const char* kbuf, size_t ksiz,
   char* vbuf = db.get(kbuf, ksiz, &vsiz, &xt);
   if (vbuf) {
     printdata(vbuf, vsiz, px);
-    if (pt) iprintf("\t%lld", (long long)xt);
-    if (!pz) iprintf("\n");
+    if (pt) oprintf("\t%lld", (long long)xt);
+    if (!pz) oprintf("\n");
     delete[] vbuf;
   } else {
     dberrprint(&db, "DB::get failed");
@@ -1347,11 +1347,11 @@ static int32_t proclist(const char* kbuf, size_t ksiz,
       if (kbuf) {
         printdata(kbuf, ksiz, px);
         if (pv) {
-          iprintf("\t");
+          oprintf("\t");
           printdata(vbuf, vsiz, px);
         }
-        if (pt) iprintf("\t%lld", (long long)xt);
-        iprintf("\n");
+        if (pt) oprintf("\t%lld", (long long)xt);
+        oprintf("\n");
         delete[] kbuf;
       } else {
         if (db.error() != kt::RemoteDB::Error::LOGIC) {
@@ -1383,11 +1383,11 @@ static int32_t proclist(const char* kbuf, size_t ksiz,
       if (kbuf) {
         printdata(kbuf, ksiz, px);
         if (pv) {
-          iprintf("\t");
+          oprintf("\t");
           printdata(vbuf, vsiz, px);
         }
-        if (pt) iprintf("\t%lld", (long long)xt);
-        iprintf("\n");
+        if (pt) oprintf("\t%lld", (long long)xt);
+        oprintf("\n");
         delete[] kbuf;
       } else {
         if (db.error() != kt::RemoteDB::Error::LOGIC) {
@@ -1460,10 +1460,10 @@ static int32_t procimport(const char* file, const char* host, int32_t port, doub
         break;
       }
     }
-    iputchar('.');
-    if (cnt % 50 == 0) iprintf(" (%d)\n", cnt);
+    oputchar('.');
+    if (cnt % 50 == 0) oprintf(" (%d)\n", cnt);
   }
-  if (cnt % 50 > 0) iprintf(" (%d)\n", cnt);
+  if (cnt % 50 > 0) oprintf(" (%d)\n", cnt);
   if (!db.close()) {
     dberrprint(&db, "DB::close failed");
     err = true;
@@ -1515,7 +1515,7 @@ static int32_t procslave(const char* host, int32_t port, double tout,
         if (rbuf) {
           printf("%llu\t%u\t%u\t", (unsigned long long)mts, rsid, rdbid);
           printdata(rbuf, rsiz, true);
-          iprintf("\n");
+          oprintf("\n");
         } else {
           eprintf("%s: parsing a message failed\n", g_progname);
           err = true;
@@ -1638,9 +1638,9 @@ static int32_t procgetbulk(const std::vector<std::string>& keys,
       while (rit != ritend) {
         if (rit->xt > 0) {
           printdata(rit->key.data(), rit->key.size(), px);
-          iprintf("\t");
+          oprintf("\t");
           printdata(rit->value.data(), rit->value.size(), px);
-          iprintf("\n");
+          oprintf("\n");
         }
         rit++;
       }
@@ -1656,9 +1656,9 @@ static int32_t procgetbulk(const std::vector<std::string>& keys,
       std::map<std::string, std::string>::iterator itend = recs.end();
       while (it != itend) {
         printdata(it->first.data(), it->first.size(), px);
-        iprintf("\t");
+        oprintf("\t");
         printdata(it->second.data(), it->second.size(), px);
-        iprintf("\n");
+        oprintf("\n");
         it++;
       }
     } else {

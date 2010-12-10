@@ -1113,7 +1113,7 @@ static int32_t procinform(const char* path, int32_t oflags,
       std::map<std::string, std::string>::iterator it = status.begin();
       std::map<std::string, std::string>::iterator itend = status.end();
       while (it != itend) {
-        iprintf("%s: %s\n", it->first.c_str(), it->second.c_str());
+        oprintf("%s: %s\n", it->first.c_str(), it->second.c_str());
         it++;
       }
     } else {
@@ -1121,8 +1121,8 @@ static int32_t procinform(const char* path, int32_t oflags,
       err = true;
     }
   } else {
-    iprintf("count: %lld\n", (long long)db.count());
-    iprintf("size: %lld\n", (long long)db.size());
+    oprintf("count: %lld\n", (long long)db.count());
+    oprintf("size: %lld\n", (long long)db.size());
   }
   if (!db.close()) {
     dberrprint(&db, "DB::close failed");
@@ -1199,7 +1199,7 @@ static int32_t procset(const char* path, const char* kbuf, size_t ksiz,
         dberrprint(&db, "DB::increment failed");
         err = true;
       } else {
-        iprintf("%lld\n", (long long)onum);
+        oprintf("%lld\n", (long long)onum);
       }
       break;
     }
@@ -1209,7 +1209,7 @@ static int32_t procset(const char* path, const char* kbuf, size_t ksiz,
         dberrprint(&db, "DB::increment_double failed");
         err = true;
       } else {
-        iprintf("%f\n", onum);
+        oprintf("%f\n", onum);
       }
       break;
     }
@@ -1300,8 +1300,8 @@ static int32_t procget(const char* path, const char* kbuf, size_t ksiz, int32_t 
   char* vbuf = db.get(kbuf, ksiz, &vsiz, &xt);
   if (vbuf) {
     printdata(vbuf, vsiz, px);
-    if (pt) iprintf("\t%lld", (long long)xt);
-    if (!pz) iprintf("\n");
+    if (pt) oprintf("\t%lld", (long long)xt);
+    if (!pz) oprintf("\n");
     delete[] vbuf;
   } else {
     dberrprint(&db, "DB::get failed");
@@ -1354,11 +1354,11 @@ static int32_t proclist(const char* path, const char*kbuf, size_t ksiz, int32_t 
                            const char* vbuf, size_t vsiz, size_t* sp, int64_t* xtp) {
       printdata(kbuf, ksiz, px_);
       if (pv_) {
-        iprintf("\t");
+        oprintf("\t");
         printdata(vbuf, vsiz, px_);
       }
-      if (pt_) iprintf("\t%lld", (long long)*xtp);
-      iprintf("\n");
+      if (pt_) oprintf("\t%lld", (long long)*xtp);
+      oprintf("\n");
       return NOP;
     }
     bool pv_;
@@ -1545,10 +1545,10 @@ static int32_t procimport(const char* path, const char* file, int32_t oflags,
         break;
       }
     }
-    iputchar('.');
-    if (cnt % 50 == 0) iprintf(" (%d)\n", cnt);
+    oputchar('.');
+    if (cnt % 50 == 0) oprintf(" (%d)\n", cnt);
   }
-  if (cnt % 50 > 0) iprintf(" (%d)\n", cnt);
+  if (cnt % 50 > 0) oprintf(" (%d)\n", cnt);
   if (!db.close()) {
     dberrprint(&db, "DB::close failed");
     err = true;
@@ -1592,7 +1592,7 @@ static int32_t proccopy(const char* path, const char* file, int32_t oflags,
     dberrprint(&db, "DB::copy failed");
     err = true;
   }
-  iprintf(" (end)\n");
+  oprintf(" (end)\n");
   if (!db.close()) {
     dberrprint(&db, "DB::close failed");
     err = true;
@@ -1603,7 +1603,7 @@ static int32_t proccopy(const char* path, const char* file, int32_t oflags,
       err = true;
     }
   }
-  if (!err) iprintf("%lld blocks were merged successfully\n", (long long)checker.count());
+  if (!err) oprintf("%lld blocks were merged successfully\n", (long long)checker.count());
   return err ? 1 : 0;
 }
 
@@ -1638,8 +1638,8 @@ static int32_t procdump(const char* path, const char* file, int32_t oflags,
       dberrprint(&db, "DB::dump_snapshot");
       err = true;
     }
-    iprintf(" (end)\n");
-    if (!err) iprintf("%lld records were dumped successfully\n", (long long)checker.count());
+    oprintf(" (end)\n");
+    if (!err) oprintf("%lld records were dumped successfully\n", (long long)checker.count());
   } else {
     if (!db.dump_snapshot(&std::cout)) {
       dberrprint(&db, "DB::dump_snapshot");
@@ -1690,16 +1690,16 @@ static int32_t procload(const char* path, const char* file, int32_t oflags,
       dberrprint(&db, "DB::load_snapshot");
       err = true;
     }
-    iprintf(" (end)\n");
-    if (!err) iprintf("%lld records were loaded successfully\n", (long long)checker.count());
+    oprintf(" (end)\n");
+    if (!err) oprintf("%lld records were loaded successfully\n", (long long)checker.count());
   } else {
     DotChecker checker(&std::cout, -1000);
     if (!db.load_snapshot(&std::cin)) {
       dberrprint(&db, "DB::load_snapshot");
       err = true;
     }
-    iprintf(" (end)\n");
-    if (!err) iprintf("%lld records were loaded successfully\n", (long long)checker.count());
+    oprintf(" (end)\n");
+    if (!err) oprintf("%lld records were loaded successfully\n", (long long)checker.count());
   }
   if (!db.close()) {
     dberrprint(&db, "DB::close failed");
@@ -1817,10 +1817,10 @@ static int32_t procrecover(const char* path, const char* dir, int32_t oflags,
       break;
     }
     cnt++;
-    iputchar('.');
-    if (cnt % 50 == 0) iprintf(" (%d)\n", cnt);
+    oputchar('.');
+    if (cnt % 50 == 0) oprintf(" (%d)\n", cnt);
   }
-  if (cnt % 50 > 0) iprintf(" (%d)\n", cnt);
+  if (cnt % 50 > 0) oprintf(" (%d)\n", cnt);
   if (!ulrd.close()) {
     dberrprint(&db, "DBUpdateLogger::Reader::close failed");
     err = true;
@@ -1890,7 +1890,7 @@ static int32_t procmerge(const char* path, int32_t oflags,
     dberrprint(&db, "DB::merge failed");
     err = true;
   }
-  iprintf(" (end)\n");
+  oprintf(" (end)\n");
   for (size_t i = 0; i < srcnum; i++) {
     kt::TimedDB* srcdb = srcary[i];
     if (!srcdb->close()) {
@@ -1910,7 +1910,7 @@ static int32_t procmerge(const char* path, int32_t oflags,
       err = true;
     }
   }
-  if (!err) iprintf("%lld records were merged successfully\n", (long long)checker.count());
+  if (!err) oprintf("%lld records were merged successfully\n", (long long)checker.count());
   return err ? 1 : 0;
 }
 
@@ -1966,8 +1966,8 @@ static int32_t proccheck(const char* path, int32_t oflags,
       }
       delete[] kbuf;
       if (cnt % 1000 == 0) {
-        iputchar('.');
-        if (cnt % 50000 == 0) iprintf(" (%lld)\n", (long long)cnt);
+        oputchar('.');
+        if (cnt % 50000 == 0) oprintf(" (%lld)\n", (long long)cnt);
       }
     } else {
       if (db.error() != kc::BasicDB::Error::NOREC) {
@@ -1981,7 +1981,7 @@ static int32_t proccheck(const char* path, int32_t oflags,
       err = true;
     }
   }
-  iprintf(" (end)\n");
+  oprintf(" (end)\n");
   kc::File::Status sbuf;
   if (kc::File::status(path, &sbuf)) {
     if (!sbuf.isdir && db.size() != sbuf.size) {
@@ -2002,7 +2002,7 @@ static int32_t proccheck(const char* path, int32_t oflags,
       err = true;
     }
   }
-  if (!err) iprintf("%lld records were checked successfully\n", (long long)cnt);
+  if (!err) oprintf("%lld records were checked successfully\n", (long long)cnt);
   return err ? 1 : 0;
 }
 

@@ -87,7 +87,7 @@ static void usage() {
 
 // kill the running server
 static void killserver(int signum) {
-  iprintf("%s: catched the signal %d\n", g_progname, signum);
+  oprintf("%s: catched the signal %d\n", g_progname, signum);
   if (g_servsock) {
     g_servsock->abort();
     g_servsock = NULL;
@@ -315,7 +315,7 @@ static int32_t procecho(const char* host, int32_t port, double tout) {
   }
   g_servsock = &serv;
   g_poller = &poll;
-  iprintf("%s: started: %s\n", g_progname, serv.expression().c_str());
+  oprintf("%s: started: %s\n", g_progname, serv.expression().c_str());
   serv.set_event_flags(kt::Pollable::EVINPUT);
   if (!poll.deposit(&serv)) {
     eprintf("%s: poller: deposit error: %s\n", g_progname, poll.error());
@@ -329,7 +329,7 @@ static int32_t procecho(const char* host, int32_t port, double tout) {
           kt::Socket* sock = new kt::Socket;
           sock->set_timeout(tout);
           if (serv.accept(sock)) {
-            iprintf("%s: connected: %s\n", g_progname, sock->expression().c_str());
+            oprintf("%s: connected: %s\n", g_progname, sock->expression().c_str());
             sock->set_event_flags(kt::Pollable::EVINPUT);
             if (!poll.deposit(sock)) {
               eprintf("%s: poller: deposit error: %s\n", g_progname, poll.error());
@@ -349,13 +349,13 @@ static int32_t procecho(const char* host, int32_t port, double tout) {
           kt::Socket* sock = (kt::Socket*)event;
           char line[LINEBUFSIZ];
           if (sock->receive_line(line, sizeof(line))) {
-            iprintf("%s: (%s): %s\n", g_progname, sock->expression().c_str(), line);
+            oprintf("%s: (%s): %s\n", g_progname, sock->expression().c_str(), line);
             if (!kc::stricmp(line, "/quit")) {
               if (!sock->printf("> Bye!\n")) {
                 eprintf("%s: socket: printf error: %s\n", g_progname, sock->error());
                 err = true;
               }
-              iprintf("%s: closing: %s\n", g_progname, sock->expression().c_str());
+              oprintf("%s: closing: %s\n", g_progname, sock->expression().c_str());
               if (!poll.withdraw(sock)) {
                 eprintf("%s: poller: withdraw error: %s\n", g_progname, poll.error());
                 err = true;
@@ -377,7 +377,7 @@ static int32_t procecho(const char* host, int32_t port, double tout) {
               }
             }
           } else {
-            iprintf("%s: closed: %s\n", g_progname, sock->expression().c_str());
+            oprintf("%s: closed: %s\n", g_progname, sock->expression().c_str());
             if (!poll.withdraw(sock)) {
               eprintf("%s: poller: withdraw error: %s\n", g_progname, poll.error());
               err = true;
@@ -401,7 +401,7 @@ static int32_t procecho(const char* host, int32_t port, double tout) {
     while ((event = poll.next()) != NULL) {
       if (event != &serv) {
         kt::Socket* sock = (kt::Socket*)event;
-        iprintf("%s: discarded: %s\n", g_progname, sock->expression().c_str());
+        oprintf("%s: discarded: %s\n", g_progname, sock->expression().c_str());
         if (!poll.withdraw(sock)) {
           eprintf("%s: poller: withdraw error: %s\n", g_progname, poll.error());
           err = true;
@@ -417,7 +417,7 @@ static int32_t procecho(const char* host, int32_t port, double tout) {
     eprintf("%s: poller: flush error: %s\n", g_progname, poll.error());
     err = true;
   }
-  iprintf("%s: finished: %s\n", g_progname, serv.expression().c_str());
+  oprintf("%s: finished: %s\n", g_progname, serv.expression().c_str());
   if (!poll.close()) {
     eprintf("%s: poller: close error: %s\n", g_progname, poll.error());
     err = true;

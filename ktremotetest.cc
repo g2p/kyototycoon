@@ -59,11 +59,11 @@ int main(int argc, char** argv) {
     usage();
   }
   if (rv != 0) {
-    iprintf("FAILED: KTRNDSEED=%u PID=%ld", g_randseed, (long)kc::getpid());
+    oprintf("FAILED: KTRNDSEED=%u PID=%ld", g_randseed, (long)kc::getpid());
     for (int32_t i = 0; i < argc; i++) {
-      iprintf(" %s", argv[i]);
+      oprintf(" %s", argv[i]);
     }
-    iprintf("\n\n");
+    oprintf("\n\n");
   }
   return rv;
 }
@@ -88,7 +88,7 @@ static void usage() {
 // print the error message of a database
 static void dberrprint(kt::RemoteDB* db, int32_t line, const char* func) {
   const kt::RemoteDB::Error& err = db->error();
-  iprintf("%s: %d: %s: %s: %d: %s: %s\n",
+  oprintf("%s: %d: %s: %s: %d: %s: %s\n",
           g_progname, line, func, db->expression().c_str(),
           err.code(), err.name(), err.message());
 }
@@ -102,16 +102,16 @@ static void dbmetaprint(kt::RemoteDB* db, bool verbose) {
       std::map<std::string, std::string>::iterator it = status.begin();
       std::map<std::string, std::string>::iterator itend = status.end();
       while (it != itend) {
-        iprintf("%s: %s\n", it->first.c_str(), it->second.c_str());
+        oprintf("%s: %s\n", it->first.c_str(), it->second.c_str());
         it++;
       }
     }
   } else {
-    iprintf("count: %lld\n", (long long)db->count());
-    iprintf("size: %lld\n", (long long)db->size());
+    oprintf("count: %lld\n", (long long)db->count());
+    oprintf("size: %lld\n", (long long)db->size());
   }
   int64_t musage = memusage();
-  if (musage > 0) iprintf("memory: %lld\n", (long long)(musage - g_memusage));
+  if (musage > 0) oprintf("memory: %lld\n", (long long)(musage - g_memusage));
 }
 
 
@@ -282,10 +282,10 @@ static int32_t runwicked(int argc, char** argv) {
 // perform order command
 static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
                          const char* host, int32_t port, double tout) {
-  iprintf("<In-order Test>\n  seed=%u  rnum=%lld  thnum=%d  rnd=%d  mode=%d  host=%s  port=%d"
+  oprintf("<In-order Test>\n  seed=%u  rnum=%lld  thnum=%d  rnd=%d  mode=%d  host=%s  port=%d"
           "  tout=%f\n\n", g_randseed, (long long)rnum, thnum, rnd, mode, host, port, tout);
   bool err = false;
-  iprintf("opening the database:\n");
+  oprintf("opening the database:\n");
   double stime = kc::time();
   kt::RemoteDB* dbs = new kt::RemoteDB[thnum];
   for (int32_t i = 0; i < thnum; i++) {
@@ -299,9 +299,9 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
     err = true;
   }
   double etime = kc::time();
-  iprintf("time: %.3f\n", etime - stime);
+  oprintf("time: %.3f\n", etime - stime);
   if (mode == 0 || mode == 's' || mode == 'e') {
-    iprintf("setting records:\n");
+    oprintf("setting records:\n");
     stime = kc::time();
     class Worker : public kc::Thread {
     public:
@@ -330,8 +330,8 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
             err_ = true;
           }
           if (id_ < 1 && rnum_ > 250 && i % (rnum_ / 250) == 0) {
-            iputchar('.');
-            if (i == rnum_ || i % (rnum_ / 10) == 0) iprintf(" (%08lld)\n", (long long)i);
+            oputchar('.');
+            if (i == rnum_ || i % (rnum_ / 10) == 0) oprintf(" (%08lld)\n", (long long)i);
           }
         }
       }
@@ -353,10 +353,10 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
     }
     etime = kc::time();
     dbmetaprint(dbs, mode == 's');
-    iprintf("time: %.3f\n", etime - stime);
+    oprintf("time: %.3f\n", etime - stime);
   }
   if (mode == 'e') {
-    iprintf("adding records:\n");
+    oprintf("adding records:\n");
     stime = kc::time();
     class Worker : public kc::Thread {
     public:
@@ -386,8 +386,8 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
             err_ = true;
           }
           if (id_ < 1 && rnum_ > 250 && i % (rnum_ / 250) == 0) {
-            iputchar('.');
-            if (i == rnum_ || i % (rnum_ / 10) == 0) iprintf(" (%08lld)\n", (long long)i);
+            oputchar('.');
+            if (i == rnum_ || i % (rnum_ / 10) == 0) oprintf(" (%08lld)\n", (long long)i);
           }
         }
       }
@@ -409,10 +409,10 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
     }
     etime = kc::time();
     dbmetaprint(dbs, false);
-    iprintf("time: %.3f\n", etime - stime);
+    oprintf("time: %.3f\n", etime - stime);
   }
   if (mode == 'e') {
-    iprintf("appending records:\n");
+    oprintf("appending records:\n");
     stime = kc::time();
     class Worker : public kc::Thread {
     public:
@@ -441,8 +441,8 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
             err_ = true;
           }
           if (id_ < 1 && rnum_ > 250 && i % (rnum_ / 250) == 0) {
-            iputchar('.');
-            if (i == rnum_ || i % (rnum_ / 10) == 0) iprintf(" (%08lld)\n", (long long)i);
+            oputchar('.');
+            if (i == rnum_ || i % (rnum_ / 10) == 0) oprintf(" (%08lld)\n", (long long)i);
           }
         }
       }
@@ -464,10 +464,10 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
     }
     etime = kc::time();
     dbmetaprint(dbs, false);
-    iprintf("time: %.3f\n", etime - stime);
+    oprintf("time: %.3f\n", etime - stime);
   }
   if (mode == 0 || mode == 'g' || mode == 'e') {
-    iprintf("geting records:\n");
+    oprintf("geting records:\n");
     stime = kc::time();
     class Worker : public kc::Thread {
     public:
@@ -503,8 +503,8 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
             err_ = true;
           }
           if (id_ < 1 && rnum_ > 250 && i % (rnum_ / 250) == 0) {
-            iputchar('.');
-            if (i == rnum_ || i % (rnum_ / 10) == 0) iprintf(" (%08lld)\n", (long long)i);
+            oputchar('.');
+            if (i == rnum_ || i % (rnum_ / 10) == 0) oprintf(" (%08lld)\n", (long long)i);
           }
         }
       }
@@ -526,10 +526,10 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
     }
     etime = kc::time();
     dbmetaprint(dbs, mode == 'g');
-    iprintf("time: %.3f\n", etime - stime);
+    oprintf("time: %.3f\n", etime - stime);
   }
   if (mode == 'e') {
-    iprintf("traversing the database by the outer cursor:\n");
+    oprintf("traversing the database by the outer cursor:\n");
     stime = kc::time();
     class Worker : public kc::Thread {
     public:
@@ -605,8 +605,8 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
             err_ = true;
           }
           if (id_ < 1 && rnum_ > 250 && cnt % (rnum_ / 250) == 0) {
-            iputchar('.');
-            if (cnt == rnum_ || cnt % (rnum_ / 10) == 0) iprintf(" (%08lld)\n", (long long)cnt);
+            oputchar('.');
+            if (cnt == rnum_ || cnt % (rnum_ / 10) == 0) oprintf(" (%08lld)\n", (long long)cnt);
           }
         }
         if (cur->error() != kt::RemoteDB::Error::LOGIC) {
@@ -617,7 +617,7 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
           dberrprint(db_, __LINE__, "Cursor::get_key");
           err_ = true;
         }
-        if (id_ < 1) iprintf(" (end)\n");
+        if (id_ < 1) oprintf(" (end)\n");
         delete cur;
       }
       int32_t id_;
@@ -638,10 +638,10 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
     }
     etime = kc::time();
     dbmetaprint(dbs, false);
-    iprintf("time: %.3f\n", etime - stime);
+    oprintf("time: %.3f\n", etime - stime);
   }
   if (mode == 0 || mode == 'r' || mode == 'e') {
-    iprintf("removing records:\n");
+    oprintf("removing records:\n");
     stime = kc::time();
     class Worker : public kc::Thread {
     public:
@@ -672,8 +672,8 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
             err_ = true;
           }
           if (id_ < 1 && rnum_ > 250 && i % (rnum_ / 250) == 0) {
-            iputchar('.');
-            if (i == rnum_ || i % (rnum_ / 10) == 0) iprintf(" (%08lld)\n", (long long)i);
+            oputchar('.');
+            if (i == rnum_ || i % (rnum_ / 10) == 0) oprintf(" (%08lld)\n", (long long)i);
           }
         }
       }
@@ -696,9 +696,9 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
     }
     etime = kc::time();
     dbmetaprint(dbs, mode == 'r' || mode == 'e');
-    iprintf("time: %.3f\n", etime - stime);
+    oprintf("time: %.3f\n", etime - stime);
   }
-  iprintf("closing the database:\n");
+  oprintf("closing the database:\n");
   stime = kc::time();
   for (int32_t i = 0; i < thnum; i++) {
     if (!dbs[i].close()) {
@@ -707,9 +707,9 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
     }
   }
   etime = kc::time();
-  iprintf("time: %.3f\n", etime - stime);
+  oprintf("time: %.3f\n", etime - stime);
   delete[] dbs;
-  iprintf("%s\n\n", err ? "error" : "ok");
+  oprintf("%s\n\n", err ? "error" : "ok");
   return err ? 1 : 0;
 }
 
@@ -717,11 +717,11 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
 // perform bulk command
 static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t mode,
                         int32_t bulk, const char* host, int32_t port, double tout) {
-  iprintf("<Bulk Test>\n  seed=%u  rnum=%lld  thnum=%d  bin=%d  rnd=%d  mode=%d  bulk=%d"
+  oprintf("<Bulk Test>\n  seed=%u  rnum=%lld  thnum=%d  bin=%d  rnd=%d  mode=%d  bulk=%d"
           "  host=%s  port=%d  tout=%f\n\n",
           g_randseed, (long long)rnum, thnum, bin, rnd, mode, bulk, host, port, tout);
   bool err = false;
-  iprintf("opening the database:\n");
+  oprintf("opening the database:\n");
   double stime = kc::time();
   kt::RemoteDB* dbs = new kt::RemoteDB[thnum];
   for (int32_t i = 0; i < thnum; i++) {
@@ -735,9 +735,9 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
     err = true;
   }
   double etime = kc::time();
-  iprintf("time: %.3f\n", etime - stime);
+  oprintf("time: %.3f\n", etime - stime);
   if (mode == 0 || mode == 's') {
-    iprintf("setting records:\n");
+    oprintf("setting records:\n");
     stime = kc::time();
     class Worker : public kc::Thread {
     public:
@@ -789,8 +789,8 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
             }
           }
           if (id_ < 1 && rnum_ > 250 && i % (rnum_ / 250) == 0) {
-            iputchar('.');
-            if (i == rnum_ || i % (rnum_ / 10) == 0) iprintf(" (%08lld)\n", (long long)i);
+            oputchar('.');
+            if (i == rnum_ || i % (rnum_ / 10) == 0) oprintf(" (%08lld)\n", (long long)i);
           }
         }
         if (bulkrecs.size() > 0) {
@@ -829,10 +829,10 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
     }
     etime = kc::time();
     dbmetaprint(dbs, mode == 's');
-    iprintf("time: %.3f\n", etime - stime);
+    oprintf("time: %.3f\n", etime - stime);
   }
   if (mode == 0 || mode == 'g') {
-    iprintf("getting records:\n");
+    oprintf("getting records:\n");
     stime = kc::time();
     class Worker : public kc::Thread {
     public:
@@ -884,8 +884,8 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
             }
           }
           if (id_ < 1 && rnum_ > 250 && i % (rnum_ / 250) == 0) {
-            iputchar('.');
-            if (i == rnum_ || i % (rnum_ / 10) == 0) iprintf(" (%08lld)\n", (long long)i);
+            oputchar('.');
+            if (i == rnum_ || i % (rnum_ / 10) == 0) oprintf(" (%08lld)\n", (long long)i);
           }
         }
         if (bulkrecs.size() > 0) {
@@ -924,10 +924,10 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
     }
     etime = kc::time();
     dbmetaprint(dbs, mode == 'g');
-    iprintf("time: %.3f\n", etime - stime);
+    oprintf("time: %.3f\n", etime - stime);
   }
   if (mode == 0 || mode == 'r') {
-    iprintf("removing records:\n");
+    oprintf("removing records:\n");
     stime = kc::time();
     class Worker : public kc::Thread {
     public:
@@ -978,8 +978,8 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
             }
           }
           if (id_ < 1 && rnum_ > 250 && i % (rnum_ / 250) == 0) {
-            iputchar('.');
-            if (i == rnum_ || i % (rnum_ / 10) == 0) iprintf(" (%08lld)\n", (long long)i);
+            oputchar('.');
+            if (i == rnum_ || i % (rnum_ / 10) == 0) oprintf(" (%08lld)\n", (long long)i);
           }
         }
         if (bulkrecs.size() > 0) {
@@ -1017,10 +1017,10 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
     }
     etime = kc::time();
     dbmetaprint(dbs, mode == 'r');
-    iprintf("time: %.3f\n", etime - stime);
+    oprintf("time: %.3f\n", etime - stime);
   }
   if (mode == 0 || mode == 'e') {
-    iprintf("performing mixed operations:\n");
+    oprintf("performing mixed operations:\n");
     stime = kc::time();
     class Worker : public kc::Thread {
     public:
@@ -1105,8 +1105,8 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
             }
           }
           if (id_ < 1 && rnum_ > 250 && i % (rnum_ / 250) == 0) {
-            iputchar('.');
-            if (i == rnum_ || i % (rnum_ / 10) == 0) iprintf(" (%08lld)\n", (long long)i);
+            oputchar('.');
+            if (i == rnum_ || i % (rnum_ / 10) == 0) oprintf(" (%08lld)\n", (long long)i);
           }
         }
         if (bulkrecs.size() > 0) {
@@ -1145,9 +1145,9 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
     }
     etime = kc::time();
     dbmetaprint(dbs, mode == 'e');
-    iprintf("time: %.3f\n", etime - stime);
+    oprintf("time: %.3f\n", etime - stime);
   }
-  iprintf("closing the database:\n");
+  oprintf("closing the database:\n");
   stime = kc::time();
   for (int32_t i = 0; i < thnum; i++) {
     if (!dbs[i].close()) {
@@ -1156,9 +1156,9 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
     }
   }
   etime = kc::time();
-  iprintf("time: %.3f\n", etime - stime);
+  oprintf("time: %.3f\n", etime - stime);
   delete[] dbs;
-  iprintf("%s\n\n", err ? "error" : "ok");
+  oprintf("%s\n\n", err ? "error" : "ok");
   return err ? 1 : 0;
 }
 
@@ -1166,11 +1166,11 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
 // perform wicked command
 static int32_t procwicked(int64_t rnum, int32_t thnum, int32_t itnum,
                           const char* host, int32_t port, double tout) {
-  iprintf("<Wicked Test>\n  seed=%u  rnum=%lld  thnum=%d  itnum=%d  host=%s  port=%d"
+  oprintf("<Wicked Test>\n  seed=%u  rnum=%lld  thnum=%d  itnum=%d  host=%s  port=%d"
           "  tout=%f\n\n", g_randseed, (long long)rnum, thnum, itnum, host, port, tout);
   bool err = false;
   for (int32_t itcnt = 1; itcnt <= itnum; itcnt++) {
-    if (itnum > 1) iprintf("iteration %d:\n", itcnt);
+    if (itnum > 1) oprintf("iteration %d:\n", itcnt);
     double stime = kc::time();
     kt::RemoteDB* dbs = new kt::RemoteDB[thnum];
     for (int32_t i = 0; i < thnum; i++) {
@@ -1410,8 +1410,8 @@ static int32_t procwicked(int64_t rnum, int32_t thnum, int32_t itnum,
             }
           }
           if (id_ < 1 && rnum_ > 250 && i % (rnum_ / 250) == 0) {
-            iputchar('.');
-            if (i == rnum_ || i % (rnum_ / 10) == 0) iprintf(" (%08lld)\n", (long long)i);
+            oputchar('.');
+            if (i == rnum_ || i % (rnum_ / 10) == 0) oprintf(" (%08lld)\n", (long long)i);
           }
         }
         delete cur;
@@ -1443,9 +1443,9 @@ static int32_t procwicked(int64_t rnum, int32_t thnum, int32_t itnum,
       }
     }
     delete[] dbs;
-    iprintf("time: %.3f\n", kc::time() - stime);
+    oprintf("time: %.3f\n", kc::time() - stime);
   }
-  iprintf("%s\n\n", err ? "error" : "ok");
+  oprintf("%s\n\n", err ? "error" : "ok");
   return err ? 1 : 0;
 }
 

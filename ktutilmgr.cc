@@ -299,13 +299,13 @@ static int32_t procdate(const char* str, int32_t jl, bool wf, bool rf) {
   if (wf) {
     char buf[48];
     kt::datestrwww(t, jl, buf);
-    iprintf("%s\n", buf);
+    oprintf("%s\n", buf);
   } else if (rf) {
     char buf[48];
     kt::datestrhttp(t, jl, buf);
-    iprintf("%s\n", buf);
+    oprintf("%s\n", buf);
   } else {
-    iprintf("%lld\n", (long long)t);
+    oprintf("%lld\n", (long long)t);
   }
   return 0;
 }
@@ -461,12 +461,12 @@ static int32_t procrpc(const char* proc, std::map<std::string, std::string>* par
     case kt::RPCClient::RVENETWORK: name = "RVENETWORK"; break;
     default: name = "RVEMISC"; break;
   }
-  iprintf("RV\t%d: %s\n", (int)rv, name);
+  oprintf("RV\t%d: %s\n", (int)rv, name);
   if (oenc != 0) kt::tsvmapencode(&outmap, oenc);
   std::map<std::string, std::string>::iterator it = outmap.begin();
   std::map<std::string, std::string>::iterator itend = outmap.end();
   while (it != itend) {
-    iprintf("%s\t%s\n", it->first.c_str(), it->second.c_str());
+    oprintf("%s\t%s\n", it->first.c_str(), it->second.c_str());
     it++;
   }
   if (!rpc.close()) {
@@ -502,7 +502,7 @@ static int32_t proculog(const char* path, uint64_t ts, bool uw, bool uf) {
     std::vector<kt::UpdateLogger::FileStatus>::iterator itend = files.end();
     while (it != itend) {
       if (it->ts >= ts)
-        iprintf("%s\t%llu\t%llu\n",
+        oprintf("%s\t%llu\t%llu\n",
                 it->path.c_str(), (unsigned long long)it->size, (unsigned long long)it->ts);
       it++;
     }
@@ -517,9 +517,9 @@ static int32_t proculog(const char* path, uint64_t ts, bool uw, bool uf) {
       uint64_t mts;
       char* mbuf = ulrd.read(&msiz, &mts);
       if (mbuf) {
-        iprintf("%llu\t", (unsigned long long)mts);
+        oprintf("%llu\t", (unsigned long long)mts);
         printdata(mbuf, msiz, true);
-        iprintf("\n");
+        oprintf("\n");
         delete[] mbuf;
       } else if (uw) {
         kc::Thread::sleep(0.1);
@@ -544,34 +544,34 @@ static int32_t proculog(const char* path, uint64_t ts, bool uw, bool uf) {
 static int32_t procconf(int32_t mode) {
   switch (mode) {
     case 'v': {
-      iprintf("%s\n", kt::VERSION);
+      oprintf("%s\n", kt::VERSION);
       break;
     }
     case 'i': {
-      iprintf("%s\n", _KT_APPINC);
+      oprintf("%s\n", _KT_APPINC);
       break;
     }
     case 'l': {
-      iprintf("%s\n", _KT_APPLIBS);
+      oprintf("%s\n", _KT_APPLIBS);
       break;
     }
     case 'p': {
-      iprintf("%s\n", _KT_BINDIR);
+      oprintf("%s\n", _KT_BINDIR);
       break;
     }
     default: {
-      iprintf("VERSION: %s\n", kt::VERSION);
-      iprintf("LIBVER: %d\n", kt::LIBVER);
-      iprintf("LIBREV: %d\n", kt::LIBREV);
-      iprintf("SYSNAME: %s\n", kc::SYSNAME);
+      oprintf("VERSION: %s\n", kt::VERSION);
+      oprintf("LIBVER: %d\n", kt::LIBVER);
+      oprintf("LIBREV: %d\n", kt::LIBREV);
+      oprintf("SYSNAME: %s\n", kc::SYSNAME);
       if (std::strcmp(_KT_PREFIX, "*")) {
-        iprintf("prefix: %s\n", _KT_PREFIX);
-        iprintf("includedir: %s\n", _KT_INCLUDEDIR);
-        iprintf("libdir: %s\n", _KT_LIBDIR);
-        iprintf("bindir: %s\n", _KT_BINDIR);
-        iprintf("libexecdir: %s\n", _KT_LIBEXECDIR);
-        iprintf("appinc: %s\n", _KT_APPINC);
-        iprintf("applibs: %s\n", _KT_APPLIBS);
+        oprintf("prefix: %s\n", _KT_PREFIX);
+        oprintf("includedir: %s\n", _KT_INCLUDEDIR);
+        oprintf("libdir: %s\n", _KT_LIBDIR);
+        oprintf("bindir: %s\n", _KT_BINDIR);
+        oprintf("libexecdir: %s\n", _KT_LIBEXECDIR);
+        oprintf("appinc: %s\n", _KT_APPINC);
+        oprintf("applibs: %s\n", _KT_APPLIBS);
       }
       break;
     }

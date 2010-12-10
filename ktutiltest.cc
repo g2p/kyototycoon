@@ -59,11 +59,11 @@ int main(int argc, char** argv) {
     usage();
   }
   if (rv != 0) {
-    iprintf("FAILED: KTRNDSEED=%u PID=%ld", g_randseed, (long)kc::getpid());
+    oprintf("FAILED: KTRNDSEED=%u PID=%ld", g_randseed, (long)kc::getpid());
     for (int32_t i = 0; i < argc; i++) {
-      iprintf(" %s", argv[i]);
+      oprintf(" %s", argv[i]);
     }
-    iprintf("\n\n");
+    oprintf("\n\n");
   }
   return rv;
 }
@@ -257,7 +257,7 @@ static int32_t prochttp(const char* url, int64_t rnum, int32_t thnum,
                         kt::HTTPClient::Method meth, const char* body,
                         std::map<std::string, std::string>* reqheads,
                         std::map<std::string, std::string>* queries, double tout, bool ka) {
-  iprintf("<HTTP Test>\n  seed=%u  url=%s  rnum=%lld  thnum=%d  meth=%d  tout=%.3f  ka=%d\n\n",
+  oprintf("<HTTP Test>\n  seed=%u  url=%s  rnum=%lld  thnum=%d  meth=%d  tout=%.3f  ka=%d\n\n",
           g_randseed, url, (long long)rnum, thnum, (int)meth, tout, ka);
   const char* istr = body && *body == '@' ? body + 1 : NULL;
   std::istream *is;
@@ -382,8 +382,8 @@ static int32_t prochttp(const char* url, int64_t rnum, int32_t thnum,
           open = false;
         }
         if (id_ < 1 && rnum_ > 250 && i % (rnum_ / 250) == 0) {
-          iputchar('.');
-          if (i == rnum_ || i % (rnum_ / 10) == 0) iprintf(" (%08lld)\n", (long long)i);
+          oputchar('.');
+          if (i == rnum_ || i % (rnum_ / 10) == 0) oprintf(" (%08lld)\n", (long long)i);
         }
       }
       if (open && !ua.close()) err_ = true;
@@ -412,12 +412,12 @@ static int32_t prochttp(const char* url, int64_t rnum, int32_t thnum,
     okcnt += workers[i].okcnt();
   }
   double etime = kc::time();
-  iprintf("OK count: %lld\n", (long long)okcnt);
-  iprintf("NG count: %lld\n", (long long)(rnum * thnum - okcnt));
-  iprintf("time: %.3f\n", etime - stime);
-  iprintf("throughput: %.3f req/s\n", okcnt / (etime - stime));
+  oprintf("OK count: %lld\n", (long long)okcnt);
+  oprintf("NG count: %lld\n", (long long)(rnum * thnum - okcnt));
+  oprintf("time: %.3f\n", etime - stime);
+  oprintf("throughput: %.3f req/s\n", okcnt / (etime - stime));
   delete[] workers;
-  iprintf("%s\n\n", err ? "error" : "ok");
+  oprintf("%s\n\n", err ? "error" : "ok");
   return err ? 1 : 0;
 }
 
@@ -426,7 +426,7 @@ static int32_t prochttp(const char* url, int64_t rnum, int32_t thnum,
 static int32_t procrpc(const char* proc, int64_t rnum,
                        std::map<std::string, std::string>* params, int32_t thnum,
                        const char* host, int32_t port, double tout) {
-  iprintf("<RPC Test>\n  seed=%u  proc=%s  rnum=%lld  thnum=%d  host=%s  port=%d  tout=%.3f\n\n",
+  oprintf("<RPC Test>\n  seed=%u  proc=%s  rnum=%lld  thnum=%d  host=%s  port=%d  tout=%.3f\n\n",
           g_randseed, proc, (long long)rnum, thnum, host ? host : "-", port, tout);
   std::string lhost = kt::Socket::get_local_host_name();
   if (!host) {
@@ -474,8 +474,8 @@ static int32_t procrpc(const char* proc, int64_t rnum,
           err_ = true;
         }
         if (id_ < 1 && rnum_ > 250 && i % (rnum_ / 250) == 0) {
-          iputchar('.');
-          if (i == rnum_ || i % (rnum_ / 10) == 0) iprintf(" (%08lld)\n", (long long)i);
+          oputchar('.');
+          if (i == rnum_ || i % (rnum_ / 10) == 0) oprintf(" (%08lld)\n", (long long)i);
         }
       }
       if (!rpc.close()) err_ = true;
@@ -503,19 +503,19 @@ static int32_t procrpc(const char* proc, int64_t rnum,
     okcnt += workers[i].okcnt();
   }
   double etime = kc::time();
-  iprintf("OK count: %lld\n", (long long)okcnt);
-  iprintf("NG count: %lld\n", (long long)(rnum * thnum - okcnt));
-  iprintf("time: %.3f\n", etime - stime);
-  iprintf("throughput: %.3f req/s\n", okcnt / (etime - stime));
+  oprintf("OK count: %lld\n", (long long)okcnt);
+  oprintf("NG count: %lld\n", (long long)(rnum * thnum - okcnt));
+  oprintf("time: %.3f\n", etime - stime);
+  oprintf("throughput: %.3f req/s\n", okcnt / (etime - stime));
   delete[] workers;
-  iprintf("%s\n\n", err ? "error" : "ok");
+  oprintf("%s\n\n", err ? "error" : "ok");
   return err ? 1 : 0;
 }
 
 
 // perform ulog command
 static int32_t proculog(const char* path, int64_t rnum, int32_t thnum, int64_t ulim) {
-  iprintf("<Update Logging Test>\n  seed=%u  path=%s  rnum=%lld  thnum=%d  ulim=%lld\n\n",
+  oprintf("<Update Logging Test>\n  seed=%u  path=%s  rnum=%lld  thnum=%d  ulim=%lld\n\n",
           g_randseed, path, (long long)rnum, thnum, (long long)ulim);
   bool err = false;
   bool init = !kc::File::status(path);
@@ -545,8 +545,8 @@ static int32_t proculog(const char* path, int64_t rnum, int32_t thnum, int64_t u
           err_ = true;
         }
         if (id_ < 1 && rnum_ > 250 && i % (rnum_ / 250) == 0) {
-          iputchar('.');
-          if (i == rnum_ || i % (rnum_ / 10) == 0) iprintf(" (%08lld)\n", (long long)i);
+          oputchar('.');
+          if (i == rnum_ || i % (rnum_ / 10) == 0) oprintf(" (%08lld)\n", (long long)i);
         }
       }
     }
@@ -640,8 +640,8 @@ static int32_t proculog(const char* path, int64_t rnum, int32_t thnum, int64_t u
     err = true;
   }
   double etime = kc::time();
-  iprintf("time: %.3f\n", etime - stime);
-  iprintf("%s\n\n", err ? "error" : "ok");
+  oprintf("time: %.3f\n", etime - stime);
+  oprintf("%s\n\n", err ? "error" : "ok");
   return err ? 1 : 0;
 }
 
