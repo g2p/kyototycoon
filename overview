@@ -21,6 +21,7 @@ The following classes are the most important.  If you are interested in writing 
 @li kyototycoon::Poller -- abstraction of system-independent event notification mechanism
 @li kyototycoon::Socket -- abstraction of system-independent client socket mechanism
 @li kyototycoon::ServerSocket -- abstraction of system-independent server socket mechanism
+@li kyototycoon::PluggableServer -- pluggable server interface
 
 @section Example
 

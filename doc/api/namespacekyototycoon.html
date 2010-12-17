@@ -65,8 +65,8 @@
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1UpdateLogger.html">UpdateLogger</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Update logger.  <a href="classkyototycoon_1_1UpdateLogger.html#_details">More...</a><br/></td></tr>
 <tr><td colspan="2"><h2>Typedefs</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="classkyototycoon_1_1PluggableServer.html">PluggableServer</a> *(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a97be806f4d76b088fb6315453663acc6">KTSERVINIT</a> )(void)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Initializer of a server implementation.  <a href="#a97be806f4d76b088fb6315453663acc6"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="classkyototycoon_1_1PluggableServer.html">PluggableServer</a> *(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#ae07ce1db9c71395930774106789171c5">KTSERVINIT</a> )()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Initializer of a server implementation.  <a href="#ae07ce1db9c71395930774106789171c5"></a><br/></td></tr>
 <tr><td colspan="2"><h2>Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a9ab27b9ecf56eedb045b412ef741d40e">setkillsignalhandler</a> (void(*handler)(int))</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the signal handler for termination signals.  <a href="#a9ab27b9ecf56eedb045b412ef741d40e"></a><br/></td></tr>
@@ -144,18 +144,19 @@
 <p>All symbols of Kyoto Tycoon. </p>
 <p>Common namespace of Kyoto Tycoon. </p>
 <hr/><h2>Typedef Documentation</h2>
-<a class="anchor" id="a97be806f4d76b088fb6315453663acc6"></a><!-- doxytag: member="kyototycoon::KTSERVINIT" ref="a97be806f4d76b088fb6315453663acc6" args=")(void)" -->
+<a class="anchor" id="ae07ce1db9c71395930774106789171c5"></a><!-- doxytag: member="kyototycoon::KTSERVINIT" ref="ae07ce1db9c71395930774106789171c5" args=")()" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="classkyototycoon_1_1PluggableServer.html">PluggableServer</a>*(* <a class="el" href="namespacekyototycoon.html#a97be806f4d76b088fb6315453663acc6">kyototycoon::KTSERVINIT</a>)(void)</td>
+          <td class="memname">typedef <a class="el" href="classkyototycoon_1_1PluggableServer.html">PluggableServer</a>*(* <a class="el" href="namespacekyototycoon.html#ae07ce1db9c71395930774106789171c5">kyototycoon::KTSERVINIT</a>)()</td>
         </tr>
       </table>
 </div>
 <div class="memdoc">
 
 <p>Initializer of a server implementation. </p>
+<dl class="note"><dt><b>Note:</b></dt><dd>Each shared library of a pluggable server module must implement a function whose name is "ktservinit" and return a new instance of a derived clas of the <a class="el" href="classkyototycoon_1_1PluggableServer.html" title="Interface of pluggable server abstraction.">PluggableServer</a> class. The instance will be deleted implicitly by the caller. </dd></dl>
 
 </div>
 </div>
@@ -1269,7 +1270,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Mon Dec 6 20:19:52 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Dec 16 23:50:05 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

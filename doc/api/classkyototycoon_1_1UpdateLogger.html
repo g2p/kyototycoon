@@ -59,10 +59,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Write a log message.  <a href="#a23f853df472b1a5c0c3d32547677efe2"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1UpdateLogger.html#a0848b760c25a52940304cd9331eac1fd">write_volatile</a> (char *mbuf, size_t msiz, uint64_t ts=0)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Write a log message with a volatile buffer.  <a href="#a0848b760c25a52940304cd9331eac1fd"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1UpdateLogger.html#a4bfd0cab587411846c07d6b95dde1781">begin_transaction</a> ()</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Begin transaction.  <a href="#a4bfd0cab587411846c07d6b95dde1781"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1UpdateLogger.html#a99c8baaf1f6b8971a04da0f276b43e4b">end_transaction</a> (bool commit)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">End transaction.  <a href="#a99c8baaf1f6b8971a04da0f276b43e4b"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1UpdateLogger.html#a6d87a583d8016eee8b532a58711a1417">write_bulk</a> (const std::vector&lt; std::string &gt; &amp;mvec, uint64_t ts=0)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Write multiple log messages at once.  <a href="#a6d87a583d8016eee8b532a58711a1417"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">uint64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1UpdateLogger.html#a42d1a6ab98795078db3a1fef9cec2c6b">clock</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the current clock data for time stamp.  <a href="#a42d1a6ab98795078db3a1fef9cec2c6b"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1UpdateLogger.html#a3f9f3faecbc6daf1b7a58ff984c14a2c">list_files</a> (std::vector&lt; <a class="el" href="structkyototycoon_1_1UpdateLogger_1_1FileStatus.html">FileStatus</a> &gt; *fstvec)</td></tr>
@@ -266,46 +264,36 @@
 
 </div>
 </div>
-<a class="anchor" id="a4bfd0cab587411846c07d6b95dde1781"></a><!-- doxytag: member="kyototycoon::UpdateLogger::begin_transaction" ref="a4bfd0cab587411846c07d6b95dde1781" args="()" -->
+<a class="anchor" id="a6d87a583d8016eee8b532a58711a1417"></a><!-- doxytag: member="kyototycoon::UpdateLogger::write_bulk" ref="a6d87a583d8016eee8b532a58711a1417" args="(const std::vector&lt; std::string &gt; &amp;mvec, uint64_t ts=0)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool kyototycoon::UpdateLogger::begin_transaction </td>
+          <td class="memname">bool kyototycoon::UpdateLogger::write_bulk </td>
           <td>(</td>
-          <td class="paramname"></td>
-          <td>&nbsp;)&nbsp;</td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&nbsp;</td>
+          <td class="paramname"> <em>mvec</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">uint64_t&nbsp;</td>
+          <td class="paramname"> <em>ts</em> = <code>0</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
         </tr>
       </table>
 </div>
 <div class="memdoc">
 
-<p>Begin transaction. </p>
-<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="a99c8baaf1f6b8971a04da0f276b43e4b"></a><!-- doxytag: member="kyototycoon::UpdateLogger::end_transaction" ref="a99c8baaf1f6b8971a04da0f276b43e4b" args="(bool commit)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool kyototycoon::UpdateLogger::end_transaction </td>
-          <td>(</td>
-          <td class="paramtype">bool&nbsp;</td>
-          <td class="paramname"> <em>commit</em></td>
-          <td>&nbsp;)&nbsp;</td>
-          <td></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>End transaction. </p>
+<p>Write multiple log messages at once. </p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
-    <tr><td valign="top"></td><td valign="top"><em>commit</em>&nbsp;</td><td>true to commit the transaction, or false to abort the transaction. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>mvec</em>&nbsp;</td><td>a string vector of log messages. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>ts</em>&nbsp;</td><td>the time stamp of the message. If it is not more than 0, the current time stamp is specified. </td></tr>
   </table>
   </dd>
 </dl>
@@ -380,7 +368,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Mon Dec 6 20:19:52 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Dec 16 23:50:05 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

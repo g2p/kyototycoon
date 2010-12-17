@@ -1,5 +1,5 @@
 /*************************************************************************************************
- * A persistent cache server
+ * Interface of pluggable server abstraction
  *                                                               Copyright (C) 2009-2010 FAL Labs
  * This file is part of Kyoto Tycoon.
  * This program is free software: you can redistribute it and/or modify it under the terms of
@@ -82,8 +82,11 @@ const char* const KTSERVINITNAME = "ktservinit";
 extern "C" {
 /**
  * Initializer of a server implementation.
+ * @note Each shared library of a pluggable server module must implement a function whose name is
+ * "ktservinit" and return a new instance of a derived clas of the PluggableServer class.  The
+ * instance will be deleted implicitly by the caller.
  */
-typedef PluggableServer* (*KTSERVINIT)(void);
+typedef PluggableServer* (*KTSERVINIT)();
 }
 
 

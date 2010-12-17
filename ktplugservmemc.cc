@@ -27,7 +27,8 @@ private:
 public:
   // default constructor
   explicit MemcacheServer() :
-    dbary_(NULL), dbnum_(0), logger_(NULL), expr_(""), stime_(0), serv_(), worker_(this) {
+    dbary_(NULL), dbnum_(0), logger_(NULL), expr_(""), host_(""), port_(0), opts_(0),
+    stime_(0), serv_(), worker_(this) {
     _assert_(true);
   }
   // destructor
@@ -44,17 +45,14 @@ public:
     logger_ = logger;
     logkinds_ = logkinds;
     expr_ = expr;
-    stime_ = kc::time();
+    serv_.set_logger(logger_, logkinds_);
     serv_.log(kt::ThreadedServer::Logger::SYSTEM,
-              "a plugin memcached server configured: expr=%s", expr);
-  }
-  // start the server
-  bool start() {
-    _assert_(true);
+              "the plug-in memcached server configured: expr=%s", expr);
+    host_ = "";
+    port_ = 0;
+    opts_ = 0;
     std::vector<std::string> elems;
     kc::strsplit(expr_.c_str(), '#', &elems);
-    std::string host;
-    int32_t port = 0;
     std::vector<std::string>::iterator it = elems.begin();
     std::vector<std::string>::iterator itend = elems.end();
     while (it != itend) {
@@ -63,25 +61,31 @@ public:
         const char* key = fields[0].c_str();
         const char* value = fields[1].c_str();
         if (!std::strcmp(key, "host")) {
-          host = value;
+          host_ = value;
         } else if (!std::strcmp(key, "port")) {
-          port = kc::atoi(value);
+          port_ = kc::atoi(value);
+        } else if (!std::strcmp(key, "opts") || !std::strcmp(key, "options")) {
+          if (std::strchr(value, 'f')) opts_ |= TFLAGS;
         }
       }
       it++;
     }
-    serv_.set_logger(logger_, logkinds_);
+    if (port_ < 1) port_ = 11211;
+    stime_ = kc::time();
+  }
+  // start the server
+  bool start() {
+    _assert_(true);
     std::string addr;
-    if (!host.empty()) {
-      addr = kt::Socket::get_host_address(host);
+    if (!host_.empty()) {
+      addr = kt::Socket::get_host_address(host_);
       if (addr.empty()) {
-        serv_.log(kt::ThreadedServer::Logger::ERROR, "unknown host: %s", host.c_str());
+        serv_.log(kt::ThreadedServer::Logger::ERROR, "unknown host: %s", host_.c_str());
         return false;
       }
     }
-    if (port < 1) port = 11211;
     std::string nexpr;
-    kc::strprintf(&nexpr, "%s:%d", addr.c_str(), port);
+    kc::strprintf(&nexpr, "%s:%d", addr.c_str(), port_);
     serv_.set_network(nexpr, 30);
     serv_.set_worker(&worker_, 8);
     return serv_.start();
@@ -97,6 +101,10 @@ public:
     return serv_.finish();
   }
 private:
+  // tuning options
+  enum Option {
+    TFLAGS = 1 << 1
+  };
   // server implementation
   class Worker : public kt::ThreadedServer::Worker {
   public:
@@ -151,6 +159,7 @@ private:
                 const std::vector<std::string>& tokens, kt::TimedDB* db) {
       if (tokens.size() < 5) return sess->printf("CLIENT_ERROR invalid parameters\r\n");
       const std::string& key = tokens[1];
+      uint32_t flags = kc::atoi(tokens[2].c_str());
       int64_t xt = kc::atoi(tokens[3].c_str());
       int64_t vsiz = kc::atoi(tokens[4].c_str());
       if (xt < 1) {
@@ -160,11 +169,15 @@ private:
       }
       if (vsiz < 0 || vsiz > (int64_t)kt::RemoteDB::DATAMAXSIZ) return false;
       bool err = false;
-      char* vbuf = new char[vsiz];
+      char* vbuf = new char[vsiz+sizeof(flags)];
       if (sess->receive(vbuf, vsiz)) {
         int32_t c = sess->receive_byte();
         if (c == '\r') c = sess->receive_byte();
         if (c == '\n') {
+          if (serv_->opts_ & TFLAGS) {
+            kc::writefixnum(vbuf + vsiz, flags, sizeof(flags));
+            vsiz += sizeof(flags);
+          }
           if (db->set(key.data(), key.size(), vbuf, vsiz, xt)) {
             if (!sess->printf("STORED\r\n")) err = true;
           } else {
@@ -186,6 +199,7 @@ private:
                 const std::vector<std::string>& tokens, kt::TimedDB* db) {
       if (tokens.size() < 5) return sess->printf("CLIENT_ERROR invalid parameters\r\n");
       const std::string& key = tokens[1];
+      uint32_t flags = kc::atoi(tokens[2].c_str());
       int64_t xt = kc::atoi(tokens[3].c_str());
       int64_t vsiz = kc::atoi(tokens[4].c_str());
       if (xt < 1) {
@@ -195,11 +209,15 @@ private:
       }
       if (vsiz < 0 || vsiz > (int64_t)kt::RemoteDB::DATAMAXSIZ) return false;
       bool err = false;
-      char* vbuf = new char[vsiz];
+      char* vbuf = new char[vsiz+sizeof(flags)];
       if (sess->receive(vbuf, vsiz)) {
         int32_t c = sess->receive_byte();
         if (c == '\r') c = sess->receive_byte();
         if (c == '\n') {
+          if (serv_->opts_ & TFLAGS) {
+            kc::writefixnum(vbuf + vsiz, flags, sizeof(flags));
+            vsiz += sizeof(flags);
+          }
           if (db->add(key.data(), key.size(), vbuf, vsiz, xt)) {
             if (!sess->printf("STORED\r\n")) err = true;
           } else {
@@ -225,6 +243,7 @@ private:
                     const std::vector<std::string>& tokens, kt::TimedDB* db) {
       if (tokens.size() < 5) return sess->printf("CLIENT_ERROR invalid parameters\r\n");
       const std::string& key = tokens[1];
+      uint32_t flags = kc::atoi(tokens[2].c_str());
       int64_t xt = kc::atoi(tokens[3].c_str());
       int64_t vsiz = kc::atoi(tokens[4].c_str());
       if (xt < 1) {
@@ -234,11 +253,15 @@ private:
       }
       if (vsiz < 0 || vsiz > (int64_t)kt::RemoteDB::DATAMAXSIZ) return false;
       bool err = false;
-      char* vbuf = new char[vsiz];
+      char* vbuf = new char[vsiz+sizeof(flags)];
       if (sess->receive(vbuf, vsiz)) {
         int32_t c = sess->receive_byte();
         if (c == '\r') c = sess->receive_byte();
         if (c == '\n') {
+          if (serv_->opts_ & TFLAGS) {
+            kc::writefixnum(vbuf + vsiz, flags, sizeof(flags));
+            vsiz += sizeof(flags);
+          }
           if (db->replace(key.data(), key.size(), vbuf, vsiz, xt)) {
             if (!sess->printf("STORED\r\n")) err = true;
           } else {
@@ -271,7 +294,13 @@ private:
         size_t vsiz;
         char* vbuf = db->get(it->data(), it->size(), &vsiz);
         if (vbuf) {
-          kc::strprintf(&result, "VALUE %s 0 %llu\r\n", it->c_str(), (unsigned long long)vsiz);
+          uint32_t flags = 0;
+          if ((serv_->opts_ & TFLAGS) && vsiz >= sizeof(flags)) {
+            flags = kc::readfixnum(vbuf + vsiz - sizeof(flags), sizeof(flags));
+            vsiz -= sizeof(flags);
+          }
+          kc::strprintf(&result, "VALUE %s %u %llu\r\n",
+                        it->c_str(), flags, (unsigned long long)vsiz);
           result.append(vbuf, vsiz);
           result.append("\r\n");
           delete[] vbuf;
@@ -310,7 +339,8 @@ private:
       bool err = false;
       class Visitor : public kt::TimedDB::Visitor {
       public:
-        explicit Visitor(int64_t num) : num_(num), hit_(false), nbuf_() {}
+        explicit Visitor(int64_t num, uint8_t opts) :
+          num_(num), opts_(opts), hit_(false), nbuf_() {}
         int64_t num() {
           return num_;
         }
@@ -321,17 +351,27 @@ private:
         const char* visit_full(const char* kbuf, size_t ksiz,
                                const char* vbuf, size_t vsiz, size_t* sp, int64_t* xtp) {
           hit_ = true;
-          num_ += kc::atoin(vbuf, vsiz);
-          if (num_ < 0) num_ = 0;
-          *sp = std::sprintf(nbuf_, "%lld", (long long)num_);
+          if ((opts_ & TFLAGS) && vsiz >= sizeof(uint32_t)) {
+            num_ += kc::atoin(vbuf, vsiz - sizeof(uint32_t));
+            if (num_ < 0) num_ = 0;
+            size_t nsiz = std::sprintf(nbuf_, "%lld", (long long)num_);
+            std::memcpy(nbuf_ + nsiz, vbuf + vsiz - sizeof(uint32_t), sizeof(uint32_t));
+            nsiz += sizeof(uint32_t);
+            *sp = nsiz;
+          } else {
+            num_ += kc::atoin(vbuf, vsiz);
+            if (num_ < 0) num_ = 0;
+            *sp = std::sprintf(nbuf_, "%lld", (long long)num_);
+          }
           *xtp = -*xtp;
           return nbuf_;
         }
         int64_t num_;
+        uint8_t opts_;
         bool hit_;
         char nbuf_[kc::NUMBUFSIZ];
       };
-      Visitor visitor(num);
+      Visitor visitor(num, serv_->opts_);
       if (db->accept(key.data(), key.size(), &visitor, true)) {
         if (visitor.hit()) {
           if (!sess->printf("%lld\r\n", (long long)visitor.num())) err = true;
@@ -348,13 +388,14 @@ private:
     // process the decr command
     bool do_decr(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess,
                  const std::vector<std::string>& tokens, kt::TimedDB* db) {
-      if (tokens.size() < 3) sess->printf("CLIENT_ERROR invalid parameters\r\n");
+      if (tokens.size() < 3) return sess->printf("CLIENT_ERROR invalid parameters\r\n");
       const std::string& key = tokens[1];
       int64_t num = -kc::atoi(tokens[2].c_str());
       bool err = false;
       class Visitor : public kt::TimedDB::Visitor {
       public:
-        explicit Visitor(int64_t num) : num_(num), hit_(false), nbuf_() {}
+        explicit Visitor(int64_t num, uint8_t opts) :
+          num_(num), opts_(opts), hit_(false), nbuf_() {}
         int64_t num() {
           return num_;
         }
@@ -365,17 +406,27 @@ private:
         const char* visit_full(const char* kbuf, size_t ksiz,
                                const char* vbuf, size_t vsiz, size_t* sp, int64_t* xtp) {
           hit_ = true;
-          num_ += kc::atoin(vbuf, vsiz);
-          if (num_ < 0) num_ = 0;
-          *sp = std::sprintf(nbuf_, "%lld", (long long)num_);
+          if ((opts_ & TFLAGS) && vsiz >= sizeof(uint32_t)) {
+            num_ += kc::atoin(vbuf, vsiz - sizeof(uint32_t));
+            if (num_ < 0) num_ = 0;
+            size_t nsiz = std::sprintf(nbuf_, "%lld", (long long)num_);
+            std::memcpy(nbuf_ + nsiz, vbuf + vsiz - sizeof(uint32_t), sizeof(uint32_t));
+            nsiz += sizeof(uint32_t);
+            *sp = nsiz;
+          } else {
+            num_ += kc::atoin(vbuf, vsiz);
+            if (num_ < 0) num_ = 0;
+            *sp = std::sprintf(nbuf_, "%lld", (long long)num_);
+          }
           *xtp = -*xtp;
           return nbuf_;
         }
         int64_t num_;
+        uint8_t opts_;
         bool hit_;
         char nbuf_[kc::NUMBUFSIZ];
       };
-      Visitor visitor(num);
+      Visitor visitor(num, serv_->opts_);
       if (db->accept(key.data(), key.size(), &visitor, true)) {
         if (visitor.hit()) {
           if (!sess->printf("%lld\r\n", (long long)visitor.num())) err = true;
@@ -443,6 +494,9 @@ private:
   kt::ThreadedServer::Logger* logger_;
   uint32_t logkinds_;
   std::string expr_;
+  std::string host_;
+  int32_t port_;
+  uint8_t opts_;
   double stime_;
   kt::ThreadedServer serv_;
   Worker worker_;
@@ -450,7 +504,7 @@ private:
 
 
 // initializer called by the main server
-extern "C" void* ktservinit(void) {
+extern "C" void* ktservinit() {
   return new MemcacheServer;
 }
 

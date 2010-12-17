@@ -176,8 +176,8 @@
 
 <pre>$ ktserver
 2010-10-03T16:24:38.467252+09:00: [SYSTEM]: ================ [START]: pid=19069
-2010-10-03T16:24:38.467473+09:00: [SYSTEM]: opening a database: path=*
-2010-10-03T16:24:38.467645+09:00: [SYSTEM]: starting the server
+2010-10-03T16:24:38.467473+09:00: [SYSTEM]: opening a database: path=:
+2010-10-03T16:24:38.467645+09:00: [SYSTEM]: starting the server: expr=:1978
 2010-10-03T16:24:38.467751+09:00: [SYSTEM]: server socket opened: expr=:1978 timeout=30.0
 2010-10-03T16:24:38.467775+09:00: [SYSTEM]: listening server socket started: fd=3
 </pre>
@@ -756,7 +756,9 @@ quit
 Connection closed by foreign host.
 </pre>
 
-<p>This implementation supports a portion of commands supported by the original memcached server.  As for now, "set", "add", "replace", "get", "delete", "incr", "decr", "stats", "flush_all", and "quit" are available.  Mechanisms of "flags", "cas unique", "noreply" are not implemented.</p>
+<p>This implementation supports a portion of commands supported by the original memcached server.  As for now, "set", "add", "replace", "get", "delete", "incr", "decr", "stats", "flush_all", and "quit" are available.  For the sake of interoperability with HTTP, the "flags" option of some update commands are ignored by default.  If you want to handle the flags, enable the mechanism by adding "#opts=f" in the argument of the "-plex" option.  Mechanisms of "cas unique", "noreply" are not implemented.</p>
+
+<p>The configuration expression by the "-plex" option is composed of named parameters separated by "#".  Each parameter is composed of the name and the value separated by "=".  The supported parameter names are "host", "port" and "opts".  The default port is 11211, which is the same as the original memcached server.</p>
 
 <p>The most important advantage of the pluggable server mechanism is to share database objects with the main server.  Update operations by a pluggable server is reflected to the main server immediately and vice versa.  Moreover, update operations are written as update logs and picked up by slave servers of replication.  You can implement your own pluggable server.  See the source code in "ktplugservmemc.cc" for details.</p>
 

@@ -226,7 +226,7 @@ public:
    * @note This function blocks until the server stops by the ThreadedServer::stop method.
    */
   bool start() {
-    log(Logger::SYSTEM, "starting the server");
+    log(Logger::SYSTEM, "starting the server: expr=%s", expr_.c_str());
     if (run_) {
       log(Logger::ERROR, "alreadiy running");
       return false;
