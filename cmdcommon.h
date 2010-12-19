@@ -26,6 +26,8 @@
 #include <kttimeddb.h>
 #include <ktdbext.h>
 #include <ktremotedb.h>
+#include <ktplugserv.h>
+#include <ktplugdb.h>
 #include "myscript.h"
 
 namespace kc = kyotocabinet;

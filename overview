@@ -22,6 +22,7 @@ The following classes are the most important.  If you are interested in writing 
 @li kyototycoon::Socket -- abstraction of system-independent client socket mechanism
 @li kyototycoon::ServerSocket -- abstraction of system-independent server socket mechanism
 @li kyototycoon::PluggableServer -- pluggable server interface
+@li kyototycoon::PluggableDB -- pluggable database interface
 
 @section Example
 
@@ -162,4 +163,5 @@ namespace kyototycoon {}
  * @file ktdbext.h      database extension
  * @file ktremotedb.h   remote database
  * @file ktplugserv.h   pluggable server interface
+ * @file ktplugdb.h     pluggable database interface
  */

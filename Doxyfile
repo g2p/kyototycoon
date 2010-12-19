@@ -25,7 +25,7 @@ SEARCHENGINE = NO
 # Configuration options related to the input files
 INPUT = .
 FILE_PATTERNS = overview ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h \
-  ktulog.h ktshlib.h kttimeddb.h ktdbext.h ktremotedb.h ktplugserv.h
+  ktulog.h ktshlib.h kttimeddb.h ktdbext.h ktremotedb.h ktplugserv.h ktplugdb.h
 RECURSIVE = NO
 
 

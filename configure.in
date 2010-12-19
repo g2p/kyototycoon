@@ -7,19 +7,19 @@
 #================================================================
 
 # Package name
-AC_INIT(kyototycoon, 0.9.17)
+AC_INIT(kyototycoon, 0.9.18)
 
 # Package information
 MYLIBVER=1
-MYLIBREV=23
+MYLIBREV=24
 
 # Targets
 MYHEADERFILES="ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h ktulog.h ktshlib.h"
-MYHEADERFILES="$MYHEADERFILES kttimeddb.h ktdbext.h ktremotedb.h ktplugserv.h"
+MYHEADERFILES="$MYHEADERFILES kttimeddb.h ktdbext.h ktremotedb.h ktplugserv.h ktplugdb.h"
 MYLIBRARYFILES="libkyototycoon.a"
 MYLIBOBJFILES="ktutil.o ktsocket.o ktthserv.o kthttp.o ktrpc.o ktulog.o ktshlib.o"
-MYLIBOBJFILES="$MYLIBOBJFILES kttimeddb.o ktdbext.o ktremotedb.o"
-MYSHLIBFILES="ktplugservmemc.so"
+MYLIBOBJFILES="$MYLIBOBJFILES kttimeddb.o ktdbext.o ktremotedb.o ktplugserv.o ktplugdb.o"
+MYSHLIBFILES="ktplugservmemc.so ktplugdbvoid.so"
 MYCOMMANDFILES="ktutiltest ktutilmgr ktutilserv kttimedtest kttimedmgr"
 MYCOMMANDFILES="$MYCOMMANDFILES ktserver ktremotetest ktremotemgr"
 MYMAN1FILES="ktutiltest.1 ktutilmgr.1 ktutilserv.1 kttimedtest.1 kttimedmgr.1"
@@ -272,7 +272,7 @@ fi
 if type pkg-config >config.tmp 2>&1
 then
   printf 'checking Kyoto Cabinet by pkg-config... '
-  if pkg-config --atleast-version=1.2.28 kyotocabinet
+  if pkg-config --atleast-version=1.2.30 kyotocabinet
   then
     printf 'yes\n'
   else

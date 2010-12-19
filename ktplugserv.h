@@ -13,8 +13,8 @@
  *************************************************************************************************/
 
 
-#ifndef _KTSERVER_H                      // duplication check
-#define _KTSERVER_H
+#ifndef _KTPLUGSERV_H                    // duplication check
+#define _KTPLUGSERV_H
 
 #include <ktcommon.h>
 #include <ktutil.h>
@@ -83,7 +83,7 @@ extern "C" {
 /**
  * Initializer of a server implementation.
  * @note Each shared library of a pluggable server module must implement a function whose name is
- * "ktservinit" and return a new instance of a derived clas of the PluggableServer class.  The
+ * "ktservinit" and return a new instance of a derived class of the PluggableServer class.  The
  * instance will be deleted implicitly by the caller.
  */
 typedef PluggableServer* (*KTSERVINIT)();

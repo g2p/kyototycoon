@@ -52,7 +52,7 @@
 
 <p>The server can embed Lua, a lightweight script language.  Even if you cannot find any built-in operation matching your requirement among the client API of Kyoto Tycoon, you can define arbitrary operations by defining functions in Lua.  The API for Lua scripts provides full set of database operations of Kyoto Cabinet including visitor, cursor, and transaction mechanisms.</p>
 
-<p>The server can load a shared library file which implements a pluggable server mechanism.  It can run arbitrary network services and operate database objects shared by the main server.  It is useful to implement other network protocols.  An implementation to support the memcached protocol is included in the source package.</p>
+<p>The server can load a shared library file which implements a pluggable server mechanism.  It can run arbitrary network services and operate database objects shared by the main server.  It is useful to implement other network protocols.  An implementation to support the memcached protocol is included in the source package.  In a similar way, the server can load a shared library file which implements a pluggable database mechanism.  It is useful to use other database libraries except for Kyoto Cabinet.</p>
 
 <p>The server program of Kyoto Tycoon is written in the C++ language.  It is available on platforms which have API conforming to C++03 with the TR1 library extensions.  Kyoto Tycoon is a free software licensed under the GNU General Public License.  You can write client applications which are not under control of our license, by making them just communicate with the server by HTTP without using the core library.</p>
 
@@ -119,12 +119,14 @@
 /usr/local/include/kttimeddb.h
 /usr/local/include/ktremotedb.h
 /usr/local/include/ktplugserv.h
+/usr/local/include/ktplugdb.h
 /usr/local/lib/libkyototycoon.a
 /usr/local/lib/libkyototycoon.so.x.y.z
 /usr/local/lib/libkyototycoon.so.x
 /usr/local/lib/libkyototycoon.so
 /usr/local/lib/pkgconfig/kyototycoon.pc
 /usr/local/libexec/ktplugservmemc.so
+/usr/local/libexec/ktplugdbvoid.so
 /usr/local/bin/ktutiltest
 /usr/local/bin/ktutilmgr
 /usr/local/bin/ktutilserv
@@ -761,6 +763,33 @@ Connection closed by foreign host.
 <p>The configuration expression by the "-plex" option is composed of named parameters separated by "#".  Each parameter is composed of the name and the value separated by "=".  The supported parameter names are "host", "port" and "opts".  The default port is 11211, which is the same as the original memcached server.</p>
 
 <p>The most important advantage of the pluggable server mechanism is to share database objects with the main server.  Update operations by a pluggable server is reflected to the main server immediately and vice versa.  Moreover, update operations are written as update logs and picked up by slave servers of replication.  You can implement your own pluggable server.  See the source code in "ktplugservmemc.cc" for details.</p>
+
+<h3 id="tips_pluggabledatabase">Pluggable Database</h3>
+
+<p>If you want other database implementations except for Kyoto Cabinet, the "pluggable database" mechanism is useful.  The server can load a shared library which implements arbitrary storage services conforming to the interface of associative array.  The shared library "ktplugdbvoid.so" installed under "/usr/local/libexec" implements the "void database" mechanism, which is similar to "blackhole storage engine" of MySQL.  It is so-called "no-op" database and do nothing except for writing update logs.  It is useful to get rid of the load of the master server and level the load in the time axis.  The following command starts the replication master server opening a void database.</p>
+
+<pre>$ ktserver -port 1978 -ulog 0001-ulog -sid 1 -pldb /usr/local/libexec/ktplugdbvoid.so
+</pre>
+
+<p>The following command starts the replication slave server opening a file hash database.</p>
+
+<pre>$ ktserver -port 1979 -sid 2 -mhost localhost -mport 1978 -rts 2.rts casket.kch
+</pre>
+
+<p>Store a record into the master server and confirm that the record is discarded.</p>
+
+<pre>$ ktremotemgr set -port 1978 foo bar
+$ ktremotemgr get -port 1978 foo
+ktremotemgr: DB::get failed: :1978: 3: logical inconsistency: DB: 7: no record: no record
+</pre>
+
+<p>Confirm that the record exists in the database of the slave server.</p>
+
+<pre>$ ktremotemgr get -port 1979 foo
+bar
+</pre>
+
+<p>The most important advantage of the pluggable database mechanism is to give networking functionality to other DBM-style database libraries such as BerkeleyDB and GDBM.  You can implement your own pluggable database.  See the source code in "ktplugdbvoid.cc" for details.</p>
 
 <hr />
 

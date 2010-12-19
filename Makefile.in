@@ -483,6 +483,14 @@ ktplugservmemc.dylib : ktplugservmemc.o $(LIBRARYFILES)
 	$(CXX) $(CXXFLAGS) -dynamiclib -o $@ $< $(LDFLAGS) -lkyototycoon $(LIBS)
 
 
+ktplugdbvoid.so : ktplugdbvoid.o $(LIBRARYFILES)
+	$(CXX) $(CXXFLAGS) -shared -o $@ $< $(LDFLAGS) -lkyototycoon $(LIBS)
+
+
+ktplugdbvoid.dylib : ktplugdbvoid.o $(LIBRARYFILES)
+	$(CXX) $(CXXFLAGS) -dynamiclib -o $@ $< $(LDFLAGS) -lkyototycoon $(LIBS)
+
+
 ktutiltest : ktutiltest.o $(LIBRARYFILES)
 	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
 
@@ -540,13 +548,16 @@ ktremotedb.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h \
 ktplugservmemc.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h \
   ktulog.h ktshlib.h kttimeddb.h ktdbext.h ktremotedb.h ktplugserv.h myconf.h
 
+ktplugdbvoid.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h \
+  ktulog.h ktshlib.h kttimeddb.h ktdbext.h ktremotedb.h ktplugdb.h myconf.h
+
 myscript.o : ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h \
   ktulog.h ktshlib.h kttimeddb.h ktdbext.h ktremotedb.h myconf.h myscript.h
 
 ktutiltest.o ktutilmgr.o ktutilserv.o kttimedtest.o kttimedmgr.o \
   ktserver.o ktremotetest.o ktremotemgr.o : \
   ktcommon.h ktutil.h ktsocket.h ktthserv.h kthttp.h ktrpc.h \
-  ktulog.h ktshlib.h kttimeddb.h ktdbext.h ktremotedb.h ktplugserv.h \
+  ktulog.h ktshlib.h kttimeddb.h ktdbext.h ktremotedb.h ktplugserv.h ktplugdb.h \
   cmdcommon.h myconf.h myscript.h
 
 

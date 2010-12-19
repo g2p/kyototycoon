@@ -13,7 +13,6 @@
  *************************************************************************************************/
 
 
-#include <ktplugserv.h>
 #include "cmdcommon.h"
 
 
@@ -38,7 +37,7 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
                     int32_t sid, int32_t omode, double asi, bool ash, bool dmn,
                     const char* pidpath, const char* cmdpath, const char* scrpath,
                     const char* mhost, int32_t mport, const char* rtspath, double riv,
-                    const char* plpath, const char* plex);
+                    const char* plsvpath, const char* plsvex, const char* pldbpath);
 
 
 // logger implementation
@@ -2178,7 +2177,7 @@ private:
     static SLS* create(kt::RPCServer::Session* sess) {
       SLS* sls = (SLS*)sess->data();
       if (!sls) {
-        sls = new SLS();
+        sls = new SLS;
         sess->set_data(sls);
       }
       return sls;
@@ -2227,7 +2226,7 @@ static void usage() {
           " [-ulog str] [-ulim num] [-uasi num] [-sid num] [-ord] [-oat|-oas|-onl|-otl|-onr]"
           " [-asi num] [-ash] [-dmn] [-pid file] [-cmd dir] [-scr file]"
           " [-mhost str] [-mport num] [-rts file] [-riv num] [-plsv file] [-plex str]"
-          " [db...]\n", g_progname);
+          " [-pldb file] [db...]\n", g_progname);
   eprintf("\n");
   std::exit(1);
 }
@@ -2268,8 +2267,9 @@ static int32_t run(int argc, char** argv) {
   int32_t mport = kt::DEFPORT;
   const char* rtspath = NULL;
   double riv = DEFRIV;
-  const char* plpath = NULL;
-  const char* plex = "";
+  const char* plsvpath = NULL;
+  const char* plsvex = "";
+  const char* pldbpath = NULL;
   for (int32_t i = 1; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -2352,10 +2352,13 @@ static int32_t run(int argc, char** argv) {
         riv = kc::atof(argv[i]);
       } else if (!std::strcmp(argv[i], "-plsv")) {
         if (++i >= argc) usage();
-        plpath = argv[i];
+        plsvpath = argv[i];
       } else if (!std::strcmp(argv[i], "-plex")) {
         if (++i >= argc) usage();
-        plex = argv[i];
+        plsvex = argv[i];
+      } else if (!std::strcmp(argv[i], "-pldb")) {
+        if (++i >= argc) usage();
+        pldbpath = argv[i];
       } else {
         usage();
       }
@@ -2369,7 +2372,8 @@ static int32_t run(int argc, char** argv) {
   if (dbpaths.empty()) dbpaths.push_back(":");
   int32_t rv = proc(dbpaths, host, port, tout, thnum, logpath, logkinds,
                     ulogpath, ulim, uasi, sid, omode, asi, ash,
-                    dmn, pidpath, cmdpath, scrpath, mhost, mport, rtspath, riv, plpath, plex);
+                    dmn, pidpath, cmdpath, scrpath, mhost, mport, rtspath, riv,
+                    plsvpath, plsvex, pldbpath);
   return rv;
 }
 
@@ -2382,7 +2386,7 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
                     int32_t sid, int32_t omode, double asi, bool ash, bool dmn,
                     const char* pidpath, const char* cmdpath, const char* scrpath,
                     const char* mhost, int32_t mport, const char* rtspath, double riv,
-                    const char* plpath, const char* plex) {
+                    const char* plsvpath, const char* plsvex, const char* pldbpath) {
   g_daemon = false;
   if (dmn) {
     if (kc::File::PATHCHR == '/') {
@@ -2410,8 +2414,12 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
         eprintf("%s: %s: a daemon can accept absolute path only\n", g_progname, rtspath);
         return 1;
       }
-      if (plpath && *plpath != kc::File::PATHCHR) {
-        eprintf("%s: %s: a daemon can accept absolute path only\n", g_progname, plpath);
+      if (plsvpath && *plsvpath != kc::File::PATHCHR) {
+        eprintf("%s: %s: a daemon can accept absolute path only\n", g_progname, plsvpath);
+        return 1;
+      }
+      if (pldbpath && *pldbpath != kc::File::PATHCHR) {
+        eprintf("%s: %s: a daemon can accept absolute path only\n", g_progname, pldbpath);
         return 1;
       }
     }
@@ -2463,13 +2471,28 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
       return 1;
     }
   }
+  kt::SharedLibrary pldblib;
+  kt::KTDBINIT pldbinit = NULL;
+  if (pldbpath) {
+    serv.log(Logger::SYSTEM, "loading a plug-in database file: path=%s", pldbpath);
+    if (!pldblib.open(pldbpath)) {
+      serv.log(Logger::ERROR, "could not load a plug-in database file: %s", pldbpath);
+      return 1;
+    }
+    pldbinit = (kt::KTDBINIT)pldblib.symbol(kt::KTDBINITNAME);
+    if (!pldbinit) {
+      serv.log(Logger::ERROR, "could not find the initializer: %s: %s",
+               pldbpath, kt::KTDBINITNAME);
+      return 1;
+    }
+  }
   std::string expr = kc::strprintf("%s:%d", addr.c_str(), port);
   serv.set_network(expr, tout);
   int32_t dbnum = dbpaths.size();
   kt::UpdateLogger* ulog = NULL;
   DBUpdateLogger* ulogdbs = NULL;
   if (ulogpath) {
-    ulog = new kt::UpdateLogger();
+    ulog = new kt::UpdateLogger;
     serv.log(Logger::SYSTEM, "opening the update log: path=%s sid=%u", ulogpath, sid);
     if (!ulog->open(ulogpath, ulim, uasi)) {
       serv.log(Logger::ERROR, "could not open the update log: %s", ulogpath);
@@ -2490,6 +2513,7 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
       ulogdbs[i].initialize(ulog, sid, i);
       dbs[i].tune_update_trigger(ulogdbs + i);
     }
+    if (pldbinit) dbs[i].set_internal_db(pldbinit());
     if (!dbs[i].open(dbpath, omode)) {
       const kc::BasicDB::Error& e = dbs[i].error();
       serv.log(Logger::ERROR, "could not open a database file: %s: %s: %s",
@@ -2528,22 +2552,22 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
       }
     }
   }
-  kt::SharedLibrary plshlib;
+  kt::SharedLibrary plsvlib;
   kt::PluggableServer* plsv = NULL;
-  if (plpath) {
-    serv.log(Logger::SYSTEM, "loading a plug-in server file: path=%s", plpath);
-    if (!plshlib.open(plpath)) {
-      serv.log(Logger::ERROR, "could not load a plug-in server file: %s", plpath);
+  if (plsvpath) {
+    serv.log(Logger::SYSTEM, "loading a plug-in server file: path=%s", plsvpath);
+    if (!plsvlib.open(plsvpath)) {
+      serv.log(Logger::ERROR, "could not load a plug-in server file: %s", plsvpath);
       delete[] scrprocs;
       delete[] dbs;
       delete[] ulogdbs;
       delete ulog;
       return 1;
     }
-    kt::KTSERVINIT init = (kt::KTSERVINIT)plshlib.symbol(kt::KTSERVINITNAME);
+    kt::KTSERVINIT init = (kt::KTSERVINIT)plsvlib.symbol(kt::KTSERVINITNAME);
     if (!init) {
       serv.log(Logger::ERROR, "could not find the initializer: %s: %s",
-               plpath, kt::KTSERVINITNAME);
+               plsvpath, kt::KTSERVINITNAME);
       delete[] scrprocs;
       delete[] dbs;
       delete[] ulogdbs;
@@ -2551,7 +2575,7 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
       return 1;
     }
     plsv = init();
-    plsv->configure(dbs, dbnum, &logger, logkinds, plex);
+    plsv->configure(dbs, dbnum, &logger, logkinds, plsvex);
   }
   Worker worker(thnum, dbs, dbnum, dbmap, omode, asi, ash, ulog, ulogdbs, cmdpath, scrprocs);
   serv.set_worker(&worker, thnum);
@@ -2594,9 +2618,20 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
   }
   if (plsv) {
     delete plsv;
-    plshlib.close();
+    if (!plsvlib.close()) {
+      eprintf("%s: closing a shared library failed\n", g_progname);
+      err = true;
+    }
   }
   delete[] scrprocs;
+  for (int32_t i = 0; i < dbnum; i++) {
+    if (!dbs[i].close()) {
+      const kc::BasicDB::Error& e = dbs[i].error();
+      serv.log(Logger::ERROR, "could not close a database file: %s: %s: %s",
+               dbpaths[i].c_str(), e.name(), e.message());
+      err = true;
+    }
+  }
   delete[] dbs;
   if (ulog) {
     delete[] ulogdbs;
@@ -2605,6 +2640,10 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
       err = true;
     }
     delete ulog;
+  }
+  if (pldbinit && !pldblib.close()) {
+    eprintf("%s: closing a shared library failed\n", g_progname);
+    err = true;
   }
   if (pidpath) kc::File::remove(pidpath);
   serv.log(Logger::SYSTEM, "================ [FINISH]: pid=%d", g_procid);

@@ -38,6 +38,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">HTTP client.  <a href="classkyototycoon_1_1HTTPClient.html#_details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPServer.html">HTTPServer</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">HTTP server.  <a href="classkyototycoon_1_1HTTPServer.html#_details">More...</a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1PluggableDB.html">PluggableDB</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Interface of pluggable database abstraction.  <a href="classkyototycoon_1_1PluggableDB.html#_details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1PluggableServer.html">PluggableServer</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Interface of pluggable server abstraction.  <a href="classkyototycoon_1_1PluggableServer.html#_details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html">RemoteDB</a></td></tr>
@@ -65,6 +67,8 @@
 <tr><td class="memItemLeft" align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1UpdateLogger.html">UpdateLogger</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Update logger.  <a href="classkyototycoon_1_1UpdateLogger.html#_details">More...</a><br/></td></tr>
 <tr><td colspan="2"><h2>Typedefs</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="classkyototycoon_1_1PluggableDB.html">PluggableDB</a> *(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a4199e42707f147558d909a41787c92e0">KTDBINIT</a> )()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Initializer of a database implementation.  <a href="#a4199e42707f147558d909a41787c92e0"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="classkyototycoon_1_1PluggableServer.html">PluggableServer</a> *(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#ae07ce1db9c71395930774106789171c5">KTSERVINIT</a> )()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Initializer of a server implementation.  <a href="#ae07ce1db9c71395930774106789171c5"></a><br/></td></tr>
 <tr><td colspan="2"><h2>Functions</h2></td></tr>
@@ -127,6 +131,8 @@
 <tr><td class="memItemLeft" align="right" valign="top">time_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#aacada38d495bc6a4a9f9eeee9563e241">mkgmtime</a> (struct std::tm *tm)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Make the GMT from a time structure.  <a href="#aacada38d495bc6a4a9f9eeee9563e241"></a><br/></td></tr>
 <tr><td colspan="2"><h2>Variables</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">const char *const&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#abd650ccab40869e9652083d1ab724276">KTDBINITNAME</a> = &quot;ktdbinit&quot;</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The name of the initializer function.  <a href="#abd650ccab40869e9652083d1ab724276"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">const char *const&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#a58dabb64ef175a6a674bd3fa48cae5b9">KTSERVINITNAME</a> = &quot;ktservinit&quot;</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The name of the initializer function.  <a href="#a58dabb64ef175a6a674bd3fa48cae5b9"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">const char *const&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekyototycoon.html#adacdf98cae86752dc99be348a3e35cab">VERSION</a></td></tr>
@@ -144,6 +150,22 @@
 <p>All symbols of Kyoto Tycoon. </p>
 <p>Common namespace of Kyoto Tycoon. </p>
 <hr/><h2>Typedef Documentation</h2>
+<a class="anchor" id="a4199e42707f147558d909a41787c92e0"></a><!-- doxytag: member="kyototycoon::KTDBINIT" ref="a4199e42707f147558d909a41787c92e0" args=")()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef <a class="el" href="classkyototycoon_1_1PluggableDB.html">PluggableDB</a>*(* <a class="el" href="namespacekyototycoon.html#a4199e42707f147558d909a41787c92e0">kyototycoon::KTDBINIT</a>)()</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Initializer of a database implementation. </p>
+<dl class="note"><dt><b>Note:</b></dt><dd>Each shared library of a pluggable database module must implement a function whose name is "ktdbinit" and return a new instance of a derived class of the <a class="el" href="classkyototycoon_1_1PluggableDB.html" title="Interface of pluggable database abstraction.">PluggableDB</a> class. The instance will be deleted implicitly by the caller. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ae07ce1db9c71395930774106789171c5"></a><!-- doxytag: member="kyototycoon::KTSERVINIT" ref="ae07ce1db9c71395930774106789171c5" args=")()" -->
 <div class="memitem">
 <div class="memproto">
@@ -156,7 +178,7 @@
 <div class="memdoc">
 
 <p>Initializer of a server implementation. </p>
-<dl class="note"><dt><b>Note:</b></dt><dd>Each shared library of a pluggable server module must implement a function whose name is "ktservinit" and return a new instance of a derived clas of the <a class="el" href="classkyototycoon_1_1PluggableServer.html" title="Interface of pluggable server abstraction.">PluggableServer</a> class. The instance will be deleted implicitly by the caller. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>Each shared library of a pluggable server module must implement a function whose name is "ktservinit" and return a new instance of a derived class of the <a class="el" href="classkyototycoon_1_1PluggableServer.html" title="Interface of pluggable server abstraction.">PluggableServer</a> class. The instance will be deleted implicitly by the caller. </dd></dl>
 
 </div>
 </div>
@@ -1179,6 +1201,21 @@
 </div>
 </div>
 <hr/><h2>Variable Documentation</h2>
+<a class="anchor" id="abd650ccab40869e9652083d1ab724276"></a><!-- doxytag: member="kyototycoon::KTDBINITNAME" ref="abd650ccab40869e9652083d1ab724276" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char* const <a class="el" href="namespacekyototycoon.html#abd650ccab40869e9652083d1ab724276">kyototycoon::KTDBINITNAME</a> = &quot;ktdbinit&quot;</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>The name of the initializer function. </p>
+
+</div>
+</div>
 <a class="anchor" id="a58dabb64ef175a6a674bd3fa48cae5b9"></a><!-- doxytag: member="kyototycoon::KTSERVINITNAME" ref="a58dabb64ef175a6a674bd3fa48cae5b9" args="" -->
 <div class="memitem">
 <div class="memproto">
@@ -1270,7 +1307,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Dec 16 23:50:05 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Sun Dec 19 20:31:42 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

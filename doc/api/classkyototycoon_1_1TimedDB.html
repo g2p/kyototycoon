@@ -61,10 +61,10 @@
 <tr><td colspan="2"><h2>Public Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a3ae8b8bd0f7085481d5863d38a9ca5d3">TimedDB</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Default constructor.  <a href="#a3ae8b8bd0f7085481d5863d38a9ca5d3"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a84e2fb375989ee4810398be3f483e831">TimedDB</a> (kc::BasicDB *db)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Constructor.  <a href="#a84e2fb375989ee4810398be3f483e831"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a463cc68ebc25af2a4175b7fd02ab82fe">~TimedDB</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Destructor.  <a href="#a463cc68ebc25af2a4175b7fd02ab82fe"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a3553250e8c628347dc79b28e0787959b">set_internal_db</a> (kc::BasicDB *db)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the internal database object.  <a href="#a3553250e8c628347dc79b28e0787959b"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">kc::BasicDB::Error&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#abd7b66c4f8acfa8b24688e851805806f">error</a> () const </td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the last happened error.  <a href="#abd7b66c4f8acfa8b24688e851805806f"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#afb75c17440f2c757cec611de16903262">set_error</a> (kc::BasicDB::Error::Code code, const char *message)</td></tr>
@@ -222,32 +222,6 @@
 
 </div>
 </div>
-<a class="anchor" id="a84e2fb375989ee4810398be3f483e831"></a><!-- doxytag: member="kyototycoon::TimedDB::TimedDB" ref="a84e2fb375989ee4810398be3f483e831" args="(kc::BasicDB *db)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">kyototycoon::TimedDB::TimedDB </td>
-          <td>(</td>
-          <td class="paramtype">kc::BasicDB *&nbsp;</td>
-          <td class="paramname"> <em>db</em></td>
-          <td>&nbsp;)&nbsp;</td>
-          <td><code> [explicit]</code></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>Constructor. </p>
-<dl><dt><b>Parameters:</b></dt><dd>
-  <table border="0" cellspacing="2" cellpadding="0">
-    <tr><td valign="top"></td><td valign="top"><em>db</em>&nbsp;</td><td>the internal database object. Its possession is transferred inside and the object is deleted automatically. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
 <a class="anchor" id="a463cc68ebc25af2a4175b7fd02ab82fe"></a><!-- doxytag: member="kyototycoon::TimedDB::~TimedDB" ref="a463cc68ebc25af2a4175b7fd02ab82fe" args="()" -->
 <div class="memitem">
 <div class="memproto">
@@ -268,6 +242,33 @@
 </div>
 </div>
 <hr/><h2>Member Function Documentation</h2>
+<a class="anchor" id="a3553250e8c628347dc79b28e0787959b"></a><!-- doxytag: member="kyototycoon::TimedDB::set_internal_db" ref="a3553250e8c628347dc79b28e0787959b" args="(kc::BasicDB *db)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::TimedDB::set_internal_db </td>
+          <td>(</td>
+          <td class="paramtype">kc::BasicDB *&nbsp;</td>
+          <td class="paramname"> <em>db</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Set the internal database object. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>db</em>&nbsp;</td><td>the internal database object. Its possession is transferred inside and the object is deleted automatically. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="abd7b66c4f8acfa8b24688e851805806f"></a><!-- doxytag: member="kyototycoon::TimedDB::error" ref="abd7b66c4f8acfa8b24688e851805806f" args="() const " -->
 <div class="memitem">
 <div class="memproto">
@@ -2116,7 +2117,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Dec 16 23:50:05 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Sun Dec 19 20:31:42 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

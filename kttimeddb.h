@@ -631,22 +631,26 @@ public:
     db_.tune_meta_trigger(&mtrigger_);
   }
   /**
-   * Constructor.
-   * @param db the internal database object.  Its possession is transferred inside and the
-   * object is deleted automatically.
-   */
-  explicit TimedDB(kc::BasicDB* db) :
-    xlock_(), db_(db), mtrigger_(this), utrigger_(NULL), omode_(0),
-    opts_(0), capcnt_(0), capsiz_(0), xcur_(NULL), xsc_(0) {
-    _assert_(true);
-    db_.tune_meta_trigger(&mtrigger_);
-  }
-  /**
    * Destructor.
    */
   virtual ~TimedDB() {
     _assert_(true);
     if (omode_ != 0) close();
+  }
+  /**
+   * Set the internal database object.
+   * @param db the internal database object.  Its possession is transferred inside and the
+   * object is deleted automatically.
+   * @return true on success, or false on failure.
+   */
+  bool set_internal_db(kc::BasicDB* db) {
+    _assert_(db);
+    if (omode_ != 0) {
+      set_error(kc::BasicDB::Error::INVALID, "already opened");
+      return false;
+    }
+    db_.set_internal_db(db);
+    return true;
   }
   /**
    * Get the last happened error.
@@ -1400,6 +1404,9 @@ public:
         ok_ = true;
         return REMOVE;
       }
+      const char* visit_empty(const char* kbuf, size_t ksiz, size_t* sp, int64_t* xtp) {
+        return REMOVE;
+      }
       bool ok_;
     };
     VisitorImpl visitor;
@@ -1878,7 +1885,10 @@ private:
         size_t rsiz;
         const char* rbuf = visitor_->visit_empty(kbuf, ksiz, &rsiz, &xt);
         if (rbuf == TimedDB::Visitor::NOP) return NOP;
-        if (rbuf == TimedDB::Visitor::REMOVE) return REMOVE;
+        if (rbuf == TimedDB::Visitor::REMOVE) {
+          if (db_->utrigger_) log_update(db_->utrigger_, kbuf, ksiz, REMOVE, 0);
+          return REMOVE;
+        }
         xt = modify_exptime(xt, ct_);
         size_t jsiz;
         jbuf_ = make_record_value(rbuf, rsiz, xt, &jsiz);
@@ -1915,7 +1925,10 @@ private:
       int64_t xt = -1;
       const char* rbuf = visitor_->visit_empty(kbuf, ksiz, &rsiz, &xt);
       if (rbuf == TimedDB::Visitor::NOP) return NOP;
-      if (rbuf == TimedDB::Visitor::REMOVE) return REMOVE;
+      if (rbuf == TimedDB::Visitor::REMOVE) {
+        if (db_->utrigger_) log_update(db_->utrigger_, kbuf, ksiz, REMOVE, 0);
+        return REMOVE;
+      }
       xt = modify_exptime(xt, ct_);
       size_t jsiz;
       jbuf_ = make_record_value(rbuf, rsiz, xt, &jsiz);
