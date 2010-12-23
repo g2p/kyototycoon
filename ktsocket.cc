@@ -1280,7 +1280,7 @@ bool Poller::undo(Pollable* event) {
   ev.events = EPOLLONESHOT;
   if (flags & Pollable::EVINPUT) ev.events |= EPOLLIN;
   if (flags & Pollable::EVOUTPUT) ev.events |= EPOLLOUT;
-  if (flags & Pollable::EVEXCEPT) ev.events |= EPOLLHUP | EPOLLRDHUP | EPOLLPRI;
+  if (flags & Pollable::EVEXCEPT) ev.events |= EPOLLHUP | EPOLLPRI;
   ev.data.ptr = event;
   if (::epoll_ctl(core->fd, EPOLL_CTL_MOD, event->descriptor(), &ev) != 0) {
     pollseterrmsg(core, "epoll_ctl failed");
@@ -1355,8 +1355,7 @@ bool Poller::wait(double timeout) {
         uint32_t flags = 0;
         if (epflags & EPOLLIN) flags |= Pollable::EVINPUT;
         if (epflags & EPOLLOUT) flags |= Pollable::EVOUTPUT;
-        if ((epflags & EPOLLHUP) || (epflags & EPOLLRDHUP) || (epflags & EPOLLPRI))
-          flags |= Pollable::EVEXCEPT;
+        if ((epflags & EPOLLHUP) || (epflags & EPOLLPRI)) flags |= Pollable::EVEXCEPT;
         core->elock.lock();
         if (core->hits.insert(item).second) {
           item->set_event_flags(flags);

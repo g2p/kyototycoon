@@ -1821,6 +1821,65 @@ public:
     utrigger_ = trigger;
     return true;
   }
+  /**
+   * Tokenize an update log message.
+   * @param mbuf the pointer to the message region.
+   * @param msiz the size of the message region.
+   * @param tokens a string vector to contain the result.
+   * @return true on success, or false on failure.
+   */
+  static bool tokenize_update_log(const char* mbuf, size_t msiz,
+                                  std::vector<std::string>* tokens) {
+    _assert_(mbuf && msiz <= kc::MEMMAXSIZ && tokens);
+    tokens->clear();
+    if (msiz < 1) return false;
+    const char* rp = mbuf;
+    uint8_t op = *(uint8_t*)(rp++);
+    msiz--;
+    switch (op) {
+      case USET: {
+        if (msiz < 2) return false;
+        uint64_t ksiz;
+        size_t step = kc::readvarnum(rp, msiz, &ksiz);
+        rp += step;
+        msiz -= step;
+        uint64_t vsiz;
+        step = kc::readvarnum(rp, msiz, &vsiz);
+        rp += step;
+        msiz -= step;
+        const char* kbuf = rp;
+        const char* vbuf = rp + ksiz;
+        if (msiz != ksiz + vsiz) return false;
+        tokens->push_back("set");
+        tokens->push_back(std::string(kbuf, ksiz));
+        tokens->push_back(std::string(vbuf, vsiz));
+        break;
+      }
+      case UREMOVE: {
+        if (msiz < 1) return false;
+        uint64_t ksiz;
+        size_t step = kc::readvarnum(rp, msiz, &ksiz);
+        rp += step;
+        msiz -= step;
+        const char* kbuf = rp;
+        if (msiz != ksiz) return false;
+        tokens->push_back("remove");
+        tokens->push_back(std::string(kbuf, ksiz));
+        break;
+      }
+      case UCLEAR: {
+        if (msiz != 0) return false;
+        tokens->push_back("clear");
+        break;
+      }
+      default: {
+        tokens->push_back("unknown");
+        tokens->push_back(std::string(mbuf, msiz));
+        break;
+      }
+    }
+    return true;
+  }
 private:
   /**
    * Tuning Options.

@@ -1513,9 +1513,21 @@ static int32_t procslave(const char* host, int32_t port, double tout,
         uint16_t rsid, rdbid;
         const char* rbuf = DBUpdateLogger::parse(mbuf, msiz, &rsiz, &rsid, &rdbid);
         if (rbuf) {
-          printf("%llu\t%u\t%u\t", (unsigned long long)mts, rsid, rdbid);
-          printdata(rbuf, rsiz, true);
-          oprintf("\n");
+          std::vector<std::string> tokens;
+          kt::TimedDB::tokenize_update_log(rbuf, rsiz, &tokens);
+          if (!tokens.empty()) {
+            const std::string& name = tokens.front();
+            printf("%llu\t%u\t%u\t%s", (unsigned long long)mts, rsid, rdbid, name.c_str());
+            std::vector<std::string>::iterator it = tokens.begin() + 1;
+            std::vector<std::string>::iterator itend = tokens.end();
+            while (it != itend) {
+              char* str = kc::baseencode(it->data(), it->size());
+              oprintf("\t%s", str);
+              delete[] str;
+              it++;
+            }
+            oprintf("\n");
+          }
         } else {
           eprintf("%s: parsing a message failed\n", g_progname);
           err = true;

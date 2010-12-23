@@ -23,7 +23,7 @@
 <h1 id="headline">Fundamental Specifications of Kyoto Tycoon Version 1</h1>
 
 <div class="note">Copyright (C) 2009-2010 FAL Labs</div>
-<div class="note">Last Update: Thu, 09 Dec 2010 22:07:07 +0900</div>
+<div class="note">Last Update: Thu, 23 Dec 2010 12:29:41 +0900</div>
 
 <hr />
 
@@ -791,6 +791,37 @@ bar
 
 <p>The most important advantage of the pluggable database mechanism is to give networking functionality to other DBM-style database libraries such as BerkeleyDB and GDBM.  You can implement your own pluggable database.  See the source code in "ktplugdbvoid.cc" for details.</p>
 
+<h3 id="tips_slaveagent">Slave Agent</h3>
+
+<p>If you want to replicate update operations from a server of Kyoto Tycoon to another database system like RDBMS, it is useful to pull update logs by the command "ktremotemgr slave" and process each log by your own script command.  The master server setting is not particular.</p>
+
+<pre>$ ktserver -ulog 0001-ulog -sid 1 casket.kch
+</pre>
+
+<p>To generate update logs in the master server, perform some opdate operations.</p>
+
+<pre>$ ktremotemgr clear
+$ ktremotemgr set one first
+$ ktremotemgr set two second
+$ ktremotemgr remove one
+</pre>
+
+<p>Pull the above update logs.</p>
+
+<pre>$ ktremotemgr slave
+1293014011013000000     1       0       clear
+1293014017613000000     1       0       set     b25l    //////9maXJzdA==
+1293014022052000000     1       0       set     dHdv    //////9zZWNvbmQ=
+1293014027262000000     1       0       remove  b25l
+</pre>
+
+<p>The output is in TSV format.  Each line expresses each update operation.  The fields are the time stamp of the update operation, the server ID number, the database ID number, the command name, and Base64-encoded arguments of the command.  The first 5 bytes in the value of the "set" command specifies the expiration time.  You can give the output to another command for post processing via pipe.</p>
+
+<pre>$ ktremotemgr slave -ts "`cat foobar.rts`" -uw | dosomething
+</pre>
+
+<p>The file "foobar.rts" should contain the time stamp of the last pulled update log, which should be recorded by the post processing command.  The "-uw" option is to wait for future update logs forever even when the reader has reached the end of the log files.  A sample implementation of a post processing command in Ruby is included as "example/ktreplprint.rb" in the source package.</p>
+
 <hr />
 
 <h2 id="protocol">Protocol</h2>
@@ -803,7 +834,7 @@ bar
 
 <p>If the request is HTTP/1.1 and the value of the "Content-Type" header is not "close", the server try to perform keep-alive connection.  Keep-alive connection is strongly suggested to access the server for performance reason.  However, usual intermissive connection is also allowed for legacy clients.</p>
 
-<p>Kyoto Cabinet uses an RPC model called TSV-RPC, which is similar to XML-RPC but uses TSV (tab separated values) rather than XML.  Although TSV is inferior to XML in terms of expressive ability, TSV is superior to XML in terms of simplicity, space efficiency, and processing effectiveness.</p>
+<p>Kyoto Cabinet uses an RPC model called TSV-RPC, which is similar to XML-RPC but uses TSV rather than XML.  Although TSV is inferior to XML in terms of expressive ability, TSV is superior to XML in terms of simplicity, space efficiency, and processing effectiveness.</p>
 
 <h3 id="protocol_tsvrpc">TSV-RPC</h3>
 

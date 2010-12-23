@@ -1,5 +1,13 @@
 2010-12-20  Mikio Hirabayashi  <info@fallabs.com>
 
+	* ktsocket.h (Poller::wait): EPOLLRDHUP was abolished to support old kernels.
+
+	* kttimeddb.h (TimedDB::tokenize_update_log): new function.
+
+	- Release: 0.9.19
+
+2010-12-20  Mikio Hirabayashi  <info@fallabs.com>
+
 	* ktplugdb.h, ktplugdbvoid.h: new files.
 
 	- Release: 0.9.18
