@@ -1,4 +1,2 @@
-debian/tmp/usr/bin/tc*
-debian/tmp/usr/bin/ktul*
-debian/tmp/usr/share/man/man1/tc*
-debian/tmp/usr/share/man/man1/ktul*
+debian/tmp/usr/bin/ktutil*
+debian/tmp/usr/share/man/man1/ktutil*
