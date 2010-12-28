@@ -1,0 +1,20 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+override_dh_auto_configure:
+	autoreconf -fvi
+	dh_auto_configure -- \
+		--enable-lua \
+		--enable-devel
+
+override_dh_installchangelogs:
+	dh_installchangelogs ChangeLog
+
+override_dh_installdocs:
+	dh_installdocs THANKS
+
+override_dh_strip:
+	dh_strip --dbg-package=tokyotyrant-dbg
+
+.PHONY: override_dh_auto_configure override_dh_installchangelogs override_dh_installdocs override_dh_strip

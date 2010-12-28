@@ -1,0 +1,17 @@
+/var/log/tokyotyrant/*.log {
+	weekly
+	rotate 10
+	copytruncate
+	delaycompress
+	compress
+	notifempty
+	missingok
+	sharedscripts
+	postrotate
+		for file in $@; do
+			daemon=`/usr/bin/basename "$file" | sed 's/\.log\(\.[0-9]*\)\?$//g'`
+			invoke-rc.d --query --quiet $daemon reload || true
+			[ "$?" -ne 100 ] && invoke-rc.d $daemon reload > /dev/null || true
+		done
+	endscript
+}

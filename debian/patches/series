@@ -1,0 +1,6 @@
+000-pkg-config-move-private-libs-to-Libs.private
+001-rpath-defines
+002-remove-unused-libraries
+003-run-service-make-check
+004-kfreebsd-fix
+005-change-default-port

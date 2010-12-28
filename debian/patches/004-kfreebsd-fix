@@ -1,0 +1,17 @@
+Description: Follow kfreebsd guidelines for porting
+ __FreeBSD__ would not work for kfreebsd. Also check for __FreeBSD_kernel__
+Author: Örjan Persson <orange@fobie.net>
+Last-Update: 2010-02-07
+Index: tokyotyrant/myconf.h
+===================================================================
+--- tokyotyrant.orig/myconf.h	2010-02-07 20:00:02.000000000 +0100
++++ tokyotyrant/myconf.h	2010-02-07 20:01:54.000000000 +0100
+@@ -29,7 +29,7 @@
+ #define _SYS_LINUX_
+ #define TTSYSNAME   "Linux"
+ 
+-#elif defined(__FreeBSD__)
++#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+ 
+ #define _SYS_FREEBSD_
+ #define TTSYSNAME   "FreeBSD"

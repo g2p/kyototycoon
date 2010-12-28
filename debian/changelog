@@ -1,0 +1,49 @@
+tokyotyrant (1.1.40-4) unstable; urgency=low
+
+  * Fixed bashism in init script (Closes: #581141).
+
+ -- Örjan Persson <orange@fobie.net>  Fri, 14 May 2010 10:11:02 +0200
+
+tokyotyrant (1.1.40-3) unstable; urgency=low
+
+  * Fixed a bug in the init script which on system reboot would start
+    up using wrong socket, pid etc. Thanks to Nicolas Noirbent for the
+    report (Closes: #576708).
+
+ -- Örjan Persson <orange@fobie.net>  Tue, 06 Apr 2010 20:26:49 +0200
+
+tokyotyrant (1.1.40-2) unstable; urgency=low
+
+  * Updated 003-run-service-make-check to wait until daemon is ready.
+  * Sockets are now used as default in utilities.
+  * Set umask in init script to restrict access to socket.
+
+ -- Örjan Persson <orange@fobie.net>  Sun, 14 Feb 2010 18:16:30 +0100
+
+tokyotyrant (1.1.40-1) unstable; urgency=low
+
+  * New upstream version (Closes: #566865).
+  * Enabled tests and added 003-run-service-make-check.
+  * Added 004-kfreebsd-fix to make it build on kfreebsd.
+
+ -- Örjan Persson <orange@fobie.net>  Sun, 07 Feb 2010 20:19:39 +0100
+
+tokyotyrant (0.9.19-3) unstable; urgency=low
+
+  * Updated package description (Closes: #566246).
+  * Unix socket is now used as default compared to *:1978.
+  * Depend on libtokyocabinet-dev for dev package (Closes: #566584).
+
+ -- Örjan Persson <orange@fobie.net>  Wed, 03 Feb 2010 21:57:38 +0100
+
+tokyotyrant (0.9.19-2) unstable; urgency=low
+
+  * Updated Debian copyright.
+
+ -- Örjan Persson <orange@fobie.net>  Sat, 16 Jan 2010 14:47:19 +0100
+
+tokyotyrant (0.9.19-1) unstable; urgency=low
+
+  * Initial release (Closes: #563921).
+
+ -- Örjan Persson <orange@fobie.net>  Wed, 06 Jan 2010 18:42:42 +0100

@@ -1,0 +1,46 @@
+#!/bin/sh -e
+
+NAME=tokyotyrant
+USER=$NAME
+DATADIR=/var/lib/$NAME
+LOGDIR=/var/log/$NAME
+
+. /usr/share/debconf/confmodule
+
+case "$1" in
+	configure)
+		# creating user if it isn't created
+		if ! getent passwd $USER >/dev/null; then
+			adduser \
+			  --quiet \
+			  --system \
+			  --disabled-login \
+			  --group \
+			  --home $DATADIR \
+			  --no-create-home \
+			  --gecos "Tokyo Tyrant" \
+			  --shell /bin/false \
+			  $USER
+		fi
+
+		# creating group if it isn't created
+		if ! getent group $USER >/dev/null; then
+			addgroup --quiet --system $USER
+			usermod -g $USER $USER
+		fi
+
+		# setup permission for data and log directories
+		chown -R $USER:$GROUP $DATADIR
+		chown -R $USER:$GROUP $LOGDIR
+		;;
+	*)
+		echo "postinst called with unknown argument \`$1'" >&2
+		exit 0
+		;;
+esac
+
+db_stop
+
+#DEBHELPER#
+
+exit 0

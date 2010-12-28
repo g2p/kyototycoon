@@ -1,0 +1,85 @@
+Source: tokyotyrant
+Priority: extra
+Maintainer: Örjan Persson <orange@fobie.net>
+Uploaders: Andreas Schuldei <andreas@debian.org>
+Build-Depends: debhelper (>= 7.0.50), automake, autotools-dev, gawk, pkg-config, libtokyocabinet-dev (>> 1.4), liblua5.1-0-dev, lua5.1
+Standards-Version: 3.8.4
+Section: misc
+Homepage: http://1978th.net/tokyotyrant/
+
+Package: tokyotyrant
+Architecture: any
+Priority: optional
+Depends: ${shlibs:Depends}, ${misc:Depends}, adduser, libtokyotyrant3 (= ${binary:Version}), lsb-base (>= 3.0-6)
+Recommends: tokyotyrant-utils
+Description: Tokyo Tyrant: network interface to Tokyo Cabinet
+ Tokyo Tyrant is a network interface to the DBM Tokyo Cabinet. You might bother
+ in the case where multiple processes share the same database or where remote
+ processes access the database. Thus, Tokyo Tyrant is provided for concurrent
+ and remote connections to Tokyo Cabinet.
+ .
+ This is the Tokyo Tyrant server package.
+
+Package: tokyotyrant-dbg
+Architecture: any
+Section: debug
+Depends: ${misc:Depends}, tokyotyrant (= ${binary:Version})
+Description: Tokyo Tyrant debugging symbols
+ Tokyo Tyrant is a network interface to the DBM Tokyo Cabinet. You might bother
+ in the case where multiple processes share the same database or where remote
+ processes access the database. Thus, Tokyo Tyrant is provided for concurrent
+ and remote connections to Tokyo Cabinet.
+ .
+ This is the debugging symbols for Tokyo Tyrant.
+
+Package: libtokyotyrant3
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Tokyo Tyrant runtime libraries
+ Tokyo Tyrant is a network interface to the DBM Tokyo Cabinet. You might bother
+ in the case where multiple processes share the same database or where remote
+ processes access the database. Thus, Tokyo Tyrant is provided for concurrent
+ and remote connections to Tokyo Cabinet.
+ .
+ This is the runtime package for programs that use the Tokyo Tyrant library.
+
+Package: libtokyotyrant-dev
+Section: libdevel
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libtokyotyrant3 (= ${binary:Version}), libtokyocabinet-dev
+Description: Tokyo Tyrant development files
+ Tokyo Tyrant is a network interface to the DBM Tokyo Cabinet. You might bother
+ in the case where multiple processes share the same database or where remote
+ processes access the database. Thus, Tokyo Tyrant is provided for concurrent
+ and remote connections to Tokyo Cabinet.
+ .
+ This is the development package for Tokyo Tyrant. It contains headers and
+ libraries.
+
+Package: tokyotyrant-doc
+Section: doc
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Priority: optional
+Description: Tokyo Tyrant documentation
+ Tokyo Tyrant is a network interface to the DBM Tokyo Cabinet. You might bother
+ in the case where multiple processes share the same database or where remote
+ processes access the database. Thus, Tokyo Tyrant is provided for concurrent
+ and remote connections to Tokyo Cabinet.
+ .
+ This is the documentation for Tokyo Tyrant.
+
+Package: tokyotyrant-utils
+Architecture: any
+Section: utils
+Priority: optional
+Depends: ${shlibs:Depends}, ${misc:Depends}, libtokyotyrant3 (= ${binary:Version})
+Description: Tokyo Tyrant utilities
+ Tokyo Tyrant is a network interface to the DBM Tokyo Cabinet. You might bother
+ in the case where multiple processes share the same database or where remote
+ processes access the database. Thus, Tokyo Tyrant is provided for concurrent
+ and remote connections to Tokyo Cabinet.
+ .
+ This is the Tokyo Tyrant utility package. It contains tcrmgr and ttulmgr among
+ others.

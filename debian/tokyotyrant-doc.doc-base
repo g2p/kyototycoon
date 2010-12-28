@@ -1,0 +1,10 @@
+Document: tokyotyrant
+Title: Tokyo Tyrant documentation
+Author: Mikio Hirabayashi
+Abstract: This manual describes what Tokyo Tyrant is, how to configure it and
+ the API offered by it.
+Section: Programming/C
+
+Format: HTML
+Index: /usr/share/doc/tokyotyrant-doc/html/index.html
+Files: /usr/share/doc/tokyotyrant-doc/html/*.html

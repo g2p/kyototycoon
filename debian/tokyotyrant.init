@@ -1,0 +1,192 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          tokyotyrant
+# Required-Start:    $local_fs $remote_fs $syslog $named $network $time
+# Required-Stop:     $local_fs $remote_fs $syslog $named $network
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: start and stop the Tokyo Tyrant server
+# Description:       Tokyo Tyrant is a network interface to Tokyo Cabinet
+### END INIT INFO
+
+# Author: Örjan Persson <orange@fobie.net>
+
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+DESC="Tokyo Tyrant"
+NAME=
+DAEMON=/usr/sbin/ttserver
+DAEMON_ARGS=
+DAEMON_ARGS_EXTRA=
+DAEMON_NAME=ttserver
+DAEMON_USER="tokyotyrant"
+DAEMON_GROUP="tokyotyrant"
+DAEMON_UMASK=0022
+SOCKET_UMASK=0007
+
+# support for multiple instances is based on the symbolic link
+# try to resolve symbolic links from eg. /etc/rc*.d/
+file="$0"
+for i in `seq 20`; do
+	# stop as soon as we hit a non-symbolic link or a file in /etc/init.d
+	if [ ! -L "$file" ] || [ `dirname "$file"` = "/etc/init.d" ]; then
+		NAME="`basename $file`"
+		break
+	fi
+	file=`readlink "$file"`
+done
+
+if [ -z "$NAME" ]; then
+	echo "Error: failed to resolve instance name for $0" >&2
+	exit 4
+fi
+
+LOGDIR="/var/log/tokyotyrant"
+RUNDIR="/var/run/tokyotyrant"
+PIDFILE="$RUNDIR/$NAME.pid"
+SCRIPTNAME="/etc/init.d/$NAME"
+
+DATADIR=/var/lib/tokyotyrant/data
+ULOGDIR=/var/lib/tokyotyrant/log
+
+# listening host/address and port
+SERVERHOST="$RUNDIR/$NAME.sock"
+SERVERPORT=0
+
+# database name and options
+DBNAME=$NAME.tch#bnum=1000000
+
+# replication configuration
+MASTERHOST=
+MASTERPORT=
+SERVERID=
+
+# exit if the package is not installed
+[ -x "$DAEMON" ] || exit 0
+
+# read configuration variable file if it is present
+[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+
+# setup daemon arguments if not specified
+if [ -z "$DAEMON_ARGS" ]; then
+	DAEMON_ARGS="-port $SERVERPORT -dmn -pid $PIDFILE -log $LOGDIR/$NAME.log"
+	
+	# specify listen address if set (defaults to all addresses)
+	[ -n "$SERVERHOST" ] && DAEMON_ARGS="$DAEMON_ARGS -host $SERVERHOST"
+
+	# setup replication
+	if [ -n "$MASTERHOST" ] && [ -n "$MASTERPORT" ] && [ "$SERVERID" -ge 0 ]; then
+		ulogdir="$ULOGDIR/$SERVERID"
+		if [ ! -d "$ulogdir" ]; then
+			mkdir "$ulogdir"
+			chown $DAEMON_USER:$DAEMON_GROUP "$ulogdir"
+		fi
+		DAEMON_ARGS="$DAEMON_ARGS -sid $SERVERID -ulog $ulogdir -rts $ULOGDIR/$SERVERID.rts"
+		DAEMON_ARGS="$DAEMON_ARGS -mhost $MASTERHOST -mport $MASTERPORT"
+	fi
+
+	DAEMON_ARGS="$DAEMON_ARGS $DATADIR/$DBNAME"
+fi
+
+# add extra daemon arguments
+[ -n "$DAEMON_ARGS_EXTRA" ] && DAEMON_ARGS="$DAEMON_ARGS_EXTRA $DAEMON_ARGS"
+
+. /lib/init/vars.sh
+. /lib/lsb/init-functions
+
+do_start() {
+	# setup umask for directory creation
+	prevmask=`umask`
+	umask $DAEMON_UMASK
+	trap "umask $prevmask" 0
+
+	# setup directory for pid file
+	PIDDIR=`dirname "$PIDFILE"`
+	if [ ! -d "$PIDDIR" ]; then
+		mkdir "$PIDDIR"
+		chown $DAEMON_USER:$DAEMON_GROUP "$PIDDIR"
+	fi
+
+	# setup directory for unix socket
+	if [ "$SERVERPORT" -eq 0 ] && [ -n "$SERVERHOST" ]; then
+		socketdir=`dirname "$SERVERHOST"`
+		if [ ! -d "$socketdir" ]; then
+			mkdir "$socketdir"
+			chown $DAEMON_USER:$DAEMON_GROUP "$socketdir"
+		fi
+	fi
+
+	start-stop-daemon --start --quiet --pidfile "$PIDFILE" \
+	  --chuid $DAEMON_USER:$DAEMON_GROUP --umask $DAEMON_UMASK \
+	  --exec $DAEMON --test > /dev/null \
+		|| return 1
+	start-stop-daemon --start --quiet --pidfile "$PIDFILE" \
+	  --chuid $DAEMON_USER:$DAEMON_GROUP --umask $DAEMON_UMASK \
+	  --exec $DAEMON -- $DAEMON_ARGS \
+		|| return 2
+
+	# socket permissions (should be current mode & ~mask)
+	[ "$SERVERPORT" -eq 0 ] && chmod `expr 0777 - $SOCKET_UMASK` $SERVERHOST
+}
+
+do_stop() {
+	start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile "$PIDFILE" \
+	  --user $DAEMON_USER --name "$DAEMON_NAME"
+	return "$?"
+}
+
+do_reload() {
+	start-stop-daemon --stop --signal HUP --quiet --pidfile "$PIDFILE" \
+	  --user $DAEMON_USER --name "$DAEMON_NAME"
+	return "$?"
+}
+
+case "$1" in
+	start)
+		[ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
+		do_start
+		case "$?" in
+			0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+			2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+		esac
+		;;
+	stop)
+		[ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
+		do_stop
+		case "$?" in
+			0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+			2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+		esac
+		;;
+	status)
+		status_of_proc -p "$PIDFILE" "$DAEMON" "$NAME" && exit 0 || exit $?
+		;;
+	reload|force-reload)
+		log_daemon_msg "Reloading $DESC" "$NAME"
+		do_reload
+		log_end_msg $?
+		;;
+	restart)
+		log_daemon_msg "Restarting $DESC" "$NAME"
+		do_stop
+		case "$?" in
+			0|1)
+				do_start
+				case "$?" in
+					0) log_end_msg 0 ;;
+					1) log_end_msg 1 ;; # old process is still running
+					*) log_end_msg 1 ;; # failed to start
+				esac
+				;;
+			*)
+				# failed to stop
+				log_end_msg 1
+				;;
+		esac
+		;;
+	*)
+		echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload}" >&2
+		exit 3
+		;;
+esac
+
+:

@@ -1,0 +1,27 @@
+Tokyo Tyrant for Debian
+-----------------------
+
+By default Tokyo Tyrant will use a hash database with a bucket size of 1000000.
+To tune your database, set a custom DBNAME in /etc/default/tokyotyrant. See
+ttserver(1) or tokyotyrant-doc for details.
+
+In the default file you can also setup things like replication, async update log
+writes, debugging and more.
+
+The init script defaults to use unix sockets if SERVERHOST or SERVERPORT is not
+set. This is different from what upstream does, which defaults to port 1978. All
+tools have been changed to reflect this change.
+
+Tokyo Tyrant is packaged in a way to allow you to run more than one instance on
+the same machine. The name of the server is based on the symlink for the init
+script. When this package is upgraded or removed, only the original server will
+be restarted. Make sure to manually bring other instances down and up.
+
+Example of how to setup a new instance:
+
+  ln -s /etc/init.d/tokyotyrant /etc/init.d/tokyotyrant-other
+  update-rc.d tokyotyrant-other defaults
+
+For special configurations for that instance, edit /etc/default/tokyotyrant-other
+
+ -- Örjan Persson <orange@fobie.net>  Wed, 03 Feb 2010 21:50:20 +0100

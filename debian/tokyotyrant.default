@@ -1,0 +1,18 @@
+## create socket (this is the debian default)
+#SERVERHOST="$RUNDIR/$NAME.sock"
+#SERVERPORT=0
+
+## listening host/address and port (this is the upstream default)
+#SERVERHOST=
+#SERVERPORT=1978
+
+## database name and options (see ttserver(1) for tuning options)
+#DBNAME=$NAME.tch#bnum=1000000
+
+## replication configuration
+#MASTERHOST=
+#MASTERPORT=
+#SERVERID=
+
+## extra parameters to set for the daemon
+#DAEMON_ARGS_EXTRA=
