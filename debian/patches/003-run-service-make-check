@@ -16,9 +16,9 @@ Index: kyototycoon/Makefile.in
  
 +# Test configuration
 +test_start_stop = 1
-+test_host = /tmp/ttserver-test.sock
++test_host = /tmp/ktserver-test.sock
 +test_port = 0
-+test_pid = /tmp/ttserver-test.pid
++test_pid = /tmp/ktserver-test.pid
  
  
  #================================================================
@@ -71,7 +71,7 @@ Index: kyototycoon/Makefile.in
 +	if [ $(test_start_stop) -eq 1 ]; then \
 +		$(RUNENV); \
 +		export LD_LIBRARY_PATH; \
-+		start-stop-daemon -v -S -p $(test_pid) -d `pwd` --exec `pwd`/ttserver \
++		start-stop-daemon -v -S -p $(test_pid) -d `pwd` --exec `pwd`/ktserver \
 +			-- -host $(test_host) -port $(test_port) \
 +			   -ld -dmn -pid $(test_pid) || exit 1; \
 +		\
@@ -125,5 +125,5 @@ Index: kyototycoon/Makefile.in
 +	$(RUNENV) $(RUNCMD) ./tcrmgr list -port $(test_port) -pv $(test_host) > check.out; \
 +	$(RUNENV) $(RUNCMD) ./tcrmgr list -port $(test_port) -pv -fm f $(test_host) > check.out; \
  	rm -rf ulog ; mkdir -p ulog
- 	$(RUNENV) $(RUNCMD) ./ttultest write -lim 10000 ulog 5000
- 	$(RUNENV) $(RUNCMD) ./ttultest write -lim 10000 -as ulog 5000
+ 	$(RUNENV) $(RUNCMD) ./ktultest write -lim 10000 ulog 5000
+ 	$(RUNENV) $(RUNCMD) ./ktultest write -lim 10000 -as ulog 5000

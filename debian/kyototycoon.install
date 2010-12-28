@@ -1,2 +1,2 @@
-debian/tmp/usr/bin/ttserver usr/sbin
-debian/tmp/usr/share/man/man?/ttserver*
+debian/tmp/usr/bin/ktserver usr/sbin
+debian/tmp/usr/share/man/man?/ktserver*

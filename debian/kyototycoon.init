@@ -14,7 +14,7 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Kyoto Tycoon"
 NAME=
-DAEMON=/usr/sbin/ttserver
+DAEMON=/usr/sbin/ktserver
 DAEMON_ARGS=
 DAEMON_ARGS_EXTRA=
 DAEMON_NAME=ttserver

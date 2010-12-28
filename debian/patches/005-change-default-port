@@ -5,10 +5,10 @@ Description: Use socket by default
  This updates the utilities to more folllow these changes.
 Author: Örjan Persson <orange@fobie.net>
 Last-Update: 2010-02-14
-Index: kyototycoon/ttutil.h
+Index: kyototycoon/ktutil.h
 ===================================================================
---- kyototycoon.orig/ttutil.h	2010-02-14 22:03:04.000000000 +0100
-+++ kyototycoon/ttutil.h	2010-02-14 22:05:52.000000000 +0100
+--- kyototycoon.orig/ktutil.h	2010-02-14 22:03:04.000000000 +0100
++++ kyototycoon/ktutil.h	2010-02-14 22:05:52.000000000 +0100
 @@ -266,7 +266,7 @@
   *************************************************************************************************/
  
@@ -29,10 +29,10 @@ Index: kyototycoon/ttutil.h
  typedef struct _TTTIMER {                /* type of structure for a timer */
    pthread_t thid;                        /* thread ID */
    bool alive;                            /* alive flag */
-Index: kyototycoon/ttutil.c
+Index: kyototycoon/ktutil.c
 ===================================================================
---- kyototycoon.orig/ttutil.c	2010-02-14 22:03:04.000000000 +0100
-+++ kyototycoon/ttutil.c	2010-02-14 22:05:52.000000000 +0100
+--- kyototycoon.orig/ktutil.c	2010-02-14 22:03:04.000000000 +0100
++++ kyototycoon/ktutil.c	2010-02-14 22:05:52.000000000 +0100
 @@ -1235,7 +1235,7 @@
    tcstrtrim(host);
    if(*host == '\0'){
@@ -55,10 +55,10 @@ Index: kyototycoon/tcrmgr.c
    uint64_t ts = 0;
    int opts = 0;
    for(int i = 2; i < argc; i++){
-Index: kyototycoon/ttserver.c
+Index: kyototycoon/ktserver.c
 ===================================================================
---- kyototycoon.orig/ttserver.c	2010-02-14 22:03:04.000000000 +0100
-+++ kyototycoon/ttserver.c	2010-02-14 22:05:52.000000000 +0100
+--- kyototycoon.orig/ktserver.c	2010-02-14 22:03:04.000000000 +0100
++++ kyototycoon/ktserver.c	2010-02-14 22:05:52.000000000 +0100
 @@ -224,7 +224,7 @@
    uint64_t ulim = DEFULIMSIZ;
    bool uas = false;
