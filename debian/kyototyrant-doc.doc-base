@@ -1,10 +1,10 @@
-Document: kyototyrant
-Title: Kyoto Tyrant documentation
+Document: kyototycoon
+Title: Kyoto Tycoon documentation
 Author: Mikio Hirabayashi
-Abstract: This manual describes what Kyoto Tyrant is, how to configure it and
+Abstract: This manual describes what Kyoto Tycoon is, how to configure it and
  the API offered by it.
 Section: Programming/C
 
 Format: HTML
-Index: /usr/share/doc/kyototyrant-doc/html/index.html
-Files: /usr/share/doc/kyototyrant-doc/html/*.html
+Index: /usr/share/doc/kyototycoon-doc/html/index.html
+Files: /usr/share/doc/kyototycoon-doc/html/*.html

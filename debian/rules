@@ -15,6 +15,6 @@ override_dh_installdocs:
 	dh_installdocs THANKS
 
 override_dh_strip:
-	dh_strip --dbg-package=kyototyrant-dbg
+	dh_strip --dbg-package=kyototycoon-dbg
 
 .PHONY: override_dh_auto_configure override_dh_installchangelogs override_dh_installdocs override_dh_strip

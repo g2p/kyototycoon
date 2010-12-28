@@ -1,4 +1,4 @@
-/var/log/kyototyrant/*.log {
+/var/log/kyototycoon/*.log {
 	weekly
 	rotate 10
 	copytruncate

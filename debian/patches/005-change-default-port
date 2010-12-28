@@ -1,14 +1,14 @@
 Description: Use socket by default
- Tyrant does not have authorization. Upstream opens up the daemon on all
+ Tycoon does not have authorization. Upstream opens up the daemon on all
  interfaces and port 1978. Unix sockets are more secure.
  .
  This updates the utilities to more folllow these changes.
 Author: Örjan Persson <orange@fobie.net>
 Last-Update: 2010-02-14
-Index: kyototyrant/ttutil.h
+Index: kyototycoon/ttutil.h
 ===================================================================
---- kyototyrant.orig/ttutil.h	2010-02-14 22:03:04.000000000 +0100
-+++ kyototyrant/ttutil.h	2010-02-14 22:05:52.000000000 +0100
+--- kyototycoon.orig/ttutil.h	2010-02-14 22:03:04.000000000 +0100
++++ kyototycoon/ttutil.h	2010-02-14 22:05:52.000000000 +0100
 @@ -266,7 +266,7 @@
   *************************************************************************************************/
  
@@ -23,16 +23,16 @@ Index: kyototyrant/ttutil.h
  #define TTTIMERMAX     8                 /* maximum number of timers */
  
 +/* Debian addons */
-+#define _TTDEFSOCK      "/var/run/kyototyrant/kyototyrant.sock"
++#define _TTDEFSOCK      "/var/run/kyototycoon/kyototycoon.sock"
 +#define _TTDEFMPORT     1978              /* default port of master server */
 +
  typedef struct _TTTIMER {                /* type of structure for a timer */
    pthread_t thid;                        /* thread ID */
    bool alive;                            /* alive flag */
-Index: kyototyrant/ttutil.c
+Index: kyototycoon/ttutil.c
 ===================================================================
---- kyototyrant.orig/ttutil.c	2010-02-14 22:03:04.000000000 +0100
-+++ kyototyrant/ttutil.c	2010-02-14 22:05:52.000000000 +0100
+--- kyototycoon.orig/ttutil.c	2010-02-14 22:03:04.000000000 +0100
++++ kyototycoon/ttutil.c	2010-02-14 22:05:52.000000000 +0100
 @@ -1235,7 +1235,7 @@
    tcstrtrim(host);
    if(*host == '\0'){
@@ -42,10 +42,10 @@ Index: kyototyrant/ttutil.c
    }
    return host;
  }
-Index: kyototyrant/tcrmgr.c
+Index: kyototycoon/tcrmgr.c
 ===================================================================
---- kyototyrant.orig/tcrmgr.c	2010-02-14 22:03:04.000000000 +0100
-+++ kyototyrant/tcrmgr.c	2010-02-14 22:05:52.000000000 +0100
+--- kyototycoon.orig/tcrmgr.c	2010-02-14 22:03:04.000000000 +0100
++++ kyototycoon/tcrmgr.c	2010-02-14 22:05:52.000000000 +0100
 @@ -848,7 +848,7 @@
    char *host = NULL;
    char *mhost = NULL;
@@ -55,10 +55,10 @@ Index: kyototyrant/tcrmgr.c
    uint64_t ts = 0;
    int opts = 0;
    for(int i = 2; i < argc; i++){
-Index: kyototyrant/ttserver.c
+Index: kyototycoon/ttserver.c
 ===================================================================
---- kyototyrant.orig/ttserver.c	2010-02-14 22:03:04.000000000 +0100
-+++ kyototyrant/ttserver.c	2010-02-14 22:05:52.000000000 +0100
+--- kyototycoon.orig/ttserver.c	2010-02-14 22:03:04.000000000 +0100
++++ kyototycoon/ttserver.c	2010-02-14 22:05:52.000000000 +0100
 @@ -224,7 +224,7 @@
    uint64_t ulim = DEFULIMSIZ;
    bool uas = false;
@@ -78,17 +78,17 @@ Index: kyototyrant/ttserver.c
        } else if(!strcmp(argv[i], "-thnum")){
          if(++i >= argc) usage();
          thnum = tcatoi(argv[i]);
-Index: kyototyrant/doc/spex.html
+Index: kyototycoon/doc/spex.html
 ===================================================================
---- kyototyrant.orig/doc/spex.html	2010-02-14 22:05:54.000000000 +0100
-+++ kyototyrant/doc/spex.html	2010-02-14 22:10:12.000000000 +0100
+--- kyototycoon.orig/doc/spex.html	2010-02-14 22:05:54.000000000 +0100
++++ kyototycoon/doc/spex.html	2010-02-14 22:10:12.000000000 +0100
 @@ -128,8 +128,8 @@
  <p>Options feature the following.</p>
  
  <ul class="options">
 -<li><code>-host <var>name</var></code> : specify the host name or the address of the server.  By default, every network address is bound.</li>
 -<li><code>-port <var>num</var></code> : specify the port number.  By default, it is 1978.</li>
-+<li><code>-host <var>name</var></code> : specify the host name or the address of the server.  By default, it is /var/run/kyototyrant/kyototyrant.sock if port is not specified, else every network address is bound.</li>
++<li><code>-host <var>name</var></code> : specify the host name or the address of the server.  By default, it is /var/run/kyototycoon/kyototycoon.sock if port is not specified, else every network address is bound.</li>
 +<li><code>-port <var>num</var></code> : specify the port number.  By default, it is 0 (indicates usage of unix socket).</li>
  <li><code>-thnum <var>num</var></code> : specify the number of worker threads.  By default, it is 8.</li>
  <li><code>-tout <var>num</var></code> : specify the timeout of each session in seconds.  By default, no timeout is specified.</li>
@@ -97,7 +97,7 @@ Index: kyototyrant/doc/spex.html
  <li><code>-unmask <var>expr</var></code> : specify the names of allowed commands.</li>
  </ul>
  
-+<p>The usage of /var/run/kyototyrant/kyototyrant.sock is a Debian specific change. The upstream default is to use port 1978 and all network interfaces.</p>
++<p>The usage of /var/run/kyototycoon/kyototycoon.sock is a Debian specific change. The upstream default is to use port 1978 and all network interfaces.</p>
 +
  <p>To terminate the server normally, send SIGINT or SIGTERM to the process.  It is okay to press Ctrl-C on the controlling terminal.  To restart the server, send SIGHUP to the process.  If the port number is not more than 0, UNIX domain socket is used and the path of the socket file is specified by the host parameter.  This command returns 0 on success, another on failure.</p>
  
@@ -107,7 +107,7 @@ Index: kyototyrant/doc/spex.html
  <h2 id="protocol">Protocol</h2>
  
 -<p>The protocol between the server and clients stands on TCP/IP.  By default, the service port is bound to every address of the local host and the port number is 1978.  Each session of the server and a client is composed of a request and a response.  The server speaks three protocols at the same port.</p>
-+<p>The protocol between the server and clients stands on TCP/IP.  By default, the service port is 0 and host is /var/run/kyototyrant/kyototyrant.sock (upstream default is 1978).  Each session of the server and a client is composed of a request and a response.  The server speaks three protocols at the same port.</p>
++<p>The protocol between the server and clients stands on TCP/IP.  By default, the service port is 0 and host is /var/run/kyototycoon/kyototycoon.sock (upstream default is 1978).  Each session of the server and a client is composed of a request and a response.  The server speaks three protocols at the same port.</p>
  
  <h3 id="protocol_binary">Original Binary Protocol</h3>
  
@@ -115,8 +115,8 @@ Index: kyototyrant/doc/spex.html
  
  <h3 id="tutorial_basic">Basic Use</h3>
  
--<p>After installation of Kyoto Tyrant, you can start the server immediately by executing the command `<code>ttserver</code>' in the terminal.  By default, the server listens to the port 1978 and serves as the accessor of an on-memory hash database, which is useful to store cache data.</p>
-+<p>After installation of Kyoto Tyrant, you can start the server immediately by executing the command `<code>ttserver</code>' in the terminal.  By default, the server uses a unix socket which is located in /var/run/kyototyrant/kyototyrant.sock and uses an on-memory hash database, which is useful to store cache data.</p>
+-<p>After installation of Kyoto Tycoon, you can start the server immediately by executing the command `<code>ttserver</code>' in the terminal.  By default, the server listens to the port 1978 and serves as the accessor of an on-memory hash database, which is useful to store cache data.</p>
++<p>After installation of Kyoto Tycoon, you can start the server immediately by executing the command `<code>ttserver</code>' in the terminal.  By default, the server uses a unix socket which is located in /var/run/kyototycoon/kyototycoon.sock and uses an on-memory hash database, which is useful to store cache data.</p>
  
  <pre>[terminal-1]$ ttserver
  </pre>

@@ -2,10 +2,10 @@ Description: Follow kfreebsd guidelines for porting
  __FreeBSD__ would not work for kfreebsd. Also check for __FreeBSD_kernel__
 Author: Örjan Persson <orange@fobie.net>
 Last-Update: 2010-02-07
-Index: kyototyrant/myconf.h
+Index: kyototycoon/myconf.h
 ===================================================================
---- kyototyrant.orig/myconf.h	2010-02-07 20:00:02.000000000 +0100
-+++ kyototyrant/myconf.h	2010-02-07 20:01:54.000000000 +0100
+--- kyototycoon.orig/myconf.h	2010-02-07 20:00:02.000000000 +0100
++++ kyototycoon/myconf.h	2010-02-07 20:01:54.000000000 +0100
 @@ -29,7 +29,7 @@
  #define _SYS_LINUX_
  #define TTSYSNAME   "Linux"

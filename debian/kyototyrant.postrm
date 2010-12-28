@@ -3,10 +3,10 @@
 case "$1" in
 	purge)
 		set +e
-		rm -rf /var/log/kyototyrant
-		rm -rf /var/run/kyototyrant
-		rm -rf /var/lib/kyototyrant
-		userdel kyototyrant
+		rm -rf /var/log/kyototycoon
+		rm -rf /var/run/kyototycoon
+		rm -rf /var/lib/kyototycoon
+		userdel kyototycoon
 		set -e
 		;;
 esac

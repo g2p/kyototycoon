@@ -3,10 +3,10 @@ Description: Do not include $HOME and similar in makefile
  linking against other unused libraries.
 Author: Örjan Persson <orange@fobie.net>
 Last-Update: 2010-02-07
-Index: kyototyrant/configure.in
+Index: kyototycoon/configure.in
 ===================================================================
---- kyototyrant.orig/configure.in	2010-02-07 19:21:20.000000000 +0100
-+++ kyototyrant/configure.in	2010-02-07 19:21:58.000000000 +0100
+--- kyototycoon.orig/configure.in	2010-02-07 19:21:20.000000000 +0100
++++ kyototycoon/configure.in	2010-02-07 19:21:58.000000000 +0100
 @@ -29,21 +29,21 @@
  
  # Building flags
@@ -37,10 +37,10 @@ Index: kyototyrant/configure.in
  export PATH CPATH LIBRARY_PATH LD_LIBRARY_PATH PKG_CONFIG_PATH
  if type pkg-config > /dev/null 2>&1
  then
-Index: kyototyrant/Makefile.in
+Index: kyototycoon/Makefile.in
 ===================================================================
---- kyototyrant.orig/Makefile.in	2010-02-07 19:21:20.000000000 +0100
-+++ kyototyrant/Makefile.in	2010-02-07 19:21:58.000000000 +0100
+--- kyototycoon.orig/Makefile.in	2010-02-07 19:21:20.000000000 +0100
++++ kyototycoon/Makefile.in	2010-02-07 19:21:58.000000000 +0100
 @@ -58,8 +58,7 @@
  LDFLAGS = @MYLDFLAGS@
  CMDLDFLAGS = @MYCMDLDFLAGS@
@@ -55,33 +55,33 @@ Index: kyototyrant/Makefile.in
  
  
  ttserver : ttserver.o scrext.o $(LIBRARYFILES)
--	$(LDENV) $(CC) $(CFLAGS) -o $@ $< scrext.o $(LDFLAGS) $(CMDLDFLAGS) -lkyototyrant $(LIBS)
-+	$(LDENV) $(CC) $(CFLAGS) -o $@ $< scrext.o $(LDFLAGS) $(CMDLDFLAGS) -lkyototyrant
+-	$(LDENV) $(CC) $(CFLAGS) -o $@ $< scrext.o $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
++	$(LDENV) $(CC) $(CFLAGS) -o $@ $< scrext.o $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon
  
  
  ttulmgr : ttulmgr.o $(LIBRARYFILES)
--	$(LDENV) $(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototyrant $(LIBS)
-+	$(LDENV) $(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototyrant
+-	$(LDENV) $(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
++	$(LDENV) $(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon
  
  
  ttultest : ttultest.o $(LIBRARYFILES)
--	$(LDENV) $(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototyrant $(LIBS)
-+	$(LDENV) $(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototyrant
+-	$(LDENV) $(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
++	$(LDENV) $(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon
  
  
  tcrtest : tcrtest.o $(LIBRARYFILES)
--	$(LDENV) $(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototyrant $(LIBS)
-+	$(LDENV) $(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototyrant
+-	$(LDENV) $(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
++	$(LDENV) $(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon
  
  
  tcrmttest : tcrmttest.o $(LIBRARYFILES)
--	$(LDENV) $(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototyrant $(LIBS)
-+	$(LDENV) $(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototyrant
+-	$(LDENV) $(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
++	$(LDENV) $(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon
  
  
  tcrmgr : tcrmgr.o $(LIBRARYFILES)
--	$(LDENV) $(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototyrant $(LIBS)
-+	$(LDENV) $(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototyrant
+-	$(LDENV) $(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
++	$(LDENV) $(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon
  
  
  myconf.o scrext.o : myconf.h

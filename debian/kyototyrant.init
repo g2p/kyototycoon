@@ -1,25 +1,25 @@
 #! /bin/sh
 ### BEGIN INIT INFO
-# Provides:          kyototyrant
+# Provides:          kyototycoon
 # Required-Start:    $local_fs $remote_fs $syslog $named $network $time
 # Required-Stop:     $local_fs $remote_fs $syslog $named $network
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: start and stop the Kyoto Tyrant server
-# Description:       Kyoto Tyrant is a network interface to Kyoto Cabinet
+# Short-Description: start and stop the Kyoto Tycoon server
+# Description:       Kyoto Tycoon is a network interface to Kyoto Cabinet
 ### END INIT INFO
 
 # Author: Örjan Persson <orange@fobie.net>
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
-DESC="Kyoto Tyrant"
+DESC="Kyoto Tycoon"
 NAME=
 DAEMON=/usr/sbin/ttserver
 DAEMON_ARGS=
 DAEMON_ARGS_EXTRA=
 DAEMON_NAME=ttserver
-DAEMON_USER="kyototyrant"
-DAEMON_GROUP="kyototyrant"
+DAEMON_USER="kyototycoon"
+DAEMON_GROUP="kyototycoon"
 DAEMON_UMASK=0022
 SOCKET_UMASK=0007
 
@@ -40,13 +40,13 @@ if [ -z "$NAME" ]; then
 	exit 4
 fi
 
-LOGDIR="/var/log/kyototyrant"
-RUNDIR="/var/run/kyototyrant"
+LOGDIR="/var/log/kyototycoon"
+RUNDIR="/var/run/kyototycoon"
 PIDFILE="$RUNDIR/$NAME.pid"
 SCRIPTNAME="/etc/init.d/$NAME"
 
-DATADIR=/var/lib/kyototyrant/data
-ULOGDIR=/var/lib/kyototyrant/log
+DATADIR=/var/lib/kyototycoon/data
+ULOGDIR=/var/lib/kyototycoon/log
 
 # listening host/address and port
 SERVERHOST="$RUNDIR/$NAME.sock"

@@ -1,9 +1,9 @@
-Kyoto Tyrant for Debian
+Kyoto Tycoon for Debian
 -----------------------
 
-By default Kyoto Tyrant will use a hash database with a bucket size of 1000000.
-To tune your database, set a custom DBNAME in /etc/default/kyototyrant. See
-ttserver(1) or kyototyrant-doc for details.
+By default Kyoto Tycoon will use a hash database with a bucket size of 1000000.
+To tune your database, set a custom DBNAME in /etc/default/kyototycoon. See
+ttserver(1) or kyototycoon-doc for details.
 
 In the default file you can also setup things like replication, async update log
 writes, debugging and more.
@@ -12,16 +12,16 @@ The init script defaults to use unix sockets if SERVERHOST or SERVERPORT is not
 set. This is different from what upstream does, which defaults to port 1978. All
 tools have been changed to reflect this change.
 
-Kyoto Tyrant is packaged in a way to allow you to run more than one instance on
+Kyoto Tycoon is packaged in a way to allow you to run more than one instance on
 the same machine. The name of the server is based on the symlink for the init
 script. When this package is upgraded or removed, only the original server will
 be restarted. Make sure to manually bring other instances down and up.
 
 Example of how to setup a new instance:
 
-  ln -s /etc/init.d/kyototyrant /etc/init.d/kyototyrant-other
-  update-rc.d kyototyrant-other defaults
+  ln -s /etc/init.d/kyototycoon /etc/init.d/kyototycoon-other
+  update-rc.d kyototycoon-other defaults
 
-For special configurations for that instance, edit /etc/default/kyototyrant-other
+For special configurations for that instance, edit /etc/default/kyototycoon-other
 
  -- Örjan Persson <orange@fobie.net>  Wed, 03 Feb 2010 21:50:20 +0100

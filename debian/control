@@ -1,85 +1,84 @@
-Source: kyototyrant
+Source: kyototycoon
 Priority: extra
-Maintainer: Örjan Persson <orange@fobie.net>
-Uploaders: Andreas Schuldei <andreas@debian.org>
+Maintainer: Gabriel de Perthuis <g2p.code+debian@gmail.com>
 Build-Depends: debhelper (>= 7.0.50), automake, autotools-dev, gawk, pkg-config, libkyotocabinet-dev (>> 1.4), liblua5.1-0-dev, lua5.1
 Standards-Version: 3.8.4
 Section: misc
-Homepage: http://1978th.net/kyototyrant/
+Homepage: http://fallabs.com/kyototycoon/
 
-Package: kyototyrant
+Package: kyototycoon
 Architecture: any
 Priority: optional
-Depends: ${shlibs:Depends}, ${misc:Depends}, adduser, libkyototyrant3 (= ${binary:Version}), lsb-base (>= 3.0-6)
-Recommends: kyototyrant-utils
-Description: Kyoto Tyrant: network interface to Kyoto Cabinet
- Kyoto Tyrant is a network interface to the DBM Kyoto Cabinet. You might bother
+Depends: ${shlibs:Depends}, ${misc:Depends}, adduser, libkyototycoon3 (= ${binary:Version}), lsb-base (>= 3.0-6)
+Recommends: kyototycoon-utils
+Description: Kyoto Tycoon: network interface to Kyoto Cabinet
+ Kyoto Tycoon is a network interface to the DBM Kyoto Cabinet. You might bother
  in the case where multiple processes share the same database or where remote
- processes access the database. Thus, Kyoto Tyrant is provided for concurrent
+ processes access the database. Thus, Kyoto Tycoon is provided for concurrent
  and remote connections to Kyoto Cabinet.
  .
- This is the Kyoto Tyrant server package.
+ This is the Kyoto Tycoon server package.
 
-Package: kyototyrant-dbg
+Package: kyototycoon-dbg
 Architecture: any
 Section: debug
-Depends: ${misc:Depends}, kyototyrant (= ${binary:Version})
-Description: Kyoto Tyrant debugging symbols
- Kyoto Tyrant is a network interface to the DBM Kyoto Cabinet. You might bother
+Depends: ${misc:Depends}, kyototycoon (= ${binary:Version})
+Description: Kyoto Tycoon debugging symbols
+ Kyoto Tycoon is a network interface to the DBM Kyoto Cabinet. You might bother
  in the case where multiple processes share the same database or where remote
- processes access the database. Thus, Kyoto Tyrant is provided for concurrent
+ processes access the database. Thus, Kyoto Tycoon is provided for concurrent
  and remote connections to Kyoto Cabinet.
  .
- This is the debugging symbols for Kyoto Tyrant.
+ This is the debugging symbols for Kyoto Tycoon.
 
-Package: libkyototyrant3
+Package: libkyototycoon3
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Kyoto Tyrant runtime libraries
- Kyoto Tyrant is a network interface to the DBM Kyoto Cabinet. You might bother
+Description: Kyoto Tycoon runtime libraries
+ Kyoto Tycoon is a network interface to the DBM Kyoto Cabinet. You might bother
  in the case where multiple processes share the same database or where remote
- processes access the database. Thus, Kyoto Tyrant is provided for concurrent
+ processes access the database. Thus, Kyoto Tycoon is provided for concurrent
  and remote connections to Kyoto Cabinet.
  .
- This is the runtime package for programs that use the Kyoto Tyrant library.
+ This is the runtime package for programs that use the Kyoto Tycoon library.
 
-Package: libkyototyrant-dev
+Package: libkyototycoon-dev
 Section: libdevel
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libkyototyrant3 (= ${binary:Version}), libkyotocabinet-dev
-Description: Kyoto Tyrant development files
- Kyoto Tyrant is a network interface to the DBM Kyoto Cabinet. You might bother
+Depends: ${shlibs:Depends}, ${misc:Depends}, libkyototycoon3 (= ${binary:Version}), libkyotocabinet-dev
+Description: Kyoto Tycoon development files
+ Kyoto Tycoon is a network interface to the DBM Kyoto Cabinet. You might bother
  in the case where multiple processes share the same database or where remote
- processes access the database. Thus, Kyoto Tyrant is provided for concurrent
+ processes access the database. Thus, Kyoto Tycoon is provided for concurrent
  and remote connections to Kyoto Cabinet.
  .
- This is the development package for Kyoto Tyrant. It contains headers and
+ This is the development package for Kyoto Tycoon. It contains headers and
  libraries.
 
-Package: kyototyrant-doc
+Package: kyototycoon-doc
 Section: doc
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Priority: optional
-Description: Kyoto Tyrant documentation
- Kyoto Tyrant is a network interface to the DBM Kyoto Cabinet. You might bother
+Description: Kyoto Tycoon documentation
+ Kyoto Tycoon is a network interface to the DBM Kyoto Cabinet. You might bother
  in the case where multiple processes share the same database or where remote
- processes access the database. Thus, Kyoto Tyrant is provided for concurrent
+ processes access the database. Thus, Kyoto Tycoon is provided for concurrent
  and remote connections to Kyoto Cabinet.
  .
- This is the documentation for Kyoto Tyrant.
+ This is the documentation for Kyoto Tycoon.
 
-Package: kyototyrant-utils
+Package: kyototycoon-utils
 Architecture: any
 Section: utils
 Priority: optional
-Depends: ${shlibs:Depends}, ${misc:Depends}, libkyototyrant3 (= ${binary:Version})
-Description: Kyoto Tyrant utilities
- Kyoto Tyrant is a network interface to the DBM Kyoto Cabinet. You might bother
+Depends: ${shlibs:Depends}, ${misc:Depends}, libkyototycoon3 (= ${binary:Version})
+Description: Kyoto Tycoon utilities
+ Kyoto Tycoon is a network interface to the DBM Kyoto Cabinet. You might bother
  in the case where multiple processes share the same database or where remote
- processes access the database. Thus, Kyoto Tyrant is provided for concurrent
+ processes access the database. Thus, Kyoto Tycoon is provided for concurrent
  and remote connections to Kyoto Cabinet.
  .
- This is the Kyoto Tyrant utility package. It contains tcrmgr and ttulmgr among
+ This is the Kyoto Tycoon utility package. It contains tcrmgr and ttulmgr among
  others.

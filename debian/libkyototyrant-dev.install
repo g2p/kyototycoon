@@ -1,5 +1,5 @@
 debian/tmp/usr/include/*.h
-debian/tmp/usr/lib/libkyototyrant.a
-debian/tmp/usr/lib/libkyototyrant.so
-debian/tmp/usr/lib/pkgconfig/kyototyrant.pc
+debian/tmp/usr/lib/libkyototycoon.a
+debian/tmp/usr/lib/libkyototycoon.so
+debian/tmp/usr/lib/pkgconfig/kyototycoon.pc
 debian/tmp/usr/share/man/man3/t*.3

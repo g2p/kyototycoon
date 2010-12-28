@@ -1,13 +1,13 @@
 Description: Remove unused libraries
  configure file includes bz2, resolv, z and more libraries which are
  never used. Some of them seems to be used by cabinet, but we do not
- need them in tyrant.
+ need them in tycoon.
 Author: Örjan Persson <orange@fobie.net>
 Last-Update: 2010-02-07
-Index: kyototyrant.git/configure.in
+Index: kyototycoon.git/configure.in
 ===================================================================
---- kyototyrant.git.orig/configure.in	2010-01-09 18:12:43.000000000 +0100
-+++ kyototyrant.git/configure.in	2010-01-09 18:12:43.000000000 +0100
+--- kyototycoon.git.orig/configure.in	2010-01-09 18:12:43.000000000 +0100
++++ kyototycoon.git/configure.in	2010-01-09 18:12:43.000000000 +0100
 @@ -213,12 +213,7 @@
  AC_CHECK_LIB(m, main)
  AC_CHECK_LIB(pthread, main)
