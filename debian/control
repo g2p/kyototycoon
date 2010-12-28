@@ -1,85 +1,85 @@
-Source: tokyotyrant
+Source: kyototyrant
 Priority: extra
 Maintainer: Örjan Persson <orange@fobie.net>
 Uploaders: Andreas Schuldei <andreas@debian.org>
-Build-Depends: debhelper (>= 7.0.50), automake, autotools-dev, gawk, pkg-config, libtokyocabinet-dev (>> 1.4), liblua5.1-0-dev, lua5.1
+Build-Depends: debhelper (>= 7.0.50), automake, autotools-dev, gawk, pkg-config, libkyotocabinet-dev (>> 1.4), liblua5.1-0-dev, lua5.1
 Standards-Version: 3.8.4
 Section: misc
-Homepage: http://1978th.net/tokyotyrant/
+Homepage: http://1978th.net/kyototyrant/
 
-Package: tokyotyrant
+Package: kyototyrant
 Architecture: any
 Priority: optional
-Depends: ${shlibs:Depends}, ${misc:Depends}, adduser, libtokyotyrant3 (= ${binary:Version}), lsb-base (>= 3.0-6)
-Recommends: tokyotyrant-utils
-Description: Tokyo Tyrant: network interface to Tokyo Cabinet
- Tokyo Tyrant is a network interface to the DBM Tokyo Cabinet. You might bother
+Depends: ${shlibs:Depends}, ${misc:Depends}, adduser, libkyototyrant3 (= ${binary:Version}), lsb-base (>= 3.0-6)
+Recommends: kyototyrant-utils
+Description: Kyoto Tyrant: network interface to Kyoto Cabinet
+ Kyoto Tyrant is a network interface to the DBM Kyoto Cabinet. You might bother
  in the case where multiple processes share the same database or where remote
- processes access the database. Thus, Tokyo Tyrant is provided for concurrent
- and remote connections to Tokyo Cabinet.
+ processes access the database. Thus, Kyoto Tyrant is provided for concurrent
+ and remote connections to Kyoto Cabinet.
  .
- This is the Tokyo Tyrant server package.
+ This is the Kyoto Tyrant server package.
 
-Package: tokyotyrant-dbg
+Package: kyototyrant-dbg
 Architecture: any
 Section: debug
-Depends: ${misc:Depends}, tokyotyrant (= ${binary:Version})
-Description: Tokyo Tyrant debugging symbols
- Tokyo Tyrant is a network interface to the DBM Tokyo Cabinet. You might bother
+Depends: ${misc:Depends}, kyototyrant (= ${binary:Version})
+Description: Kyoto Tyrant debugging symbols
+ Kyoto Tyrant is a network interface to the DBM Kyoto Cabinet. You might bother
  in the case where multiple processes share the same database or where remote
- processes access the database. Thus, Tokyo Tyrant is provided for concurrent
- and remote connections to Tokyo Cabinet.
+ processes access the database. Thus, Kyoto Tyrant is provided for concurrent
+ and remote connections to Kyoto Cabinet.
  .
- This is the debugging symbols for Tokyo Tyrant.
+ This is the debugging symbols for Kyoto Tyrant.
 
-Package: libtokyotyrant3
+Package: libkyototyrant3
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Tokyo Tyrant runtime libraries
- Tokyo Tyrant is a network interface to the DBM Tokyo Cabinet. You might bother
+Description: Kyoto Tyrant runtime libraries
+ Kyoto Tyrant is a network interface to the DBM Kyoto Cabinet. You might bother
  in the case where multiple processes share the same database or where remote
- processes access the database. Thus, Tokyo Tyrant is provided for concurrent
- and remote connections to Tokyo Cabinet.
+ processes access the database. Thus, Kyoto Tyrant is provided for concurrent
+ and remote connections to Kyoto Cabinet.
  .
- This is the runtime package for programs that use the Tokyo Tyrant library.
+ This is the runtime package for programs that use the Kyoto Tyrant library.
 
-Package: libtokyotyrant-dev
+Package: libkyototyrant-dev
 Section: libdevel
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libtokyotyrant3 (= ${binary:Version}), libtokyocabinet-dev
-Description: Tokyo Tyrant development files
- Tokyo Tyrant is a network interface to the DBM Tokyo Cabinet. You might bother
+Depends: ${shlibs:Depends}, ${misc:Depends}, libkyototyrant3 (= ${binary:Version}), libkyotocabinet-dev
+Description: Kyoto Tyrant development files
+ Kyoto Tyrant is a network interface to the DBM Kyoto Cabinet. You might bother
  in the case where multiple processes share the same database or where remote
- processes access the database. Thus, Tokyo Tyrant is provided for concurrent
- and remote connections to Tokyo Cabinet.
+ processes access the database. Thus, Kyoto Tyrant is provided for concurrent
+ and remote connections to Kyoto Cabinet.
  .
- This is the development package for Tokyo Tyrant. It contains headers and
+ This is the development package for Kyoto Tyrant. It contains headers and
  libraries.
 
-Package: tokyotyrant-doc
+Package: kyototyrant-doc
 Section: doc
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Priority: optional
-Description: Tokyo Tyrant documentation
- Tokyo Tyrant is a network interface to the DBM Tokyo Cabinet. You might bother
+Description: Kyoto Tyrant documentation
+ Kyoto Tyrant is a network interface to the DBM Kyoto Cabinet. You might bother
  in the case where multiple processes share the same database or where remote
- processes access the database. Thus, Tokyo Tyrant is provided for concurrent
- and remote connections to Tokyo Cabinet.
+ processes access the database. Thus, Kyoto Tyrant is provided for concurrent
+ and remote connections to Kyoto Cabinet.
  .
- This is the documentation for Tokyo Tyrant.
+ This is the documentation for Kyoto Tyrant.
 
-Package: tokyotyrant-utils
+Package: kyototyrant-utils
 Architecture: any
 Section: utils
 Priority: optional
-Depends: ${shlibs:Depends}, ${misc:Depends}, libtokyotyrant3 (= ${binary:Version})
-Description: Tokyo Tyrant utilities
- Tokyo Tyrant is a network interface to the DBM Tokyo Cabinet. You might bother
+Depends: ${shlibs:Depends}, ${misc:Depends}, libkyototyrant3 (= ${binary:Version})
+Description: Kyoto Tyrant utilities
+ Kyoto Tyrant is a network interface to the DBM Kyoto Cabinet. You might bother
  in the case where multiple processes share the same database or where remote
- processes access the database. Thus, Tokyo Tyrant is provided for concurrent
- and remote connections to Tokyo Cabinet.
+ processes access the database. Thus, Kyoto Tyrant is provided for concurrent
+ and remote connections to Kyoto Cabinet.
  .
- This is the Tokyo Tyrant utility package. It contains tcrmgr and ttulmgr among
+ This is the Kyoto Tyrant utility package. It contains tcrmgr and ttulmgr among
  others.

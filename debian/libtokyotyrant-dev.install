@@ -1,5 +1,0 @@
-debian/tmp/usr/include/*.h
-debian/tmp/usr/lib/libtokyotyrant.a
-debian/tmp/usr/lib/libtokyotyrant.so
-debian/tmp/usr/lib/pkgconfig/tokyotyrant.pc
-debian/tmp/usr/share/man/man3/t*.3

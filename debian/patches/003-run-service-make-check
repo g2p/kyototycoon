@@ -6,10 +6,10 @@ Description: Start up daemon for test to run
  soon as we exit the script, the daemon will be brought down again.
 Author: Örjan Persson <orange@fobie.net>
 Last-Update: 2010-02-14
-Index: tokyotyrant/Makefile.in
+Index: kyototyrant/Makefile.in
 ===================================================================
---- tokyotyrant.orig/Makefile.in	2010-02-15 01:03:24.000000000 +0100
-+++ tokyotyrant/Makefile.in	2010-02-15 01:40:41.000000000 +0100
+--- kyototyrant.orig/Makefile.in	2010-02-15 01:03:24.000000000 +0100
++++ kyototyrant/Makefile.in	2010-02-15 01:40:41.000000000 +0100
 @@ -61,6 +61,11 @@
  RUNENV = @MYLDLIBPATHENV@=.
  POSTCMD = @MYPOSTCMD@

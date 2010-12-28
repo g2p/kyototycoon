@@ -2,15 +2,15 @@ Description: Only expose tyrant as public library.
  Used libraries should not be made public, moved them to private.
 Author: Örjan Persson <orange@fobie.net>
 Last-Update: 2010-01-11
-Index: tokyotyrant.git/tokyotyrant.pc.in
+Index: kyototyrant.git/kyototyrant.pc.in
 ===================================================================
---- tokyotyrant.git.orig/tokyotyrant.pc.in	2010-01-09 17:46:53.000000000 +0100
-+++ tokyotyrant.git/tokyotyrant.pc.in	2010-01-09 17:47:11.000000000 +0100
+--- kyototyrant.git.orig/kyototyrant.pc.in	2010-01-09 17:46:53.000000000 +0100
++++ kyototyrant.git/kyototyrant.pc.in	2010-01-09 17:47:11.000000000 +0100
 @@ -10,5 +10,6 @@
- Name: Tokyo Tyrant
- Description: network interface of Tokyo Cabinet
+ Name: Kyoto Tyrant
+ Description: network interface of Kyoto Cabinet
  Version: @PACKAGE_VERSION@
--Libs: -L${libdir} -ltokyotyrant @LIBS@
-+Libs: -L${libdir} -ltokyotyrant
+-Libs: -L${libdir} -lkyototyrant @LIBS@
++Libs: -L${libdir} -lkyototyrant
 +Libs.private: @LIBS@
  Cflags: -I${includedir}

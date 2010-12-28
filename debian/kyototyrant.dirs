@@ -1,0 +1,3 @@
+var/lib/kyototyrant/data
+var/lib/kyototyrant/log
+var/log/kyototyrant

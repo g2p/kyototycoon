@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-NAME=tokyotyrant
+NAME=kyototyrant
 USER=$NAME
 DATADIR=/var/lib/$NAME
 LOGDIR=/var/log/$NAME
@@ -18,7 +18,7 @@ case "$1" in
 			  --group \
 			  --home $DATADIR \
 			  --no-create-home \
-			  --gecos "Tokyo Tyrant" \
+			  --gecos "Kyoto Tyrant" \
 			  --shell /bin/false \
 			  $USER
 		fi

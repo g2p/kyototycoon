@@ -4,10 +4,10 @@ Description: Remove unused libraries
  need them in tyrant.
 Author: Örjan Persson <orange@fobie.net>
 Last-Update: 2010-02-07
-Index: tokyotyrant.git/configure.in
+Index: kyototyrant.git/configure.in
 ===================================================================
---- tokyotyrant.git.orig/configure.in	2010-01-09 18:12:43.000000000 +0100
-+++ tokyotyrant.git/configure.in	2010-01-09 18:12:43.000000000 +0100
+--- kyototyrant.git.orig/configure.in	2010-01-09 18:12:43.000000000 +0100
++++ kyototyrant.git/configure.in	2010-01-09 18:12:43.000000000 +0100
 @@ -213,12 +213,7 @@
  AC_CHECK_LIB(m, main)
  AC_CHECK_LIB(pthread, main)
@@ -18,6 +18,6 @@ Index: tokyotyrant.git/configure.in
 -AC_CHECK_LIB(resolv, main)
 -AC_CHECK_LIB(z, main)
 -AC_CHECK_LIB(bz2, main)
- AC_CHECK_LIB(tokyocabinet, main)
+ AC_CHECK_LIB(kyotocabinet, main)
  if test "$enable_lua" = "yes"
  then
