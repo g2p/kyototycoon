@@ -3,7 +3,7 @@ Kyoto Tycoon for Debian
 
 By default Kyoto Tycoon will use a hash database with a bucket size of 1000000.
 To tune your database, set a custom DBNAME in /etc/default/kyototycoon. See
-ttserver(1) or kyototycoon-doc for details.
+ktserver(1) or kyototycoon-doc for details.
 
 In the default file you can also setup things like replication, async update log
 writes, debugging and more.

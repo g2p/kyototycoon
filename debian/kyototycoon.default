@@ -6,7 +6,7 @@
 #SERVERHOST=
 #SERVERPORT=1978
 
-## database name and options (see ttserver(1) for tuning options)
+## database name and options (see ktserver(1) for tuning options)
 #DBNAME=$NAME.tch#bnum=1000000
 
 ## replication configuration
