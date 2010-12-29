@@ -1,1 +1,4 @@
 0001-Don-t-drop-a-shared-ccache.patch
+0002-Only-expose-tycoon-as-public-library.patch
+0003-Remove-some-references-to-HOME-and-don-t-link-unnece.patch
+0004-Link-as-needed-to-avoid-creating-unnecessary-depende.patch

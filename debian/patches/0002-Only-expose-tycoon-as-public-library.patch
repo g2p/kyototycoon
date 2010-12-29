@@ -1,0 +1,22 @@
+From: Gabriel de Perthuis <g2p.code+debian@gmail.com>
+Date: Wed, 29 Dec 2010 12:01:54 +0100
+Subject: [PATCH] Only expose tycoon as public library.
+
+Used libraries should not be made public, moved them to private.
+---
+ kyototycoon.pc.in |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/kyototycoon.pc.in b/kyototycoon.pc.in
+index 74cea29..940a5e5 100644
+--- a/kyototycoon.pc.in
++++ b/kyototycoon.pc.in
+@@ -10,5 +10,6 @@ datadir=@datadir@
+ Name: Kyoto Tyrant
+ Description: cache server based on Kyoto Cabinet
+ Version: @PACKAGE_VERSION@
+-Libs: -L${libdir} -lkyototycoon @LIBS@
++Libs: -L${libdir} -lkyototycoon
++Libs.private: @LIBS@
+ Cflags: -I${includedir}
+-- 
