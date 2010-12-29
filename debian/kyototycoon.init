@@ -53,7 +53,7 @@ SERVERHOST="$RUNDIR/$NAME.sock"
 SERVERPORT=0
 
 # database name and options
-DBNAME=$NAME.tch#bnum=1000000
+DBNAME=$NAME.kch#bnum=1000000
 
 # replication configuration
 MASTERHOST=
