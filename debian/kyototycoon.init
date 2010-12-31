@@ -49,8 +49,8 @@ DATADIR=/var/lib/kyototycoon/data
 ULOGDIR=/var/lib/kyototycoon/log
 
 # listening host/address and port
-SERVERHOST="$RUNDIR/$NAME.sock"
-SERVERPORT=0
+SERVERHOST=
+SERVERPORT=1978
 
 # database name and options
 DBNAME=$NAME.kch#bnum=1000000
@@ -107,6 +107,7 @@ do_start() {
 	fi
 
 	# setup directory for unix socket
+	# AF_UNIX is not implemented by kyoto tycoon at the moment
 	if [ "$SERVERPORT" -eq 0 ] && [ -n "$SERVERHOST" ]; then
 		socketdir=`dirname "$SERVERHOST"`
 		if [ ! -d "$socketdir" ]; then

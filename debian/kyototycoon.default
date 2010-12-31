@@ -1,8 +1,7 @@
-## create socket (this is the debian default)
-#SERVERHOST="$RUNDIR/$NAME.sock"
-#SERVERPORT=0
-
-## listening host/address and port (this is the upstream default)
+## listening host/address and port
+## the default port conflicts with the tokyo tyrant upstream default,
+## but not with the debian default of using a unix domain socket.
+## AF_UNIX socket support isn't available in kyoto tycoon at the moment.
 #SERVERHOST=
 #SERVERPORT=1978
 
