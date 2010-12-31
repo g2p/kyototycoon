@@ -1,2 +1,6 @@
+debian/tmp/usr/bin/ktremote*
+debian/tmp/usr/share/man/man1/ktremote*
+debian/tmp/usr/bin/kttimed*
+debian/tmp/usr/share/man/man1/kttimed*
 debian/tmp/usr/bin/ktutil*
 debian/tmp/usr/share/man/man1/ktutil*
