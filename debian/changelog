@@ -1,3 +1,28 @@
+kyototycoon (0.9.21-1~1.gbp821a07) UNRELEASED; urgency=low
+
+
+  * Rename tyrant to tycoon in file names as well. Update libver.
+  * XXX Disable patches for now, until I port them.
+  * Imported Upstream version 0.9.19
+  * Depend on latest kyoto-cabinet release
+  * tt -> kt.
+  * Patch to not drop a ccache that isn't just for Kyoto products.
+  * API doc isn't manpages anymore
+  * XXX Skip tests that take time. They worked last time.
+  * Rename ktutils.
+  * Elide mentions of unexisting files.
+  * ttserver -> ktserver, some leftover instances in docs.
+  * Default database type should be kch, tch is for tokyo cabinet.
+  * A few patches to improve linking.
+  * Kyoto Tycoon, unlike Tokyo Tyrant, doesn't support AF_UNIX at the
+    moment.
+  * Include every Kyoto Tycoon utility.
+  * Update changelog after git import-orig
+  * Imported Upstream version 0.9.21
+
+
+ -- Gabriel de Perthuis <g2p.code+debian@gmail.com>  Thu, 13 Jan 2011 10:44:20 +0100
+
 kyototycoon (0.9.19-1) unstable; urgency=low
 
   * Initial release.
