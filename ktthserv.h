@@ -460,7 +460,9 @@ private:
           serv_->log(Logger::INFO, "aborted a request: expr=%s", sess->expression().c_str());
         } else {
           sess->thid_ = mytask->thread_id();
-          keep = worker_->process(serv_, sess);
+          do {
+            keep = worker_->process(serv_, sess);
+          } while (keep && sess->left_size() > 0);
         }
         if (keep) {
           sess->set_event_flags(Pollable::EVINPUT);

@@ -159,6 +159,11 @@ public:
    */
   bool receive_line(void* buf, size_t max);
   /**
+   * Get the size of left data in the receiving buffer.
+   * @return the size of left data in the receiving buffer.
+   */
+  size_t left_size();
+  /**
    * Abort the current operation.
    * @return true on success, or false on failure.
    */

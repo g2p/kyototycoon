@@ -347,7 +347,7 @@
 <dl class="api">
 <dt><code>ktremotetest order [-th <var>num</var>] [-rnd] [-set|-get|-rem|-etc] [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] <var>rnum</var></code></dt>
 <dd>Performs in-order tests.</dd>
-<dt><code>ktremotetest bulk [-th <var>num</var>] [-bin] [-rnd] [-set|-get|-rem|-etc] [-bulk <var>num</var>] [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] <var>rnum</var></code></dt>
+<dt><code>ktremotetest bulk [-th <var>num</var>] [-bin] [-rnd] [-set|-get|-rem|-etc] [-bulk <var>num</var>] [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-bnr] <var>rnum</var></code></dt>
 <dd>Performs bulk operation tests.</dd>
 <dt><code>ktremotetest wicked [-th <var>num</var>] [-it <var>num</var>] [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] <var>rnum</var></code></dt>
 <dd>Performs mixed operations selected at random.</dd>
@@ -367,6 +367,7 @@
 <li><code>-tout <var>num</var></code> : specifies the timeout in seconds.</li>
 <li><code>-bin</code> : uses the binary protocol.</li>
 <li><code>-bulk <var>num</var></code> : specifies the number of records in a bulk operation.</li>
+<li><code>-bnr</code> : enables the no-reply option in the binary protocol.</li>
 <li><code>-it <var>num</var></code> : specifies the number of repetition.</li>
 </ul>
 

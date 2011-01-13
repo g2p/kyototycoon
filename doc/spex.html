@@ -759,7 +759,7 @@ quit
 Connection closed by foreign host.
 </pre>
 
-<p>This implementation supports a portion of commands supported by the original memcached server.  As for now, "set", "add", "replace", "get", "delete", "incr", "decr", "stats", "flush_all", and "quit" are available.  For the sake of interoperability with HTTP, the "flags" option of some update commands are ignored by default.  If you want to handle the flags, enable the mechanism by adding "#opts=f" in the argument of the "-plex" option.  Mechanisms of "cas unique", "noreply" are not implemented.</p>
+<p>This implementation supports a portion of commands supported by the original memcached server.  As for now, "set", "add", "replace", "get", "delete", "incr", "decr", "stats", "flush_all", and "quit" are available.  For the sake of interoperability with HTTP, the "flags" option of some update commands are ignored by default.  If you want to handle the flags, enable the mechanism by adding "#opts=f" in the argument of the "-plex" option.  Mechanism of "cas unique" is not implemented.</p>
 
 <p>The configuration expression by the "-plex" option is composed of named parameters separated by "#".  Each parameter is composed of the name and the value separated by "=".  The supported parameter names are "host", "port" and "opts".  The default port is 11211, which is the same as the original memcached server.</p>
 
@@ -1306,7 +1306,7 @@ key     mikio
 <dt><code>replication</code></dt>
 <dd>Continue to send update logs.</dd>
 <dd>input: <code>magic</code>: (uint8_t): <code>0xB1</code>: identifier.</dd>
-<dd>input: <code>flags</code>: (uint32_t): reserved and not used now.  It should be 0.</dd>
+<dd>input: <code>flags</code>: (uint32_t): flags of bitwise-or.  0x01 for the while SID option.</dd>
 <dd>input: <code>ts</code>: (uint64_t): the maximum time stamp of already read logs.</dd>
 <dd>input: <code>sid</code>: (uint16_t): the server ID number.</dd>
 <dd>output: <code>magic</code>: (uint8_t): <code>0xB1</code>: identifier.</dd>
@@ -1320,7 +1320,7 @@ key     mikio
 <dt><code>play_script</code></dt>
 <dd>Call a procedure of the script language extension.</dd>
 <dd>input: <code>magic</code>: (uint8_t): <code>0xB4</code>: identifier.</dd>
-<dd>input: <code>flags</code>: (uint32_t): reserved and not used now.  It should be 0.</dd>
+<dd>input: <code>flags</code>: (uint32_t): flags of bitwise-or.  0x01 for the no-reply option.</dd>
 <dd>input: <code>nsiz</code>: (uint32_t): the size of the procedure name.</dd>
 <dd>input: <code>rnum</code>: (uint32_t): the number of the records in the request.</dd>
 <dd>input: <code>name</code>: (variable): the data of the procedure name.</dd>
@@ -1340,7 +1340,7 @@ key     mikio
 <dt><code>set_bulk</code></dt>
 <dd>Store records at once.</dd>
 <dd>input: <code>magic</code>: (uint8_t): <code>0xB8</code>: identifier.</dd>
-<dd>input: <code>flags</code>: (uint32_t): reserved and not used now.  It should be 0.</dd>
+<dd>input: <code>flags</code>: (uint32_t): flags of bitwise-or.  0x01 for the no-reply option.</dd>
 <dd>input: <code>rnum</code>: (uint32_t): the number of records in the request.</dd>
 <dd>input: <code>dbidx</code>: (uint16_t): (iteration): the index of the target database.</dd>
 <dd>input: <code>ksiz</code>: (uint32_t): (iteration): the size of the key.</dd>
@@ -1356,7 +1356,7 @@ key     mikio
 <dt><code>remove_bulk</code></dt>
 <dd>Remove records at once.</dd>
 <dd>input: <code>magic</code>: (uint8_t): <code>0xB9</code>: identifier.</dd>
-<dd>input: <code>flags</code>: (uint32_t): reserved and not used now.  It should be 0.</dd>
+<dd>input: <code>flags</code>: (uint32_t): flags of bitwise-or.  0x01 for the no-reply option.</dd>
 <dd>input: <code>rnum</code>: (uint32_t): the number of records in the request.</dd>
 <dd>input: <code>dbidx</code>: (uint16_t): (iteration): the index of the target database.</dd>
 <dd>input: <code>ksiz</code>: (uint32_t): (iteration): the size of the key.</dd>

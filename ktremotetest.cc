@@ -34,7 +34,8 @@ static int32_t runwicked(int argc, char** argv);
 static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
                          const char* host, int32_t port, double tout);
 static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t mode,
-                        int32_t bulk, const char* host, int32_t port, double tout);
+                        int32_t bulk, const char* host, int32_t port, double tout,
+                        int32_t bopts);
 static int32_t procwicked(int64_t rnum, int32_t thnum, int32_t itnum,
                           const char* host, int32_t port, double tout);
 
@@ -77,7 +78,7 @@ static void usage() {
   eprintf("  %s order [-th num] [-rnd] [-set|-get|-rem|-etc]"
           " [-host str] [-port num] [-tout num] rnum\n", g_progname);
   eprintf("  %s bulk [-th num] [-bin] [-rnd] [-set|-get|-rem|-etc] [-bulk num]"
-          " [-host str] [-port num] [-tout num] rnum\n", g_progname);
+          " [-host str] [-port num] [-tout num] [-bnr] rnum\n", g_progname);
   eprintf("  %s wicked [-th num] [-it num] [-host str] [-port num] [-tout num] rnum\n",
           g_progname);
   eprintf("\n");
@@ -182,6 +183,7 @@ static int32_t runbulk(int argc, char** argv) {
   const char* host = "";
   int32_t port = kt::DEFPORT;
   double tout = 0;
+  int32_t bopts = 0;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -213,6 +215,8 @@ static int32_t runbulk(int argc, char** argv) {
       } else if (!std::strcmp(argv[i], "-tout")) {
         if (++i >= argc) usage();
         tout = kc::atof(argv[i]);
+      } else if (!std::strcmp(argv[i], "-bnr")) {
+        bopts |= kt::RemoteDB::BONOREPLY;
       } else {
         usage();
       }
@@ -227,7 +231,7 @@ static int32_t runbulk(int argc, char** argv) {
   int64_t rnum = kc::atoix(rstr);
   if (rnum < 1 || thnum < 1 || bulk < 1 || port < 1) usage();
   if (thnum > THREADMAX) thnum = THREADMAX;
-  int32_t rv = procbulk(rnum, thnum, bin, rnd, mode, bulk, host, port, tout);
+  int32_t rv = procbulk(rnum, thnum, bin, rnd, mode, bulk, host, port, tout, bopts);
   return rv;
 }
 
@@ -716,10 +720,11 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
 
 // perform bulk command
 static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t mode,
-                        int32_t bulk, const char* host, int32_t port, double tout) {
+                        int32_t bulk, const char* host, int32_t port, double tout,
+                        int32_t bopts) {
   oprintf("<Bulk Test>\n  seed=%u  rnum=%lld  thnum=%d  bin=%d  rnd=%d  mode=%d  bulk=%d"
-          "  host=%s  port=%d  tout=%f\n\n",
-          g_randseed, (long long)rnum, thnum, bin, rnd, mode, bulk, host, port, tout);
+          "  host=%s  port=%d  tout=%f  bopts=%d\n\n",
+          g_randseed, (long long)rnum, thnum, bin, rnd, mode, bulk, host, port, tout, bopts);
   bool err = false;
   oprintf("opening the database:\n");
   double stime = kc::time();
@@ -742,15 +747,16 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
     class Worker : public kc::Thread {
     public:
       Worker() : id_(0), rnum_(0), thnum_(0), bin_(false), rnd_(false), bulk_(0),
-                 db_(NULL), err_(false) {}
+                 bopts_(0), db_(NULL), err_(false) {}
       void setparams(int32_t id, int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t bulk,
-                     kt::RemoteDB* db) {
+                     int32_t bopts, kt::RemoteDB* db) {
         id_ = id;
         rnum_ = rnum;
         thnum_ = thnum;
         bin_ = bin;
         rnd_ = rnd;
         bulk_ = bulk;
+        bopts_ = bopts;
         db_ = db;
       }
       bool error() {
@@ -772,7 +778,7 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
             kt::RemoteDB::BulkRecord rec = { 0, key, key, xt };
             bulkrecs.push_back(rec);
             if (bulkrecs.size() >= (size_t)bulk_) {
-              if (db_->set_bulk_binary(bulkrecs) != (int64_t)bulkrecs.size()) {
+              if (db_->set_bulk_binary(bulkrecs, bopts_) < 0) {
                 dberrprint(db_, __LINE__, "DB::set_bulk_binary");
                 err_ = true;
               }
@@ -794,7 +800,7 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
           }
         }
         if (bulkrecs.size() > 0) {
-          if (db_->set_bulk_binary(bulkrecs) != (int64_t)bulkrecs.size()) {
+          if (db_->set_bulk_binary(bulkrecs, bopts_) < 0) {
             dberrprint(db_, __LINE__, "DB::set_bulk_binary");
             err_ = true;
           }
@@ -815,12 +821,13 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
       bool bin_;
       bool rnd_;
       int32_t bulk_;
+      int32_t bopts_;
       kt::RemoteDB* db_;
       bool err_;
     };
     Worker workers[THREADMAX];
     for (int32_t i = 0; i < thnum; i++) {
-      workers[i].setparams(i, rnum, thnum, bin, rnd, bulk, dbs + i);
+      workers[i].setparams(i, rnum, thnum, bin, rnd, bulk, bopts, dbs + i);
       workers[i].start();
     }
     for (int32_t i = 0; i < thnum; i++) {
@@ -839,13 +846,14 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
       Worker() : id_(0), rnum_(0), thnum_(0), bin_(false), rnd_(false), bulk_(0),
                  db_(NULL), err_(false) {}
       void setparams(int32_t id, int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t bulk,
-                     kt::RemoteDB* db) {
+                     int32_t bopts, kt::RemoteDB* db) {
         id_ = id;
         rnum_ = rnum;
         thnum_ = thnum;
         bin_ = bin;
         rnd_ = rnd;
         bulk_ = bulk;
+        bopts_ = bopts;
         db_ = db;
       }
       bool error() {
@@ -910,12 +918,13 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
       bool bin_;
       bool rnd_;
       int32_t bulk_;
+      int32_t bopts_;
       kt::RemoteDB* db_;
       bool err_;
     };
     Worker workers[THREADMAX];
     for (int32_t i = 0; i < thnum; i++) {
-      workers[i].setparams(i, rnum, thnum, bin, rnd, bulk, dbs + i);
+      workers[i].setparams(i, rnum, thnum, bin, rnd, bulk, bopts, dbs + i);
       workers[i].start();
     }
     for (int32_t i = 0; i < thnum; i++) {
@@ -934,13 +943,14 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
       Worker() : id_(0), rnum_(0), thnum_(0), bin_(false), rnd_(false), bulk_(0),
                  db_(NULL), err_(false) {}
       void setparams(int32_t id, int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t bulk,
-                     kt::RemoteDB* db) {
+                     int32_t bopts, kt::RemoteDB* db) {
         id_ = id;
         rnum_ = rnum;
         thnum_ = thnum;
         bin_ = bin;
         rnd_ = rnd;
         bulk_ = bulk;
+        bopts_ = bopts;
         db_ = db;
       }
       bool error() {
@@ -961,7 +971,7 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
             kt::RemoteDB::BulkRecord rec = { 0, key, "", 0 };
             bulkrecs.push_back(rec);
             if (bulkrecs.size() >= (size_t)bulk_) {
-              if (db_->remove_bulk_binary(bulkrecs) < 0) {
+              if (db_->remove_bulk_binary(bulkrecs, bopts_) < 0) {
                 dberrprint(db_, __LINE__, "DB::remove_bulk_binary");
                 err_ = true;
               }
@@ -983,7 +993,7 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
           }
         }
         if (bulkrecs.size() > 0) {
-          if (db_->remove_bulk_binary(bulkrecs) < 0) {
+          if (db_->remove_bulk_binary(bulkrecs, bopts_) < 0) {
             dberrprint(db_, __LINE__, "DB::remove_bulk_binary");
             err_ = true;
           }
@@ -1003,12 +1013,13 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
       bool bin_;
       bool rnd_;
       int32_t bulk_;
+      int32_t bopts_;
       kt::RemoteDB* db_;
       bool err_;
     };
     Worker workers[THREADMAX];
     for (int32_t i = 0; i < thnum; i++) {
-      workers[i].setparams(i, rnum, thnum, bin, rnd, bulk, dbs + i);
+      workers[i].setparams(i, rnum, thnum, bin, rnd, bulk, bopts, dbs + i);
       workers[i].start();
     }
     for (int32_t i = 0; i < thnum; i++) {
@@ -1025,15 +1036,16 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
     class Worker : public kc::Thread {
     public:
       Worker() : id_(0), rnum_(0), thnum_(0), bin_(false), rnd_(false), bulk_(0),
-                 db_(NULL), err_(false) {}
+                 bopts_(0), db_(NULL), err_(false) {}
       void setparams(int32_t id, int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t bulk,
-                     kt::RemoteDB* db) {
+                     int32_t bopts, kt::RemoteDB* db) {
         id_ = id;
         rnum_ = rnum;
         thnum_ = thnum;
         bin_ = bin;
         rnd_ = rnd;
         bulk_ = bulk;
+        bopts_ = bopts;
         db_ = db;
       }
       bool error() {
@@ -1067,13 +1079,23 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
                   err_ = true;
                 }
               } else if (cmd < 90) {
-                if (db_->set_bulk_binary(bulkrecs) != (int64_t)bulkrecs.size()) {
+                if (db_->set_bulk_binary(bulkrecs, bopts_) < 0) {
                   dberrprint(db_, __LINE__, "DB::set_bulk_binary");
                   err_ = true;
                 }
-              } else {
-                if (db_->remove_bulk_binary(bulkrecs) < 0) {
+              } else if (cmd < 98) {
+                if (db_->remove_bulk_binary(bulkrecs, bopts_) < 0) {
                   dberrprint(db_, __LINE__, "DB::remove_bulk_binary");
+                  err_ = true;
+                }
+              } else {
+                std::map<std::string, std::string> params, result;
+                params[key] = key;
+                if (!db_->play_script_binary("echo", params, &result, bopts_) &&
+                    db_->error() != kt::RemoteDB::Error::NOIMPL &&
+                    db_->error() != kt::RemoteDB::Error::LOGIC &&
+                    db_->error() != kt::RemoteDB::Error::INTERNAL) {
+                  dberrprint(db_, __LINE__, "DB::play_script_binary");
                   err_ = true;
                 }
               }
@@ -1094,9 +1116,19 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
                   dberrprint(db_, __LINE__, "DB::set_bulk");
                   err_ = true;
                 }
+              } else if (cmd < 98) {
+                if (db_->remove_bulk(keys) < 0) {
+                  dberrprint(db_, __LINE__, "DB::remove_bulk");
+                  err_ = true;
+                }
               } else {
-                if (db_->remove_bulk_binary(bulkrecs) < 0) {
-                  dberrprint(db_, __LINE__, "DB::remove_bulk_binary");
+                std::map<std::string, std::string> params, result;
+                params[key] = key;
+                if (!db_->play_script("echo", params, &result) &&
+                    db_->error() != kt::RemoteDB::Error::NOIMPL &&
+                    db_->error() != kt::RemoteDB::Error::LOGIC &&
+                    db_->error() != kt::RemoteDB::Error::INTERNAL) {
+                  dberrprint(db_, __LINE__, "DB::play_script_binary");
                   err_ = true;
                 }
               }
@@ -1110,7 +1142,7 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
           }
         }
         if (bulkrecs.size() > 0) {
-          if (db_->set_bulk_binary(bulkrecs) != (int64_t)bulkrecs.size()) {
+          if (db_->set_bulk_binary(bulkrecs, bopts_) < 0) {
             dberrprint(db_, __LINE__, "DB::set_bulk_binary");
             err_ = true;
           }
@@ -1131,12 +1163,13 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
       bool bin_;
       bool rnd_;
       int32_t bulk_;
+      int32_t bopts_;
       kt::RemoteDB* db_;
       bool err_;
     };
     Worker workers[THREADMAX];
     for (int32_t i = 0; i < thnum; i++) {
-      workers[i].setparams(i, rnum, thnum, bin, rnd, bulk, dbs + i);
+      workers[i].setparams(i, rnum, thnum, bin, rnd, bulk, bopts, dbs + i);
       workers[i].start();
     }
     for (int32_t i = 0; i < thnum; i++) {

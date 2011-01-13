@@ -383,13 +383,13 @@ check-remote :
 	$(RUNENV) $(RUNCMD) ./ktremotetest order -th 4 -etc 10000
 	$(RUNENV) $(RUNCMD) ./ktremotetest order -th 4 -rnd -etc 10000
 	$(RUNENV) $(RUNCMD) ./ktremotetest bulk -bulk 10 10000
-	$(RUNENV) $(RUNCMD) ./ktremotetest bulk -rnd -bulk 10 -rnd 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest bulk -rnd -bulk 10 10000
 	$(RUNENV) $(RUNCMD) ./ktremotetest bulk -bin -bulk 10 10000
-	$(RUNENV) $(RUNCMD) ./ktremotetest bulk -bin -rnd -bulk 10 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest bulk -bin -rnd -bulk 10 -bnr 10000
 	$(RUNENV) $(RUNCMD) ./ktremotetest bulk -th 4 -bulk 10 10000
-	$(RUNENV) $(RUNCMD) ./ktremotetest bulk -th 4 -rnd -bulk 10 -rnd 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest bulk -th 4 -rnd -bulk 10 10000
 	$(RUNENV) $(RUNCMD) ./ktremotetest bulk -th 4 -bin -bulk 10 10000
-	$(RUNENV) $(RUNCMD) ./ktremotetest bulk -th 4 -bin -rnd -bulk 10 10000
+	$(RUNENV) $(RUNCMD) ./ktremotetest bulk -th 4 -bin -rnd -bulk 10 -bnr 10000
 	$(RUNENV) $(RUNCMD) ./ktremotetest wicked 10000
 	$(RUNENV) $(RUNCMD) ./ktremotetest wicked -it 4 10000
 	$(RUNENV) $(RUNCMD) ./ktremotetest wicked -th 4 -it 4 10000

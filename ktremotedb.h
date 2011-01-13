@@ -625,6 +625,12 @@ public:
     BMERROR = 0xbf                       ///< error
   };
   /**
+   * Options in binary protocol.
+   */
+  enum BinaryOption {
+    BONOREPLY = 1 << 0                   ///< no reply
+  };
+  /**
    * Default constructor.
    */
   explicit RemoteDB() :
@@ -1474,21 +1480,20 @@ public:
     _assert_(true);
     dbexpr_ = expr;
   }
-
-
-
   /**
    * Call a procedure of the scripting extension in the binary protocol.
    * @param name the name of the procedure to call.
    * @param params a string map containing the input parameters.
-   * @param result a string map to contain the output data.
+   * @param result a string map to contain the output data.  If it is NULL, it is ignored.
+   * @param opts the optional features by bitwise-or: RemoteDB::BONOREPLY to ignore reply from
+   * the server.
    * @return true on success, or false on failure.
    */
   bool play_script_binary(const std::string& name,
                           const std::map<std::string, std::string>& params,
-                          std::map<std::string, std::string>* result) {
-    _assert_(result);
-    result->clear();
+                          std::map<std::string, std::string>* result = NULL, uint32_t opts = 0) {
+    _assert_(true);
+    if (result) result->clear();
     size_t rsiz = 1 + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t) + name.size();
     std::map<std::string, std::string>::const_iterator it = params.begin();
     std::map<std::string, std::string>::const_iterator itend = params.end();
@@ -1500,8 +1505,10 @@ public:
     char* rbuf = new char[rsiz];
     char* wp = rbuf;
     *(wp++) = BMPLAYSCRIPT;
-    kc::writefixnum(wp, 0, sizeof(uint32_t));
-    wp += sizeof(uint32_t);
+    uint32_t flags = 0;
+    if (opts & BONOREPLY) flags |= BONOREPLY;
+    kc::writefixnum(wp, flags, sizeof(flags));
+    wp += sizeof(flags);
     kc::writefixnum(wp, name.size(), sizeof(uint32_t));
     wp += sizeof(uint32_t);
     kc::writefixnum(wp, params.size(), sizeof(uint32_t));
@@ -1524,56 +1531,58 @@ public:
     char stack[RDBRECBUFSIZ];
     bool err = false;
     if (sock->send(rbuf, rsiz)) {
-      char hbuf[sizeof(uint32_t)];
-      int32_t c = sock->receive_byte();
-      if (c == BMPLAYSCRIPT) {
-        if (sock->receive(hbuf, sizeof(hbuf))) {
-          uint32_t rnum = kc::readfixnum(hbuf, sizeof(uint32_t));
-          for (int64_t i = 0; !err && i < rnum; i++) {
-            char ubuf[sizeof(uint32_t)+sizeof(uint32_t)];
-            if (sock->receive(ubuf, sizeof(ubuf))) {
-              const char* rp = ubuf;
-              size_t ksiz = kc::readfixnum(rp, sizeof(uint32_t));
-              rp += sizeof(uint32_t);
-              size_t vsiz = kc::readfixnum(rp, sizeof(uint32_t));
-              rp += sizeof(uint32_t);
-              if (ksiz <= DATAMAXSIZ && vsiz <= DATAMAXSIZ) {
-                size_t jsiz = ksiz + vsiz;
-                char* jbuf = jsiz > sizeof(stack) ? new char[jsiz] : stack;
-                if (sock->receive(jbuf, jsiz)) {
-                  std::string key(jbuf, ksiz);
-                  std::string value(jbuf + ksiz, vsiz);
-                  (*result)[key] = value;
+      if (!(opts & BONOREPLY)) {
+        char hbuf[sizeof(uint32_t)];
+        int32_t c = sock->receive_byte();
+        if (c == BMPLAYSCRIPT) {
+          if (sock->receive(hbuf, sizeof(hbuf))) {
+            uint32_t rnum = kc::readfixnum(hbuf, sizeof(uint32_t));
+            for (int64_t i = 0; !err && i < rnum; i++) {
+              char ubuf[sizeof(uint32_t)+sizeof(uint32_t)];
+              if (sock->receive(ubuf, sizeof(ubuf))) {
+                const char* rp = ubuf;
+                size_t ksiz = kc::readfixnum(rp, sizeof(uint32_t));
+                rp += sizeof(uint32_t);
+                size_t vsiz = kc::readfixnum(rp, sizeof(uint32_t));
+                rp += sizeof(uint32_t);
+                if (ksiz <= DATAMAXSIZ && vsiz <= DATAMAXSIZ) {
+                  size_t jsiz = ksiz + vsiz;
+                  char* jbuf = jsiz > sizeof(stack) ? new char[jsiz] : stack;
+                  if (sock->receive(jbuf, jsiz)) {
+                    std::string key(jbuf, ksiz);
+                    std::string value(jbuf + ksiz, vsiz);
+                    if (result) (*result)[key] = value;
+                  } else {
+                    ecode_ = RPCClient::RVENETWORK;
+                    emsg_ = "receive failed";
+                    err = true;
+                  }
+                  if (jbuf != stack) delete[] jbuf;
                 } else {
-                  ecode_ = RPCClient::RVENETWORK;
-                  emsg_ = "receive failed";
+                  ecode_ = RPCClient::RVEINTERNAL;
+                  emsg_ = "internal error";
                   err = true;
                 }
-                if (jbuf != stack) delete[] jbuf;
               } else {
-                ecode_ = RPCClient::RVEINTERNAL;
-                emsg_ = "internal error";
+                ecode_ = RPCClient::RVENETWORK;
+                emsg_ = "receive failed";
                 err = true;
               }
-            } else {
-              ecode_ = RPCClient::RVENETWORK;
-              emsg_ = "receive failed";
-              err = true;
             }
+          } else {
+            ecode_ = RPCClient::RVENETWORK;
+            emsg_ = "receive failed";
+            err = true;
           }
+        } else if (c == BMERROR) {
+          ecode_ = RPCClient::RVEINTERNAL;
+          emsg_ = "internal error";
+          err = true;
         } else {
           ecode_ = RPCClient::RVENETWORK;
           emsg_ = "receive failed";
           err = true;
         }
-      } else if (c == BMERROR) {
-        ecode_ = RPCClient::RVEINTERNAL;
-        emsg_ = "internal error";
-        err = true;
-      } else {
-        ecode_ = RPCClient::RVENETWORK;
-        emsg_ = "receive failed";
-        err = true;
       }
     } else {
       ecode_ = RPCClient::RVENETWORK;
@@ -1586,9 +1595,11 @@ public:
   /**
    * Store records at once in the binary protocol.
    * @param recs the records to store.
+   * @param opts the optional features by bitwise-or: RemoteDB::BONOREPLY to ignore reply from
+   * the server.
    * @return the number of stored records, or -1 on failure.
    */
-  int64_t set_bulk_binary(const std::vector<BulkRecord>& recs) {
+  int64_t set_bulk_binary(const std::vector<BulkRecord>& recs, uint32_t opts = 0) {
     _assert_(true);
     size_t rsiz = 1 + sizeof(uint32_t) + sizeof(uint32_t);
     std::vector<BulkRecord>::const_iterator it = recs.begin();
@@ -1601,8 +1612,10 @@ public:
     char* rbuf = new char[rsiz];
     char* wp = rbuf;
     *(wp++) = BMSETBULK;
-    kc::writefixnum(wp, 0, sizeof(uint32_t));
-    wp += sizeof(uint32_t);
+    uint32_t flags = 0;
+    if (opts & BONOREPLY) flags |= BONOREPLY;
+    kc::writefixnum(wp, flags, sizeof(flags));
+    wp += sizeof(flags);
     kc::writefixnum(wp, recs.size(), sizeof(uint32_t));
     wp += sizeof(uint32_t);
     it = recs.begin();
@@ -1624,24 +1637,28 @@ public:
     Socket* sock = rpc_.reveal_core()->reveal_core();
     int64_t rv;
     if (sock->send(rbuf, rsiz)) {
-      char hbuf[sizeof(uint32_t)];
-      int32_t c = sock->receive_byte();
-      if (c == BMSETBULK) {
-        if (sock->receive(hbuf, sizeof(hbuf))) {
-          rv = kc::readfixnum(hbuf, sizeof(uint32_t));
+      if (opts & BONOREPLY) {
+        rv = 0;
+      } else {
+        char hbuf[sizeof(uint32_t)];
+        int32_t c = sock->receive_byte();
+        if (c == BMSETBULK) {
+          if (sock->receive(hbuf, sizeof(hbuf))) {
+            rv = kc::readfixnum(hbuf, sizeof(uint32_t));
+          } else {
+            ecode_ = RPCClient::RVENETWORK;
+            emsg_ = "receive failed";
+            rv = -1;
+          }
+        } else if (c == BMERROR) {
+          ecode_ = RPCClient::RVEINTERNAL;
+          emsg_ = "internal error";
+          rv = -1;
         } else {
           ecode_ = RPCClient::RVENETWORK;
           emsg_ = "receive failed";
           rv = -1;
         }
-      } else if (c == BMERROR) {
-        ecode_ = RPCClient::RVEINTERNAL;
-        emsg_ = "internal error";
-        rv = -1;
-      } else {
-        ecode_ = RPCClient::RVENETWORK;
-        emsg_ = "receive failed";
-        rv = -1;
       }
     } else {
       ecode_ = RPCClient::RVENETWORK;
@@ -1654,9 +1671,11 @@ public:
   /**
    * Store records at once in the binary protocol.
    * @param recs the records to remove.
+   * @param opts the optional features by bitwise-or: RemoteDB::BONOREPLY to ignore reply from
+   * the server.
    * @return the number of removed records, or -1 on failure.
    */
-  int64_t remove_bulk_binary(const std::vector<BulkRecord>& recs) {
+  int64_t remove_bulk_binary(const std::vector<BulkRecord>& recs, uint32_t opts = 0) {
     _assert_(true);
     size_t rsiz = 1 + sizeof(uint32_t) + sizeof(uint32_t);
     std::vector<BulkRecord>::const_iterator it = recs.begin();
@@ -1669,8 +1688,10 @@ public:
     char* rbuf = new char[rsiz];
     char* wp = rbuf;
     *(wp++) = BMREMOVEBULK;
-    kc::writefixnum(wp, 0, sizeof(uint32_t));
-    wp += sizeof(uint32_t);
+    uint32_t flags = 0;
+    if (opts & BONOREPLY) flags |= BONOREPLY;
+    kc::writefixnum(wp, flags, sizeof(flags));
+    wp += sizeof(flags);
     kc::writefixnum(wp, recs.size(), sizeof(uint32_t));
     wp += sizeof(uint32_t);
     it = recs.begin();
@@ -1686,24 +1707,28 @@ public:
     Socket* sock = rpc_.reveal_core()->reveal_core();
     int64_t rv;
     if (sock->send(rbuf, rsiz)) {
-      char hbuf[sizeof(uint32_t)];
-      int32_t c = sock->receive_byte();
-      if (c == BMREMOVEBULK) {
-        if (sock->receive(hbuf, sizeof(hbuf))) {
-          rv = kc::readfixnum(hbuf, sizeof(uint32_t));
+      if (opts & BONOREPLY) {
+        rv = 0;
+      } else {
+        char hbuf[sizeof(uint32_t)];
+        int32_t c = sock->receive_byte();
+        if (c == BMREMOVEBULK) {
+          if (sock->receive(hbuf, sizeof(hbuf))) {
+            rv = kc::readfixnum(hbuf, sizeof(uint32_t));
+          } else {
+            ecode_ = RPCClient::RVENETWORK;
+            emsg_ = "receive failed";
+            rv = -1;
+          }
+        } else if (c == BMERROR) {
+          ecode_ = RPCClient::RVEINTERNAL;
+          emsg_ = "internal error";
+          rv = -1;
         } else {
           ecode_ = RPCClient::RVENETWORK;
           emsg_ = "receive failed";
           rv = -1;
         }
-      } else if (c == BMERROR) {
-        ecode_ = RPCClient::RVEINTERNAL;
-        emsg_ = "internal error";
-        rv = -1;
-      } else {
-        ecode_ = RPCClient::RVENETWORK;
-        emsg_ = "receive failed";
-        rv = -1;
       }
     } else {
       ecode_ = RPCClient::RVENETWORK;

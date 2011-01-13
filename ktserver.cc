@@ -667,12 +667,7 @@ private:
       set_message(outmap, "ERROR", "the scripting extention is disabled");
       return kt::RPCClient::RVENOIMPL;
     }
-    int32_t thid = sess->thread_id();
-    if (thid >= thnum_) {
-      set_message(outmap, "ERROR", "the thread ID is invalid");
-      return kt::RPCClient::RVEINTERNAL;
-    }
-    ScriptProcessor* scrproc = scrprocs_ + thid;
+    ScriptProcessor* scrproc = scrprocs_ + sess->thread_id();
     const char* nstr = kt::strmapget(inmap, "name");
     if (!nstr || *nstr == '\0' || !kt::strisalnum(nstr)) {
       set_message(outmap, "ERROR", "invalid parameters");
@@ -1955,18 +1950,6 @@ private:
   }
   // process the binary play_script command
   bool do_bin_play_script(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess) {
-    if (!scrprocs_) {
-      char c = kt::RemoteDB::BMERROR;
-      sess->send(&c, 1);
-      return false;
-    }
-    int32_t thid = sess->thread_id();
-    if (thid >= thnum_) {
-      char c = kt::RemoteDB::BMERROR;
-      sess->send(&c, 1);
-      return false;
-    }
-    ScriptProcessor* scrproc = scrprocs_ + thid;
     char tbuf[sizeof(uint32_t)+sizeof(uint32_t)+sizeof(uint32_t)];
     if (!sess->receive(tbuf, sizeof(tbuf))) return false;
     const char* rp = tbuf;
@@ -1977,6 +1960,7 @@ private:
     uint32_t rnum = kc::readfixnum(rp, sizeof(rnum));
     rp += sizeof(rnum);
     if (nsiz > kt::RemoteDB::DATAMAXSIZ) return false;
+    bool norep = flags & kt::RemoteDB::BONOREPLY;
     bool err = false;
     char nstack[kc::NUMBUFSIZ+RECBUFSIZ];
     char* nbuf = nsiz + 1 > sizeof(nstack) ? new char[nsiz+1] : nstack;
@@ -2011,39 +1995,45 @@ private:
         }
       }
       if (!err) {
-        std::map<std::string, std::string> scroutmap;
-        RV rv = scrproc->call(nbuf, scrinmap, scroutmap);
-        if (rv == kt::RPCClient::RVSUCCESS) {
-          size_t osiz = 1 + sizeof(uint32_t);
-          std::map<std::string, std::string>::iterator it = scroutmap.begin();
-          std::map<std::string, std::string>::iterator itend = scroutmap.end();
-          while (it != itend) {
-            osiz += sizeof(uint32_t) + sizeof(uint32_t) + it->first.size() + it->second.size();
-            it++;
-          }
-          char* obuf = new char[osiz];
-          char* wp = obuf;
-          *(wp++) = kt::RemoteDB::BMPLAYSCRIPT;
-          kc::writefixnum(wp, scroutmap.size(), sizeof(uint32_t));
-          wp += sizeof(uint32_t);
-          it = scroutmap.begin();
-          itend = scroutmap.end();
-          while (it != itend) {
-            kc::writefixnum(wp, it->first.size(), sizeof(uint32_t));
+        if (scrprocs_) {
+          ScriptProcessor* scrproc = scrprocs_ + sess->thread_id();
+          std::map<std::string, std::string> scroutmap;
+          RV rv = scrproc->call(nbuf, scrinmap, scroutmap);
+          if (rv == kt::RPCClient::RVSUCCESS) {
+            size_t osiz = 1 + sizeof(uint32_t);
+            std::map<std::string, std::string>::iterator it = scroutmap.begin();
+            std::map<std::string, std::string>::iterator itend = scroutmap.end();
+            while (it != itend) {
+              osiz += sizeof(uint32_t) + sizeof(uint32_t) + it->first.size() + it->second.size();
+              it++;
+            }
+            char* obuf = new char[osiz];
+            char* wp = obuf;
+            *(wp++) = kt::RemoteDB::BMPLAYSCRIPT;
+            kc::writefixnum(wp, scroutmap.size(), sizeof(uint32_t));
             wp += sizeof(uint32_t);
-            kc::writefixnum(wp, it->second.size(), sizeof(uint32_t));
-            wp += sizeof(uint32_t);
-            std::memcpy(wp, it->first.data(), it->first.size());
-            wp += it->first.size();
-            std::memcpy(wp, it->second.data(), it->second.size());
-            wp += it->second.size();
-            it++;
+            it = scroutmap.begin();
+            itend = scroutmap.end();
+            while (it != itend) {
+              kc::writefixnum(wp, it->first.size(), sizeof(uint32_t));
+              wp += sizeof(uint32_t);
+              kc::writefixnum(wp, it->second.size(), sizeof(uint32_t));
+              wp += sizeof(uint32_t);
+              std::memcpy(wp, it->first.data(), it->first.size());
+              wp += it->first.size();
+              std::memcpy(wp, it->second.data(), it->second.size());
+              wp += it->second.size();
+              it++;
+            }
+            if (!norep && !sess->send(obuf, osiz)) err = true;
+            delete[] obuf;
+          } else {
+            char c = kt::RemoteDB::BMERROR;
+            if (!norep) sess->send(&c, 1);
           }
-          if (!sess->send(obuf, osiz)) err = true;
-          delete[] obuf;
         } else {
           char c = kt::RemoteDB::BMERROR;
-          sess->send(&c, 1);
+          if (!norep) sess->send(&c, 1);
         }
       }
     }
@@ -2059,6 +2049,7 @@ private:
     rp += sizeof(flags);
     uint32_t rnum = kc::readfixnum(rp, sizeof(rnum));
     rp += sizeof(rnum);
+    bool norep = flags & kt::RemoteDB::BONOREPLY;
     bool err = false;
     uint32_t hits = 0;
     char stack[kc::NUMBUFSIZ+RECBUFSIZ*4];
@@ -2099,13 +2090,13 @@ private:
     }
     if (err) {
       char c = kt::RemoteDB::BMERROR;
-      sess->send(&c, 1);
+      if (!norep) sess->send(&c, 1);
     } else {
       char hbuf[1+sizeof(hits)];
       char* wp = hbuf;
       *(wp++) = kt::RemoteDB::BMSETBULK;
       kc::writefixnum(wp, hits, sizeof(hits));
-      if (!sess->send(hbuf, sizeof(hbuf))) err = true;
+      if (!norep && !sess->send(hbuf, sizeof(hbuf))) err = true;
     }
     return !err;
   }
@@ -2118,6 +2109,7 @@ private:
     rp += sizeof(flags);
     uint32_t rnum = kc::readfixnum(rp, sizeof(rnum));
     rp += sizeof(rnum);
+    bool norep = flags & kt::RemoteDB::BONOREPLY;
     bool err = false;
     uint32_t hits = 0;
     char stack[kc::NUMBUFSIZ+RECBUFSIZ*2];
@@ -2153,13 +2145,13 @@ private:
     }
     if (err) {
       char c = kt::RemoteDB::BMERROR;
-      sess->send(&c, 1);
+      if (!norep) sess->send(&c, 1);
     } else {
       char hbuf[1+sizeof(hits)];
       char* wp = hbuf;
       *(wp++) = kt::RemoteDB::BMREMOVEBULK;
       kc::writefixnum(wp, hits, sizeof(hits));
-      if (!sess->send(hbuf, sizeof(hbuf))) err = true;
+      if (!norep && !sess->send(hbuf, sizeof(hbuf))) err = true;
     }
     return !err;
   }

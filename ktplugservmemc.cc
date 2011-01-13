@@ -139,6 +139,8 @@ private:
           keep = do_stats(serv, sess, tokens, db);
         } else if (cmd == "flush_all") {
           keep = do_flush_all(serv, sess, tokens, db);
+        } else if (cmd == "version") {
+          keep = do_version(serv, sess, tokens, db);
         } else if (cmd == "quit") {
           keep = false;
         } else {
@@ -162,6 +164,10 @@ private:
       uint32_t flags = kc::atoi(tokens[2].c_str());
       int64_t xt = kc::atoi(tokens[3].c_str());
       int64_t vsiz = kc::atoi(tokens[4].c_str());
+      bool norep = false;
+      for (size_t i = 5; i < tokens.size(); i++) {
+        if (tokens[i] == "noreply") norep = true;
+      }
       if (xt < 1) {
         xt = INT64_MAX;
       } else if (xt > 1 << 24) {
@@ -179,11 +185,11 @@ private:
             vsiz += sizeof(flags);
           }
           if (db->set(key.data(), key.size(), vbuf, vsiz, xt)) {
-            if (!sess->printf("STORED\r\n")) err = true;
+            if (!norep && !sess->printf("STORED\r\n")) err = true;
           } else {
             const kc::BasicDB::Error& e = db->error();
             log_db_error(serv, e);
-            if (!sess->printf("SERVER_ERROR DB::set failed\r\n")) err = true;
+            if (!norep && !sess->printf("SERVER_ERROR DB::set failed\r\n")) err = true;
           }
         } else {
           err = true;
@@ -202,6 +208,10 @@ private:
       uint32_t flags = kc::atoi(tokens[2].c_str());
       int64_t xt = kc::atoi(tokens[3].c_str());
       int64_t vsiz = kc::atoi(tokens[4].c_str());
+      bool norep = false;
+      for (size_t i = 5; i < tokens.size(); i++) {
+        if (tokens[i] == "noreply") norep = true;
+      }
       if (xt < 1) {
         xt = INT64_MAX;
       } else if (xt > 1 << 24) {
@@ -219,14 +229,14 @@ private:
             vsiz += sizeof(flags);
           }
           if (db->add(key.data(), key.size(), vbuf, vsiz, xt)) {
-            if (!sess->printf("STORED\r\n")) err = true;
+            if (!norep && !sess->printf("STORED\r\n")) err = true;
           } else {
             const kc::BasicDB::Error& e = db->error();
             if (e == kc::BasicDB::Error::DUPREC) {
-              if (!sess->printf("NOT_STORED\r\n")) err = true;
+              if (!norep && !sess->printf("NOT_STORED\r\n")) err = true;
             } else {
               log_db_error(serv, e);
-              if (!sess->printf("SERVER_ERROR DB::add failed\r\n")) err = true;
+              if (!norep && !sess->printf("SERVER_ERROR DB::add failed\r\n")) err = true;
             }
           }
         } else {
@@ -246,6 +256,10 @@ private:
       uint32_t flags = kc::atoi(tokens[2].c_str());
       int64_t xt = kc::atoi(tokens[3].c_str());
       int64_t vsiz = kc::atoi(tokens[4].c_str());
+      bool norep = false;
+      for (size_t i = 5; i < tokens.size(); i++) {
+        if (tokens[i] == "noreply") norep = true;
+      }
       if (xt < 1) {
         xt = INT64_MAX;
       } else if (xt > 1 << 24) {
@@ -263,14 +277,14 @@ private:
             vsiz += sizeof(flags);
           }
           if (db->replace(key.data(), key.size(), vbuf, vsiz, xt)) {
-            if (!sess->printf("STORED\r\n")) err = true;
+            if (!norep && !sess->printf("STORED\r\n")) err = true;
           } else {
             const kc::BasicDB::Error& e = db->error();
             if (e == kc::BasicDB::Error::NOREC) {
-              if (!sess->printf("NOT_STORED\r\n")) err = true;
+              if (!norep && !sess->printf("NOT_STORED\r\n")) err = true;
             } else {
               log_db_error(serv, e);
-              if (!sess->printf("SERVER_ERROR DB::replace failed\r\n")) err = true;
+              if (!norep && !sess->printf("SERVER_ERROR DB::replace failed\r\n")) err = true;
             }
           }
         } else {
@@ -316,16 +330,20 @@ private:
                    const std::vector<std::string>& tokens, kt::TimedDB* db) {
       if (tokens.size() < 2) return sess->printf("CLIENT_ERROR invalid parameters\r\n");
       const std::string& key = tokens[1];
+      bool norep = false;
+      for (size_t i = 2; i < tokens.size(); i++) {
+        if (tokens[i] == "noreply") norep = true;
+      }
       bool err = false;
       if (db->remove(key.data(), key.size())) {
-        if (!sess->printf("DELETED\r\n")) err = true;
+        if (!norep && !sess->printf("DELETED\r\n")) err = true;
       } else {
         const kc::BasicDB::Error& e = db->error();
         if (e == kc::BasicDB::Error::NOREC) {
-          if (!sess->printf("NOT_FOUND\r\n")) err = true;
+          if (!norep && !sess->printf("NOT_FOUND\r\n")) err = true;
         } else {
           log_db_error(serv, e);
-          if (!sess->printf("SERVER_ERROR DB::remove failed\r\n")) err = true;
+          if (!norep && !sess->printf("SERVER_ERROR DB::remove failed\r\n")) err = true;
         }
       }
       return !err;
@@ -336,6 +354,10 @@ private:
       if (tokens.size() < 3) return sess->printf("CLIENT_ERROR invalid parameters\r\n");
       const std::string& key = tokens[1];
       int64_t num = kc::atoi(tokens[2].c_str());
+      bool norep = false;
+      for (size_t i = 3; i < tokens.size(); i++) {
+        if (tokens[i] == "noreply") norep = true;
+      }
       bool err = false;
       class Visitor : public kt::TimedDB::Visitor {
       public:
@@ -374,14 +396,14 @@ private:
       Visitor visitor(num, serv_->opts_);
       if (db->accept(key.data(), key.size(), &visitor, true)) {
         if (visitor.hit()) {
-          if (!sess->printf("%lld\r\n", (long long)visitor.num())) err = true;
+          if (!norep && !sess->printf("%lld\r\n", (long long)visitor.num())) err = true;
         } else {
-          if (!sess->printf("NOT_FOUND\r\n")) err = true;
+          if (!norep && !sess->printf("NOT_FOUND\r\n")) err = true;
         }
       } else {
         const kc::BasicDB::Error& e = db->error();
         log_db_error(serv, e);
-        if (!sess->printf("SERVER_ERROR DB::accept failed\r\n")) err = true;
+        if (!norep && !sess->printf("SERVER_ERROR DB::accept failed\r\n")) err = true;
       }
       return !err;
     }
@@ -391,6 +413,10 @@ private:
       if (tokens.size() < 3) return sess->printf("CLIENT_ERROR invalid parameters\r\n");
       const std::string& key = tokens[1];
       int64_t num = -kc::atoi(tokens[2].c_str());
+      bool norep = false;
+      for (size_t i = 3; i < tokens.size(); i++) {
+        if (tokens[i] == "noreply") norep = true;
+      }
       bool err = false;
       class Visitor : public kt::TimedDB::Visitor {
       public:
@@ -429,14 +455,14 @@ private:
       Visitor visitor(num, serv_->opts_);
       if (db->accept(key.data(), key.size(), &visitor, true)) {
         if (visitor.hit()) {
-          if (!sess->printf("%lld\r\n", (long long)visitor.num())) err = true;
+          if (!norep && !sess->printf("%lld\r\n", (long long)visitor.num())) err = true;
         } else {
-          if (!sess->printf("NOT_FOUND\r\n")) err = true;
+          if (!norep && !sess->printf("NOT_FOUND\r\n")) err = true;
         }
       } else {
         const kc::BasicDB::Error& e = db->error();
         log_db_error(serv, e);
-        if (!sess->printf("SERVER_ERROR DB::accept failed\r\n")) err = true;
+        if (!norep && !sess->printf("SERVER_ERROR DB::accept failed\r\n")) err = true;
       }
       return !err;
     }
@@ -475,16 +501,27 @@ private:
     bool do_flush_all(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess,
                       const std::vector<std::string>& tokens, kt::TimedDB* db) {
       if (tokens.size() < 1) return sess->printf("CLIENT_ERROR invalid parameters\r\n");
+      bool norep = false;
+      for (size_t i = 1; i < tokens.size(); i++) {
+        if (tokens[i] == "noreply") norep = true;
+      }
       bool err = false;
-      std::string result;
       std::map<std::string, std::string> status;
       if (db->clear()) {
-        if (!sess->printf("OK\r\n")) err = true;
+        if (!norep && !sess->printf("OK\r\n")) err = true;
       } else {
         const kc::BasicDB::Error& e = db->error();
         log_db_error(serv, e);
-        if (!sess->printf("SERVER_ERROR DB::clear failed\r\n")) err = true;
+        if (!norep && !sess->printf("SERVER_ERROR DB::clear failed\r\n")) err = true;
       }
+      return !err;
+    }
+    // process the version command
+    bool do_version(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess,
+                    const std::vector<std::string>& tokens, kt::TimedDB* db) {
+      if (tokens.size() < 1) return sess->printf("CLIENT_ERROR invalid parameters\r\n");
+      bool err = false;
+      if (!sess->printf("VERSION KyotoTycoon/%s\r\n", kt::VERSION)) err = true;
       return !err;
     }
     MemcacheServer* serv_;
