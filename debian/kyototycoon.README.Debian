@@ -8,10 +8,6 @@ ktserver(1) or kyototycoon-doc for details.
 In the default file you can also setup things like replication, async update log
 writes, debugging and more.
 
-The init script defaults to use unix sockets if SERVERHOST or SERVERPORT is not
-set. This is different from what upstream does, which defaults to port 1978. All
-tools have been changed to reflect this change.
-
 Kyoto Tycoon is packaged in a way to allow you to run more than one instance on
 the same machine. The name of the server is based on the symlink for the init
 script. When this package is upgraded or removed, only the original server will
