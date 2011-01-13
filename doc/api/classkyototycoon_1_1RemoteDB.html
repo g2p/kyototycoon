@@ -58,6 +58,10 @@
  }</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><p>Magic data in binary protocol. </p>
  <a href="classkyototycoon_1_1RemoteDB.html#aa4ef898390d6ec3e87d9ebe8873771f7">More...</a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">enum &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a71f7c7f19567d760e751534950a8931c">BinaryOption</a> { <a class="el" href="classkyototycoon_1_1RemoteDB.html#a71f7c7f19567d760e751534950a8931ca00b41b25ac44e8bf39212f505cc1fb83">BONOREPLY</a> =  1 &lt;&lt; 0
+ }</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><p>Options in binary protocol. </p>
+ <a href="classkyototycoon_1_1RemoteDB.html#a71f7c7f19567d760e751534950a8931c">More...</a><br/></td></tr>
 <tr><td colspan="2"><h2>Public Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#aaa57bff29d1a075db1e5a170a034bc99">RemoteDB</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Default constructor.  <a href="#aaa57bff29d1a075db1e5a170a034bc99"></a><br/></td></tr>
@@ -139,12 +143,12 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get keys matching a regular expression string.  <a href="#abbfe172a43c7105bd76a4fbaefea63eb"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ace5ab87b94e584ed121a7df5bb7b0eef">set_target</a> (const std::string &amp;expr)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the target database.  <a href="#ace5ab87b94e584ed121a7df5bb7b0eef"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ad49d6d0e6ac9729b5eaba3bb92d14d7a">play_script_binary</a> (const std::string &amp;name, const std::map&lt; std::string, std::string &gt; &amp;params, std::map&lt; std::string, std::string &gt; *result)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Call a procedure of the scripting extension in the binary protocol.  <a href="#ad49d6d0e6ac9729b5eaba3bb92d14d7a"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ad143bf4a462ea050e216a6d75afd2f9b">set_bulk_binary</a> (const std::vector&lt; <a class="el" href="structkyototycoon_1_1RemoteDB_1_1BulkRecord.html">BulkRecord</a> &gt; &amp;recs)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Store records at once in the binary protocol.  <a href="#ad143bf4a462ea050e216a6d75afd2f9b"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#abbec8187cc1c09f31e473906c05ae72d">remove_bulk_binary</a> (const std::vector&lt; <a class="el" href="structkyototycoon_1_1RemoteDB_1_1BulkRecord.html">BulkRecord</a> &gt; &amp;recs)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Store records at once in the binary protocol.  <a href="#abbec8187cc1c09f31e473906c05ae72d"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#afe813c4e4043a336db3377d3126304f2">play_script_binary</a> (const std::string &amp;name, const std::map&lt; std::string, std::string &gt; &amp;params, std::map&lt; std::string, std::string &gt; *result=NULL, uint32_t opts=0)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Call a procedure of the scripting extension in the binary protocol.  <a href="#afe813c4e4043a336db3377d3126304f2"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#af1f97bb5046f79bbe5e38e2ea5bdd8f0">set_bulk_binary</a> (const std::vector&lt; <a class="el" href="structkyototycoon_1_1RemoteDB_1_1BulkRecord.html">BulkRecord</a> &gt; &amp;recs, uint32_t opts=0)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Store records at once in the binary protocol.  <a href="#af1f97bb5046f79bbe5e38e2ea5bdd8f0"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a6eebb578f497c91cfb753e8cf0950c75">remove_bulk_binary</a> (const std::vector&lt; <a class="el" href="structkyototycoon_1_1RemoteDB_1_1BulkRecord.html">BulkRecord</a> &gt; &amp;recs, uint32_t opts=0)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Store records at once in the binary protocol.  <a href="#a6eebb578f497c91cfb753e8cf0950c75"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a6e8bd4df21df1ea1b0d4ed61b68b41c4">get_bulk_binary</a> (std::vector&lt; <a class="el" href="structkyototycoon_1_1RemoteDB_1_1BulkRecord.html">BulkRecord</a> &gt; *recs)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieve records at once in the binary protocol.  <a href="#a6e8bd4df21df1ea1b0d4ed61b68b41c4"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">const std::string&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ad43e50e8ad87e7220b476158fa7ef190">expression</a> ()</td></tr>
@@ -192,6 +196,28 @@
 </td></tr>
 <tr><td valign="top"><em><a class="anchor" id="aa4ef898390d6ec3e87d9ebe8873771f7a655df4cdbf92f3aeccf43c86be27f6ce"></a><!-- doxytag: member="BMERROR" ref="aa4ef898390d6ec3e87d9ebe8873771f7a655df4cdbf92f3aeccf43c86be27f6ce" args="" -->BMERROR</em>&nbsp;</td><td>
 <p>error </p>
+</td></tr>
+</table>
+</dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a71f7c7f19567d760e751534950a8931c"></a><!-- doxytag: member="kyototycoon::RemoteDB::BinaryOption" ref="a71f7c7f19567d760e751534950a8931c" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="classkyototycoon_1_1RemoteDB.html#a71f7c7f19567d760e751534950a8931c">kyototycoon::RemoteDB::BinaryOption</a></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Options in binary protocol. </p>
+<dl><dt><b>Enumerator: </b></dt><dd><table border="0" cellspacing="2" cellpadding="0">
+<tr><td valign="top"><em><a class="anchor" id="a71f7c7f19567d760e751534950a8931ca00b41b25ac44e8bf39212f505cc1fb83"></a><!-- doxytag: member="BONOREPLY" ref="a71f7c7f19567d760e751534950a8931ca00b41b25ac44e8bf39212f505cc1fb83" args="" -->BONOREPLY</em>&nbsp;</td><td>
+<p>no reply </p>
 </td></tr>
 </table>
 </dd>
@@ -1705,7 +1731,7 @@
 
 </div>
 </div>
-<a class="anchor" id="ad49d6d0e6ac9729b5eaba3bb92d14d7a"></a><!-- doxytag: member="kyototycoon::RemoteDB::play_script_binary" ref="ad49d6d0e6ac9729b5eaba3bb92d14d7a" args="(const std::string &amp;name, const std::map&lt; std::string, std::string &gt; &amp;params, std::map&lt; std::string, std::string &gt; *result)" -->
+<a class="anchor" id="afe813c4e4043a336db3377d3126304f2"></a><!-- doxytag: member="kyototycoon::RemoteDB::play_script_binary" ref="afe813c4e4043a336db3377d3126304f2" args="(const std::string &amp;name, const std::map&lt; std::string, std::string &gt; &amp;params, std::map&lt; std::string, std::string &gt; *result=NULL, uint32_t opts=0)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1725,7 +1751,13 @@
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">std::map&lt; std::string, std::string &gt; *&nbsp;</td>
-          <td class="paramname"> <em>result</em></td><td>&nbsp;</td>
+          <td class="paramname"> <em>result</em> = <code>NULL</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&nbsp;</td>
+          <td class="paramname"> <em>opts</em> = <code>0</code></td><td>&nbsp;</td>
         </tr>
         <tr>
           <td></td>
@@ -1741,7 +1773,8 @@
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"></td><td valign="top"><em>name</em>&nbsp;</td><td>the name of the procedure to call. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>params</em>&nbsp;</td><td>a string map containing the input parameters. </td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>result</em>&nbsp;</td><td>a string map to contain the output data. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>result</em>&nbsp;</td><td>a string map to contain the output data. If it is NULL, it is ignored. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>opts</em>&nbsp;</td><td>the optional features by bitwise-or: <a class="el" href="classkyototycoon_1_1RemoteDB.html#a71f7c7f19567d760e751534950a8931ca00b41b25ac44e8bf39212f505cc1fb83" title="no reply">RemoteDB::BONOREPLY</a> to ignore reply from the server. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1749,7 +1782,7 @@
 
 </div>
 </div>
-<a class="anchor" id="ad143bf4a462ea050e216a6d75afd2f9b"></a><!-- doxytag: member="kyototycoon::RemoteDB::set_bulk_binary" ref="ad143bf4a462ea050e216a6d75afd2f9b" args="(const std::vector&lt; BulkRecord &gt; &amp;recs)" -->
+<a class="anchor" id="af1f97bb5046f79bbe5e38e2ea5bdd8f0"></a><!-- doxytag: member="kyototycoon::RemoteDB::set_bulk_binary" ref="af1f97bb5046f79bbe5e38e2ea5bdd8f0" args="(const std::vector&lt; BulkRecord &gt; &amp;recs, uint32_t opts=0)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1757,9 +1790,18 @@
           <td class="memname">int64_t kyototycoon::RemoteDB::set_bulk_binary </td>
           <td>(</td>
           <td class="paramtype">const std::vector&lt; <a class="el" href="structkyototycoon_1_1RemoteDB_1_1BulkRecord.html">BulkRecord</a> &gt; &amp;&nbsp;</td>
-          <td class="paramname"> <em>recs</em></td>
-          <td>&nbsp;)&nbsp;</td>
+          <td class="paramname"> <em>recs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">uint32_t&nbsp;</td>
+          <td class="paramname"> <em>opts</em> = <code>0</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
         </tr>
       </table>
 </div>
@@ -1769,6 +1811,7 @@
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"></td><td valign="top"><em>recs</em>&nbsp;</td><td>the records to store. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>opts</em>&nbsp;</td><td>the optional features by bitwise-or: <a class="el" href="classkyototycoon_1_1RemoteDB.html#a71f7c7f19567d760e751534950a8931ca00b41b25ac44e8bf39212f505cc1fb83" title="no reply">RemoteDB::BONOREPLY</a> to ignore reply from the server. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1776,7 +1819,7 @@
 
 </div>
 </div>
-<a class="anchor" id="abbec8187cc1c09f31e473906c05ae72d"></a><!-- doxytag: member="kyototycoon::RemoteDB::remove_bulk_binary" ref="abbec8187cc1c09f31e473906c05ae72d" args="(const std::vector&lt; BulkRecord &gt; &amp;recs)" -->
+<a class="anchor" id="a6eebb578f497c91cfb753e8cf0950c75"></a><!-- doxytag: member="kyototycoon::RemoteDB::remove_bulk_binary" ref="a6eebb578f497c91cfb753e8cf0950c75" args="(const std::vector&lt; BulkRecord &gt; &amp;recs, uint32_t opts=0)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1784,9 +1827,18 @@
           <td class="memname">int64_t kyototycoon::RemoteDB::remove_bulk_binary </td>
           <td>(</td>
           <td class="paramtype">const std::vector&lt; <a class="el" href="structkyototycoon_1_1RemoteDB_1_1BulkRecord.html">BulkRecord</a> &gt; &amp;&nbsp;</td>
-          <td class="paramname"> <em>recs</em></td>
-          <td>&nbsp;)&nbsp;</td>
+          <td class="paramname"> <em>recs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">uint32_t&nbsp;</td>
+          <td class="paramname"> <em>opts</em> = <code>0</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
         </tr>
       </table>
 </div>
@@ -1796,6 +1848,7 @@
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"></td><td valign="top"><em>recs</em>&nbsp;</td><td>the records to remove. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>opts</em>&nbsp;</td><td>the optional features by bitwise-or: <a class="el" href="classkyototycoon_1_1RemoteDB.html#a71f7c7f19567d760e751534950a8931ca00b41b25ac44e8bf39212f505cc1fb83" title="no reply">RemoteDB::BONOREPLY</a> to ignore reply from the server. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1888,7 +1941,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Jan 4 23:09:55 2011 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Jan 11 12:31:33 2011 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

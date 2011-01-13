@@ -1,3 +1,15 @@
+2011-01-05  Mikio Hirabayashi  <info@fallabs.com>
+
+	* ktthserv.h (TaskQueueImpl::do_task): keep-alive mechanism was modified.
+
+	* ktserver.cc (Worker::do_bin_set_bulk): noreply is now supported.
+
+	* ktplugservmemc (Worker::do_version): new function.
+
+	* ktplugservmemc (Worker::do_set, do_delete, do_incr): noreply is now supported.
+
+	- Release: 0.9.23
+
 2011-01-02  Mikio Hirabayashi  <info@fallabs.com>
 
 	* kctimeddb.h (TimedDB::accept_bulk): new function.

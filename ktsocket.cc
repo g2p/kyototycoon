@@ -528,6 +528,16 @@ bool Socket::receive_line(void* buf, size_t max) {
 
 
 /**
+ * Get the size of left data in the receiving buffer.
+ */
+size_t Socket::left_size() {
+  _assert_(true);
+  SocketCore* core = (SocketCore*)opq_;
+  return core->ep - core->rp;
+}
+
+
+/**
  * Abort the current operation.
  */
 bool Socket::abort() {
