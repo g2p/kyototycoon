@@ -1,6 +1,6 @@
 /*************************************************************************************************
  * System-dependent configurations
- *                                                               Copyright (C) 2009-2010 FAL Labs
+ *                                                               Copyright (C) 2009-2011 FAL Labs
  * This file is part of Kyoto Tycoon.
  * This program is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version
@@ -90,9 +90,9 @@
 
 #endif
 
-#define _KT_VERSION    "0.9.21"
-#define _KT_LIBVER     1
-#define _KT_LIBREV     27
+#define _KT_VERSION    "0.9.22"
+#define _KT_LIBVER     2
+#define _KT_LIBREV     1
 
 #if ! defined(_MYNOEVENT)
 #if defined(_SYS_LINUX_)

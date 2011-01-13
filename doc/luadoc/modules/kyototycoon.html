@@ -218,6 +218,11 @@
 	</tr>
 
 	<tr>
+	<td class="name" nowrap><a href="#db:accept_bulk">db:accept_bulk</a>&nbsp;(keys, visitor, writable)</td>
+	<td class="summary">Accept a visitor to multiple records at once.</td>
+	</tr>
+
+	<tr>
 	<td class="name" nowrap><a href="#db:add">db:add</a>&nbsp;(key, value, xt)</td>
 	<td class="summary">Add a record.</td>
 	</tr>
@@ -283,6 +288,11 @@
 	</tr>
 
 	<tr>
+	<td class="name" nowrap><a href="#db:get_bulk">db:get_bulk</a>&nbsp;(keys, atomic)</td>
+	<td class="summary">Retrieve records at once.</td>
+	</tr>
+
+	<tr>
 	<td class="name" nowrap><a href="#db:increment">db:increment</a>&nbsp;(key, num, xt)</td>
 	<td class="summary">Add a number to the numeric integer value of a record.</td>
 	</tr>
@@ -343,6 +353,11 @@
 	</tr>
 
 	<tr>
+	<td class="name" nowrap><a href="#db:remove_bulk">db:remove_bulk</a>&nbsp;(keys, atomic)</td>
+	<td class="summary">Remove records at once.</td>
+	</tr>
+
+	<tr>
 	<td class="name" nowrap><a href="#db:replace">db:replace</a>&nbsp;(key, value, xt)</td>
 	<td class="summary">Replace the value of a record.</td>
 	</tr>
@@ -350,6 +365,11 @@
 	<tr>
 	<td class="name" nowrap><a href="#db:set">db:set</a>&nbsp;(key, value, xt)</td>
 	<td class="summary">Set the value of a record.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#db:set_bulk">db:set_bulk</a>&nbsp;(recs, atomic, xt)</td>
+	<td class="summary">Store records at once.</td>
 	</tr>
 
 	<tr>
@@ -946,6 +966,9 @@ Accept a visitor to the current record.
 
 
 
+<h3>Usage:</h3>
+The operation for each record is performed atomically and other threads accessing the same record are blocked.  To avoid deadlock, any explicit database operation must not be performed in this method.
+
 
 
 <h3>Return value:</h3>
@@ -1392,7 +1415,47 @@ Accept a visitor to a record.
 
 
 <h3>Usage:</h3>
-The operation for each record is performed atomically and other threads accessing the same record are blocked.
+The operation for each record is performed atomically and other threads accessing the same record are blocked.  To avoid deadlock, any explicit database operation must not be performed in this method.
+
+
+
+<h3>Return value:</h3>
+true on success, or false on failure.
+
+
+
+</dd>
+
+
+
+
+<dt><a name="db:accept_bulk"></a><strong>db:accept_bulk</strong>&nbsp;(keys, visitor, writable)</dt>
+<dd>
+Accept a visitor to multiple records at once.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  keys: specifies an array of the keys.
+	</li>
+	
+	<li>
+	  visitor: a visitor object which implements the Visitor interface, or a function object which receives the key and the value.
+	</li>
+	
+	<li>
+	  writable: true for writable operation, or false for read-only operation.  If it is omitted, true is specified.
+	</li>
+	
+</ul>
+
+
+
+
+<h3>Usage:</h3>
+The operations for specified records are performed atomically and other threads accessing the same records are blocked.  To avoid deadlock, any explicit database operation must not be performed in this function.
 
 
 
@@ -1781,6 +1844,39 @@ the value of the corresponding record, or nil on failure.  The absolute expirati
 
 
 
+<dt><a name="db:get_bulk"></a><strong>db:get_bulk</strong>&nbsp;(keys, atomic)</dt>
+<dd>
+Retrieve records at once.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  keys: an array of the keys of the records to retrieve.
+	</li>
+	
+	<li>
+	  atomic: true to perform all operations atomically, or false for non-atomic operations.  If it is omitted, true is specified.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+a table of retrieved records, or nil on failure.
+
+
+
+</dd>
+
+
+
+
 <dt><a name="db:increment"></a><strong>db:increment</strong>&nbsp;(key, num, xt)</dt>
 <dd>
 Add a number to the numeric integer value of a record.
@@ -1877,7 +1973,7 @@ Iterate to accept a visitor for each record.
 
 
 <h3>Usage:</h3>
-The whole iteration is performed atomically and other threads are blocked.
+The whole iteration is performed atomically and other threads are blocked.  To avoid deadlock, any explicit database operation must not be performed in this method.
 
 
 
@@ -2184,6 +2280,39 @@ true on success, or false on failure.
 
 
 
+<dt><a name="db:remove_bulk"></a><strong>db:remove_bulk</strong>&nbsp;(keys, atomic)</dt>
+<dd>
+Remove records at once.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  keys: an array of the keys of the records to remove.
+	</li>
+	
+	<li>
+	  atomic: true to perform all operations atomically, or false for non-atomic operations.  If it is omitted, true is specified.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+the number of removed records, or -1 on failure.
+
+
+
+</dd>
+
+
+
+
 <dt><a name="db:replace"></a><strong>db:replace</strong>&nbsp;(key, value, xt)</dt>
 <dd>
 Replace the value of a record.
@@ -2264,6 +2393,43 @@ true on success, or false on failure.
 
 
 
+<dt><a name="db:set_bulk"></a><strong>db:set_bulk</strong>&nbsp;(recs, atomic, xt)</dt>
+<dd>
+Store records at once.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  recs: a table of the records to store.
+	</li>
+	
+	<li>
+	  atomic: true to perform all operations atomically, or false for non-atomic operations.  If it is omitted, true is specified.
+	</li>
+	
+	<li>
+	  xt: the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.  If it is omitted, no expiration time is specified.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+the number of stored records, or -1 on failure.
+
+
+
+</dd>
+
+
+
+
 <dt><a name="db:size"></a><strong>db:size</strong>&nbsp;()</dt>
 <dd>
 Get the size of the database file.
@@ -2295,7 +2461,7 @@ Get the miscellaneous status information.
 
 
 <h3>Return value:</h3>
-a map object of the status information, or nil on failure.
+a table of the status information, or nil on failure.
 
 
 

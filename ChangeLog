@@ -1,3 +1,17 @@
+2011-01-02  Mikio Hirabayashi  <info@fallabs.com>
+
+	* kctimeddb.h (TimedDB::accept_bulk): new function.
+
+	* kctimeddb.h (TimedDB::set_bulk, TimedDB::remove_bulk, TimedDB::get_bulk): new functions.
+
+	* ktplugdbvoid.cc (VoidDB::accept_bulk): new function.
+
+	* myscript.cc (db_accept_bulk): new function.
+
+	* myscript.cc (db_set_bulk, db_remove_bulk, db_get_bulk): new functions.
+
+	- Release: 0.9.22
+
 2010-12-27  Mikio Hirabayashi  <info@fallabs.com>
 
 	* ktremotedb.h (ReplicationClient::open): WHITESID options was added.

@@ -22,8 +22,8 @@
 
 <h1 id="headline">Fundamental Specifications of Kyoto Tycoon Version 1</h1>
 
-<div class="note">Copyright (C) 2009-2010 FAL Labs</div>
-<div class="note">Last Update: Wed, 29 Dec 2010 17:24:34 +0900</div>
+<div class="note">Copyright (C) 2009-2011 FAL Labs</div>
+<div class="note">Last Update: Mon, 03 Jan 2011 23:34:50 +0900</div>
 
 <hr />
 
@@ -1114,6 +1114,7 @@ key     mikio
 <dd>Store records at once.</dd>
 <dd>input: <code>DB</code>: (optional): the database identifier.</dd>
 <dd>input: <code>xt</code>: (optional): the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.  If it is omitted, no expiration time is specified.</dd>
+<dd>input: <code>atomic</code>: (optional): to perform all operations atomically.  If it is omitted, non-atomic operations are performed.</dd>
 <dd>input: (optional): arbitrary records whose keys trail the character "_".</dd>
 <dd>output: <code>num</code>: the number of stored reocrds.</dd>
 <dd>status code: 200.</dd>
@@ -1123,6 +1124,7 @@ key     mikio
 <dt><code>/rpc/remove_bulk</code></dt>
 <dd>Store records at once.</dd>
 <dd>input: <code>DB</code>: (optional): the database identifier.</dd>
+<dd>input: <code>atomic</code>: (optional): to perform all operations atomically.  If it is omitted, non-atomic operations are performed.</dd>
 <dd>input: (optional): arbitrary keys which trail the character "_".</dd>
 <dd>output: <code>num</code>: the number of removed reocrds.</dd>
 <dd>status code: 200.</dd>
@@ -1132,6 +1134,7 @@ key     mikio
 <dt><code>/rpc/get_bulk</code></dt>
 <dd>Retrieve records at once.</dd>
 <dd>input: <code>DB</code>: (optional): the database identifier.</dd>
+<dd>input: <code>atomic</code>: (optional): to perform all operations atomically.  If it is omitted, non-atomic operations are performed.</dd>
 <dd>input: (optional): arbitrary keys which trail "_".</dd>
 <dd>output: <code>num</code>: the number of retrieved reocrds.</dd>
 <dd>output: (optional): arbitrary keys which trail the character "_".</dd>

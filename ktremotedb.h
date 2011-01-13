@@ -1,6 +1,6 @@
 /*************************************************************************************************
  * Remote database
- *                                                               Copyright (C) 2009-2010 FAL Labs
+ *                                                               Copyright (C) 2009-2011 FAL Labs
  * This file is part of Kyoto Tycoon.
  * This program is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version
@@ -1262,13 +1262,16 @@ public:
    * @param recs the records to store.
    * @param xt the expiration time from now in seconds.  If it is negative, the absolute value
    * is treated as the epoch time.
+   * @param atomic true to perform all operations atomically, or false for non-atomic operations.
    * @return the number of stored records, or -1 on failure.
    */
-  int64_t set_bulk(const std::map<std::string, std::string>& recs, int64_t xt = INT64_MAX) {
+  int64_t set_bulk(const std::map<std::string, std::string>& recs,
+                   int64_t xt = INT64_MAX, bool atomic = true) {
     _assert_(true);
     std::map<std::string, std::string> inmap;
     set_db_param(inmap);
     if (xt < TimedDB::XTMAX) kc::strprintf(&inmap["xt"], "%lld", (long long)xt);
+    if (atomic) inmap["atomic"] = "";
     std::map<std::string, std::string>::const_iterator it = recs.begin();
     std::map<std::string, std::string>::const_iterator itend = recs.end();
     while (it != itend) {
@@ -1293,12 +1296,14 @@ public:
   /**
    * Store records at once.
    * @param keys the keys of the records to remove.
+   * @param atomic true to perform all operations atomically, or false for non-atomic operations.
    * @return the number of removed records, or -1 on failure.
    */
-  int64_t remove_bulk(const std::vector<std::string>& keys) {
+  int64_t remove_bulk(const std::vector<std::string>& keys, bool atomic = true) {
     _assert_(true);
     std::map<std::string, std::string> inmap;
     set_db_param(inmap);
+    if (atomic) inmap["atomic"] = "";
     std::vector<std::string>::const_iterator it = keys.begin();
     std::vector<std::string>::const_iterator itend = keys.end();
     while (it != itend) {
@@ -1324,13 +1329,15 @@ public:
    * Retrieve records at once.
    * @param keys the keys of the records to retrieve.
    * @param recs a string map to contain the retrieved records.
+   * @param atomic true to perform all operations atomically, or false for non-atomic operations.
    * @return the number of retrieved records, or -1 on failure.
    */
   int64_t get_bulk(const std::vector<std::string>& keys,
-                   std::map<std::string, std::string>* recs) {
+                   std::map<std::string, std::string>* recs, bool atomic = true) {
     _assert_(true);
     std::map<std::string, std::string> inmap;
     set_db_param(inmap);
+    if (atomic) inmap["atomic"] = "";
     std::vector<std::string>::const_iterator it = keys.begin();
     std::vector<std::string>::const_iterator itend = keys.end();
     while (it != itend) {

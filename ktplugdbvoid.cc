@@ -1,6 +1,6 @@
 /*************************************************************************************************
  * A pluggable database of no operation
- *                                                               Copyright (C) 2009-2010 FAL Labs
+ *                                                               Copyright (C) 2009-2011 FAL Labs
  * This file is part of Kyoto Tycoon.
  * This program is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version
@@ -148,6 +148,20 @@ public:
     kc::ScopedSpinRWLock lock(&mlock_, false);
     size_t vsiz;
     visitor->visit_empty(kbuf, ksiz, &vsiz);
+    return true;
+  }
+  // accept a visitor to multiple records at once
+  bool accept_bulk(const std::vector<std::string>& keys, Visitor* visitor,
+                   bool writable = true) {
+    _assert_(visitor);
+    kc::ScopedSpinRWLock lock(&mlock_, false);
+    std::vector<std::string>::const_iterator kit = keys.begin();
+    std::vector<std::string>::const_iterator kitend = keys.end();
+    while (kit != kitend) {
+      size_t vsiz;
+      visitor->visit_empty(kit->data(), kit->size(), &vsiz);
+      kit++;
+    }
     return true;
   }
   // iterate to accept a visitor for each record
