@@ -23,7 +23,7 @@
 <h1 id="headline">Specificatoins of Command Line Utilities of Kyoto Tycoon</h1>
 
 <div class="note">Copyright (C) 2009-2010 FAL Labs</div>
-<div class="note">Last Update: Thu, 23 Dec 2010 12:29:41 +0900</div>
+<div class="note">Last Update: Wed, 29 Dec 2010 17:24:34 +0900</div>
 
 <hr />
 
@@ -176,7 +176,7 @@
 <li><code>-oenc <var>str</var></code> : specifies the encoding of the output data.</li>
 <li><code>-ts <var>num</var></code> : specifies the maximum time stamp of already read logs.  "now" means the current time stamp.</li>
 <li><code>-uw</code> : waits for update forever.</li>
-<li><code>-uf</code> : prints status of each update og file.</li>
+<li><code>-uf</code> : prints status of each update log file.</li>
 <li><code>-v</code> : show the version number of Kyoto Tycoon.</li>
 <li><code>-i</code> : show options to include the headers of Tokyo Tycoon.</li>
 <li><code>-l</code> : show options to link the library of Tokyo Tycoon.</li>
@@ -403,7 +403,7 @@
 <dd>Imports records from a TSV file.</dd>
 <dt><code>ktremotemgr vacuum [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-db <var>str</var>] [-step <var>num</var>] <var>path</var></code></dt>
 <dd>Eliminates regions of expired records.</dd>
-<dt><code>ktremotemgr slave [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-ts <var>num</var>] [-sid <var>num</var>] [-uw]</code></dt>
+<dt><code>ktremotemgr slave [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-ts <var>num</var>] [-sid <var>num</var>] [-ux] [-uw] [-uf] [-ur]</code></dt>
 <dd>Simulates a client of replication and prints update logs.</dd>
 <dt><code>ktremotemgr setbulk [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-bin] [-db <var>str</var>] [-sx] [-xt <var>num</var>] <var>key</var> <var>value</var> ...</code></dt>
 <dd>Store records at once.</dd>
@@ -442,7 +442,10 @@
 <li><code>-pv</code> : prints values of records also.</li>
 <li><code>-step <var>num</var></code> : specifies the number of steps.</li>
 <li><code>-sid <var>num</var></code> : specifies the server ID number.</li>
+<li><code>-ux</code> : fetches update logs of the specified server ID number only.</li>
 <li><code>-uw</code> : waits for update forever.</li>
+<li><code>-uf</code> : prints status of each update log file.</li>
+<li><code>-ur</code> : remove old update log files.</li>
 </ul>
 
 <p>This command returns 0 on success, another on failure.</p>

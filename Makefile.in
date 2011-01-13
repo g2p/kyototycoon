@@ -168,7 +168,7 @@ distclean : clean
 check :
 	$(MAKE) check-util
 	$(MAKE) check-timed
-	rm -rf casket*
+	rm -rf casket* *-ulog
 	@printf '\n'
 	@printf '#================================================================\n'
 	@printf '# Checking completed.\n'
@@ -176,7 +176,8 @@ check :
 
 
 check-util :
-	rm -rf casket*
+	rm -rf casket* *-ulog
+	$(RUNENV) $(RUNCMD) ./ktutilmgr version
 	$(RUNENV) $(RUNCMD) ./ktutilmgr date -ds '1978-02-11T18:05:00+09:00' -wf
 	$(RUNENV) $(RUNCMD) ./ktutilmgr date -ds '1977-10-07T12:00:00+09:00' -rf
 	rm -rf *-ulog
@@ -189,7 +190,7 @@ check-util :
 
 
 check-timed :
-	rm -rf casket*
+	rm -rf casket* *-ulog
 	$(RUNENV) $(RUNCMD) ./kttimedmgr create -otr "casket.kch#apow=1#fpow=2#bnum=3"
 	$(RUNENV) $(RUNCMD) ./kttimedmgr inform -st casket.kch
 	$(RUNENV) $(RUNCMD) ./kttimedmgr set -add -xt 3600 casket.kch duffy 1231
@@ -399,6 +400,7 @@ check-heavy :
 
 
 check-timed-heavy :
+	rm -rf casket* *-ulog
 	$(RUNENV) ./kttimedtest order -th 1 -rnd -set 'casket.kch' 4000000
 	$(RUNENV) ./kttimedtest order -th 4 -rnd -set 'casket.kch' 1000000
 	$(RUNENV) ./kttimedtest order -th 4 -rnd -set 'casket.kch#dfunit=8' 1000000

@@ -1,18 +1,16 @@
 require 'base64'
 
-basedir = "."
-sid = 20001
-rtspath = sprintf("%s/%05d.rts", basedir, sid)
+rtspath = "ktreplprint.rts"
 
 mode = File::Constants::RDWR | File::Constants::CREAT
 File::open(rtspath, mode) do |rtsfile|
-  begin
-    ts = rtsfile.readline
-  rescue
-    ts = 0
-  end
   while true
-    line = $stdin.readline.strip
+    begin
+      line = $stdin.readline
+    rescue
+      break
+    end
+    line = line.strip
     fields = line.split("\t")
     next if fields.length < 4
     rts = fields[0]
@@ -51,3 +49,5 @@ File::open(rtspath, mode) do |rtsfile|
     rtsfile.printf("%020d\n", rts)
   end
 end
+
+exit 0

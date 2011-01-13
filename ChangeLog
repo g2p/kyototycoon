@@ -1,3 +1,21 @@
+2010-12-27  Mikio Hirabayashi  <info@fallabs.com>
+
+	* ktremotedb.h (ReplicationClient::open): WHITESID options was added.
+
+	* ktserver.cc (Worker::do_bin_replication): WHITESID options was added.
+
+	- Release: 0.9.21
+
+2010-12-25  Mikio Hirabayashi  <info@fallabs.com>
+
+	* ktserver.cc (Worker::do_ulog_list, do_ulog_remove): new functions.
+
+	* ktremotedb.cc (RemoteDB::ulog_list, RemoteDB::ulog_remove): new functions.
+
+	* ktremotemgr.cc (runslave, procslave): "-uf" and "-ur" options were added.
+
+	- Release: 0.9.20
+
 2010-12-20  Mikio Hirabayashi  <info@fallabs.com>
 
 	* ktsocket.h (Poller::wait): EPOLLRDHUP was abolished to support old kernels.

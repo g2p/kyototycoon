@@ -376,6 +376,10 @@ private:
       rv = do_play_script(serv, sess, inmap, outmap);
     } else if (name == "tune_replication") {
       rv = do_tune_replication(serv, sess, inmap, outmap);
+    } else if (name == "ulog_list") {
+      rv = do_ulog_list(serv, sess, inmap, outmap);
+    } else if (name == "ulog_remove") {
+      rv = do_ulog_remove(serv, sess, inmap, outmap);
     } else if (name == "status") {
       rv = do_status(serv, sess, db, inmap, outmap);
     } else if (name == "clear") {
@@ -746,6 +750,58 @@ private:
     slave_->restart();
     return kt::RPCClient::RVSUCCESS;
   }
+  // process the ulog_list procedure
+  RV do_ulog_list(kt::RPCServer* serv, kt::RPCServer::Session* sess,
+                  const std::map<std::string, std::string>& inmap,
+                  std::map<std::string, std::string>& outmap) {
+    if (!ulog_) {
+      set_message(outmap, "ERROR", "no update log allows no replication");
+      return kt::RPCClient::RVEINVALID;
+    }
+    std::vector<kt::UpdateLogger::FileStatus> files;
+    ulog_->list_files(&files);
+    std::vector<kt::UpdateLogger::FileStatus>::iterator it = files.begin();
+    std::vector<kt::UpdateLogger::FileStatus>::iterator itend = files.end();
+    while (it != itend) {
+      set_message(outmap, it->path.c_str(), "%llu:%llu",
+                  (unsigned long long)it->size, (unsigned long long)it->ts);
+      it++;
+    }
+    return kt::RPCClient::RVSUCCESS;
+  }
+  // process the ulog_remove procedure
+  RV do_ulog_remove(kt::RPCServer* serv, kt::RPCServer::Session* sess,
+                    const std::map<std::string, std::string>& inmap,
+                    std::map<std::string, std::string>& outmap) {
+    if (!ulog_) {
+      set_message(outmap, "ERROR", "no update log allows no replication");
+      return kt::RPCClient::RVEINVALID;
+    }
+    const char* rp = kt::strmapget(inmap, "ts");
+    uint64_t ts = UINT64_MAX;
+    if (rp) {
+      if (!std::strcmp(rp, "now")) {
+        ts = kt::UpdateLogger::clock_pure();
+      } else {
+        ts = kc::atoi(rp);
+      }
+    }
+    bool err = false;
+    std::vector<kt::UpdateLogger::FileStatus> files;
+    ulog_->list_files(&files);
+    std::vector<kt::UpdateLogger::FileStatus>::iterator it = files.begin();
+    std::vector<kt::UpdateLogger::FileStatus>::iterator itend = files.end();
+    if (it != itend) itend--;
+    while (it != itend) {
+      if (it->ts <= ts && !kc::File::remove(it->path)) {
+        set_message(outmap, "ERROR", "removing a file failed: %s", it->path.c_str());
+        serv->log(Logger::ERROR, "removing a file failed: %s", it->path.c_str());
+        err = true;
+      }
+      it++;
+    }
+    return err ? kt::RPCClient::RVEINTERNAL : kt::RPCClient::RVSUCCESS;
+  }
   // process the status procedure
   RV do_status(kt::RPCServer* serv, kt::RPCServer::Session* sess,
                kt::TimedDB* db,
@@ -811,7 +867,7 @@ private:
         const char* cmd = command_.c_str();
         if (std::strchr(cmd, kc::File::PATHCHR) || !std::strcmp(cmd, kc::File::CDIRSTR) ||
             !std::strcmp(cmd, kc::File::PDIRSTR)) {
-          serv_->log(Logger::ERROR, "invalid command name: %s", cmd);
+          serv_->log(Logger::INFO, "invalid command name: %s", cmd);
           return false;
         }
         std::string cmdpath;
@@ -1788,6 +1844,7 @@ private:
     uint64_t ts = kc::readfixnum(rp, sizeof(ts));
     rp += sizeof(ts);
     uint16_t sid = kc::readfixnum(rp, sizeof(sid));
+    bool white = flags & kt::ReplicationClient::WHITESID;
     bool err = false;
     if (ulog_) {
       kt::UpdateLogger::Reader ulrd;
@@ -1805,9 +1862,15 @@ private:
             char* mbuf = ulrd.read(&msiz, &mts);
             if (mbuf) {
               size_t rsiz;
-              uint16_t rsid, rdbid;
+              uint16_t rsid = 0;
+              uint16_t rdbid = 0;
               const char* rbuf = DBUpdateLogger::parse(mbuf, msiz, &rsiz, &rsid, &rdbid);
-              if (rbuf && rsid != sid) {
+              if (white) {
+                if (rsid != sid) rbuf = NULL;
+              } else {
+                if (rsid == sid) rbuf = NULL;
+              }
+              if (rbuf) {
                 miss = 0;
                 size_t nsiz = 1 + sizeof(uint64_t) + sizeof(uint32_t) + msiz;
                 char* nbuf = nsiz > sizeof(stack) ? new char[nsiz] : stack;

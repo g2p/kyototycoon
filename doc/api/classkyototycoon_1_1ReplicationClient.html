@@ -37,11 +37,16 @@
 
 <p><a href="classkyototycoon_1_1ReplicationClient-members.html">List of all members.</a></p>
 <table border="0" cellpadding="0" cellspacing="0">
+<tr><td colspan="2"><h2>Public Types</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">enum &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ReplicationClient.html#a1e3c6ede6ae4d37bc2ab3b641520a97c">Option</a> { <a class="el" href="classkyototycoon_1_1ReplicationClient.html#a1e3c6ede6ae4d37bc2ab3b641520a97caf94624e9f66ebacdbb7a75db89862ffa">WHITESID</a> =  1 &lt;&lt; 0
+ }</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><p>Opening options. </p>
+ <a href="classkyototycoon_1_1ReplicationClient.html#a1e3c6ede6ae4d37bc2ab3b641520a97c">More...</a><br/></td></tr>
 <tr><td colspan="2"><h2>Public Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ReplicationClient.html#acc456caadbcb1cbe9adec88a101cfd4c">ReplicationClient</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Default constructor.  <a href="#acc456caadbcb1cbe9adec88a101cfd4c"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ReplicationClient.html#abf62de1ef3bd750ffa1ccdcc8ed18bd8">open</a> (const std::string &amp;host=&quot;&quot;, int32_t port=<a class="el" href="namespacekyototycoon.html#aebd15b3b803e2e0d38f51c0385b66c43">DEFPORT</a>, double timeout=-1, uint64_t ts=0, uint16_t sid=0)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Open the connection.  <a href="#abf62de1ef3bd750ffa1ccdcc8ed18bd8"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ReplicationClient.html#a28b89dcc117ae427577759a72254d552">open</a> (const std::string &amp;host=&quot;&quot;, int32_t port=<a class="el" href="namespacekyototycoon.html#aebd15b3b803e2e0d38f51c0385b66c43">DEFPORT</a>, double timeout=-1, uint64_t ts=0, uint16_t sid=0, uint32_t opts=0)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Open the connection.  <a href="#a28b89dcc117ae427577759a72254d552"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ReplicationClient.html#acd0d887ee41d864f32aa581dcdf7764f">close</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Close the connection.  <a href="#acd0d887ee41d864f32aa581dcdf7764f"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1ReplicationClient.html#a14a751d4b28b77261ed727efc25a02e7">read</a> (size_t *sp, uint64_t *tsp)</td></tr>
@@ -51,6 +56,29 @@
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>Replication client. </p>
+<hr/><h2>Member Enumeration Documentation</h2>
+<a class="anchor" id="a1e3c6ede6ae4d37bc2ab3b641520a97c"></a><!-- doxytag: member="kyototycoon::ReplicationClient::Option" ref="a1e3c6ede6ae4d37bc2ab3b641520a97c" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="classkyototycoon_1_1ReplicationClient.html#a1e3c6ede6ae4d37bc2ab3b641520a97c">kyototycoon::ReplicationClient::Option</a></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Opening options. </p>
+<dl><dt><b>Enumerator: </b></dt><dd><table border="0" cellspacing="2" cellpadding="0">
+<tr><td valign="top"><em><a class="anchor" id="a1e3c6ede6ae4d37bc2ab3b641520a97caf94624e9f66ebacdbb7a75db89862ffa"></a><!-- doxytag: member="WHITESID" ref="a1e3c6ede6ae4d37bc2ab3b641520a97caf94624e9f66ebacdbb7a75db89862ffa" args="" -->WHITESID</em>&nbsp;</td><td>
+<p>fetch messages of the specified SID only </p>
+</td></tr>
+</table>
+</dd>
+</dl>
+
+</div>
+</div>
 <hr/><h2>Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="acc456caadbcb1cbe9adec88a101cfd4c"></a><!-- doxytag: member="kyototycoon::ReplicationClient::ReplicationClient" ref="acc456caadbcb1cbe9adec88a101cfd4c" args="()" -->
 <div class="memitem">
@@ -72,7 +100,7 @@
 </div>
 </div>
 <hr/><h2>Member Function Documentation</h2>
-<a class="anchor" id="abf62de1ef3bd750ffa1ccdcc8ed18bd8"></a><!-- doxytag: member="kyototycoon::ReplicationClient::open" ref="abf62de1ef3bd750ffa1ccdcc8ed18bd8" args="(const std::string &amp;host=&quot;&quot;, int32_t port=DEFPORT, double timeout=&#45;1, uint64_t ts=0, uint16_t sid=0)" -->
+<a class="anchor" id="a28b89dcc117ae427577759a72254d552"></a><!-- doxytag: member="kyototycoon::ReplicationClient::open" ref="a28b89dcc117ae427577759a72254d552" args="(const std::string &amp;host=&quot;&quot;, int32_t port=DEFPORT, double timeout=&#45;1, uint64_t ts=0, uint16_t sid=0, uint32_t opts=0)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -104,7 +132,13 @@
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">uint16_t&nbsp;</td>
-          <td class="paramname"> <em>sid</em> = <code>0</code></td><td>&nbsp;</td>
+          <td class="paramname"> <em>sid</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&nbsp;</td>
+          <td class="paramname"> <em>opts</em> = <code>0</code></td><td>&nbsp;</td>
         </tr>
         <tr>
           <td></td>
@@ -123,6 +157,7 @@
     <tr><td valign="top"></td><td valign="top"><em>timeout</em>&nbsp;</td><td>the timeout of each operation in seconds. If it is not more than 0, no timeout is specified. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>ts</em>&nbsp;</td><td>the maximum time stamp of already read logs. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>sid</em>&nbsp;</td><td>the server ID number. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>opts</em>&nbsp;</td><td>the optional features by bitwise-or: <a class="el" href="classkyototycoon_1_1ReplicationClient.html#a1e3c6ede6ae4d37bc2ab3b641520a97caf94624e9f66ebacdbb7a75db89862ffa" title="fetch messages of the specified SID only">ReplicationClient::WHITESID</a> to fetch messages whose server ID number is the specified one only. </td></tr>
   </table>
   </dd>
 </dl>
@@ -208,7 +243,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Dec 23 12:29:47 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Dec 28 00:59:31 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

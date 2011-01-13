@@ -67,7 +67,7 @@ static int32_t procimport(const char* file, const char* host, int32_t port, doub
 static int32_t procvacuum(const char* host, int32_t port, double tout, const char* dbexpr,
                           int64_t step);
 static int32_t procslave(const char* host, int32_t port, double tout,
-                         uint64_t ts, int32_t sid, bool uw);
+                         uint64_t ts, int32_t sid, int32_t opts, bool uw, bool uf, bool ur);
 static int32_t procsetbulk(const std::map<std::string, std::string>& recs,
                            const char* host, int32_t port, double tout, bool bin,
                            const char* dbexpr, int64_t xt);
@@ -151,8 +151,8 @@ static void usage() {
           g_progname);
   eprintf("  %s vacuum [-host str] [-port num] [-tout num] [-db str] [-step num]\n",
           g_progname);
-  eprintf("  %s slave [-host str] [-port num] [-tout num] [-ts num] [-sid num] [-uw]\n",
-          g_progname);
+  eprintf("  %s slave [-host str] [-port num] [-tout num] [-ts num] [-sid num]"
+          " [-ux] [-uw] [-uf] [-ur]\n", g_progname);
   eprintf("  %s setbulk [-host str] [-port num] [-tout num] [-bin] [-db str] [-sx] [-xt num]"
           " key value ...\n", g_progname);
   eprintf("  %s removebulk [-host str] [-port num] [-tout num] [-bin] [-db str] [-sx]"
@@ -800,6 +800,9 @@ static int32_t runslave(int argc, char** argv) {
   uint64_t ts = 0;
   int32_t sid = 0;
   bool uw = false;
+  int32_t opts = 0;
+  bool uf = false;
+  bool ur = false;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -823,8 +826,14 @@ static int32_t runslave(int argc, char** argv) {
       } else if (!std::strcmp(argv[i], "-sid")) {
         if (++i >= argc) usage();
         sid = kc::atoix(argv[i]);
+      } else if (!std::strcmp(argv[i], "-ux")) {
+        opts |= kt::ReplicationClient::WHITESID;
       } else if (!std::strcmp(argv[i], "-uw")) {
         uw = true;
+      } else if (!std::strcmp(argv[i], "-uf")) {
+        uf = true;
+      } else if (!std::strcmp(argv[i], "-ur")) {
+        ur = true;
       } else {
         usage();
       }
@@ -834,7 +843,7 @@ static int32_t runslave(int argc, char** argv) {
     }
   }
   if (port < 1) usage();
-  int32_t rv = procslave(host, port, tout, ts, sid, uw);
+  int32_t rv = procslave(host, port, tout, ts, sid, opts, uw, uf, ur);
   return rv;
 }
 
@@ -1496,51 +1505,84 @@ static int32_t procvacuum(const char* host, int32_t port, double tout, const cha
 
 // perform slave command
 static int32_t procslave(const char* host, int32_t port, double tout,
-                         uint64_t ts, int32_t sid, bool uw) {
-  kt::ReplicationClient rc;
-  if (!rc.open(host, port, tout, ts, sid)) {
-    eprintf("%s: %s:%d: open error\n", g_progname, host, port);
-    return 1;
-  }
+                         uint64_t ts, int32_t sid, int32_t opts, bool uw, bool uf, bool ur) {
   bool err = false;
-  while (true) {
-    size_t msiz;
-    uint64_t mts;
-    char* mbuf = rc.read(&msiz, &mts);
-    if (mbuf) {
-      if (msiz > 0) {
-        size_t rsiz;
-        uint16_t rsid, rdbid;
-        const char* rbuf = DBUpdateLogger::parse(mbuf, msiz, &rsiz, &rsid, &rdbid);
-        if (rbuf) {
-          std::vector<std::string> tokens;
-          kt::TimedDB::tokenize_update_log(rbuf, rsiz, &tokens);
-          if (!tokens.empty()) {
-            const std::string& name = tokens.front();
-            printf("%llu\t%u\t%u\t%s", (unsigned long long)mts, rsid, rdbid, name.c_str());
-            std::vector<std::string>::iterator it = tokens.begin() + 1;
-            std::vector<std::string>::iterator itend = tokens.end();
-            while (it != itend) {
-              char* str = kc::baseencode(it->data(), it->size());
-              oprintf("\t%s", str);
-              delete[] str;
-              it++;
-            }
-            oprintf("\n");
-          }
-        } else {
-          eprintf("%s: parsing a message failed\n", g_progname);
-          err = true;
-        }
-      }
-      delete[] mbuf;
-    } else if (!rc.alive() || !uw) {
-      break;
+  if (uf || ur) {
+    kt::RemoteDB db;
+    if (!db.open(host, port, tout)) {
+      dberrprint(&db, "DB::open failed");
+      return 1;
     }
-  }
-  if (!rc.close()) {
-    eprintf("%s: close error\n", g_progname);
-    err = true;
+    if (ur) {
+      if (ts < 1) ts = UINT64_MAX;
+      if (!db.ulog_remove(ts)) {
+        dberrprint(&db, "DB::ulog_remove failed");
+        err = true;
+      }
+    } else {
+      std::vector<kt::UpdateLogger::FileStatus> files;
+      if (db.ulog_list(&files)) {
+        std::vector<kt::UpdateLogger::FileStatus>::iterator it = files.begin();
+        std::vector<kt::UpdateLogger::FileStatus>::iterator itend = files.end();
+        while (it != itend) {
+          oprintf("%s\t%llu\t%llu\n",
+                  it->path.c_str(), (unsigned long long)it->size, (unsigned long long)it->ts);
+          it++;
+        }
+      } else {
+        dberrprint(&db, "DB::ulog_list failed");
+        err = true;
+      }
+    }
+    if (!db.close()) {
+      dberrprint(&db, "DB::close failed");
+      err = true;
+    }
+  } else {
+    kt::ReplicationClient rc;
+    if (!rc.open(host, port, tout, ts, sid, opts)) {
+      eprintf("%s: %s:%d: open error\n", g_progname, host, port);
+      return 1;
+    }
+    while (true) {
+      size_t msiz;
+      uint64_t mts;
+      char* mbuf = rc.read(&msiz, &mts);
+      if (mbuf) {
+        if (msiz > 0) {
+          size_t rsiz;
+          uint16_t rsid, rdbid;
+          const char* rbuf = DBUpdateLogger::parse(mbuf, msiz, &rsiz, &rsid, &rdbid);
+          if (rbuf) {
+            std::vector<std::string> tokens;
+            kt::TimedDB::tokenize_update_log(rbuf, rsiz, &tokens);
+            if (!tokens.empty()) {
+              const std::string& name = tokens.front();
+              oprintf("%llu\t%u\t%u\t%s", (unsigned long long)mts, rsid, rdbid, name.c_str());
+              std::vector<std::string>::iterator it = tokens.begin() + 1;
+              std::vector<std::string>::iterator itend = tokens.end();
+              while (it != itend) {
+                char* str = kc::baseencode(it->data(), it->size());
+                oprintf("\t%s", str);
+                delete[] str;
+                it++;
+              }
+              oprintf("\n");
+            }
+          } else {
+            eprintf("%s: parsing a message failed\n", g_progname);
+            err = true;
+          }
+        }
+        delete[] mbuf;
+      } else if (!rc.alive() || !uw) {
+        break;
+      }
+    }
+    if (!rc.close()) {
+      eprintf("%s: close error\n", g_progname);
+      err = true;
+    }
   }
   return err ? 1 : 0;
 }
