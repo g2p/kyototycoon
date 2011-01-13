@@ -1,6 +1,6 @@
 /*************************************************************************************************
  * A persistent cache server
- *                                                               Copyright (C) 2009-2010 FAL Labs
+ *                                                               Copyright (C) 2009-2011 FAL Labs
  * This file is part of Kyoto Tycoon.
  * This program is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version
@@ -1189,7 +1189,7 @@ private:
     const char* vbuf = db->get(kbuf, ksiz, &vsiz, &xt);
     if (vbuf) {
       outmap["value"] = std::string(vbuf, vsiz);
-      if (xt < kt::TimedDB::XTMAX) kc::strprintf(&outmap["xt"], "%lld", (long long)xt);
+      if (xt < kt::TimedDB::XTMAX) set_message(outmap, "xt", "%lld", (long long)xt);
       delete[] vbuf;
       rv = kt::RPCClient::RVSUCCESS;
     } else {
@@ -1215,27 +1215,33 @@ private:
     }
     const char* rp = kt::strmapget(inmap, "xt");
     int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
-    bool err = false;
-    int64_t num = 0;
+    rp = kt::strmapget(inmap, "atomic");
+    bool atomic = rp ? true : false;
+    std::map<std::string, std::string> recs;
     std::map<std::string, std::string>::const_iterator it = inmap.begin();
     std::map<std::string, std::string>::const_iterator itend = inmap.end();
     while (it != itend) {
       const char* kbuf = it->first.data();
       size_t ksiz = it->first.size();
       if (ksiz > 0 && *kbuf == '_') {
-        if (db->set(kbuf + 1, ksiz - 1, it->second.data(), it->second.size(), xt)) {
-          num++;
-        } else {
-          const kc::BasicDB::Error& e = db->error();
-          set_db_error(outmap, e);
-          log_db_error(serv, e);
-          err = true;
-        }
+        std::string key(kbuf + 1, ksiz - 1);
+        std::string value(it->second.data(), it->second.size());
+        recs[key] = value;
       }
       it++;
     }
-    if (!err) kc::strprintf(&outmap["num"], "%lld", (long long)num);
-    return err ? kt::RPCClient::RVEINTERNAL : kt::RPCClient::RVSUCCESS;
+    RV rv;
+    int64_t num = db->set_bulk(recs, xt, atomic);
+    if (num >= 0) {
+      rv = kt::RPCClient::RVSUCCESS;
+      set_message(outmap, "num", "%lld", (long long)num);
+    } else {
+      const kc::BasicDB::Error& e = db->error();
+      set_db_error(outmap, e);
+      log_db_error(serv, e);
+      rv = kt::RPCClient::RVEINTERNAL;
+    }
+    return rv;
   }
   // process the remove_bulk procedure
   RV do_remove_bulk(kt::RPCServer* serv, kt::RPCServer::Session* sess,
@@ -1246,29 +1252,33 @@ private:
       set_message(outmap, "ERROR", "no such database");
       return kt::RPCClient::RVEINVALID;
     }
-    bool err = false;
-    int64_t num = 0;
+    const char* rp = kt::strmapget(inmap, "atomic");
+    bool atomic = rp ? true : false;
+    std::vector<std::string> keys;
+    keys.reserve(inmap.size());
     std::map<std::string, std::string>::const_iterator it = inmap.begin();
     std::map<std::string, std::string>::const_iterator itend = inmap.end();
     while (it != itend) {
       const char* kbuf = it->first.data();
       size_t ksiz = it->first.size();
       if (ksiz > 0 && *kbuf == '_') {
-        if (db->remove(kbuf + 1, ksiz - 1)) {
-          num++;
-        } else {
-          const kc::BasicDB::Error& e = db->error();
-          if (e != kc::BasicDB::Error::NOREC) {
-            set_db_error(outmap, e);
-            log_db_error(serv, e);
-            err = true;
-          }
-        }
+        std::string key(kbuf + 1, ksiz - 1);
+        keys.push_back(key);
       }
       it++;
     }
-    if (!err) kc::strprintf(&outmap["num"], "%lld", (long long)num);
-    return err ? kt::RPCClient::RVEINTERNAL : kt::RPCClient::RVSUCCESS;
+    RV rv;
+    int64_t num = db->remove_bulk(keys, atomic);
+    if (num >= 0) {
+      rv = kt::RPCClient::RVSUCCESS;
+      set_message(outmap, "num", "%lld", (long long)num);
+    } else {
+      const kc::BasicDB::Error& e = db->error();
+      set_db_error(outmap, e);
+      log_db_error(serv, e);
+      rv = kt::RPCClient::RVEINTERNAL;
+    }
+    return rv;
   }
   // process the get_bulk procedure
   RV do_get_bulk(kt::RPCServer* serv, kt::RPCServer::Session* sess,
@@ -1279,33 +1289,42 @@ private:
       set_message(outmap, "ERROR", "no such database");
       return kt::RPCClient::RVEINVALID;
     }
-    bool err = false;
-    int64_t num = 0;
+    const char* rp = kt::strmapget(inmap, "atomic");
+    bool atomic = rp ? true : false;
+    std::vector<std::string> keys;
+    keys.reserve(inmap.size());
     std::map<std::string, std::string>::const_iterator it = inmap.begin();
     std::map<std::string, std::string>::const_iterator itend = inmap.end();
     while (it != itend) {
       const char* kbuf = it->first.data();
       size_t ksiz = it->first.size();
       if (ksiz > 0 && *kbuf == '_') {
-        size_t vsiz;
-        char* vbuf = db->get(kbuf + 1, ksiz - 1, &vsiz);
-        if (vbuf) {
-          outmap[it->first] = std::string(vbuf, vsiz);
-          delete[] vbuf;
-          num++;
-        } else {
-          const kc::BasicDB::Error& e = db->error();
-          if (e != kc::BasicDB::Error::NOREC) {
-            set_db_error(outmap, e);
-            log_db_error(serv, e);
-            err = true;
-          }
-        }
+        std::string key(kbuf + 1, ksiz - 1);
+        keys.push_back(key);
       }
       it++;
     }
-    if (!err) kc::strprintf(&outmap["num"], "%lld", (long long)num);
-    return err ? kt::RPCClient::RVEINTERNAL : kt::RPCClient::RVSUCCESS;
+    RV rv;
+    std::map<std::string, std::string> recs;
+    int64_t num = db->get_bulk(keys, &recs, atomic);
+    if (num >= 0) {
+      rv = kt::RPCClient::RVSUCCESS;
+      std::map<std::string, std::string>::iterator it = recs.begin();
+      std::map<std::string, std::string>::iterator itend = recs.end();
+      while (it != itend) {
+        std::string key("_");
+        key.append(it->first);
+        outmap[key] = it->second;
+        it++;
+      }
+      set_message(outmap, "num", "%lld", (long long)num);
+    } else {
+      const kc::BasicDB::Error& e = db->error();
+      set_db_error(outmap, e);
+      log_db_error(serv, e);
+      rv = kt::RPCClient::RVEINTERNAL;
+    }
+    return rv;
   }
   // process the vacuum procedure
   RV do_vacuum(kt::RPCServer* serv, kt::RPCServer::Session* sess,
@@ -1358,7 +1377,7 @@ private:
         outmap[key] = "";
         it++;
       }
-      kc::strprintf(&outmap["num"], "%lld", (long long)num);
+      set_message(outmap, "num", "%lld", (long long)num);
       rv = kt::RPCClient::RVSUCCESS;
     } else {
       const kc::BasicDB::Error& e = db->error();
@@ -1397,7 +1416,7 @@ private:
         outmap[key] = "";
         it++;
       }
-      kc::strprintf(&outmap["num"], "%lld", (long long)num);
+      set_message(outmap, "num", "%lld", (long long)num);
       rv = kt::RPCClient::RVSUCCESS;
     } else {
       const kc::BasicDB::Error& e = db->error();
@@ -1705,7 +1724,7 @@ private:
     if (kbuf) {
       outmap["key"] = std::string(kbuf, ksiz);
       outmap["value"] = std::string(vbuf, vsiz);
-      if (xt < kt::TimedDB::XTMAX) kc::strprintf(&outmap["xt"], "%lld", (long long)xt);
+      if (xt < kt::TimedDB::XTMAX) set_message(outmap, "xt", "%lld", (long long)xt);
       delete[] kbuf;
       rv = kt::RPCClient::RVSUCCESS;
     } else {

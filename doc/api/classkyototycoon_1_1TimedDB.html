@@ -75,6 +75,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Close the database file.  <a href="#af69c719753f44fa216d286094f6227f1"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a1bf543ce065d1a54231a439d2a9f982b">accept</a> (const char *kbuf, size_t ksiz, <a class="el" href="classkyototycoon_1_1TimedDB_1_1Visitor.html">Visitor</a> *visitor, bool writable=true)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Accept a visitor to a record.  <a href="#a1bf543ce065d1a54231a439d2a9f982b"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#ad81e793803d75b5b398a0c5d445a3d48">accept_bulk</a> (const std::vector&lt; std::string &gt; &amp;keys, <a class="el" href="classkyototycoon_1_1TimedDB_1_1Visitor.html">Visitor</a> *visitor, bool writable=true)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Accept a visitor to multiple records at once.  <a href="#ad81e793803d75b5b398a0c5d445a3d48"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a23644d5a1c298e1fd08dc86664d3e0ef">iterate</a> (<a class="el" href="classkyototycoon_1_1TimedDB_1_1Visitor.html">Visitor</a> *visitor, bool writable=true, kc::BasicDB::ProgressChecker *checker=NULL)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Iterate to accept a visitor for each record.  <a href="#a23644d5a1c298e1fd08dc86664d3e0ef"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a1f3c628337cd4d3b7e457e427bb9f2c9">synchronize</a> (bool hard=false, kc::BasicDB::FileProcessor *proc=NULL, kc::BasicDB::ProgressChecker *checker=NULL)</td></tr>
@@ -135,6 +137,12 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieve the value of a record.  <a href="#a8389b6dc6312865132a46081159915d0"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#abe9750c27a9f5c55f4f833aabd1a411d">get</a> (const char *kbuf, size_t ksiz, char *vbuf, size_t max, int64_t *xtp=NULL)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieve the value of a record.  <a href="#abe9750c27a9f5c55f4f833aabd1a411d"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a52b9253adf7c02cf4facc66211d6cac6">set_bulk</a> (const std::map&lt; std::string, std::string &gt; &amp;recs, int64_t xt=INT64_MAX, bool atomic=true)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Store records at once.  <a href="#a52b9253adf7c02cf4facc66211d6cac6"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a425d5be6b33900897f70d3ec2fc317c2">remove_bulk</a> (const std::vector&lt; std::string &gt; &amp;keys, bool atomic=true)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Remove records at once.  <a href="#a425d5be6b33900897f70d3ec2fc317c2"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#acd647a5434cc49496cb90fce9d2b01b6">get_bulk</a> (const std::vector&lt; std::string &gt; &amp;keys, std::map&lt; std::string, std::string &gt; *recs, bool atomic=true)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieve records at once.  <a href="#acd647a5434cc49496cb90fce9d2b01b6"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#abe0ed01fc83f1928a5d162c99d76cafd">dump_snapshot</a> (std::ostream *dest, kc::BasicDB::ProgressChecker *checker=NULL)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Dump records into a data stream.  <a href="#abe0ed01fc83f1928a5d162c99d76cafd"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a842d6b73fa39e53215af5bbabe628ae7">dump_snapshot</a> (const std::string &amp;dest, kc::BasicDB::ProgressChecker *checker=NULL)</td></tr>
@@ -434,6 +442,51 @@
 </dl>
 <dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
 <dl class="note"><dt><b>Note:</b></dt><dd>the operation for each record is performed atomically and other threads accessing the same record are blocked. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ad81e793803d75b5b398a0c5d445a3d48"></a><!-- doxytag: member="kyototycoon::TimedDB::accept_bulk" ref="ad81e793803d75b5b398a0c5d445a3d48" args="(const std::vector&lt; std::string &gt; &amp;keys, Visitor *visitor, bool writable=true)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::TimedDB::accept_bulk </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&nbsp;</td>
+          <td class="paramname"> <em>keys</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Visitor.html">Visitor</a> *&nbsp;</td>
+          <td class="paramname"> <em>visitor</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&nbsp;</td>
+          <td class="paramname"> <em>writable</em> = <code>true</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Accept a visitor to multiple records at once. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>keys</em>&nbsp;</td><td>specifies a string vector of the keys. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>visitor</em>&nbsp;</td><td>a visitor object. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>writable</em>&nbsp;</td><td>true for writable operation, or false for read-only operation. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>The operations for specified records are performed atomically and other threads accessing the same records are blocked. To avoid deadlock, any database operation must not be performed in this function. </dd></dl>
 
 </div>
 </div>
@@ -1618,6 +1671,131 @@
 
 </div>
 </div>
+<a class="anchor" id="a52b9253adf7c02cf4facc66211d6cac6"></a><!-- doxytag: member="kyototycoon::TimedDB::set_bulk" ref="a52b9253adf7c02cf4facc66211d6cac6" args="(const std::map&lt; std::string, std::string &gt; &amp;recs, int64_t xt=INT64_MAX, bool atomic=true)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t kyototycoon::TimedDB::set_bulk </td>
+          <td>(</td>
+          <td class="paramtype">const std::map&lt; std::string, std::string &gt; &amp;&nbsp;</td>
+          <td class="paramname"> <em>recs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&nbsp;</td>
+          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&nbsp;</td>
+          <td class="paramname"> <em>atomic</em> = <code>true</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Store records at once. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>recs</em>&nbsp;</td><td>the records to store. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>xt</em>&nbsp;</td><td>the expiration time from now in seconds. If it is negative, the absolute value is treated as the epoch time. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>atomic</em>&nbsp;</td><td>true to perform all operations atomically, or false for non-atomic operations. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the number of stored records, or -1 on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a425d5be6b33900897f70d3ec2fc317c2"></a><!-- doxytag: member="kyototycoon::TimedDB::remove_bulk" ref="a425d5be6b33900897f70d3ec2fc317c2" args="(const std::vector&lt; std::string &gt; &amp;keys, bool atomic=true)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t kyototycoon::TimedDB::remove_bulk </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&nbsp;</td>
+          <td class="paramname"> <em>keys</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&nbsp;</td>
+          <td class="paramname"> <em>atomic</em> = <code>true</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Remove records at once. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>keys</em>&nbsp;</td><td>the keys of the records to remove. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>atomic</em>&nbsp;</td><td>true to perform all operations atomically, or false for non-atomic operations. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the number of removed records, or -1 on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="acd647a5434cc49496cb90fce9d2b01b6"></a><!-- doxytag: member="kyototycoon::TimedDB::get_bulk" ref="acd647a5434cc49496cb90fce9d2b01b6" args="(const std::vector&lt; std::string &gt; &amp;keys, std::map&lt; std::string, std::string &gt; *recs, bool atomic=true)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t kyototycoon::TimedDB::get_bulk </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&nbsp;</td>
+          <td class="paramname"> <em>keys</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::map&lt; std::string, std::string &gt; *&nbsp;</td>
+          <td class="paramname"> <em>recs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&nbsp;</td>
+          <td class="paramname"> <em>atomic</em> = <code>true</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Retrieve records at once. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>keys</em>&nbsp;</td><td>the keys of the records to retrieve. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>recs</em>&nbsp;</td><td>a string map to contain the retrieved records. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>atomic</em>&nbsp;</td><td>true to perform all operations atomically, or false for non-atomic operations. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>the number of retrieved records, or -1 on failure. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="abe0ed01fc83f1928a5d162c99d76cafd"></a><!-- doxytag: member="kyototycoon::TimedDB::dump_snapshot" ref="abe0ed01fc83f1928a5d162c99d76cafd" args="(std::ostream *dest, kc::BasicDB::ProgressChecker *checker=NULL)" -->
 <div class="memitem">
 <div class="memproto">
@@ -2164,7 +2342,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Dec 28 00:59:31 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Jan 4 23:09:55 2011 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

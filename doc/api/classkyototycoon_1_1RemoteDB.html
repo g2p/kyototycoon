@@ -125,12 +125,12 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieve the value of a record.  <a href="#acd063776b8998ab74365b76d64c65fd5"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">std::string *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#af2043152498cfa4ced04cc92673b2aa0">get</a> (const std::string &amp;key, int64_t *xtp=NULL)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieve the value of a record.  <a href="#af2043152498cfa4ced04cc92673b2aa0"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a1161ea013456fee682bbe2a7494f419d">set_bulk</a> (const std::map&lt; std::string, std::string &gt; &amp;recs, int64_t xt=INT64_MAX)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Store records at once.  <a href="#a1161ea013456fee682bbe2a7494f419d"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a105a1db7b9296d73e0ce250e22983fae">remove_bulk</a> (const std::vector&lt; std::string &gt; &amp;keys)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Store records at once.  <a href="#a105a1db7b9296d73e0ce250e22983fae"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a47595399f3e4eedc0913bfd2549be80e">get_bulk</a> (const std::vector&lt; std::string &gt; &amp;keys, std::map&lt; std::string, std::string &gt; *recs)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieve records at once.  <a href="#a47595399f3e4eedc0913bfd2549be80e"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a6742c8a92c24cd0f94c0d6fba645b5c0">set_bulk</a> (const std::map&lt; std::string, std::string &gt; &amp;recs, int64_t xt=INT64_MAX, bool atomic=true)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Store records at once.  <a href="#a6742c8a92c24cd0f94c0d6fba645b5c0"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a87ad111091af89cada89c99810270f37">remove_bulk</a> (const std::vector&lt; std::string &gt; &amp;keys, bool atomic=true)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Store records at once.  <a href="#a87ad111091af89cada89c99810270f37"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a938552fe4fa71487a17545bceafd5ad7">get_bulk</a> (const std::vector&lt; std::string &gt; &amp;keys, std::map&lt; std::string, std::string &gt; *recs, bool atomic=true)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieve records at once.  <a href="#a938552fe4fa71487a17545bceafd5ad7"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a68a4885b5fac88c72bf62d75539def3e">vacuum</a> (int64_t step=0)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Scan the database and eliminate regions of expired records.  <a href="#a68a4885b5fac88c72bf62d75539def3e"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#aff05cb0454a003330cbc82bff68ea7e4">match_prefix</a> (const std::string &amp;prefix, std::vector&lt; std::string &gt; *strvec, int64_t max=-1)</td></tr>
@@ -1439,7 +1439,7 @@
 
 </div>
 </div>
-<a class="anchor" id="a1161ea013456fee682bbe2a7494f419d"></a><!-- doxytag: member="kyototycoon::RemoteDB::set_bulk" ref="a1161ea013456fee682bbe2a7494f419d" args="(const std::map&lt; std::string, std::string &gt; &amp;recs, int64_t xt=INT64_MAX)" -->
+<a class="anchor" id="a6742c8a92c24cd0f94c0d6fba645b5c0"></a><!-- doxytag: member="kyototycoon::RemoteDB::set_bulk" ref="a6742c8a92c24cd0f94c0d6fba645b5c0" args="(const std::map&lt; std::string, std::string &gt; &amp;recs, int64_t xt=INT64_MAX, bool atomic=true)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1453,7 +1453,13 @@
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int64_t&nbsp;</td>
-          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code></td><td>&nbsp;</td>
+          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&nbsp;</td>
+          <td class="paramname"> <em>atomic</em> = <code>true</code></td><td>&nbsp;</td>
         </tr>
         <tr>
           <td></td>
@@ -1469,6 +1475,7 @@
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"></td><td valign="top"><em>recs</em>&nbsp;</td><td>the records to store. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>xt</em>&nbsp;</td><td>the expiration time from now in seconds. If it is negative, the absolute value is treated as the epoch time. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>atomic</em>&nbsp;</td><td>true to perform all operations atomically, or false for non-atomic operations. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1476,7 +1483,7 @@
 
 </div>
 </div>
-<a class="anchor" id="a105a1db7b9296d73e0ce250e22983fae"></a><!-- doxytag: member="kyototycoon::RemoteDB::remove_bulk" ref="a105a1db7b9296d73e0ce250e22983fae" args="(const std::vector&lt; std::string &gt; &amp;keys)" -->
+<a class="anchor" id="a87ad111091af89cada89c99810270f37"></a><!-- doxytag: member="kyototycoon::RemoteDB::remove_bulk" ref="a87ad111091af89cada89c99810270f37" args="(const std::vector&lt; std::string &gt; &amp;keys, bool atomic=true)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1484,9 +1491,18 @@
           <td class="memname">int64_t kyototycoon::RemoteDB::remove_bulk </td>
           <td>(</td>
           <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&nbsp;</td>
-          <td class="paramname"> <em>keys</em></td>
-          <td>&nbsp;)&nbsp;</td>
+          <td class="paramname"> <em>keys</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool&nbsp;</td>
+          <td class="paramname"> <em>atomic</em> = <code>true</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
         </tr>
       </table>
 </div>
@@ -1496,6 +1512,7 @@
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"></td><td valign="top"><em>keys</em>&nbsp;</td><td>the keys of the records to remove. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>atomic</em>&nbsp;</td><td>true to perform all operations atomically, or false for non-atomic operations. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1503,7 +1520,7 @@
 
 </div>
 </div>
-<a class="anchor" id="a47595399f3e4eedc0913bfd2549be80e"></a><!-- doxytag: member="kyototycoon::RemoteDB::get_bulk" ref="a47595399f3e4eedc0913bfd2549be80e" args="(const std::vector&lt; std::string &gt; &amp;keys, std::map&lt; std::string, std::string &gt; *recs)" -->
+<a class="anchor" id="a938552fe4fa71487a17545bceafd5ad7"></a><!-- doxytag: member="kyototycoon::RemoteDB::get_bulk" ref="a938552fe4fa71487a17545bceafd5ad7" args="(const std::vector&lt; std::string &gt; &amp;keys, std::map&lt; std::string, std::string &gt; *recs, bool atomic=true)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1517,7 +1534,13 @@
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">std::map&lt; std::string, std::string &gt; *&nbsp;</td>
-          <td class="paramname"> <em>recs</em></td><td>&nbsp;</td>
+          <td class="paramname"> <em>recs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&nbsp;</td>
+          <td class="paramname"> <em>atomic</em> = <code>true</code></td><td>&nbsp;</td>
         </tr>
         <tr>
           <td></td>
@@ -1533,6 +1556,7 @@
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"></td><td valign="top"><em>keys</em>&nbsp;</td><td>the keys of the records to retrieve. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>recs</em>&nbsp;</td><td>a string map to contain the retrieved records. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>atomic</em>&nbsp;</td><td>true to perform all operations atomically, or false for non-atomic operations. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1864,7 +1888,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Dec 28 00:59:31 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Jan 4 23:09:55 2011 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

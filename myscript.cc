@@ -1,6 +1,6 @@
 /*************************************************************************************************
  * The scripting extension
- *                                                               Copyright (C) 2009-2010 FAL Labs
+ *                                                               Copyright (C) 2009-2011 FAL Labs
  * This file is part of Kyoto Tycoon.
  * This program is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version
@@ -107,6 +107,7 @@ static int db_error(lua_State* lua);
 static int db_open(lua_State* lua);
 static int db_close(lua_State* lua);
 static int db_accept(lua_State* lua);
+static int db_accept_bulk(lua_State* lua);
 static int db_iterate(lua_State* lua);
 static int db_set(lua_State* lua);
 static int db_add(lua_State* lua);
@@ -117,6 +118,9 @@ static int db_increment_double(lua_State* lua);
 static int db_cas(lua_State* lua);
 static int db_remove(lua_State* lua);
 static int db_get(lua_State* lua);
+static int db_set_bulk(lua_State* lua);
+static int db_remove_bulk(lua_State* lua);
+static int db_get_bulk(lua_State* lua);
 static int db_clear(lua_State* lua);
 static int db_synchronize(lua_State* lua);
 static int db_copy(lua_State* lua);
@@ -442,8 +446,8 @@ private:
     }
     const char* rv = NOP;
     if (lua_pcall(lua_, argc, 2, 0) == 0) {
-      if (lua_islightuserdata(lua_, -1)) {
-        const char* trv = (const char*)lua_touserdata(lua_, -1);
+      if (lua_islightuserdata(lua_, -2)) {
+        const char* trv = (const char*)lua_touserdata(lua_, -2);
         if (trv == kt::TimedDB::Visitor::REMOVE) rv = kt::TimedDB::Visitor::REMOVE;
       } else {
         size_t rsiz;
@@ -1975,6 +1979,7 @@ static int db_new(lua_State* lua) {
   setfieldfunc(lua, "open", db_open);
   setfieldfunc(lua, "close", db_close);
   setfieldfunc(lua, "accept", db_accept);
+  setfieldfunc(lua, "accept_bulk", db_accept_bulk);
   setfieldfunc(lua, "iterate", db_iterate);
   setfieldfunc(lua, "set", db_set);
   setfieldfunc(lua, "add", db_add);
@@ -1985,6 +1990,9 @@ static int db_new(lua_State* lua) {
   setfieldfunc(lua, "cas", db_cas);
   setfieldfunc(lua, "remove", db_remove);
   setfieldfunc(lua, "get", db_get);
+  setfieldfunc(lua, "set_bulk", db_set_bulk);
+  setfieldfunc(lua, "remove_bulk", db_remove_bulk);
+  setfieldfunc(lua, "get_bulk", db_get_bulk);
   setfieldfunc(lua, "clear", db_clear);
   setfieldfunc(lua, "synchronize", db_synchronize);
   setfieldfunc(lua, "copy", db_copy);
@@ -2244,6 +2252,41 @@ static int db_accept(lua_State* lua) {
 
 
 /**
+ * Implementation of accept_bulk.
+ */
+static int db_accept_bulk(lua_State* lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc < 3 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 4) throwinvarg(lua, __KCFUNC__);
+  lua_getfield(lua, 1, "db_ptr_");
+  SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
+  if (!db || !lua_istable(lua, 2)) throwinvarg(lua, __KCFUNC__);
+  size_t knum = lua_objlen(lua, 2);
+  StringVector keys;
+  keys.reserve(knum);
+  for (size_t i = 1; i <= knum; i++) {
+    lua_rawgeti(lua, 2, i);
+    size_t ksiz;
+    const char* kbuf = lua_tolstring(lua, -1, &ksiz);
+    if (kbuf) keys.push_back(std::string(kbuf, ksiz));
+    lua_pop(lua, 1);
+  }
+  bool writable = argc > 3 ? lua_toboolean(lua, 4) : true;
+  bool rv;
+  if (lua_istable(lua, 3) || lua_isfunction(lua, 3)) {
+    lua_pushvalue(lua, 3);
+    SoftVisitor visitor(lua, writable);
+    rv = db->db->accept_bulk(keys, &visitor, writable);
+  } else {
+    throwinvarg(lua, __KCFUNC__);
+    rv = false;
+  }
+  lua_pushboolean(lua, rv);
+  return 1;
+}
+
+
+/**
  * Implementation of iterate.
  */
 static int db_iterate(lua_State* lua) {
@@ -2461,6 +2504,124 @@ static int db_get(lua_State* lua) {
     return 2;
   }
   lua_pushnil(lua);
+  return 1;
+}
+
+
+/**
+ * Implementation of set_bulk.
+ */
+static int db_set_bulk(lua_State* lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 4) throwinvarg(lua, __KCFUNC__);
+  lua_getfield(lua, 1, "db_ptr_");
+  SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
+  if (!db || !lua_istable(lua, 2)) throwinvarg(lua, __KCFUNC__);
+  StringMap recs;
+  lua_pushnil(lua);
+  while (lua_next(lua, 2) != 0) {
+    char knbuf[kc::NUMBUFSIZ];
+    const char* kbuf = NULL;
+    size_t ksiz = 0;
+    switch (lua_type(lua, -2)) {
+      case LUA_TNUMBER: {
+        ksiz = std::sprintf(knbuf, "%d", (int)lua_tonumber(lua, -2));
+        kbuf = knbuf;
+        break;
+      }
+      case LUA_TSTRING: {
+        kbuf = lua_tolstring(lua, -2, &ksiz);
+        break;
+      }
+    }
+    char vnbuf[kc::NUMBUFSIZ];
+    const char* vbuf = NULL;
+    size_t vsiz = 0;
+    switch (lua_type(lua, -1)) {
+      case LUA_TNUMBER: {
+        vsiz = std::sprintf(vnbuf, "%d", (int)lua_tonumber(lua, -1));
+        vbuf = vnbuf;
+        break;
+      }
+      case LUA_TSTRING: {
+        vbuf = lua_tolstring(lua, -1, &vsiz);
+        break;
+      }
+    }
+    if (kbuf && vbuf) recs[std::string(kbuf, ksiz)] = std::string(vbuf, vsiz);
+    lua_pop(lua, 1);
+  }
+  int64_t xt = argc > 2 && !lua_isnil(lua, 3) ? lua_tonumber(lua, 3) : INT64_MAX;
+  bool atomic = argc > 3 ? lua_toboolean(lua, 4) : true;
+  int64_t rv = db->db->set_bulk(recs, xt, atomic);
+  lua_pushnumber(lua, rv);
+  return 1;
+}
+
+
+/**
+ * Implementation of remove_bulk.
+ */
+static int db_remove_bulk(lua_State* lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 3) throwinvarg(lua, __KCFUNC__);
+  lua_getfield(lua, 1, "db_ptr_");
+  SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
+  if (!db || !lua_istable(lua, 2)) throwinvarg(lua, __KCFUNC__);
+  size_t knum = lua_objlen(lua, 2);
+  StringVector keys;
+  keys.reserve(knum);
+  for (size_t i = 1; i <= knum; i++) {
+    lua_rawgeti(lua, 2, i);
+    size_t ksiz;
+    const char* kbuf = lua_tolstring(lua, -1, &ksiz);
+    if (kbuf) keys.push_back(std::string(kbuf, ksiz));
+    lua_pop(lua, 1);
+  }
+  bool atomic = argc > 2 ? lua_toboolean(lua, 3) : true;
+  int64_t rv = db->db->remove_bulk(keys, atomic);
+  lua_pushnumber(lua, rv);
+  return 1;
+}
+
+
+/**
+ * Implementation of get_bulk.
+ */
+static int db_get_bulk(lua_State* lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc < 2 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 3) throwinvarg(lua, __KCFUNC__);
+  lua_getfield(lua, 1, "db_ptr_");
+  SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
+  if (!db || !lua_istable(lua, 2)) throwinvarg(lua, __KCFUNC__);
+  size_t knum = lua_objlen(lua, 2);
+  StringVector keys;
+  keys.reserve(knum);
+  for (size_t i = 1; i <= knum; i++) {
+    lua_rawgeti(lua, 2, i);
+    size_t ksiz;
+    const char* kbuf = lua_tolstring(lua, -1, &ksiz);
+    if (kbuf) keys.push_back(std::string(kbuf, ksiz));
+    lua_pop(lua, 1);
+  }
+  bool atomic = argc > 2 ? lua_toboolean(lua, 3) : true;
+  StringMap recs;
+  bool rv = db->db->get_bulk(keys, &recs, atomic);
+  if (rv) {
+    lua_newtable(lua);
+    StringMap::const_iterator it = recs.begin();
+    StringMap::const_iterator itend = recs.end();
+    while (it != itend) {
+      lua_pushstring(lua, it->second.c_str());
+      lua_setfield(lua, -2, it->first.c_str());
+      it++;
+    }
+  } else {
+    lua_pushnil(lua);
+  }
   return 1;
 }
 
@@ -2768,14 +2929,14 @@ static int db_merge(lua_State* lua) {
   if (!db) throwinvarg(lua, __KCFUNC__);
   uint32_t mode = kt::TimedDB::MSET;
   if (argc > 2 && lua_isnumber(lua, 3)) mode = lua_tonumber(lua, 3);
-  int32_t num = lua_objlen(lua, 2);
+  size_t num = lua_objlen(lua, 2);
   if (num < 1) {
     lua_pushboolean(lua, true);
     return 1;
   }
   kt::TimedDB** srcary = new kt::TimedDB*[num];
   size_t srcnum = 0;
-  for (int32_t i = 1; i <= num; i++) {
+  for (size_t i = 1; i <= num; i++) {
     lua_rawgeti(lua, 2, i);
     if (lua_istable(lua, -1)) {
       lua_getfield(lua, -1, "db_ptr_");

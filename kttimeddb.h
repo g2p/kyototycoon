@@ -1,6 +1,6 @@
 /*************************************************************************************************
  * Timed database
- *                                                               Copyright (C) 2009-2010 FAL Labs
+ *                                                               Copyright (C) 2009-2011 FAL Labs
  * This file is part of Kyoto Tycoon.
  * This program is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either version
@@ -814,6 +814,29 @@ public:
     return !err;
   }
   /**
+   * Accept a visitor to multiple records at once.
+   * @param keys specifies a string vector of the keys.
+   * @param visitor a visitor object.
+   * @param writable true for writable operation, or false for read-only operation.
+   * @return true on success, or false on failure.
+   * @note The operations for specified records are performed atomically and other threads
+   * accessing the same records are blocked.  To avoid deadlock, any database operation must not
+   * be performed in this function.
+   */
+  bool accept_bulk(const std::vector<std::string>& keys, Visitor* visitor,
+                   bool writable = true) {
+    _assert_(visitor);
+    bool err = false;
+    int64_t ct = std::time(NULL);
+    TimedVisitor myvisitor(this, visitor, ct, false);
+    if (!db_.accept_bulk(keys, &myvisitor, writable)) err = true;
+    if (xcur_) {
+      int64_t xtsc = writable ? JDBXTSCUNIT : JDBXTSCUNIT / JDBXTREADFREQ;
+      if (!expire_records(xtsc)) err = true;
+    }
+    return !err;
+  }
+  /**
    * Iterate to accept a visitor for each record.
    * @param visitor a visitor object.
    * @param writable true for writable operation, or false for read-only operation.
@@ -1538,6 +1561,148 @@ public:
     return vsiz;
   }
   /**
+   * Store records at once.
+   * @param recs the records to store.
+   * @param xt the expiration time from now in seconds.  If it is negative, the absolute value
+   * is treated as the epoch time.
+   * @param atomic true to perform all operations atomically, or false for non-atomic operations.
+   * @return the number of stored records, or -1 on failure.
+   */
+  int64_t set_bulk(const std::map<std::string, std::string>& recs,
+                   int64_t xt = INT64_MAX, bool atomic = true) {
+    _assert_(true);
+    if (atomic) {
+      std::vector<std::string> keys;
+      keys.reserve(recs.size());
+      std::map<std::string, std::string>::const_iterator rit = recs.begin();
+      std::map<std::string, std::string>::const_iterator ritend = recs.end();
+      while (rit != ritend) {
+        keys.push_back(rit->first);
+        rit++;
+      }
+      class VisitorImpl : public Visitor {
+      public:
+        explicit VisitorImpl(const std::map<std::string, std::string>& recs, int64_t xt) :
+          recs_(recs), xt_(xt) {}
+      private:
+        const char* visit_full(const char* kbuf, size_t ksiz,
+                               const char* vbuf, size_t vsiz, size_t* sp, int64_t* xtp) {
+          std::map<std::string, std::string>::const_iterator rit =
+            recs_.find(std::string(kbuf, ksiz));
+          if (rit == recs_.end()) return NOP;
+          *sp = rit->second.size();
+          *xtp = xt_;
+          return rit->second.data();
+        }
+        const char* visit_empty(const char* kbuf, size_t ksiz, size_t* sp, int64_t* xtp) {
+          std::map<std::string, std::string>::const_iterator rit =
+            recs_.find(std::string(kbuf, ksiz));
+          if (rit == recs_.end()) return NOP;
+          *sp = rit->second.size();
+          *xtp = xt_;
+          return rit->second.data();
+        }
+        const std::map<std::string, std::string>& recs_;
+        int64_t xt_;
+      };
+      VisitorImpl visitor(recs, xt);
+      if (!accept_bulk(keys, &visitor, true)) return -1;
+      return keys.size();
+    }
+    std::map<std::string, std::string>::const_iterator rit = recs.begin();
+    std::map<std::string, std::string>::const_iterator ritend = recs.end();
+    while (rit != ritend) {
+      if (!set(rit->first.data(), rit->first.size(), rit->second.data(), rit->second.size(), xt))
+        return -1;
+      rit++;
+    }
+    return recs.size();
+  }
+  /**
+   * Remove records at once.
+   * @param keys the keys of the records to remove.
+   * @param atomic true to perform all operations atomically, or false for non-atomic operations.
+   * @return the number of removed records, or -1 on failure.
+   */
+  int64_t remove_bulk(const std::vector<std::string>& keys, bool atomic = true) {
+    _assert_(true);
+    if (atomic) {
+      class VisitorImpl : public Visitor {
+      public:
+        explicit VisitorImpl() : cnt_(0) {}
+        int64_t cnt() const {
+          return cnt_;
+        }
+      private:
+        const char* visit_full(const char* kbuf, size_t ksiz,
+                               const char* vbuf, size_t vsiz, size_t* sp, int64_t* xtp) {
+          cnt_++;
+          return REMOVE;
+        }
+        const char* visit_empty(const char* kbuf, size_t ksiz, size_t* sp, int64_t* xtp) {
+          return REMOVE;
+        }
+        int64_t cnt_;
+      };
+      VisitorImpl visitor;
+      if (!accept_bulk(keys, &visitor, true)) return -1;
+      return visitor.cnt();
+    }
+    int64_t cnt = 0;
+    std::vector<std::string>::const_iterator kit = keys.begin();
+    std::vector<std::string>::const_iterator kitend = keys.end();
+    while (kit != kitend) {
+      if (remove(kit->data(), kit->size())) {
+        cnt++;
+      } else if (error() != kc::BasicDB::Error::NOREC) {
+        return -1;
+      }
+      kit++;
+    }
+    return cnt;
+  }
+  /**
+   * Retrieve records at once.
+   * @param keys the keys of the records to retrieve.
+   * @param recs a string map to contain the retrieved records.
+   * @param atomic true to perform all operations atomically, or false for non-atomic operations.
+   * @return the number of retrieved records, or -1 on failure.
+   */
+  int64_t get_bulk(const std::vector<std::string>& keys,
+                   std::map<std::string, std::string>* recs, bool atomic = true) {
+    _assert_(recs);
+    if (atomic) {
+      class VisitorImpl : public Visitor {
+      public:
+        explicit VisitorImpl(std::map<std::string, std::string>* recs) : recs_(recs) {}
+      private:
+        const char* visit_full(const char* kbuf, size_t ksiz,
+                               const char* vbuf, size_t vsiz, size_t* sp, int64_t* xtp) {
+          (*recs_)[std::string(kbuf, ksiz)] = std::string(vbuf, vsiz);
+          return NOP;
+        }
+        std::map<std::string, std::string>* recs_;
+      };
+      VisitorImpl visitor(recs);
+      if (!accept_bulk(keys, &visitor, false)) return -1;
+      return recs->size();
+    }
+    std::vector<std::string>::const_iterator kit = keys.begin();
+    std::vector<std::string>::const_iterator kitend = keys.end();
+    while (kit != kitend) {
+      size_t vsiz;
+      const char* vbuf = get(kit->data(), kit->size(), &vsiz);
+      if (vbuf) {
+        (*recs)[*kit] = std::string(vbuf, vsiz);
+        delete[] vbuf;
+      } else if (error() != kc::BasicDB::Error::NOREC) {
+        return -1;
+      }
+      kit++;
+    }
+    return recs->size();
+  }
+  /**
    * Dump records into a data stream.
    * @param dest the destination stream.
    * @param checker a progress checker object.  If it is NULL, no checking is performed.
@@ -1948,6 +2113,7 @@ private:
           if (db_->utrigger_) log_update(db_->utrigger_, kbuf, ksiz, REMOVE, 0);
           return REMOVE;
         }
+        delete[] jbuf_;
         xt = modify_exptime(xt, ct_);
         size_t jsiz;
         jbuf_ = make_record_value(rbuf, rsiz, xt, &jsiz);
@@ -1964,6 +2130,7 @@ private:
         if (db_->utrigger_) log_update(db_->utrigger_, kbuf, ksiz, REMOVE, 0);
         return REMOVE;
       }
+      delete[] jbuf_;
       xt = modify_exptime(xt, ct_);
       size_t jsiz;
       jbuf_ = make_record_value(rbuf, rsiz, xt, &jsiz);
@@ -1988,6 +2155,7 @@ private:
         if (db_->utrigger_) log_update(db_->utrigger_, kbuf, ksiz, REMOVE, 0);
         return REMOVE;
       }
+      delete[] jbuf_;
       xt = modify_exptime(xt, ct_);
       size_t jsiz;
       jbuf_ = make_record_value(rbuf, rsiz, xt, &jsiz);

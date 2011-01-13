@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 -- Scripting extension of Kyoto Tycoon
---                                                                Copyright (C) 2009-2010 FAL Labs
+--                                                                Copyright (C) 2009-2011 FAL Labs
 -- This file is part of Kyoto Tycoon.
 -- This program is free software: you can redistribute it and/or modify it under the terms of
 -- the GNU General Public License as published by the Free Software Foundation, either version
@@ -311,6 +311,7 @@ function cursor:disable() end
 -- @param writable true for writable operation, or false for read-only operation.  If it is omitted, true is specified.
 -- @param step true to move the cursor to the next record, or false for no move.  If it is omitted, false is specified.
 -- @return true on success, or false on failure.
+-- @usage The operation for each record is performed atomically and other threads accessing the same record are blocked.  To avoid deadlock, any explicit database operation must not be performed in this method.
 function cursor:accept(visitor, writable, step) end
 
 
@@ -485,15 +486,24 @@ function db:close() end
 -- @param visitor a visitor object which implements the Visitor interface, or a function object which receives the key and the value.
 -- @param writable true for writable operation, or false for read-only operation.  If it is omitted, true is specified.
 -- @return true on success, or false on failure.
--- @usage The operation for each record is performed atomically and other threads accessing the same record are blocked.
+-- @usage The operation for each record is performed atomically and other threads accessing the same record are blocked.  To avoid deadlock, any explicit database operation must not be performed in this method.
 function db:accept(key, visitor, writable) end
+
+
+--- Accept a visitor to multiple records at once.
+-- @param keys specifies an array of the keys.
+-- @param visitor a visitor object which implements the Visitor interface, or a function object which receives the key and the value.
+-- @param writable true for writable operation, or false for read-only operation.  If it is omitted, true is specified.
+-- @return true on success, or false on failure.
+-- @usage The operations for specified records are performed atomically and other threads accessing the same records are blocked.  To avoid deadlock, any explicit database operation must not be performed in this function.
+function db:accept_bulk(keys, visitor, writable) end
 
 
 --- Iterate to accept a visitor for each record.
 -- @param visitor a visitor object which implements the Visitor interface, or a function object which receives the key and the value.
 -- @param writable true for writable operation, or false for read-only operation.  If it is omitted, true is specified.
 -- @return true on success, or false on failure.
--- @usage The whole iteration is performed atomically and other threads are blocked.
+-- @usage The whole iteration is performed atomically and other threads are blocked.  To avoid deadlock, any explicit database operation must not be performed in this method.
 function db:iterate(visitor, writable) end
 
 
@@ -571,6 +581,28 @@ function db:remove(key) end
 function db:get(key) end
 
 
+--- Store records at once.
+-- @param recs a table of the records to store.
+-- @param xt the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.  If it is omitted, no expiration time is specified.
+-- @param atomic true to perform all operations atomically, or false for non-atomic operations.  If it is omitted, true is specified.
+-- @return the number of stored records, or -1 on failure.
+function db:set_bulk(recs, atomic) end
+
+
+--- Remove records at once.
+-- @param keys an array of the keys of the records to remove.
+-- @param atomic true to perform all operations atomically, or false for non-atomic operations.  If it is omitted, true is specified.
+-- @return the number of removed records, or -1 on failure.
+function db:remove_bulk(keys, atomic) end
+
+
+--- Retrieve records at once.
+-- @param keys an array of the keys of the records to retrieve.
+-- @param atomic true to perform all operations atomically, or false for non-atomic operations.  If it is omitted, true is specified.
+-- @return a table of retrieved records, or nil on failure.
+function db:get_bulk(keys, atomic) end
+
+
 --- Remove all records.
 -- @return true on success, or false on failure.
 function db:clear() end
@@ -636,7 +668,7 @@ function db:path() end
 
 
 --- Get the miscellaneous status information.
--- @return a map object of the status information, or nil on failure.
+-- @return a table of the status information, or nil on failure.
 function db:status() end
 
 

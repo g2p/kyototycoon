@@ -116,6 +116,48 @@ function get(inmap, outmap)
    return kt.RVSUCCESS
 end
 
+-- retrieve records at once
+function setbulk(inmap, outmap)
+   local num = db:set_bulk(inmap)
+   if num < 0 then
+      return kt.RVEINTERNAL
+   end
+   outmap["num"] = num
+   return kt.RVSUCCESS
+end
+
+-- move the value of a record to another
+function move(inmap, outmap)
+   local srckey = inmap.src
+   local destkey = inmap.dest
+   if not srckey or not destkey then
+      return kt.RVEINVALID
+   end
+   local keys = { srckey, destkey }
+   local first = true
+   local srcval = nil
+   local srcxt = nil
+   local function visit(key, value, xt)
+      if first then
+         srcval = value
+         srcxt = xt
+         first = false
+         return kt.Visitor.REMOVE
+      end
+      if srcval then
+         return srcval, srcxt
+      end
+      return kt.Visitor.NOP
+   end
+   if not db:accept_bulk(keys, visit) then
+      return kt.REINTERNAL
+   end
+   if not srcval then
+      return kt.RVELOGIC
+   end
+   return kt.RVSUCCESS
+end
+
 -- list all records
 function list(inmap, outmap)
    local cur = db:cursor()
