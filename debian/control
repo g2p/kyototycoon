@@ -9,7 +9,7 @@ Homepage: http://fallabs.com/kyototycoon/
 Package: kyototycoon
 Architecture: any
 Priority: optional
-Depends: ${shlibs:Depends}, ${misc:Depends}, adduser, libkyototycoon1 (= ${binary:Version}), lsb-base (>= 3.0-6)
+Depends: ${shlibs:Depends}, ${misc:Depends}, adduser, libkyototycoon2 (= ${binary:Version}), lsb-base (>= 3.0-6)
 Recommends: kyototycoon-utils
 Description: Kyoto Tycoon: network interface to Kyoto Cabinet
  Kyoto Tycoon is a network interface to the DBM Kyoto Cabinet. You might bother
@@ -31,7 +31,7 @@ Description: Kyoto Tycoon debugging symbols
  .
  This is the debugging symbols for Kyoto Tycoon.
 
-Package: libkyototycoon1
+Package: libkyototycoon2
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
@@ -46,7 +46,7 @@ Description: Kyoto Tycoon runtime libraries
 Package: libkyototycoon-dev
 Section: libdevel
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libkyototycoon1 (= ${binary:Version}), libkyotocabinet-dev
+Depends: ${shlibs:Depends}, ${misc:Depends}, libkyototycoon2 (= ${binary:Version}), libkyotocabinet-dev
 Description: Kyoto Tycoon development files
  Kyoto Tycoon is a network interface to the DBM Kyoto Cabinet. You might bother
  in the case where multiple processes share the same database or where remote
@@ -73,7 +73,7 @@ Package: kyototycoon-utils
 Architecture: any
 Section: utils
 Priority: optional
-Depends: ${shlibs:Depends}, ${misc:Depends}, libkyototycoon1 (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libkyototycoon2 (= ${binary:Version})
 Description: Kyoto Tycoon utilities
  Kyoto Tycoon is a network interface to the DBM Kyoto Cabinet. You might bother
  in the case where multiple processes share the same database or where remote
