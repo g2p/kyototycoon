@@ -14,7 +14,4 @@ override_dh_installchangelogs:
 override_dh_strip:
 	dh_strip --dbg-package=kyototycoon-dbg
 
-override_dh_auto_test:
-	true
-
-.PHONY: override_dh_auto_configure override_dh_installchangelogs override_dh_strip override_dh_auto_test
+.PHONY: override_dh_auto_configure override_dh_installchangelogs override_dh_strip
