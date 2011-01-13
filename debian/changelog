@@ -1,3 +1,10 @@
+kyototycoon (0.9.23-1) unstable; urgency=low
+
+  * Imported Upstream version 0.9.23
+  * Updated standards to 0.9.1; no changes.
+
+ -- Gabriel de Perthuis <g2p.code+debian@gmail.com>  Thu, 13 Jan 2011 12:22:55 +0100
+
 kyototycoon (0.9.22-1) unstable; urgency=low
 
   * Imported Upstream version 0.9.22
@@ -26,7 +33,6 @@ kyototycoon (0.9.21-1~1.gbp821a07) UNRELEASED; urgency=low
   * Include every Kyoto Tycoon utility.
   * Update changelog after git import-orig
   * Imported Upstream version 0.9.21
-
 
  -- Gabriel de Perthuis <g2p.code+debian@gmail.com>  Thu, 13 Jan 2011 10:44:20 +0100
 
