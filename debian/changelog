@@ -1,14 +1,12 @@
-kyototycoon (0.9.22-1~1.gbp839cd1) UNRELEASED; urgency=low
-
-  ** SNAPSHOT build @839cd12acfe27e301314f9ce0799b711b62b4504 **
+kyototycoon (0.9.22-1) unstable; urgency=low
 
   * Imported Upstream version 0.9.22
+  * Reinstate tests.
+  * Update soname to match library version.
 
-
- -- Gabriel de Perthuis <g2p.code+debian@gmail.com>  Thu, 13 Jan 2011 10:46:52 +0100
+ -- Gabriel de Perthuis <g2p.code+debian@gmail.com>  Thu, 13 Jan 2011 12:16:12 +0100
 
 kyototycoon (0.9.21-1~1.gbp821a07) UNRELEASED; urgency=low
-
 
   * Rename tyrant to tycoon in file names as well. Update libver.
   * XXX Disable patches for now, until I port them.
