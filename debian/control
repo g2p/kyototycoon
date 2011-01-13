@@ -80,5 +80,5 @@ Description: Kyoto Tycoon utilities
  processes access the database. Thus, Kyoto Tycoon is provided for concurrent
  and remote connections to Kyoto Cabinet.
  .
- This is the Kyoto Tycoon utility package. It contains tcrmgr and ttulmgr among
- others.
+ This is the Kyoto Tycoon utility package. It contains ktremotemgr and
+ ktutilmgr among others.
