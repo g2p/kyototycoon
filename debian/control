@@ -29,7 +29,7 @@ Description: Kyoto Tycoon debugging symbols
  processes access the database. Thus, Kyoto Tycoon is provided for concurrent
  and remote connections to Kyoto Cabinet.
  .
- This is the debugging symbols for Kyoto Tycoon.
+ These are the debugging symbols for Kyoto Tycoon.
 
 Package: libkyototycoon2
 Section: libs
@@ -41,7 +41,7 @@ Description: Kyoto Tycoon runtime libraries
  processes access the database. Thus, Kyoto Tycoon is provided for concurrent
  and remote connections to Kyoto Cabinet.
  .
- This is the runtime package for programs that use the Kyoto Tycoon library.
+ This is the Kyoto Tycoon library.
 
 Package: libkyototycoon-dev
 Section: libdevel
