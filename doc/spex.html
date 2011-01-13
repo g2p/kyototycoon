@@ -23,7 +23,7 @@
 <h1 id="headline">Fundamental Specifications of Kyoto Tycoon Version 1</h1>
 
 <div class="note">Copyright (C) 2009-2010 FAL Labs</div>
-<div class="note">Last Update: Thu, 23 Dec 2010 12:29:41 +0900</div>
+<div class="note">Last Update: Wed, 29 Dec 2010 17:24:34 +0900</div>
 
 <hr />
 
@@ -568,18 +568,19 @@ three   third
 four    fourth
 </pre>
 
-<p>Update logs are saved in respective files by constant size, which is 256MB by default.  After you take a backup database file, you can remove older update logs than the time stamp of the backup database file.  The command "ktutilmgr ulog -uf" prints the maximum time stamp in each update log file.</p>
+<p>Update logs are saved in respective files by constant size, which is 256MB by default.  After you take a backup database file, you can remove older update logs than the time stamp of the backup database file.  The command "ktremotemgr slave -uf" prints the size and the maximum time stamp in each update log file.</p>
 
-<pre>$ ktutilmgr ulog -uf 0001-ulog
-0001-ulog/0000000001.ulog       268458906       1290785652985000714
-0001-ulog/0000000002.ulog       268454950       1290785658832000566
-0001-ulog/0000000003.ulog       268437175       1290785665973002820
-0001-ulog/0000000004.ulog       268467425       1290785674515001949
-0001-ulog/0000000005.ulog       268482363       1290785680925001536
-0001-ulog/0000000006.ulog       268497323       1290785689024002042
-0001-ulog/0000000007.ulog       268443005       1290785695789001021
-0001-ulog/0000000008.ulog       268489073       1290785707323002488
-0001-ulog/0000000009.ulog       250047728       1290785715612001421
+<pre>$ ktremotemgr slave -uf
+0001-ulog/0000000001.ulog       268459706       1293335993793000167
+0001-ulog/0000000002.ulog       268466346       1293336035697000149
+0001-ulog/0000000003.ulog       268477224       1293336080897000091
+0001-ulog/0000000004.ulog       268456392       1293336132156000021
+0001-ulog/0000000005.ulog       101109851       1293336145396000029
+</pre>
+
+<p>You can remove old log files by the command "ktremotemgr slave -ur".  The "-ts" option specifies the maximum time stamp of disposable logs.  If the time stamp is not specified, all log files except for the current one are removed.</p>
+
+<pre>$ ktremotemgr slave -ur -ts 1293336080897000091
 </pre>
 
 <h3 id="tips_replication">Asynchronous Replication</h3>
@@ -817,10 +818,10 @@ $ ktremotemgr remove one
 
 <p>The output is in TSV format.  Each line expresses each update operation.  The fields are the time stamp of the update operation, the server ID number, the database ID number, the command name, and Base64-encoded arguments of the command.  The first 5 bytes in the value of the "set" command specifies the expiration time.  You can give the output to another command for post processing via pipe.</p>
 
-<pre>$ ktremotemgr slave -ts "`cat foobar.rts`" -uw | dosomething
+<pre>$ ktremotemgr slave -ts "`cat sometime.rts`" -uw | dosomething
 </pre>
 
-<p>The file "foobar.rts" should contain the time stamp of the last pulled update log, which should be recorded by the post processing command.  The "-uw" option is to wait for future update logs forever even when the reader has reached the end of the log files.  A sample implementation of a post processing command in Ruby is included as "example/ktreplprint.rb" in the source package.</p>
+<p>The file "sometime.rts" should contain the time stamp of the last pulled update log, which should be recorded by the post processing command.  The "-uw" option is to wait for future update logs forever even when the reader has reached the end of the log files.  A sample implementation of a post processing command in Ruby is included as "example/ktreplprint.rb" in the source package.</p>
 
 <hr />
 

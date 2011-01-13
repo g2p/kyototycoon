@@ -768,6 +768,55 @@ public:
     return true;
   }
   /**
+   * Get status of each update log files.
+   * @param fstvec a vector to store status structures of each update log files.
+   * @return true on success, or false on failure.
+   */
+  bool ulog_list(std::vector<UpdateLogger::FileStatus>* fstvec) {
+    _assert_(fstvec);
+    fstvec->clear();
+    std::map<std::string, std::string> inmap;
+    std::map<std::string, std::string> outmap;
+    RPCClient::ReturnValue rv = rpc_.call("ulog_list", &inmap, &outmap);
+    if (rv != RPCClient::RVSUCCESS) {
+      set_rpc_error(rv, outmap);
+      return false;
+    }
+    std::map<std::string, std::string>::iterator it = outmap.begin();
+    std::map<std::string, std::string>::iterator itend = outmap.end();
+    while (it != itend) {
+      size_t idx = it->second.find(':');
+      if (idx != std::string::npos) {
+        const std::string& tsstr = it->second.substr(idx + 1);
+        int64_t fsiz = kc::atoi(it->second.c_str());
+        int64_t fts = kc::atoi(tsstr.c_str());
+        if (!it->first.empty() && fsiz >= 0 && fts >= 0) {
+          UpdateLogger::FileStatus fs = { it->first, fsiz, fts };
+          fstvec->push_back(fs);
+        }
+      }
+      it++;
+    }
+    return true;
+  }
+  /**
+   * Remove old update log files.
+   * @param ts the maximum time stamp of disposable logs.
+   * @return true on success, or false on failure.
+   */
+  bool ulog_remove(uint64_t ts = UINT64_MAX) {
+    _assert_(true);
+    std::map<std::string, std::string> inmap;
+    kc::strprintf(&inmap["ts"], "%llu", (unsigned long long)ts);
+    std::map<std::string, std::string> outmap;
+    RPCClient::ReturnValue rv = rpc_.call("ulog_remove", &inmap, &outmap);
+    if (rv != RPCClient::RVSUCCESS) {
+      set_rpc_error(rv, outmap);
+      return false;
+    }
+    return true;
+  }
+  /**
    * Get the miscellaneous status information.
    * @param strmap a string map to contain the result.
    * @return true on success, or false on failure.
@@ -1849,6 +1898,12 @@ private:
 class ReplicationClient {
 public:
   /**
+   * Opening options.
+   */
+  enum Option {
+    WHITESID = 1 << 0                    ///< fetch messages of the specified SID only
+  };
+  /**
    * Default constructor.
    */
   explicit ReplicationClient() : sock_(), alive_(false) {
@@ -1863,10 +1918,12 @@ public:
    * timeout is specified.
    * @param ts the maximum time stamp of already read logs.
    * @param sid the server ID number.
+   * @param opts the optional features by bitwise-or: ReplicationClient::WHITESID to fetch
+   * messages whose server ID number is the specified one only.
    * @return true on success, or false on failure.
    */
   bool open(const std::string& host = "", int32_t port = DEFPORT, double timeout = -1,
-            uint64_t ts = 0, uint16_t sid = 0) {
+            uint64_t ts = 0, uint16_t sid = 0, uint32_t opts = 0) {
     _assert_(true);
     const std::string& thost = host.empty() ? Socket::get_local_host_name() : host;
     const std::string& addr = Socket::get_host_address(thost);
@@ -1876,6 +1933,7 @@ public:
     if (timeout > 0) sock_.set_timeout(timeout);
     if (!sock_.open(expr)) return false;
     uint32_t flags = 0;
+    if (opts & WHITESID) flags |= WHITESID;
     char tbuf[1+sizeof(flags)+sizeof(ts)+sizeof(sid)];
     char* wp = tbuf;
     *(wp++) = RemoteDB::BMREPLICATION;

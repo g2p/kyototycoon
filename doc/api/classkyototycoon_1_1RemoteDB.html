@@ -75,6 +75,10 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Call a procedure of the scripting extension.  <a href="#af194333ba1637669dc8fbd8b9d271434"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a112bdcfad5d2ee531de136353a80857a">tune_replication</a> (const std::string &amp;host=&quot;&quot;, int32_t port=<a class="el" href="namespacekyototycoon.html#aebd15b3b803e2e0d38f51c0385b66c43">DEFPORT</a>, uint64_t ts=UINT64_MAX, double iv=-1)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the replication configuration.  <a href="#a112bdcfad5d2ee531de136353a80857a"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#aa9cbc469eb73799ba3db088bab5522ed">ulog_list</a> (std::vector&lt; <a class="el" href="structkyototycoon_1_1UpdateLogger_1_1FileStatus.html">UpdateLogger::FileStatus</a> &gt; *fstvec)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get status of each update log files.  <a href="#aa9cbc469eb73799ba3db088bab5522ed"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#afb69105e07be08aec20f007f9e8c50ce">ulog_remove</a> (uint64_t ts=UINT64_MAX)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Remove old update log files.  <a href="#afb69105e07be08aec20f007f9e8c50ce"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a4fe09abd9cbaf886c7c11696ce2437ad">status</a> (std::map&lt; std::string, std::string &gt; *strmap)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the miscellaneous status information.  <a href="#a4fe09abd9cbaf886c7c11696ce2437ad"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a875c26b9bd91299054e22f4f427b0e5e">clear</a> ()</td></tr>
@@ -441,6 +445,60 @@
     <tr><td valign="top"></td><td valign="top"><em>port</em>&nbsp;</td><td>the port numger of the server. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>ts</em>&nbsp;</td><td>the maximum time stamp of already read logs. If it is UINT64_MAX, the current setting is not modified. If it is UINT64_MAX - 1, the current time is specified. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>iv</em>&nbsp;</td><td>the interval of each replication operation in milliseconds. If it is negative, the current interval is not modified. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="aa9cbc469eb73799ba3db088bab5522ed"></a><!-- doxytag: member="kyototycoon::RemoteDB::ulog_list" ref="aa9cbc469eb73799ba3db088bab5522ed" args="(std::vector&lt; UpdateLogger::FileStatus &gt; *fstvec)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::ulog_list </td>
+          <td>(</td>
+          <td class="paramtype">std::vector&lt; <a class="el" href="structkyototycoon_1_1UpdateLogger_1_1FileStatus.html">UpdateLogger::FileStatus</a> &gt; *&nbsp;</td>
+          <td class="paramname"> <em>fstvec</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Get status of each update log files. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>fstvec</em>&nbsp;</td><td>a vector to store status structures of each update log files. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="afb69105e07be08aec20f007f9e8c50ce"></a><!-- doxytag: member="kyototycoon::RemoteDB::ulog_remove" ref="afb69105e07be08aec20f007f9e8c50ce" args="(uint64_t ts=UINT64_MAX)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::RemoteDB::ulog_remove </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&nbsp;</td>
+          <td class="paramname"> <em>ts</em> = <code>UINT64_MAX</code></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Remove old update log files. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>ts</em>&nbsp;</td><td>the maximum time stamp of disposable logs. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1806,7 +1864,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Dec 23 12:29:47 2010 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Dec 28 00:59:31 2010 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

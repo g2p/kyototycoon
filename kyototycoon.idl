@@ -79,6 +79,8 @@ module kyototycoon {
     Map report();
     Map play_script(in string name, in Map args);
     boolean tune_replication(in string host, in long port, in long long ts, in double iv);
+    List ulog_list();
+    boolean ulog_remove(in long long ts);
     Map status();
     boolean clear();
     long long count();
