@@ -1,3 +1,12 @@
+kyototycoon (0.9.22-1~1.gbp839cd1) UNRELEASED; urgency=low
+
+  ** SNAPSHOT build @839cd12acfe27e301314f9ce0799b711b62b4504 **
+
+  * Imported Upstream version 0.9.22
+
+
+ -- Gabriel de Perthuis <g2p.code+debian@gmail.com>  Thu, 13 Jan 2011 10:46:52 +0100
+
 kyototycoon (0.9.21-1~1.gbp821a07) UNRELEASED; urgency=low
 
 
