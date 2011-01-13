@@ -22,14 +22,15 @@ Description: Kyoto Tycoon: network interface to Kyoto Cabinet
 Package: kyototycoon-dbg
 Architecture: any
 Section: debug
-Depends: ${misc:Depends}, kyototycoon (= ${binary:Version})
+Depends: ${misc:Depends}, libkyototycoon2 (= ${binary:Version})
 Description: Kyoto Tycoon debugging symbols
  Kyoto Tycoon is a network interface to the DBM Kyoto Cabinet. You might bother
  in the case where multiple processes share the same database or where remote
  processes access the database. Thus, Kyoto Tycoon is provided for concurrent
  and remote connections to Kyoto Cabinet.
  .
- These are the debugging symbols for Kyoto Tycoon.
+ These are the debugging symbols for Kyoto Tycoon (library,
+ server and utilities).
 
 Package: libkyototycoon2
 Section: libs
