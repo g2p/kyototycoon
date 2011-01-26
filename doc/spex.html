@@ -23,7 +23,7 @@
 <h1 id="headline">Fundamental Specifications of Kyoto Tycoon Version 1</h1>
 
 <div class="note">Copyright (C) 2009-2011 FAL Labs</div>
-<div class="note">Last Update: Mon, 03 Jan 2011 23:34:50 +0900</div>
+<div class="note">Last Update: Wed, 19 Jan 2011 18:13:26 +0900</div>
 
 <hr />
 
@@ -490,12 +490,12 @@ $ kill -HUP `cat /var/data/ktserver.pid`
 
 <p>Kyoto Tycoon supports the "auto snapshot" mechanism for on-memory databases.  This mechanism is similar to the one in Redis.  If auto snapshot is enabled, the server saves all records in on-memory databases into files in a directory periodically.  Because snapshot operations are performed in background by child processes forked from the server process, any foreground operation called by clients is not blocked.  Due to the copy-on-write memory mechanism by the operating system, each snapshot operation is performed atomically in logical view.</p>
 
-<p>Snapshot files are saved in a directory specified when the server starts.  If a server process left a snapshot file in the directory before the processs had terminated, the next lanuch of the server will read the snapshot file and restore records.  The following setting is an example.</p>
+<p>Snapshot files are saved in a directory specified when the server starts.  Each snapshot operation runs periodically by the given interval and additionally when the server finishes.  If there are snapshot files when the server starts, they are read and all records are restored.  The following setting is an example.</p>
 
 <pre>$ ktserver -bgs . -bgsi 30
 </pre>
 
-<p>Insert some records and wait for 30 seconds.  Then you'll see a snapshot file named "00000000.ktss".</p>
+<p>Insert some records and wait for 30 seconds.  Then you'll see a snapshot file named "00000000.ktss" in the current directory.</p>
 
 <pre>$ ktremotemgr set france paris
 $ ktremotemgr set germany berlin
@@ -513,7 +513,7 @@ germany berlin
 france  paris
 </pre>
 
-<p>Because Snapshot data are serialized in an compact format and the IO operations are in sequential order, the IO loading of the underlying storage device is much lower than those in file databases.  In order to lower the IO loading at the cost of CPU time, you can use a compression algorithm by the "-bgsc" option.  The supported compression algorithms are "zlib", "lzo" and , "lzma", although the latter two are optional support when building Kyoto Cabinet.  Probably, using "lzo" is a good choice for most use cases.</p>
+<p>Because snapshot data are serialized in an compact format and the IO operations are in sequential order, the IO loading of the underlying storage device is much lower than those in file databases.  In order to lower the IO loading at the cost of CPU time, you can use a compression algorithm by the "-bgsc" option.  The supported compression algorithms are "zlib", "lzo" and , "lzma", although the latter two are optional support when building Kyoto Cabinet.  Probably, using "lzo" is a good choice for most use cases.</p>
 
 <h3 id="tips_expiration">Inside Expiration</h3>
 

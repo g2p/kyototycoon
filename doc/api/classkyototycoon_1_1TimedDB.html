@@ -151,6 +151,10 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Load records from a data stream.  <a href="#a983812244d5b4f6f93e004e1197395c4"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a229ed4eef39c7323b75ec1cd2140c2ef">load_snapshot</a> (const std::string &amp;src, kc::BasicDB::ProgressChecker *checker=NULL)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Load records from a file.  <a href="#a229ed4eef39c7323b75ec1cd2140c2ef"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a462e2e93b6faa3d2709eeca15b4e9ff7">dump_snapshot_atomic</a> (const std::string &amp;dest, kc::Compressor *zcomp=NULL, kc::BasicDB::ProgressChecker *checker=NULL)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Dump records atomically into a file.  <a href="#a462e2e93b6faa3d2709eeca15b4e9ff7"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#aa7f5743e9a6534fff0010f500962fd93">load_snapshot_atomic</a> (const std::string &amp;src, kc::Compressor *zcomp=NULL, kc::BasicDB::ProgressChecker *checker=NULL)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Load records atomically from a file.  <a href="#aa7f5743e9a6534fff0010f500962fd93"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">kc::BasicDB *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a764079e4e6ad2dd1651454a45da02028">reveal_inner_db</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Reveal the inner database object.  <a href="#a764079e4e6ad2dd1651454a45da02028"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a55966b82776b51d167fac05597de4622">vacuum</a> (int64_t step=0)</td></tr>
@@ -1944,6 +1948,94 @@
 
 </div>
 </div>
+<a class="anchor" id="a462e2e93b6faa3d2709eeca15b4e9ff7"></a><!-- doxytag: member="kyototycoon::TimedDB::dump_snapshot_atomic" ref="a462e2e93b6faa3d2709eeca15b4e9ff7" args="(const std::string &amp;dest, kc::Compressor *zcomp=NULL, kc::BasicDB::ProgressChecker *checker=NULL)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::TimedDB::dump_snapshot_atomic </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>dest</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">kc::Compressor *&nbsp;</td>
+          <td class="paramname"> <em>zcomp</em> = <code>NULL</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">kc::BasicDB::ProgressChecker *&nbsp;</td>
+          <td class="paramname"> <em>checker</em> = <code>NULL</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Dump records atomically into a file. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>dest</em>&nbsp;</td><td>the path of the destination file. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>zcomp</em>&nbsp;</td><td>the data compressor object. If it is NULL, no compression is performed. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>checker</em>&nbsp;</td><td>a progress checker object. If it is NULL, no checking is performed. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="aa7f5743e9a6534fff0010f500962fd93"></a><!-- doxytag: member="kyototycoon::TimedDB::load_snapshot_atomic" ref="aa7f5743e9a6534fff0010f500962fd93" args="(const std::string &amp;src, kc::Compressor *zcomp=NULL, kc::BasicDB::ProgressChecker *checker=NULL)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::TimedDB::load_snapshot_atomic </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&nbsp;</td>
+          <td class="paramname"> <em>src</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">kc::Compressor *&nbsp;</td>
+          <td class="paramname"> <em>zcomp</em> = <code>NULL</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">kc::BasicDB::ProgressChecker *&nbsp;</td>
+          <td class="paramname"> <em>checker</em> = <code>NULL</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Load records atomically from a file. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>src</em>&nbsp;</td><td>the path of the source file. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>zcomp</em>&nbsp;</td><td>the data compressor object. If it is NULL, no decompression is performed. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>checker</em>&nbsp;</td><td>a progress checker object. If it is NULL, no checking is performed. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a764079e4e6ad2dd1651454a45da02028"></a><!-- doxytag: member="kyototycoon::TimedDB::reveal_inner_db" ref="a764079e4e6ad2dd1651454a45da02028" args="()" -->
 <div class="memitem">
 <div class="memproto">
@@ -2342,7 +2434,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Jan 11 12:31:33 2011 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Jan 19 18:13:21 2011 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

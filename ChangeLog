@@ -1,3 +1,11 @@
+2011-01-18  Mikio Hirabayashi  <info@fallabs.com>
+
+	* ktserver.cc (dosnapshot): new function.
+
+	* kttimeddb.cc (TimedDB::dump_snapshot_atomic): refactored.
+
+	- Release: 0.9.25
+
 2011-01-08  Mikio Hirabayashi  <info@fallabs.com>
 
 	* myscript.cc (set_resources): a bug about database name solver was fixed.
