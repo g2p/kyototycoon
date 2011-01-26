@@ -13,8 +13,8 @@
  *************************************************************************************************/
 
 
-#include "ktdbext.h"
 #include "myconf.h"
+#include "ktdbext.h"
 
 namespace kyototycoon {                  // common namespace
 

@@ -13,8 +13,8 @@
  *************************************************************************************************/
 
 
-#include "kthttp.h"
 #include "myconf.h"
+#include "kthttp.h"
 
 namespace kyototycoon {                  // common namespace
 

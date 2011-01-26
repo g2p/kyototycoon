@@ -1,3 +1,11 @@
+2011-01-21  Mikio Hirabayashi  <info@fallabs.com>
+
+	* myscript.h (ScriptProcessor::clear): new function.
+
+	* ktserver.cc (proc): the SIGHUP handler was modified.
+
+	- Release: 0.9.27
+
 2011-01-20  Mikio Hirabayashi  <info@fallabs.com>
 
 	* ktpluvservmemc.cc (Worker::process): "gets" is now supported.

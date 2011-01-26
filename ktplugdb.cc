@@ -13,8 +13,8 @@
  *************************************************************************************************/
 
 
-#include "ktplugdb.h"
 #include "myconf.h"
+#include "ktplugdb.h"
 
 namespace kyototycoon {                  // common namespace
 

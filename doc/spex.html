@@ -217,7 +217,7 @@ korea
 china
 </pre>
 
-<p>That's all for the fundamental operations.  The KVS family have been improving performance thanks to discarding the functionality.  See the specification of `<a href="command.html#ktserver">ktserver</a>' and `<a href="command.html#ktremotemgr">ktremotemgr</a>' for more detail.</p>
+<p>That's all for the fundamental operations.  The KVS family have been improving performance thanks to discarding the functionality.  See the specification of `<a href="command.html#ktserver">ktserver</a>' and `<a href="command.html#ktremotemgr">ktremotemgr</a>' for more details.</p>
 
 <h3 id="tutorial_httpcmd">Using HTTP Clients</h3>
 
@@ -435,7 +435,7 @@ end
 <pre>$ ktremotemgr script -arg key japan -arg value japan -arg xt 60 set
 </pre>
 
-<p>See the specification of <a href="luadoc/">the scripting extension</a> for more detail.</p>
+<p>See the specification of <a href="luadoc/">the scripting extension</a> for more details.  If you edit the script file and want to make the server reload it, send the `<code>SIGUSR1</code>' signal to the server.  If the server is a daemon, sending the `<code>SIGHUP</code>' signal causes the same effect.</p>
 
 <hr />
 
@@ -514,12 +514,6 @@ france  paris
 </pre>
 
 <p>Because snapshot data are serialized in an compact format and the IO operations are in sequential order, the IO loading of the underlying storage device is much lower than those in file databases.  In order to lower the IO loading at the cost of CPU time, you can use a compression algorithm by the "-bgsc" option.  The supported compression algorithms are "zlib", "lzo" and , "lzma", although the latter two are optional support when building Kyoto Cabinet.  Probably, using "lzo" is a good choice for most use cases.</p>
-
-<p>Snapshot files can be used as backup files.  You may want to use them in order to set replication slave.  In that case, you have to know the time stamp of each snapshot file.  The "kttimedmgr bgsinform" command shows the meta data of snapshot files in a directory.</p>
-
-<pre>$ kttimedmgr bgsinform mysnap
-0       1295594141774000000     2       8388722
-</pre>
 
 <h3 id="tips_expiration">Inside Expiration</h3>
 
@@ -769,6 +763,40 @@ six     sixth
 <p>Of course, using a backup database file to apply "difference recovery" instead of "full recovery" when adding a new server is a good idea.  To apply difference recovery, specify the time stamp of the backup database file with the "-ts" option of the "ktremotemgr tunerepl" command.</p>
 
 <p>Note that updating both of the servers at the same time might cause inconsistency of their databases.  That is, you should use one master as a "active master" and the other as a "standby master".</p>
+
+<h3 id="tops_bgsnaprepl">Replication with Background Snapshot</h3>
+
+<p>Snapshot files of on-memory databases can be used as backup files.  And, you use them in order to set up replication slave servers.  First, run a master server handling an on-memory database.</p>
+
+<pre>$ ktserver -port 10001 -ulog 0001-ulog -sid 1 \
+  -bgs 0001-bgs -bgsi 60 ':#bnum=10000000#ktopts=p'
+</pre>
+
+<p>Insert some records into the master server.</p>
+
+<pre>$ ktremotemgr setbulk -port 10001 one first two second
+</pre>
+
+<p>Wait for 60 seconds and then make sure that the above two records are saved in the snapshot file.  The second field expresses the time stamp of the snapshot.  The third field expresses the number of records.</p>
+
+<pre>$ kttimedmgr bgsinform 0001-bgs
+0       1295607805662000000     2       94906353
+</pre>
+
+<p>Copy the snapshot directory as another one.  Then, extract the time stamp and generate the RTS file for the slave server.</p>
+
+<pre>$ cp -r 0001-bgs 0002-bgs
+$ kttimedmgr bgsinform 0001-bgs | cut -f 2 &lt; 0002.rts
+</pre>
+
+<p>Start the slave server.</p>
+
+<pre>$ ktserver -port 10002 -sid 2 \
+  -bgs 0002-bgs -bgsi 60 -mhost localhost -mport 10001 -rts 0002.rts \
+  ':#bnum=10000000#ktopts=p'
+</pre>
+
+<p>Of cource, you can also set up dual master replicatoin of on-memory databases.  It realizes extremely fast and enough robust database solution.</p>
 
 <h3 id="tips_pluggableserver">Pluggable Server</h3>
 

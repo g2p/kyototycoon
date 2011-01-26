@@ -13,8 +13,8 @@
  *************************************************************************************************/
 
 
-#include "ktsocket.h"
 #include "myconf.h"
+#include "ktsocket.h"
 
 #if defined(_KT_EVENT_EPOLL)
 extern "C" {
