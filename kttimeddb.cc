@@ -38,8 +38,8 @@ const char* const TimedDB::Visitor::REMOVE = (const char*)1;
 
 /**
  * Create a child process.
- * @return the process ID of the child process to the paremnt process, or 0 for the child process,
- * or -1 on failure.
+ * @return the process ID of the child process to the paremnt process, or 0 for the child
+ * process, or -1 on failure.
  */
 static int64_t fork_impl();
 
@@ -106,9 +106,6 @@ bool TimedDB::dump_snapshot_atomic(const std::string& dest, kc::Compressor* zcom
         if (first_) {
           first_ = false;
           cpid_ = fork_impl();
-
-          //printf("forked:%d\n", (int)cpid_);
-
         }
         return false;
       }
@@ -125,9 +122,6 @@ bool TimedDB::dump_snapshot_atomic(const std::string& dest, kc::Compressor* zcom
     int32_t cnt = 0;
     while (true) {
       cnt++;
-
-      //printf("wait: %d\n", cnt);
-
       int32_t status;
       int32_t rv = wait_impl(cpid, &status, 1);
       if (rv == 0) return status == 0;
@@ -152,9 +146,6 @@ bool TimedDB::dump_snapshot_atomic(const std::string& dest, kc::Compressor* zcom
     }
     return false;
   } else if (cpid == 0) {
-
-    //printf("nice\n");
-
     nice_impl(1);
   }
   kc::File file;
@@ -240,12 +231,7 @@ bool TimedDB::dump_snapshot_atomic(const std::string& dest, kc::Compressor* zcom
     if (cpid != 0) db_.set_error(_KCCODELINE_, kc::BasicDB::Error::SYSTEM, file.error());
     return false;
   }
-  if (cpid == 0) {
-
-    //printf("done\n");
-
-    exit_impl(0);
-  }
+  if (cpid == 0) exit_impl(0);
   return !err;
 }
 

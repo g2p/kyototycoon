@@ -39,6 +39,8 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
                     const char* pidpath, const char* cmdpath, const char* scrpath,
                     const char* mhost, int32_t mport, const char* rtspath, double riv,
                     const char* plsvpath, const char* plsvex, const char* pldbpath);
+static bool dosnapshot(const char* bgspath, kc::Compressor* bgscomp,
+                       kt::TimedDB* dbs, int32_t dbnum, kt::RPCServer* serv);
 
 
 // logger implementation
@@ -320,13 +322,16 @@ public:
   // constructor
   explicit Worker(int32_t thnum, kt::TimedDB* dbs, int32_t dbnum,
                   const std::map<std::string, int32_t>& dbmap, int32_t omode,
-                  double asi, bool ash, const char* bgspath, double bgsi, kc::Compressor* bgscomp,
-                  kt::UpdateLogger* ulog, DBUpdateLogger* ulogdbs,
+                  double asi, bool ash, const char* bgspath, double bgsi,
+                  kc::Compressor* bgscomp, kt::UpdateLogger* ulog, DBUpdateLogger* ulogdbs,
                   const char* cmdpath, ScriptProcessor* scrprocs) :
     thnum_(thnum), dbs_(dbs), dbnum_(dbnum), dbmap_(dbmap),
     omode_(omode), asi_(asi), ash_(ash), bgspath_(bgspath), bgsi_(bgsi), bgscomp_(bgscomp),
     ulog_(ulog), ulogdbs_(ulogdbs), cmdpath_(cmdpath), scrprocs_(scrprocs),
-    idlecnt_(0), asnext_(0), bgsnext_(0), slave_(NULL) {}
+    idlecnt_(0), asnext_(0), bgsnext_(0), slave_(NULL) {
+    asnext_ = kc::time() + asi_;
+    bgsnext_ = kc::time() + bgsi_;
+  }
   // set miscellaneous configuration
   void set_misc_conf(Slave* slave) {
     slave_ = slave;
@@ -583,34 +588,7 @@ private:
     }
     if (bgspath_ && bgsi_ > 0 && kc::time() >= bgsnext_) {
       serv->log(Logger::INFO, "snapshotting databases");
-      for (int32_t i = 0; i < dbnum_; i++) {
-        kt::TimedDB* db = dbs_ + i;
-        std::string destpath;
-        kc::strprintf(&destpath, "%s%c%08d%c%s",
-                      bgspath_, kc::File::PATHCHR, i, kc::File::EXTCHR, BGSPATHEXT);
-        std::string tmppath;
-        kc::strprintf(&tmppath, "%s%ctmp", destpath.c_str(), kc::File::EXTCHR);
-
-
-        double stime = kc::time();
-        //printf("dumping: %d\n", (int)db->count());
-
-        if (db->dump_snapshot_atomic(tmppath, bgscomp_)) {
-          if (!kc::File::rename(tmppath, destpath)) {
-            serv->log(Logger::ERROR, "renaming a file failed: %s: %s",
-                      tmppath.c_str(), destpath.c_str());
-          }
-        } else {
-          const kc::BasicDB::Error& e = db->error();
-          log_db_error(serv, e);
-        }
-        kc::File::remove(tmppath);
-
-        //printf("done: %f\n", kc::time() - stime);
-
-
-        kc::Thread::yield();
-      }
+      dosnapshot(bgspath_, bgscomp_, dbs_, dbnum_, serv);
       bgsnext_ = kc::time() + bgsi_;
     }
   }
@@ -2512,7 +2490,7 @@ static int32_t run(int argc, char** argv) {
 }
 
 
-// perform rpc command
+// drive the server process
 static int32_t proc(const std::vector<std::string>& dbpaths,
                     const char* host, int32_t port, double tout, int32_t thnum,
                     const char* logpath, uint32_t logkinds,
@@ -2789,12 +2767,18 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
       err = true;
     }
   }
+  if (bgspath) {
+    serv.log(Logger::SYSTEM, "snapshotting databases");
+    if (!dosnapshot(bgspath, bgscomp, dbs, dbnum, &serv)) err = true;
+  }
   delete[] scrprocs;
   for (int32_t i = 0; i < dbnum; i++) {
+    const std::string& dbpath = dbpaths[i];
+    serv.log(Logger::SYSTEM, "closing a database: path=%s", dbpath.c_str());
     if (!dbs[i].close()) {
       const kc::BasicDB::Error& e = dbs[i].error();
       serv.log(Logger::ERROR, "could not close a database file: %s: %s: %s",
-               dbpaths[i].c_str(), e.name(), e.message());
+               dbpath.c_str(), e.name(), e.message());
       err = true;
     }
   }
@@ -2814,6 +2798,47 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
   if (pidpath) kc::File::remove(pidpath);
   serv.log(Logger::SYSTEM, "================ [FINISH]: pid=%d", g_procid);
   return err ? 1 : 0;
+}
+
+
+// snapshot all databases
+static bool dosnapshot(const char* bgspath, kc::Compressor* bgscomp,
+                       kt::TimedDB* dbs, int32_t dbnum, kt::RPCServer* serv) {
+  bool err = false;
+  for (int32_t i = 0; i < dbnum; i++) {
+    kt::TimedDB* db = dbs + i;
+    std::string destpath;
+    kc::strprintf(&destpath, "%s%c%08d%c%s",
+                  bgspath, kc::File::PATHCHR, i, kc::File::EXTCHR, BGSPATHEXT);
+    std::string tmppath;
+    kc::strprintf(&tmppath, "%s%ctmp", destpath.c_str(), kc::File::EXTCHR);
+    int32_t cnt = 0;
+    while (true) {
+      double stime = kc::time();
+      if (db->dump_snapshot_atomic(tmppath, bgscomp)) {
+        if (!kc::File::rename(tmppath, destpath)) {
+          serv->log(Logger::ERROR, "renaming a file failed: %s: %s",
+                    tmppath.c_str(), destpath.c_str());
+        }
+        kc::File::remove(tmppath);
+        break;
+      }
+      kc::File::remove(tmppath);
+      const kc::BasicDB::Error& e = db->error();
+      if (e != kc::BasicDB::Error::LOGIC) {
+        serv->log(Logger::ERROR, "database error: %d: %s: %s", e.code(), e.name(), e.message());
+        break;
+      }
+      if (++cnt >= 3) {
+        serv->log(Logger::SYSTEM, "snapshotting was abandoned");
+        err = true;
+        break;
+      }
+      serv->log(Logger::INFO, "retrying snapshot: %d", cnt);
+    }
+    kc::Thread::yield();
+  }
+  return !err;
 }
 
 
