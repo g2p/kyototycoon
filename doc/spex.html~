@@ -1343,7 +1343,6 @@ key     mikio
 <dd>Set the value of a record.</dd>
 <dd>request path: the key of the record.</dd>
 <dd>request header: <code>Content-Length</code>: the size of the value.</dd>
-<dd>request header: <code>X-Kt-Mode</code>: (optional): the method mode.  "set", "add", and "replace" are supported.  If it is omitted, "set" is specified.</dd>
 <dd>request header: <code>X-Kt-Xt</code>: (optional): the absolute expiration time.  If it is omitted, no expiration time is specified.</dd>
 <dd>request entity body: the value of the record.</dd>
 <dd>status code: 201.</dd>

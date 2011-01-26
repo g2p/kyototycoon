@@ -1,3 +1,13 @@
+2011-01-25  Mikio Hirabayashi  <info@fallabs.com>
+
+	* ktserver (Worker): operation counters were added.
+
+	* ktserver (Worker::do_rest_put): "x-kt-mode" was added.
+
+	* ktplugservmemc.cc (Worker): operation counters were added.
+
+	- Release: 0.9.28
+
 2011-01-21  Mikio Hirabayashi  <info@fallabs.com>
 
 	* myscript.h (ScriptProcessor::clear): new function.

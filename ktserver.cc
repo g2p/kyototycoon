@@ -16,6 +16,19 @@
 #include "cmdcommon.h"
 
 
+enum {                                   // enumeration for operation counting
+  CNTSET,                                // setting operations
+  CNTSETMISS,                            // misses of setting operations
+  CNTREMOVE,                             // removing operations
+  CNTREMOVEMISS,                         // misses of removing operations
+  CNTGET,                                // getting operations
+  CNTGETMISS,                            // misses of getting operations
+  CNTSCRIPT,                             // scripting operations
+  CNTMISC                                // miscellaneous operations
+};
+typedef uint64_t OpCount[CNTMISC+1];     // counters per thread
+
+
 // global variables
 const char* g_progname;                  // program name
 int32_t g_procid;                        // process ID number
@@ -324,10 +337,10 @@ public:
                   const std::map<std::string, int32_t>& dbmap, int32_t omode,
                   double asi, bool ash, const char* bgspath, double bgsi,
                   kc::Compressor* bgscomp, kt::UpdateLogger* ulog, DBUpdateLogger* ulogdbs,
-                  const char* cmdpath, ScriptProcessor* scrprocs) :
+                  const char* cmdpath, ScriptProcessor* scrprocs, OpCount* opcounts) :
     thnum_(thnum), dbs_(dbs), dbnum_(dbnum), dbmap_(dbmap),
     omode_(omode), asi_(asi), ash_(ash), bgspath_(bgspath), bgsi_(bgsi), bgscomp_(bgscomp),
-    ulog_(ulog), ulogdbs_(ulogdbs), cmdpath_(cmdpath), scrprocs_(scrprocs),
+    ulog_(ulog), ulogdbs_(ulogdbs), cmdpath_(cmdpath), scrprocs_(scrprocs), opcounts_(opcounts),
     idlecnt_(0), asnext_(0), bgsnext_(0), slave_(NULL) {
     asnext_ = kc::time() + asi_;
     bgsnext_ = kc::time() + bgsi_;
@@ -640,15 +653,13 @@ private:
     set_message(outmap, "db_total_count", "%lld", (long long)totalcount);
     set_message(outmap, "db_total_size", "%lld", (long long)totalsize);
     kt::ThreadedServer* thserv = serv->reveal_core()->reveal_core();
-    set_message(outmap, "serv_conn", "%lld", (long long)thserv->connection_count());
-    set_message(outmap, "serv_task", "%lld", (long long)thserv->task_count());
-    set_message(outmap, "conf_kt_version", "%s (%d.%d)", kt::VERSION, kt::LIBVER, kt::LIBREV);
-    set_message(outmap, "conf_kt_features", "%s", kt::FEATURES);
-    set_message(outmap, "conf_kc_version", "%s (%d.%d)", kc::VERSION, kc::LIBVER, kc::LIBREV);
-    set_message(outmap, "conf_kc_features", "%s", kc::FEATURES);
-    set_message(outmap, "conf_os_name", "%s", kc::SYSNAME);
-    set_message(outmap, "sys_proc_id", "%d", g_procid);
-    set_message(outmap, "sys_time", "%.6f", kc::time() - g_starttime);
+    set_message(outmap, "serv_conn_count", "%lld", (long long)thserv->connection_count());
+    set_message(outmap, "serv_task_count", "%lld", (long long)thserv->task_count());
+    set_message(outmap, "serv_thread_count", "%lld", (long long)thnum_);
+    double ctime = kc::time();
+    set_message(outmap, "serv_current_time", "%.6f", ctime);
+    set_message(outmap, "serv_running_term", "%.6f", ctime - g_starttime);
+    set_message(outmap, "serv_proc_id", "%d", g_procid);
     std::map<std::string, std::string> sysinfo;
     kc::getsysinfo(&sysinfo);
     std::map<std::string, std::string>::iterator it = sysinfo.begin();
@@ -670,17 +681,40 @@ private:
       uint64_t delay = cc > rts ? cc - rts : 0;
       set_message(outmap, "repl_delay", "%.6f", delay / 1000000000.0);
     }
+    OpCount ocsum;
+    for (int32_t i = 0; i <= CNTMISC; i++) {
+      ocsum[i] = 0;
+    }
+    for (int32_t i = 0; i < thnum_; i++) {
+      for (int32_t j = 0; j <= CNTMISC; j++) {
+        ocsum[j] += opcounts_[i][j];
+      }
+    }
+    set_message(outmap, "cnt_set", "%llu", (unsigned long long)ocsum[CNTSET]);
+    set_message(outmap, "cnt_set_misses", "%llu", (unsigned long long)ocsum[CNTSETMISS]);
+    set_message(outmap, "cnt_remove", "%llu", (unsigned long long)ocsum[CNTREMOVE]);
+    set_message(outmap, "cnt_remove_misses", "%llu", (unsigned long long)ocsum[CNTREMOVEMISS]);
+    set_message(outmap, "cnt_get", "%llu", (unsigned long long)ocsum[CNTGET]);
+    set_message(outmap, "cnt_get_misses", "%llu", (unsigned long long)ocsum[CNTGETMISS]);
+    set_message(outmap, "cnt_script", "%llu", (unsigned long long)ocsum[CNTSCRIPT]);
+    set_message(outmap, "cnt_misc", "%llu", (unsigned long long)ocsum[CNTMISC]);
+    set_message(outmap, "conf_kt_version", "%s (%d.%d)", kt::VERSION, kt::LIBVER, kt::LIBREV);
+    set_message(outmap, "conf_kt_features", "%s", kt::FEATURES);
+    set_message(outmap, "conf_kc_version", "%s (%d.%d)", kc::VERSION, kc::LIBVER, kc::LIBREV);
+    set_message(outmap, "conf_kc_features", "%s", kc::FEATURES);
+    set_message(outmap, "conf_os_name", "%s", kc::SYSNAME);
     return kt::RPCClient::RVSUCCESS;
   }
   // process the play_script procedure
   RV do_play_script(kt::RPCServer* serv, kt::RPCServer::Session* sess,
                     const std::map<std::string, std::string>& inmap,
                     std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!scrprocs_) {
       set_message(outmap, "ERROR", "the scripting extention is disabled");
       return kt::RPCClient::RVENOIMPL;
     }
-    ScriptProcessor* scrproc = scrprocs_ + sess->thread_id();
+    ScriptProcessor* scrproc = scrprocs_ + thid;
     const char* nstr = kt::strmapget(inmap, "name");
     if (!nstr || *nstr == '\0' || !kt::strisalnum(nstr)) {
       set_message(outmap, "ERROR", "invalid parameters");
@@ -698,6 +732,7 @@ private:
       }
       it++;
     }
+    opcounts_[thid][CNTSCRIPT]++;
     std::map<std::string, std::string> scroutmap;
     RV rv = scrproc->call(nstr, scrinmap, scroutmap);
     if (rv == kt::RPCClient::RVSUCCESS) {
@@ -815,11 +850,13 @@ private:
                kt::TimedDB* db,
                const std::map<std::string, std::string>& inmap,
                std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!db) {
       set_message(outmap, "ERROR", "no such database");
       return kt::RPCClient::RVEINVALID;
     }
     RV rv;
+    opcounts_[thid][CNTMISC]++;
     std::map<std::string, std::string> status;
     if (db->status(&status)) {
       rv = kt::RPCClient::RVSUCCESS;
@@ -837,11 +874,13 @@ private:
               kt::TimedDB* db,
               const std::map<std::string, std::string>& inmap,
               std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!db) {
       set_message(outmap, "ERROR", "no such database");
       return kt::RPCClient::RVEINVALID;
     }
     RV rv;
+    opcounts_[thid][CNTMISC]++;
     if (db->clear()) {
       rv = kt::RPCClient::RVSUCCESS;
     } else {
@@ -857,6 +896,7 @@ private:
                     kt::TimedDB* db,
                     const std::map<std::string, std::string>& inmap,
                     std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!db) {
       set_message(outmap, "ERROR", "no such database");
       return kt::RPCClient::RVEINVALID;
@@ -900,6 +940,7 @@ private:
     };
     Visitor visitor(serv, this, command);
     RV rv;
+    opcounts_[thid][CNTMISC]++;
     if (db->synchronize(hard, &visitor)) {
       rv = kt::RPCClient::RVSUCCESS;
     } else {
@@ -915,6 +956,7 @@ private:
             kt::TimedDB* db,
             const std::map<std::string, std::string>& inmap,
             std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!db) {
       set_message(outmap, "ERROR", "no such database");
       return kt::RPCClient::RVEINVALID;
@@ -930,9 +972,11 @@ private:
     const char* rp = kt::strmapget(inmap, "xt");
     int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
     RV rv;
+    opcounts_[thid][CNTSET]++;
     if (db->set(kbuf, ksiz, vbuf, vsiz, xt)) {
       rv = kt::RPCClient::RVSUCCESS;
     } else {
+      opcounts_[thid][CNTSETMISS]++;
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
       log_db_error(serv, e);
@@ -945,6 +989,7 @@ private:
             kt::TimedDB* db,
             const std::map<std::string, std::string>& inmap,
             std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!db) {
       set_message(outmap, "ERROR", "no such database");
       return kt::RPCClient::RVEINVALID;
@@ -960,9 +1005,11 @@ private:
     const char* rp = kt::strmapget(inmap, "xt");
     int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
     RV rv;
+    opcounts_[thid][CNTSET]++;
     if (db->add(kbuf, ksiz, vbuf, vsiz, xt)) {
       rv = kt::RPCClient::RVSUCCESS;
     } else {
+      opcounts_[thid][CNTSETMISS]++;
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
       if (e == kc::BasicDB::Error::DUPREC) {
@@ -979,6 +1026,7 @@ private:
                 kt::TimedDB* db,
                 const std::map<std::string, std::string>& inmap,
                 std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!db) {
       set_message(outmap, "ERROR", "no such database");
       return kt::RPCClient::RVEINVALID;
@@ -994,9 +1042,11 @@ private:
     const char* rp = kt::strmapget(inmap, "xt");
     int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
     RV rv;
+    opcounts_[thid][CNTSET]++;
     if (db->replace(kbuf, ksiz, vbuf, vsiz, xt)) {
       rv = kt::RPCClient::RVSUCCESS;
     } else {
+      opcounts_[thid][CNTSETMISS]++;
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
       if (e == kc::BasicDB::Error::NOREC) {
@@ -1013,6 +1063,7 @@ private:
                kt::TimedDB* db,
                const std::map<std::string, std::string>& inmap,
                std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!db) {
       set_message(outmap, "ERROR", "no such database");
       return kt::RPCClient::RVEINVALID;
@@ -1028,9 +1079,11 @@ private:
     const char* rp = kt::strmapget(inmap, "xt");
     int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
     RV rv;
+    opcounts_[thid][CNTSET]++;
     if (db->append(kbuf, ksiz, vbuf, vsiz, xt)) {
       rv = kt::RPCClient::RVSUCCESS;
     } else {
+      opcounts_[thid][CNTSETMISS]++;
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
       log_db_error(serv, e);
@@ -1043,6 +1096,7 @@ private:
                   kt::TimedDB* db,
                   const std::map<std::string, std::string>& inmap,
                   std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!db) {
       set_message(outmap, "ERROR", "no such database");
       return kt::RPCClient::RVEINVALID;
@@ -1058,11 +1112,13 @@ private:
     const char* rp = kt::strmapget(inmap, "xt");
     int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
     RV rv;
+    opcounts_[thid][CNTSET]++;
     num = db->increment(kbuf, ksiz, num, xt);
     if (num != INT64_MIN) {
       rv = kt::RPCClient::RVSUCCESS;
       set_message(outmap, "num", "%lld", (long long)num);
     } else {
+      opcounts_[thid][CNTSETMISS]++;
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
       if (e == kc::BasicDB::Error::LOGIC) {
@@ -1079,6 +1135,7 @@ private:
                          kt::TimedDB* db,
                          const std::map<std::string, std::string>& inmap,
                          std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!db) {
       set_message(outmap, "ERROR", "no such database");
       return kt::RPCClient::RVEINVALID;
@@ -1094,11 +1151,13 @@ private:
     const char* rp = kt::strmapget(inmap, "xt");
     int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
     RV rv;
+    opcounts_[thid][CNTSET]++;
     num = db->increment_double(kbuf, ksiz, num, xt);
     if (!kc::chknan(num)) {
       rv = kt::RPCClient::RVSUCCESS;
       set_message(outmap, "num", "%f", num);
     } else {
+      opcounts_[thid][CNTSETMISS]++;
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
       if (e == kc::BasicDB::Error::LOGIC) {
@@ -1115,6 +1174,7 @@ private:
             kt::TimedDB* db,
             const std::map<std::string, std::string>& inmap,
             std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!db) {
       set_message(outmap, "ERROR", "no such database");
       return kt::RPCClient::RVEINVALID;
@@ -1132,9 +1192,11 @@ private:
     const char* rp = kt::strmapget(inmap, "xt");
     int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
     RV rv;
+    opcounts_[thid][CNTSET]++;
     if (db->cas(kbuf, ksiz, ovbuf, ovsiz, nvbuf, nvsiz, xt)) {
       rv = kt::RPCClient::RVSUCCESS;
     } else {
+      opcounts_[thid][CNTSETMISS]++;
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
       if (e == kc::BasicDB::Error::LOGIC) {
@@ -1151,6 +1213,7 @@ private:
                kt::TimedDB* db,
                const std::map<std::string, std::string>& inmap,
                std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!db) {
       set_message(outmap, "ERROR", "no such database");
       return kt::RPCClient::RVEINVALID;
@@ -1162,9 +1225,11 @@ private:
       return kt::RPCClient::RVEINVALID;
     }
     RV rv;
+    opcounts_[thid][CNTREMOVE]++;
     if (db->remove(kbuf, ksiz)) {
       rv = kt::RPCClient::RVSUCCESS;
     } else {
+      opcounts_[thid][CNTREMOVEMISS]++;
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
       if (e == kc::BasicDB::Error::NOREC) {
@@ -1181,6 +1246,7 @@ private:
             kt::TimedDB* db,
             const std::map<std::string, std::string>& inmap,
             std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!db) {
       set_message(outmap, "ERROR", "no such database");
       return kt::RPCClient::RVEINVALID;
@@ -1192,6 +1258,7 @@ private:
       return kt::RPCClient::RVEINVALID;
     }
     RV rv;
+    opcounts_[thid][CNTGET]++;
     size_t vsiz;
     int64_t xt;
     const char* vbuf = db->get(kbuf, ksiz, &vsiz, &xt);
@@ -1201,6 +1268,7 @@ private:
       delete[] vbuf;
       rv = kt::RPCClient::RVSUCCESS;
     } else {
+      opcounts_[thid][CNTGETMISS]++;
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
       if (e == kc::BasicDB::Error::NOREC) {
@@ -1217,6 +1285,7 @@ private:
                  kt::TimedDB* db,
                  const std::map<std::string, std::string>& inmap,
                  std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!db) {
       set_message(outmap, "ERROR", "no such database");
       return kt::RPCClient::RVEINVALID;
@@ -1239,11 +1308,14 @@ private:
       it++;
     }
     RV rv;
+    opcounts_[thid][CNTSET] += recs.size();
     int64_t num = db->set_bulk(recs, xt, atomic);
     if (num >= 0) {
+      opcounts_[thid][CNTSETMISS] += recs.size() - (size_t)num;
       rv = kt::RPCClient::RVSUCCESS;
       set_message(outmap, "num", "%lld", (long long)num);
     } else {
+      opcounts_[thid][CNTSETMISS] += recs.size();
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
       log_db_error(serv, e);
@@ -1256,6 +1328,7 @@ private:
                     kt::TimedDB* db,
                     const std::map<std::string, std::string>& inmap,
                     std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!db) {
       set_message(outmap, "ERROR", "no such database");
       return kt::RPCClient::RVEINVALID;
@@ -1276,11 +1349,14 @@ private:
       it++;
     }
     RV rv;
+    opcounts_[thid][CNTREMOVE] += keys.size();
     int64_t num = db->remove_bulk(keys, atomic);
     if (num >= 0) {
+      opcounts_[thid][CNTREMOVEMISS] += keys.size() - (size_t)num;
       rv = kt::RPCClient::RVSUCCESS;
       set_message(outmap, "num", "%lld", (long long)num);
     } else {
+      opcounts_[thid][CNTREMOVEMISS] += keys.size();
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
       log_db_error(serv, e);
@@ -1293,6 +1369,7 @@ private:
                  kt::TimedDB* db,
                  const std::map<std::string, std::string>& inmap,
                  std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!db) {
       set_message(outmap, "ERROR", "no such database");
       return kt::RPCClient::RVEINVALID;
@@ -1313,9 +1390,11 @@ private:
       it++;
     }
     RV rv;
+    opcounts_[thid][CNTGET] += keys.size();
     std::map<std::string, std::string> recs;
     int64_t num = db->get_bulk(keys, &recs, atomic);
     if (num >= 0) {
+      opcounts_[thid][CNTGETMISS] += keys.size() - (size_t)num;
       rv = kt::RPCClient::RVSUCCESS;
       std::map<std::string, std::string>::iterator it = recs.begin();
       std::map<std::string, std::string>::iterator itend = recs.end();
@@ -1327,6 +1406,7 @@ private:
       }
       set_message(outmap, "num", "%lld", (long long)num);
     } else {
+      opcounts_[thid][CNTGETMISS] += keys.size();
       const kc::BasicDB::Error& e = db->error();
       set_db_error(outmap, e);
       log_db_error(serv, e);
@@ -1339,6 +1419,7 @@ private:
                kt::TimedDB* db,
                const std::map<std::string, std::string>& inmap,
                std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!db) {
       set_message(outmap, "ERROR", "no such database");
       return kt::RPCClient::RVEINVALID;
@@ -1346,6 +1427,7 @@ private:
     const char* rp = kt::strmapget(inmap, "step");
     int64_t step = rp ? kc::atoi(rp) : 0;
     RV rv;
+    opcounts_[thid][CNTMISC]++;
     if (db->vacuum(step)) {
       rv = kt::RPCClient::RVSUCCESS;
     } else {
@@ -1361,6 +1443,7 @@ private:
                      kt::TimedDB* db,
                      const std::map<std::string, std::string>& inmap,
                      std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!db) {
       set_message(outmap, "ERROR", "no such database");
       return kt::RPCClient::RVEINVALID;
@@ -1375,6 +1458,7 @@ private:
     int64_t max = rp ? kc::atoi(rp) : -1;
     std::vector<std::string> keys;
     RV rv;
+    opcounts_[thid][CNTMISC]++;
     int64_t num = db->match_prefix(std::string(pbuf, psiz), &keys, max);
     if (num >= 0) {
       std::vector<std::string>::iterator it = keys.begin();
@@ -1400,6 +1484,7 @@ private:
                     kt::TimedDB* db,
                     const std::map<std::string, std::string>& inmap,
                     std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!db) {
       set_message(outmap, "ERROR", "no such database");
       return kt::RPCClient::RVEINVALID;
@@ -1414,6 +1499,7 @@ private:
     int64_t max = rp ? kc::atoi(rp) : -1;
     std::vector<std::string> keys;
     RV rv;
+    opcounts_[thid][CNTMISC]++;
     int64_t num = db->match_regex(std::string(pbuf, psiz), &keys, max);
     if (num >= 0) {
       std::vector<std::string>::iterator it = keys.begin();
@@ -1443,6 +1529,7 @@ private:
                  kt::TimedDB::Cursor* cur,
                  const std::map<std::string, std::string>& inmap,
                  std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!cur) {
       set_message(outmap, "ERROR", "no such cursor");
       return kt::RPCClient::RVEINVALID;
@@ -1450,6 +1537,7 @@ private:
     size_t ksiz;
     const char* kbuf = kt::strmapget(inmap, "key", &ksiz);
     RV rv;
+    opcounts_[thid][CNTMISC]++;
     if (kbuf) {
       if (cur->jump(kbuf, ksiz)) {
         rv = kt::RPCClient::RVSUCCESS;
@@ -1484,6 +1572,7 @@ private:
                       kt::TimedDB::Cursor* cur,
                       const std::map<std::string, std::string>& inmap,
                       std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!cur) {
       set_message(outmap, "ERROR", "no such cursor");
       return kt::RPCClient::RVEINVALID;
@@ -1491,6 +1580,7 @@ private:
     size_t ksiz;
     const char* kbuf = kt::strmapget(inmap, "key", &ksiz);
     RV rv;
+    opcounts_[thid][CNTMISC]++;
     if (kbuf) {
       if (cur->jump_back(kbuf, ksiz)) {
         rv = kt::RPCClient::RVSUCCESS;
@@ -1543,11 +1633,13 @@ private:
                  kt::TimedDB::Cursor* cur,
                  const std::map<std::string, std::string>& inmap,
                  std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!cur) {
       set_message(outmap, "ERROR", "no such cursor");
       return kt::RPCClient::RVEINVALID;
     }
     RV rv;
+    opcounts_[thid][CNTMISC]++;
     if (cur->step()) {
       rv = kt::RPCClient::RVSUCCESS;
     } else {
@@ -1567,11 +1659,13 @@ private:
                       kt::TimedDB::Cursor* cur,
                       const std::map<std::string, std::string>& inmap,
                       std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!cur) {
       set_message(outmap, "ERROR", "no such cursor");
       return kt::RPCClient::RVEINVALID;
     }
     RV rv;
+    opcounts_[thid][CNTMISC]++;
     if (cur->step_back()) {
       rv = kt::RPCClient::RVSUCCESS;
     } else {
@@ -1600,6 +1694,7 @@ private:
                       kt::TimedDB::Cursor* cur,
                       const std::map<std::string, std::string>& inmap,
                       std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!cur) {
       set_message(outmap, "ERROR", "no such cursor");
       return kt::RPCClient::RVEINVALID;
@@ -1615,9 +1710,11 @@ private:
     rp = kt::strmapget(inmap, "xt");
     int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
     RV rv;
+    opcounts_[thid][CNTSET]++;
     if (cur->set_value(vbuf, vsiz, xt, step)) {
       rv = kt::RPCClient::RVSUCCESS;
     } else {
+      opcounts_[thid][CNTSETMISS]++;
       const kc::BasicDB::Error& e = cur->error();
       set_db_error(outmap, e);
       if (e == kc::BasicDB::Error::NOREC) {
@@ -1634,14 +1731,17 @@ private:
                    kt::TimedDB::Cursor* cur,
                    const std::map<std::string, std::string>& inmap,
                    std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!cur) {
       set_message(outmap, "ERROR", "no such cursor");
       return kt::RPCClient::RVEINVALID;
     }
     RV rv;
+    opcounts_[thid][CNTREMOVE]++;
     if (cur->remove()) {
       rv = kt::RPCClient::RVSUCCESS;
     } else {
+      opcounts_[thid][CNTREMOVEMISS]++;
       const kc::BasicDB::Error& e = cur->error();
       set_db_error(outmap, e);
       if (e == kc::BasicDB::Error::NOREC) {
@@ -1658,6 +1758,7 @@ private:
                     kt::TimedDB::Cursor* cur,
                     const std::map<std::string, std::string>& inmap,
                     std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!cur) {
       set_message(outmap, "ERROR", "no such cursor");
       return kt::RPCClient::RVEINVALID;
@@ -1665,6 +1766,7 @@ private:
     const char* rp = kt::strmapget(inmap, "step");
     bool step = rp ? true : false;
     RV rv;
+    opcounts_[thid][CNTGET]++;
     size_t ksiz;
     char* kbuf = cur->get_key(&ksiz, step);
     if (kbuf) {
@@ -1672,6 +1774,7 @@ private:
       delete[] kbuf;
       rv = kt::RPCClient::RVSUCCESS;
     } else {
+      opcounts_[thid][CNTGETMISS]++;
       const kc::BasicDB::Error& e = cur->error();
       set_db_error(outmap, e);
       if (e == kc::BasicDB::Error::NOREC) {
@@ -1688,6 +1791,7 @@ private:
                       kt::TimedDB::Cursor* cur,
                       const std::map<std::string, std::string>& inmap,
                       std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!cur) {
       set_message(outmap, "ERROR", "no such cursor");
       return kt::RPCClient::RVEINVALID;
@@ -1695,6 +1799,7 @@ private:
     const char* rp = kt::strmapget(inmap, "step");
     bool step = rp ? true : false;
     RV rv;
+    opcounts_[thid][CNTGET]++;
     size_t vsiz;
     char* vbuf = cur->get_value(&vsiz, step);
     if (vbuf) {
@@ -1702,6 +1807,7 @@ private:
       delete[] vbuf;
       rv = kt::RPCClient::RVSUCCESS;
     } else {
+      opcounts_[thid][CNTGETMISS]++;
       const kc::BasicDB::Error& e = cur->error();
       set_db_error(outmap, e);
       if (e == kc::BasicDB::Error::NOREC) {
@@ -1718,6 +1824,7 @@ private:
                 kt::TimedDB::Cursor* cur,
                 const std::map<std::string, std::string>& inmap,
                 std::map<std::string, std::string>& outmap) {
+    uint32_t thid = sess->thread_id();
     if (!cur) {
       set_message(outmap, "ERROR", "no such cursor");
       return kt::RPCClient::RVEINVALID;
@@ -1725,6 +1832,7 @@ private:
     const char* rp = kt::strmapget(inmap, "step");
     bool step = rp ? true : false;
     RV rv;
+    opcounts_[thid][CNTGET]++;
     size_t ksiz, vsiz;
     const char* vbuf;
     int64_t xt;
@@ -1736,6 +1844,7 @@ private:
       delete[] kbuf;
       rv = kt::RPCClient::RVSUCCESS;
     } else {
+      opcounts_[thid][CNTGETMISS]++;
       const kc::BasicDB::Error& e = cur->error();
       set_db_error(outmap, e);
       if (e == kc::BasicDB::Error::NOREC) {
@@ -1755,7 +1864,9 @@ private:
                       std::map<std::string, std::string>& resheads,
                       std::string& resbody,
                       const std::map<std::string, std::string>& misc) {
+    uint32_t thid = sess->thread_id();
     int32_t code;
+    opcounts_[thid][CNTGET]++;
     size_t vsiz;
     int64_t xt;
     const char* vbuf = db->get(kbuf, ksiz, &vsiz, &xt);
@@ -1769,6 +1880,7 @@ private:
       delete[] vbuf;
       code = 200;
     } else {
+      opcounts_[thid][CNTGETMISS]++;
       const kc::BasicDB::Error& e = db->error();
       kc::strprintf(&resheads["x-kt-error"], "DB: %d: %s: %s", e.code(), e.name(), e.message());
       if (e == kc::BasicDB::Error::NOREC) {
@@ -1788,7 +1900,9 @@ private:
                        std::map<std::string, std::string>& resheads,
                        std::string& resbody,
                        const std::map<std::string, std::string>& misc) {
+    uint32_t thid = sess->thread_id();
     int32_t code;
+    opcounts_[thid][CNTGET]++;
     size_t vsiz;
     int64_t xt;
     const char* vbuf = db->get(kbuf, ksiz, &vsiz, &xt);
@@ -1802,6 +1916,7 @@ private:
       delete[] vbuf;
       code = 200;
     } else {
+      opcounts_[thid][CNTGETMISS]++;
       const kc::BasicDB::Error& e = db->error();
       kc::strprintf(&resheads["x-kt-error"], "DB: %d: %s: %s", e.code(), e.name(), e.message());
       resheads["content-length"] = "0";
@@ -1822,19 +1937,51 @@ private:
                       std::map<std::string, std::string>& resheads,
                       std::string& resbody,
                       const std::map<std::string, std::string>& misc) {
-    const char* rp = kt::strmapget(reqheads, "x-kt-xt");
+    uint32_t thid = sess->thread_id();
+    int32_t mode = 0;
+    const char* rp = kt::strmapget(reqheads, "x-kt-mode");
+    if (rp) {
+      if (!kc::stricmp(rp, "add")) {
+        mode = 1;
+      } else if (!kc::stricmp(rp, "replace")) {
+        mode = 2;
+      }
+    }
+    rp = kt::strmapget(reqheads, "x-kt-xt");
     int64_t xt = rp ? kt::strmktime(rp) : -1;
     xt = xt > 0 && xt < kt::TimedDB::XTMAX ? -xt : INT64_MAX;
     int32_t code;
-    if (db->set(kbuf, ksiz, reqbody.data(), reqbody.size(), xt)) {
+    opcounts_[thid][CNTSET]++;
+
+    bool rv;
+    switch (mode) {
+      default: {
+        rv = db->set(kbuf, ksiz, reqbody.data(), reqbody.size(), xt);
+        break;
+      }
+      case 1: {
+        rv = db->add(kbuf, ksiz, reqbody.data(), reqbody.size(), xt);
+        break;
+      }
+      case 2: {
+        rv = db->replace(kbuf, ksiz, reqbody.data(), reqbody.size(), xt);
+        break;
+      }
+    }
+    if (rv) {
       const char* url = kt::strmapget(misc, "url");
       if (url) resheads["location"] = url;
       code = 201;
     } else {
+      opcounts_[thid][CNTSETMISS]++;
       const kc::BasicDB::Error& e = db->error();
       kc::strprintf(&resheads["x-kt-error"], "DB: %d: %s: %s", e.code(), e.name(), e.message());
-      log_db_error(serv, e);
-      code = 500;
+      if (e == kc::BasicDB::Error::DUPREC || e == kc::BasicDB::Error::NOREC) {
+        code = 450;
+      } else {
+        log_db_error(serv, e);
+        code = 500;
+      }
     }
     return code;
   }
@@ -1846,10 +1993,13 @@ private:
                          std::map<std::string, std::string>& resheads,
                          std::string& resbody,
                          const std::map<std::string, std::string>& misc) {
+    uint32_t thid = sess->thread_id();
     int32_t code;
+    opcounts_[thid][CNTREMOVE]++;
     if (db->remove(kbuf, ksiz)) {
       code = 204;
     } else {
+      opcounts_[thid][CNTREMOVEMISS]++;
       const kc::BasicDB::Error& e = db->error();
       kc::strprintf(&resheads["x-kt-error"], "DB: %d: %s: %s", e.code(), e.name(), e.message());
       if (e == kc::BasicDB::Error::NOREC) {
@@ -1963,6 +2113,7 @@ private:
   }
   // process the binary play_script command
   bool do_bin_play_script(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess) {
+    uint32_t thid = sess->thread_id();
     char tbuf[sizeof(uint32_t)+sizeof(uint32_t)+sizeof(uint32_t)];
     if (!sess->receive(tbuf, sizeof(tbuf))) return false;
     const char* rp = tbuf;
@@ -2009,7 +2160,8 @@ private:
       }
       if (!err) {
         if (scrprocs_) {
-          ScriptProcessor* scrproc = scrprocs_ + sess->thread_id();
+          ScriptProcessor* scrproc = scrprocs_ + thid;
+          opcounts_[thid][CNTSCRIPT]++;
           std::map<std::string, std::string> scroutmap;
           RV rv = scrproc->call(nbuf, scrinmap, scroutmap);
           if (rv == kt::RPCClient::RVSUCCESS) {
@@ -2055,6 +2207,7 @@ private:
   }
   // process the binary set_bulk command
   bool do_bin_set_bulk(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess) {
+    uint32_t thid = sess->thread_id();
     char tbuf[sizeof(uint32_t)+sizeof(uint32_t)];
     if (!sess->receive(tbuf, sizeof(tbuf))) return false;
     const char* rp = tbuf;
@@ -2084,9 +2237,11 @@ private:
           if (sess->receive(rbuf, rsiz)) {
             if (dbidx < dbnum_) {
               kt::TimedDB* db = dbs_ + dbidx;
+              opcounts_[thid][CNTSET]++;
               if (db->set(rbuf, ksiz, rbuf + ksiz, vsiz, xt)) {
                 hits++;
               } else {
+                opcounts_[thid][CNTSETMISS]++;
                 err = true;
               }
             }
@@ -2115,6 +2270,7 @@ private:
   }
   // process the binary remove_bulk command
   bool do_bin_remove_bulk(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess) {
+    uint32_t thid = sess->thread_id();
     char tbuf[sizeof(uint32_t)+sizeof(uint32_t)];
     if (!sess->receive(tbuf, sizeof(tbuf))) return false;
     const char* rp = tbuf;
@@ -2139,10 +2295,12 @@ private:
           if (sess->receive(kbuf, ksiz)) {
             if (dbidx < dbnum_) {
               kt::TimedDB* db = dbs_ + dbidx;
+              opcounts_[thid][CNTREMOVE]++;
               if (db->remove(kbuf, ksiz)) {
                 hits++;
-              } else if (db->error() != kc::BasicDB::Error::NOREC) {
-                err = true;
+              } else {
+                opcounts_[thid][CNTREMOVEMISS]++;
+                if (db->error() != kc::BasicDB::Error::NOREC) err = true;
               }
             }
           } else {
@@ -2170,6 +2328,7 @@ private:
   }
   // process the binary get_bulk command
   bool do_bin_get_bulk(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess) {
+    uint32_t thid = sess->thread_id();
     char tbuf[sizeof(uint32_t)+sizeof(uint32_t)];
     if (!sess->receive(tbuf, sizeof(tbuf))) return false;
     const char* rp = tbuf;
@@ -2197,6 +2356,7 @@ private:
           if (sess->receive(kbuf, ksiz)) {
             if (dbidx < dbnum_) {
               kt::TimedDB* db = dbs_ + dbidx;
+              opcounts_[thid][CNTGET]++;
               size_t vsiz;
               int64_t xt;
               char* vbuf = db->get(kbuf, ksiz, &vsiz, &xt);
@@ -2221,8 +2381,9 @@ private:
                 std::memcpy(obuf + osiz, vbuf, vsiz);
                 osiz += vsiz;
                 delete[] vbuf;
-              } else if (db->error() != kc::BasicDB::Error::NOREC) {
-                err = true;
+              } else {
+                opcounts_[thid][CNTGETMISS]++;
+                if (db->error() != kc::BasicDB::Error::NOREC) err = true;
               }
             }
           } else {
@@ -2285,6 +2446,7 @@ private:
   DBUpdateLogger* const ulogdbs_;
   const char* const cmdpath_;
   ScriptProcessor* const scrprocs_;
+  OpCount* const opcounts_;
   uint64_t idlecnt_;
   double asnext_;
   double bgsnext_;
@@ -2722,8 +2884,14 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
     plsv = init();
     plsv->configure(dbs, dbnum, &logger, logkinds, plsvex);
   }
+  OpCount* opcounts = new OpCount[thnum];
+  for (int32_t i = 0; i < thnum; i++) {
+    for (int32_t j = 0; j <= CNTMISC; j++) {
+      opcounts[i][j] = 0;
+    }
+  }
   Worker worker(thnum, dbs, dbnum, dbmap, omode, asi, ash, bgspath, bgsi, bgscomp,
-                ulog, ulogdbs, cmdpath, scrprocs);
+                ulog, ulogdbs, cmdpath, scrprocs, opcounts);
   serv.set_worker(&worker, thnum);
   if (pidpath) {
     char numbuf[kc::NUMBUFSIZ];
@@ -2775,6 +2943,8 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
     }
     if (err) break;
   }
+  if (pidpath) kc::File::remove(pidpath);
+  delete[] opcounts;
   if (plsv) {
     delete plsv;
     if (!plsvlib.close()) {
@@ -2810,7 +2980,6 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
     eprintf("%s: closing a shared library failed\n", g_progname);
     err = true;
   }
-  if (pidpath) kc::File::remove(pidpath);
   serv.log(Logger::SYSTEM, "================ [FINISH]: pid=%d", g_procid);
   return err ? 1 : 0;
 }
