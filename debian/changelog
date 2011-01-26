@@ -1,6 +1,13 @@
+kyototycoon (0.9.27-1) unstable; urgency=low
+
+  * Imported Upstream version 0.9.27
+
+ -- Gabriel de Perthuis <g2p.code+debian@gmail.com>  Wed, 26 Jan 2011 12:53:44 +0100
+
 kyototycoon (0.9.26-1) unstable; urgency=low
 
   * Imported Upstream version 0.9.26
+  * More symbols
 
  -- Gabriel de Perthuis <g2p.code+debian@gmail.com>  Wed, 26 Jan 2011 12:31:11 +0100
 
