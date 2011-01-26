@@ -74,8 +74,8 @@
 <li><code>-onr</code> : opens the database with the no auto repair option.</li>
 <li><code>-asi <var>num</var></code> : specifies the interval of auto synchronization.  By default, it is disabled.</li>
 <li><code>-ash</code> : does physical synchronization while auto synchronization.</li>
-<li><code>-bgs <var>dir</var></code> : specifies the path of the snapshot directory.  By default, it is disabled.</li>
-<li><code>-bgsi <var>num</var></code> : specifies the interval of auto snapshotting.  By default, it is 180.</li>
+<li><code>-bgs <var>dir</var></code> : specifies the path of the background snapshot directory.  By default, it is disabled.</li>
+<li><code>-bgsi <var>num</var></code> : specifies the interval of background snapshotting.  By default, it is 180.</li>
 <li><code>-bgsc <var>str</var></code> : specifies the compression algorithm of the snapshot.  "zlib", "lzo", are "lzma" are supported.</li>
 <li><code>-dmn</code> : switches to a daemon process.</li>
 <li><code>-pid <var>file</var></code> : specifies the file to contain the process ID to send signals by.</li>
@@ -309,6 +309,8 @@
 <dd>Merge records from other databases.</dd>
 <dt><code>kttimedmgr check [-onl|-otl|-onr] [-ulog <var>str</var>] [-ulim <var>num</var>] [-sid <var>num</var>] [-dbid <var>num</var>] <var>path</var></code></dt>
 <dd>Checks consistency.</dd>
+<dt><code>kttimedmgr bgsinform <var>file</var></code></dt>
+<dd>Prints status information of background snapshot files.</dd>
 </dl>
 
 <p>Options feature the following.</p>

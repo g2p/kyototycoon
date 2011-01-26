@@ -40,6 +40,7 @@ static int32_t runvacuum(int argc, char** argv);
 static int32_t runrecover(int argc, char** argv);
 static int32_t runmerge(int argc, char** argv);
 static int32_t runcheck(int argc, char** argv);
+static int32_t runbgsinform(int argc, char** argv);
 static int32_t proccreate(const char* path, int32_t oflags,
                           const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid);
 static int32_t procinform(const char* path, int32_t oflags,
@@ -79,6 +80,7 @@ static int32_t procmerge(const char* path, int32_t oflags,
                          const std::vector<std::string>& srcpaths);
 static int32_t proccheck(const char* path, int32_t oflags,
                          const char* ulogpath, int64_t ulim, uint16_t sid, uint16_t dbid);
+static int32_t procbgsinform(const char* bgspath);
 
 
 // main routine
@@ -117,6 +119,8 @@ int main(int argc, char** argv) {
     rv = runmerge(argc, argv);
   } else if (!std::strcmp(argv[1], "check")) {
     rv = runcheck(argc, argv);
+  } else if (!std::strcmp(argv[1], "bgsinform")) {
+    rv = runbgsinform(argc, argv);
   } else if (!std::strcmp(argv[1], "version") || !std::strcmp(argv[1], "--version")) {
     printversion();
   } else {
@@ -161,6 +165,7 @@ static void usage() {
           " [-add|-rep|-app] path src...\n", g_progname);
   eprintf("  %s check [-onl|-otl|-onr] [-ulog str] [-ulim num] [-sid num] [-dbid num]"
           " path\n", g_progname);
+  eprintf("  %s bgsinform file\n", g_progname);
   eprintf("\n");
   std::exit(1);
 }
@@ -1040,6 +1045,30 @@ static int32_t runcheck(int argc, char** argv) {
   }
   if (!path) usage();
   int32_t rv = proccheck(path, oflags, ulogpath, ulim, sid, dbid);
+  return rv;
+}
+
+
+// parse arguments of bgsinform command
+static int32_t runbgsinform(int argc, char** argv) {
+  bool argbrk = false;
+  const char* bgspath = NULL;
+  for (int32_t i = 2; i < argc; i++) {
+    if (!argbrk && argv[i][0] == '-') {
+      if (!std::strcmp(argv[i], "--")) {
+        argbrk = true;
+      } else {
+        usage();
+      }
+    } else if (!bgspath) {
+      argbrk = true;
+      bgspath = argv[i];
+    } else {
+      usage();
+    }
+  }
+  if (!bgspath) usage();
+  int32_t rv = procbgsinform(bgspath);
   return rv;
 }
 
@@ -2004,6 +2033,50 @@ static int32_t proccheck(const char* path, int32_t oflags,
   }
   if (!err) oprintf("%lld records were checked successfully\n", (long long)cnt);
   return err ? 1 : 0;
+}
+
+
+// perform bgsinform command
+static int32_t procbgsinform(const char* bgspath) {
+  kc::File::Status sbuf;
+  if (!kc::File::status(bgspath, &sbuf)) {
+    eprintf("%s: %s: no such file or directory\n", g_progname, bgspath);
+    return 1;
+  }
+  if (sbuf.isdir) {
+    kc::DirStream dir;
+    if (dir.open(bgspath)) {
+      std::string name;
+      while (dir.read(&name)) {
+        const char* nstr = name.c_str();
+        const char* pv = std::strrchr(nstr, kc::File::EXTCHR);
+        if (*nstr >= '0' && *nstr <= '9' && pv && !kc::stricmp(pv + 1, BGSPATHEXT)) {
+          std::string path;
+          kc::strprintf(&path, "%s%c%s", bgspath, kc::File::PATHCHR, nstr);
+          uint64_t ssts;
+          int64_t sscount, sssize;
+          if (kt::TimedDB::status_snapshot_atomic(path, &ssts, &sscount, &sssize))
+            oprintf("%d\t%llu\t%lld\t%lld\n", (int)kc::atoi(nstr),
+                    (unsigned long long)ssts, (long long)sscount, (long long)sssize);
+        }
+      }
+      dir.close();
+    } else {
+      eprintf("%s: %s: could not open the directory\n", g_progname, bgspath);
+      return 1;
+    }
+  } else {
+    uint64_t ssts;
+    int64_t sscount, sssize;
+    if (kt::TimedDB::status_snapshot_atomic(bgspath, &ssts, &sscount, &sssize)) {
+      oprintf("%llu\t%lld\t%lld\n",
+              (unsigned long long)ssts, (long long)sscount, (long long)sssize);
+    } else {
+      eprintf("%s: %s: could not open the file\n", g_progname, bgspath);
+      return 1;
+    }
+  }
+  return 0;
 }
 
 

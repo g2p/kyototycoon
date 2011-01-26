@@ -67,6 +67,12 @@ for (my $i = 1; $i <= 10; $i++) {
     $cache->incr($i, 1000);
 }
 
+printf("retrieving in bulk...\n");
+my $values = $cache->get_multi(1..10);
+while (my ($key, $value) = each(%$values)) {
+    printf("get_multi: %s: %s\n", $key, $value);
+}
+
 printf("removing without reply...\n");
 for (my $i = 1; $i <= 10; $i++) {
     $cache->delete($i);

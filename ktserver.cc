@@ -2564,8 +2564,8 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
   }
   if (sid < 0) sid = 0;
   kc::File::Status sbuf;
-  if (bgspath && (!kc::File::status(bgspath, &sbuf) || !sbuf.isdir)) {
-    eprintf("%s: %s: no such directory\n", g_progname, bgspath);
+  if (bgspath && !kc::File::status(bgspath, &sbuf) && !kc::File::make_directory(bgspath)) {
+    eprintf("%s: %s: could not open the directory\n", g_progname, bgspath);
     return 1;
   }
   if (!kc::File::status(cmdpath, &sbuf) || !sbuf.isdir) {
@@ -2662,10 +2662,17 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
             idx >= 0 && idx < dbnum) {
           std::string path;
           kc::strprintf(&path, "%s%c%s", bgspath, kc::File::PATHCHR, nstr);
-          serv.log(Logger::SYSTEM, "applying a snapshot file: %s", path.c_str());
-          if (!dbs[idx].load_snapshot_atomic(path, bgscomp)) {
-            const kc::BasicDB::Error& e = dbs[idx].error();
-            serv.log(Logger::ERROR, "could not apply a snapshot: %s: %s", e.name(), e.message());
+          uint64_t ssts;
+          int64_t sscount, sssize;
+          if (kt::TimedDB::status_snapshot_atomic(path, &ssts, &sscount, &sssize)) {
+            serv.log(Logger::SYSTEM,
+                     "applying a snapshot file: db=%d ts=%llu count=%lld size=%lld",
+                     idx, (unsigned long long)ssts, (long long)sscount, (long long)sssize);
+            if (!dbs[idx].load_snapshot_atomic(path, bgscomp)) {
+              const kc::BasicDB::Error& e = dbs[idx].error();
+              serv.log(Logger::ERROR, "could not apply a snapshot: %s: %s",
+                       e.name(), e.message());
+            }
           }
         }
       }
@@ -2814,7 +2821,6 @@ static bool dosnapshot(const char* bgspath, kc::Compressor* bgscomp,
     kc::strprintf(&tmppath, "%s%ctmp", destpath.c_str(), kc::File::EXTCHR);
     int32_t cnt = 0;
     while (true) {
-      double stime = kc::time();
       if (db->dump_snapshot_atomic(tmppath, bgscomp)) {
         if (!kc::File::rename(tmppath, destpath)) {
           serv->log(Logger::ERROR, "renaming a file failed: %s: %s",

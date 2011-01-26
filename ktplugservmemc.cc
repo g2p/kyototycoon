@@ -127,7 +127,7 @@ private:
           keep = do_add(serv, sess, tokens, db);
         } else if (cmd == "replace") {
           keep = do_replace(serv, sess, tokens, db);
-        } else if (cmd == "get") {
+        } else if (cmd == "get" || cmd == "gets") {
           keep = do_get(serv, sess, tokens, db);
         } else if (cmd == "delete") {
           keep = do_delete(serv, sess, tokens, db);
