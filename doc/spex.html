@@ -486,16 +486,16 @@ $ kill -HUP `cat /var/data/ktserver.pid`
 
 <p>Note that the space effiency of the cache hash database is worse than that of the stash database.  The limit should be up to 50% of the total memory size of the machine.  However, automatic deletion by the "capsiz" parameter (not "ktcapsiz") of the cache hash database is based on LRU algorithm, which prevents fresh records from sudden deletion.</p>
 
-<h3 id="tips_autosnapshot">Auto Snapshot for On-memory Databases</h3>
+<h3 id="tips_bgsnapshot">Background Snapshot for On-memory Databases</h3>
 
-<p>Kyoto Tycoon supports the "auto snapshot" mechanism for on-memory databases.  This mechanism is similar to the one in Redis.  If auto snapshot is enabled, the server saves all records in on-memory databases into files in a directory periodically.  Because snapshot operations are performed in background by child processes forked from the server process, any foreground operation called by clients is not blocked.  Due to the copy-on-write memory mechanism by the operating system, each snapshot operation is performed atomically in logical view.</p>
+<p>Kyoto Tycoon supports the "background snapshot" mechanism for on-memory databases.  This mechanism is similar to the one in Redis.  If background snapshot is enabled, the server saves all records in on-memory databases into files in a directory periodically.  Because snapshot operations are performed in background by child processes forked from the server process, any foreground operation called by clients is not blocked.  Due to the copy-on-write memory mechanism by the operating system, each snapshot operation is performed atomically in logical view.</p>
 
 <p>Snapshot files are saved in a directory specified when the server starts.  Each snapshot operation runs periodically by the given interval and additionally when the server finishes.  If there are snapshot files when the server starts, they are read and all records are restored.  The following setting is an example.</p>
 
-<pre>$ ktserver -bgs . -bgsi 30
+<pre>$ ktserver -bgs mysnap -bgsi 30
 </pre>
 
-<p>Insert some records and wait for 30 seconds.  Then you'll see a snapshot file named "00000000.ktss" in the current directory.</p>
+<p>Insert some records and wait for 30 seconds.  Then you'll see a snapshot file named "00000000.ktss" in the "mysnap" directory.</p>
 
 <pre>$ ktremotemgr set france paris
 $ ktremotemgr set germany berlin
@@ -503,7 +503,7 @@ $ ktremotemgr set germany berlin
 
 <p>Terminate the server by Ctrl-C and restart the server.</p>
 
-<pre>$ ktserver -bgs . -bgsi 30
+<pre>$ ktserver -bgs mysnap -bgsi 30
 </pre>
 
 <p>Make sure that the records before termination were restored.</p>
@@ -514,6 +514,12 @@ france  paris
 </pre>
 
 <p>Because snapshot data are serialized in an compact format and the IO operations are in sequential order, the IO loading of the underlying storage device is much lower than those in file databases.  In order to lower the IO loading at the cost of CPU time, you can use a compression algorithm by the "-bgsc" option.  The supported compression algorithms are "zlib", "lzo" and , "lzma", although the latter two are optional support when building Kyoto Cabinet.  Probably, using "lzo" is a good choice for most use cases.</p>
+
+<p>Snapshot files can be used as backup files.  You may want to use them in order to set replication slave.  In that case, you have to know the time stamp of each snapshot file.  The "kttimedmgr bgsinform" command shows the meta data of snapshot files in a directory.</p>
+
+<pre>$ kttimedmgr bgsinform mysnap
+0       1295594141774000000     2       8388722
+</pre>
 
 <h3 id="tips_expiration">Inside Expiration</h3>
 

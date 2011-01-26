@@ -2063,6 +2063,19 @@ public:
     }
     return true;
   }
+  /**
+   * Get status of an atomic snapshot file.
+   * @param src the path of the source file.
+   * @param tsp the pointer to the variable into which the time stamp of the snapshot data is
+   * assigned.  If it is NULL, it is ignored.
+   * @param cntp the pointer to the variable into which the number of records in the original
+   * database is assigned.  If it is NULL, it is ignored.
+   * @param sizp the pointer to the variable into which the size of the original database is
+   * assigned.  If it is NULL, it is ignored.
+   * @return true on success, or false on failure.
+   */
+  static bool status_snapshot_atomic(const std::string& src, uint64_t* tsp = NULL,
+                                     int64_t* cntp = NULL, int64_t* sizp = NULL);
 private:
   /**
    * Tuning Options.

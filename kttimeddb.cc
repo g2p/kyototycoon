@@ -163,12 +163,18 @@ bool TimedDB::dump_snapshot_atomic(const std::string& dest, kc::Compressor* zcom
     }
   }
   uint64_t ts = UpdateLogger::clock_pure();
-  char head[sizeof(chksum)+sizeof(ts)];
+  uint64_t dbcount = db_.count();
+  uint64_t dbsize = db_.size();
+  char head[sizeof(chksum)+sizeof(ts)+sizeof(dbcount)+sizeof(dbsize)];
   char* wp = head;
   kc::writefixnum(wp, chksum, sizeof(chksum));
   wp += sizeof(chksum);
   kc::writefixnum(wp, ts, sizeof(ts));
   wp += sizeof(ts);
+  kc::writefixnum(wp, dbcount, sizeof(dbcount));
+  wp += sizeof(dbcount);
+  kc::writefixnum(wp, dbsize, sizeof(dbsize));
+  wp += sizeof(dbsize);
   if (!file.append(SSMAGICDATA, sizeof(SSMAGICDATA)) ||
       !file.append(head, sizeof(head))) {
     if (cpid != 0) db_.set_error(_KCCODELINE_, kc::BasicDB::Error::SYSTEM, file.error());
@@ -256,7 +262,7 @@ bool TimedDB::load_snapshot_atomic(const std::string& src, kc::Compressor* zcomp
       delete[] zbuf;
     }
   }
-  char head[sizeof(SSMAGICDATA)+sizeof(chksum)+sizeof(uint64_t)];
+  char head[sizeof(SSMAGICDATA)+sizeof(chksum)+sizeof(uint64_t)*3];
   if (!file.read(0, head, sizeof(head))) {
     db_.set_error(_KCCODELINE_, kc::BasicDB::Error::SYSTEM, file.error());
     return false;
@@ -385,6 +391,32 @@ bool TimedDB::load_snapshot_atomic(const std::string& src, kc::Compressor* zcomp
     db_.set_error(_KCCODELINE_, kc::BasicDB::Error::SYSTEM, file.error());
     return false;
   }
+  return true;
+}
+
+
+/**
+ * Get status of an atomic snapshot file.
+ */
+bool TimedDB::status_snapshot_atomic(const std::string& src, uint64_t* tsp,
+                                     int64_t* cntp, int64_t* sizp) {
+  _assert_(true);
+  kc::File file;
+  if (!file.open(src, kc::File::OREADER)) return false;
+  char head[sizeof(SSMAGICDATA)+sizeof(uint32_t)+sizeof(uint64_t)*3];
+  if (!file.read(0, head, sizeof(head))) return false;
+  if (!file.close()) return false;
+  if (std::memcmp(head, SSMAGICDATA, sizeof(SSMAGICDATA))) return false;
+  const char* rp = head + sizeof(SSMAGICDATA) + sizeof(uint32_t);
+  uint64_t ts = kc::readfixnum(rp, sizeof(ts));
+  rp += sizeof(ts);
+  int64_t dbcount = kc::readfixnum(rp, sizeof(dbcount));
+  rp += sizeof(dbcount);
+  int64_t dbsize = kc::readfixnum(rp, sizeof(dbsize));
+  rp += sizeof(dbcount);
+  if (tsp) *tsp = ts;
+  if (cntp) *cntp = dbcount;
+  if (sizp) *sizp = dbsize;
   return true;
 }
 

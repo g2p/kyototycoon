@@ -1,3 +1,13 @@
+2011-01-20  Mikio Hirabayashi  <info@fallabs.com>
+
+	* ktpluvservmemc.cc (Worker::process): "gets" is now supported.
+
+	* kttimeddb.h (TimeDB::status_snapshot_atomic): new function.
+
+	* kttimedmgr.cc (runbgsinfo, procbgsinfo): new functions.
+
+	- Release: 0.9.26
+
 2011-01-18  Mikio Hirabayashi  <info@fallabs.com>
 
 	* ktserver.cc (dosnapshot): new function.
