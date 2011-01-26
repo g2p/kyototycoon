@@ -22,6 +22,7 @@ libkyototycoon.so.2 libkyototycoon2 #MINVER#
  _ZN11kyototycoon12ServerSocketD0Ev@Base 0.9.23
  _ZN11kyototycoon12ServerSocketD1Ev@Base 0.9.23
  _ZN11kyototycoon12ServerSocketD2Ev@Base 0.9.23
+ _ZN11kyototycoon12UpdateLogger10clock_pureEv@Base 0.9.24
  _ZN11kyototycoon12getlocaltimeElP2tm@Base 0.9.23
  _ZN11kyototycoon13SharedLibrary4openEPKc@Base 0.9.23
  _ZN11kyototycoon13SharedLibrary5closeEv@Base 0.9.23
@@ -79,6 +80,8 @@ libkyototycoon.so.2 libkyototycoon2 #MINVER#
  _ZN11kyototycoon6SocketD1Ev@Base 0.9.23
  _ZN11kyototycoon6SocketD2Ev@Base 0.9.23
  _ZN11kyototycoon6jetlagEv@Base 0.9.23
+ _ZN11kyototycoon7TimedDB20dump_snapshot_atomicERKSsPN12kyotocabinet10CompressorEPNS3_7BasicDB15ProgressCheckerE@Base 0.9.24
+ _ZN11kyototycoon7TimedDB20load_snapshot_atomicERKSsPN12kyotocabinet10CompressorEPNS3_7BasicDB15ProgressCheckerE@Base 0.9.24
  _ZN11kyototycoon7TimedDB7Visitor3NOPE@Base 0.9.23
  _ZN11kyototycoon7TimedDB7Visitor6REMOVEE@Base 0.9.23
  _ZN11kyototycoon7VERSIONE@Base 0.9.23
@@ -92,10 +95,35 @@ libkyototycoon.so.2 libkyototycoon2 #MINVER#
  _ZN11kyototycoon9dayofweekEiii@Base 0.9.23
  _ZN11kyototycoon9getgmtimeElP2tm@Base 0.9.23
  _ZN11kyototycoon9strmktimeEPKc@Base 0.9.23
+ _ZN12kyotocabinet10hashmurmurEPKvm@Base 0.9.24
+ _ZN12kyotocabinet10readfixnumEPKvm@Base 0.9.24
+ _ZN12kyotocabinet10readvarnumEPKvmPm@Base 0.9.24
  _ZN12kyotocabinet10vstrprintfEPSsPKcP13__va_list_tag@Base 0.9.23
+ _ZN12kyotocabinet11writefixnumEPvmm@Base 0.9.24
+ _ZN12kyotocabinet11writevarnumEPvm@Base 0.9.24
+ _ZN12kyotocabinet2DB7Visitor10visit_fullEPKcmS3_mPm@Base 0.9.24
+ _ZN12kyotocabinet2DB7Visitor11visit_emptyEPKcmPm@Base 0.9.24
+ _ZN12kyotocabinet2DB7VisitorC1Ev@Base 0.9.24
+ _ZN12kyotocabinet2DB7VisitorC2Ev@Base 0.9.24
+ _ZN12kyotocabinet2DB7VisitorD0Ev@Base 0.9.24
+ _ZN12kyotocabinet2DB7VisitorD1Ev@Base 0.9.24
+ _ZN12kyotocabinet2DB7VisitorD2Ev@Base 0.9.24
  _ZN12kyotocabinet4atoiEPKc@Base 0.9.23
  _ZN12kyotocabinet5atoihEPKc@Base 0.9.23
+ _ZN12kyotocabinet6PolyDB15reveal_inner_dbEv@Base 0.9.24
+ _ZN12kyotocabinet6PolyDB7iterateEPNS_2DB7VisitorEbPNS_7BasicDB15ProgressCheckerE@Base 0.9.24
+ _ZN12kyotocabinet6PolyDB9set_errorEPKciS2_NS_7BasicDB5Error4CodeES2_@Base 0.9.24
  _ZN12kyotocabinet6chknanEd@Base 0.9.23
+ _ZN12kyotocabinet6hton32Ej@Base 0.9.24
+ _ZN12kyotocabinet6hton64Em@Base 0.9.24
+ _ZN12kyotocabinet6ntoh32Ej@Base 0.9.24
+ _ZN12kyotocabinet6ntoh64Em@Base 0.9.24
+ _ZN12kyotocabinet7BasicDB15ProgressCheckerC2Ev@Base 0.9.24
+ _ZN12kyotocabinet7BasicDB15ProgressCheckerD0Ev@Base 0.9.24
+ _ZN12kyotocabinet7BasicDB15ProgressCheckerD1Ev@Base 0.9.24
+ _ZN12kyotocabinet7BasicDB15ProgressCheckerD2Ev@Base 0.9.24
+ _ZN12kyotocabinet7BasicDB3setEPKcmS2_m@Base 0.9.24
+ _ZN12kyotocabinet7BasicDB5Error3setENS1_4CodeEPKc@Base 0.9.24
  _ZN12kyotocabinet7strifwmEPKcS1_@Base 0.9.23
  _ZN12kyotocabinet9strprintfEPSsPKcz@Base 0.9.23
  _ZN9__gnu_cxx13new_allocatorIPN11kyototycoon8PollableEE7destroyEPS3_@Base 0.9.23
@@ -131,6 +159,7 @@ libkyototycoon.so.2 libkyototycoon2 #MINVER#
  _ZNKSt8_Rb_treeIPN11kyototycoon8PollableES2_St9_IdentityIS2_ESt4lessIS2_ESaIS2_EE5beginEv@Base 0.9.23
  _ZNKSt8_Rb_treeIPN11kyototycoon8PollableES2_St9_IdentityIS2_ESt4lessIS2_ESaIS2_EE5emptyEv@Base 0.9.23
  _ZNKSt9_IdentityIPN11kyototycoon8PollableEEclERKS2_@Base 0.9.23
+ _ZNKSt9type_infoeqERKS_@Base 0.9.24
  _ZNSaIPN11kyototycoon8PollableEEC1ISt13_Rb_tree_nodeIS1_EEERKSaIT_E@Base 0.9.23
  _ZNSaIPN11kyototycoon8PollableEED1Ev@Base 0.9.23
  _ZNSaISt13_Rb_tree_nodeIPN11kyototycoon8PollableEEEC2Ev@Base 0.9.23
@@ -184,10 +213,50 @@ libkyototycoon.so.2 libkyototycoon2 #MINVER#
  _ZTIN11kyototycoon12ServerSocketE@Base 0.9.23
  _ZTIN11kyototycoon6SocketE@Base 0.9.23
  _ZTIN11kyototycoon8PollableE@Base 0.9.23
+ _ZTIN12kyotocabinet2DB7VisitorE@Base 0.9.24
+ _ZTIN12kyotocabinet2DBE@Base 0.9.24
+ _ZTIN12kyotocabinet7BasicDB15ProgressCheckerE@Base 0.9.24
+ _ZTIN12kyotocabinet7BasicDBE@Base 0.9.24
+ _ZTIN12kyotocabinet7CacheDBE@Base 0.9.24
+ _ZTIN12kyotocabinet7PlantDBINS_7CacheDBELh33EEE@Base 0.9.24
+ _ZTIN12kyotocabinet7ProtoDBINSt3tr113unordered_mapISsSsNS1_4hashISsEESt8equal_toISsESaISt4pairIKSsSsEEEELh16EEE@Base 0.9.24
+ _ZTIN12kyotocabinet7ProtoDBISt3mapISsSsSt4lessISsESaISt4pairIKSsSsEEELh17EEE@Base 0.9.24
+ _ZTIN12kyotocabinet7StashDBE@Base 0.9.24
+ _ZTIZN11kyototycoon7TimedDB20dump_snapshot_atomicERKSsPN12kyotocabinet10CompressorEPNS3_7BasicDB15ProgressCheckerEE6Dumper@Base 0.9.24
+ _ZTIZN11kyototycoon7TimedDB20dump_snapshot_atomicERKSsPN12kyotocabinet10CompressorEPNS3_7BasicDB15ProgressCheckerEE6Forker@Base 0.9.24
+ _ZTIZN12kyotocabinet7BasicDB3setEPKcmS2_mE11VisitorImpl@Base 0.9.24
  _ZTSN11kyototycoon12ServerSocketE@Base 0.9.23
  _ZTSN11kyototycoon6SocketE@Base 0.9.23
  _ZTSN11kyototycoon8PollableE@Base 0.9.23
+ _ZTSN12kyotocabinet2DB7VisitorE@Base 0.9.24
+ _ZTSN12kyotocabinet2DBE@Base 0.9.24
+ _ZTSN12kyotocabinet7BasicDB15ProgressCheckerE@Base 0.9.24
+ _ZTSN12kyotocabinet7BasicDBE@Base 0.9.24
+ _ZTSN12kyotocabinet7CacheDBE@Base 0.9.24
+ _ZTSN12kyotocabinet7PlantDBINS_7CacheDBELh33EEE@Base 0.9.24
+ _ZTSN12kyotocabinet7ProtoDBINSt3tr113unordered_mapISsSsNS1_4hashISsEESt8equal_toISsESaISt4pairIKSsSsEEEELh16EEE@Base 0.9.24
+ _ZTSN12kyotocabinet7ProtoDBISt3mapISsSsSt4lessISsESaISt4pairIKSsSsEEELh17EEE@Base 0.9.24
+ _ZTSN12kyotocabinet7StashDBE@Base 0.9.24
+ _ZTSZN11kyototycoon7TimedDB20dump_snapshot_atomicERKSsPN12kyotocabinet10CompressorEPNS3_7BasicDB15ProgressCheckerEE6Dumper@Base 0.9.24
+ _ZTSZN11kyototycoon7TimedDB20dump_snapshot_atomicERKSsPN12kyotocabinet10CompressorEPNS3_7BasicDB15ProgressCheckerEE6Forker@Base 0.9.24
+ _ZTSZN12kyotocabinet7BasicDB3setEPKcmS2_mE11VisitorImpl@Base 0.9.24
  _ZTVN11kyototycoon12ServerSocketE@Base 0.9.23
  _ZTVN11kyototycoon6SocketE@Base 0.9.23
  _ZTVN11kyototycoon8PollableE@Base 0.9.23
+ _ZTVN12kyotocabinet2DB7VisitorE@Base 0.9.24
+ _ZTVN12kyotocabinet7BasicDB15ProgressCheckerE@Base 0.9.24
+ _ZTVZN11kyototycoon7TimedDB20dump_snapshot_atomicERKSsPN12kyotocabinet10CompressorEPNS3_7BasicDB15ProgressCheckerEE6Dumper@Base 0.9.24
+ _ZTVZN11kyototycoon7TimedDB20dump_snapshot_atomicERKSsPN12kyotocabinet10CompressorEPNS3_7BasicDB15ProgressCheckerEE6Forker@Base 0.9.24
+ _ZTVZN12kyotocabinet7BasicDB3setEPKcmS2_mE11VisitorImpl@Base 0.9.24
+ _ZZN11kyototycoon7TimedDB20dump_snapshot_atomicERKSsPN12kyotocabinet10CompressorEPNS3_7BasicDB15ProgressCheckerEEN6DumperD0Ev@Base 0.9.24
+ _ZZN11kyototycoon7TimedDB20dump_snapshot_atomicERKSsPN12kyotocabinet10CompressorEPNS3_7BasicDB15ProgressCheckerEEN6DumperD1Ev@Base 0.9.24
+ _ZZN11kyototycoon7TimedDB20dump_snapshot_atomicERKSsPN12kyotocabinet10CompressorEPNS3_7BasicDB15ProgressCheckerEEN6DumperD2Ev@Base 0.9.24
+ _ZZN11kyototycoon7TimedDB20dump_snapshot_atomicERKSsPN12kyotocabinet10CompressorEPNS3_7BasicDB15ProgressCheckerEEN6ForkerD0Ev@Base 0.9.24
+ _ZZN11kyototycoon7TimedDB20dump_snapshot_atomicERKSsPN12kyotocabinet10CompressorEPNS3_7BasicDB15ProgressCheckerEEN6ForkerD1Ev@Base 0.9.24
+ _ZZN11kyototycoon7TimedDB20dump_snapshot_atomicERKSsPN12kyotocabinet10CompressorEPNS3_7BasicDB15ProgressCheckerEEN6ForkerD2Ev@Base 0.9.24
+ _ZZN12kyotocabinet7BasicDB3setEPKcmS2_mEN11VisitorImpl10visit_fullES2_mS2_mPm@Base 0.9.24
+ _ZZN12kyotocabinet7BasicDB3setEPKcmS2_mEN11VisitorImpl11visit_emptyES2_mPm@Base 0.9.24
+ _ZZN12kyotocabinet7BasicDB3setEPKcmS2_mEN11VisitorImplC1ES2_m@Base 0.9.24
+ _ZZN12kyotocabinet7BasicDB3setEPKcmS2_mEN11VisitorImplD0Ev@Base 0.9.24
+ _ZZN12kyotocabinet7BasicDB3setEPKcmS2_mEN11VisitorImplD1Ev@Base 0.9.24
  _ZnwmPv@Base 0.9.23
