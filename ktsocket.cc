@@ -31,10 +31,10 @@ namespace kyototycoon {                  // common namespace
  * Constants for implementation.
  */
 namespace {
-const int32_t NAMEBUFSIZ = 256;
-const int32_t IOBUFSIZ = 4096;
-const double WAITTIME = 0.1;
-const int32_t RECVMAXSIZ = 1 << 30;
+const int32_t NAMEBUFSIZ = 256;          ///< size of the name buffer
+const int32_t IOBUFSIZ = 4096;           ///< size of the IO buffer
+const double WAITTIME = 0.1;             ///< interval to check timeout
+const int32_t RECVMAXSIZ = 1 << 30;      ///< maximum size to receive
 }
 
 

@@ -7,6 +7,14 @@ username = "root"
 password = ""
 rtspath = "ktreplmysql.rts"
 
+# $ mysql --user=root
+# > create database kttest;
+# > create table kttest (
+#   k varchar(256) primary key,
+#   v varchar(256) not null,
+#   xt datetime not null
+# ) TYPE=InnoDB;
+
 begin
   dbh = DBI::connect("dbi:Mysql:#{dbname}:#{hostname}", username, password)
   sthins = dbh.prepare("INSERT INTO kttest ( k, v, xt ) VALUES ( ?, ?, ? )" +

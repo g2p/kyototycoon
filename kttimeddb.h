@@ -1743,6 +1743,24 @@ public:
     return db_.load_snapshot(src, checker);
   }
   /**
+   * Dump records atomically into a file.
+   * @param dest the path of the destination file.
+   * @param zcomp the data compressor object.  If it is NULL, no compression is performed.
+   * @param checker a progress checker object.  If it is NULL, no checking is performed.
+   * @return true on success, or false on failure.
+   */
+  bool dump_snapshot_atomic(const std::string& dest, kc::Compressor* zcomp = NULL,
+                            kc::BasicDB::ProgressChecker* checker = NULL);
+  /**
+   * Load records atomically from a file.
+   * @param src the path of the source file.
+   * @param zcomp the data compressor object.  If it is NULL, no decompression is performed.
+   * @param checker a progress checker object.  If it is NULL, no checking is performed.
+   * @return true on success, or false on failure.
+   */
+  bool load_snapshot_atomic(const std::string& src, kc::Compressor* zcomp = NULL,
+                            kc::BasicDB::ProgressChecker* checker = NULL);
+  /**
    * Reveal the inner database object.
    * @return the inner database object, or NULL on failure.
    */

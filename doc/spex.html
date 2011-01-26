@@ -486,6 +486,35 @@ $ kill -HUP `cat /var/data/ktserver.pid`
 
 <p>Note that the space effiency of the cache hash database is worse than that of the stash database.  The limit should be up to 50% of the total memory size of the machine.  However, automatic deletion by the "capsiz" parameter (not "ktcapsiz") of the cache hash database is based on LRU algorithm, which prevents fresh records from sudden deletion.</p>
 
+<h3 id="tips_autosnapshot">Auto Snapshot for On-memory Databases</h3>
+
+<p>Kyoto Tycoon supports the "auto snapshot" mechanism for on-memory databases.  This mechanism is similar to the one in Redis.  If auto snapshot is enabled, the server saves all records in on-memory databases into files in a directory periodically.  Because snapshot operations are performed in background by child processes forked from the server process, any foreground operation called by clients is not blocked.  Due to the copy-on-write memory mechanism by the operating system, each snapshot operation is performed atomically in logical view.</p>
+
+<p>Snapshot files are saved in a directory specified when the server starts.  If a server process left a snapshot file in the directory before the processs had terminated, the next lanuch of the server will read the snapshot file and restore records.  The following setting is an example.</p>
+
+<pre>$ ktserver -bgs . -bgsi 30
+</pre>
+
+<p>Insert some records and wait for 30 seconds.  Then you'll see a snapshot file named "00000000.ktss".</p>
+
+<pre>$ ktremotemgr set france paris
+$ ktremotemgr set germany berlin
+</pre>
+
+<p>Terminate the server by Ctrl-C and restart the server.</p>
+
+<pre>$ ktserver -bgs . -bgsi 30
+</pre>
+
+<p>Make sure that the records before termination were restored.</p>
+
+<pre>$ ktremotemgr list -pv
+germany berlin
+france  paris
+</pre>
+
+<p>Because Snapshot data are serialized in an compact format and the IO operations are in sequential order, the IO loading of the underlying storage device is much lower than those in file databases.  In order to lower the IO loading at the cost of CPU time, you can use a compression algorithm by the "-bgsc" option.  The supported compression algorithms are "zlib", "lzo" and , "lzma", although the latter two are optional support when building Kyoto Cabinet.  Probably, using "lzo" is a good choice for most use cases.</p>
+
 <h3 id="tips_expiration">Inside Expiration</h3>
 
 <p>The timed database is a database type of wrapper of the polymorphic database of Kyoto Cabinet.  The value of each record in the timed database has the 5 bytes prefix to contain the expiration time in seconds from the epoch.  When a database operation accesses a record, the current time and the expiration time of the record is compared.  If the former is larger, the record is regarded as expired.</p>

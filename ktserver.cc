@@ -34,7 +34,8 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
                     const char* host, int32_t port, double tout, int32_t thnum,
                     const char* logpath, uint32_t logkinds,
                     const char* ulogpath, int64_t ulim, double uasi,
-                    int32_t sid, int32_t omode, double asi, bool ash, bool dmn,
+                    int32_t sid, int32_t omode, double asi, bool ash,
+                    const char* bgspath, double bgsi, kc::Compressor* bgscomp, bool dmn,
                     const char* pidpath, const char* cmdpath, const char* scrpath,
                     const char* mhost, int32_t mport, const char* rtspath, double riv,
                     const char* plsvpath, const char* plsvex, const char* pldbpath);
@@ -319,12 +320,13 @@ public:
   // constructor
   explicit Worker(int32_t thnum, kt::TimedDB* dbs, int32_t dbnum,
                   const std::map<std::string, int32_t>& dbmap, int32_t omode,
-                  double asi, bool ash,
+                  double asi, bool ash, const char* bgspath, double bgsi, kc::Compressor* bgscomp,
                   kt::UpdateLogger* ulog, DBUpdateLogger* ulogdbs,
                   const char* cmdpath, ScriptProcessor* scrprocs) :
     thnum_(thnum), dbs_(dbs), dbnum_(dbnum), dbmap_(dbmap),
-    omode_(omode), asi_(asi), ash_(ash), ulog_(ulog), ulogdbs_(ulogdbs),
-    cmdpath_(cmdpath), scrprocs_(scrprocs), idlecnt_(0), asnext_(0), slave_(NULL) {}
+    omode_(omode), asi_(asi), ash_(ash), bgspath_(bgspath), bgsi_(bgsi), bgscomp_(bgscomp),
+    ulog_(ulog), ulogdbs_(ulogdbs), cmdpath_(cmdpath), scrprocs_(scrprocs),
+    idlecnt_(0), asnext_(0), bgsnext_(0), slave_(NULL) {}
   // set miscellaneous configuration
   void set_misc_conf(Slave* slave) {
     slave_ = slave;
@@ -566,7 +568,8 @@ private:
   }
   // process each timer event
   void process_timer(kt::RPCServer* serv) {
-    if ((asi_ > 0) && (omode_ & kc::BasicDB::OWRITER) && kc::time() >= asnext_) {
+    if (asi_ > 0 && (omode_ & kc::BasicDB::OWRITER) && kc::time() >= asnext_) {
+      serv->log(Logger::INFO, "synchronizing databases");
       for (int32_t i = 0; i < dbnum_; i++) {
         kt::TimedDB* db = dbs_ + i;
         if (!db->synchronize(ash_)) {
@@ -577,6 +580,38 @@ private:
         kc::Thread::yield();
       }
       asnext_ = kc::time() + asi_;
+    }
+    if (bgspath_ && bgsi_ > 0 && kc::time() >= bgsnext_) {
+      serv->log(Logger::INFO, "snapshotting databases");
+      for (int32_t i = 0; i < dbnum_; i++) {
+        kt::TimedDB* db = dbs_ + i;
+        std::string destpath;
+        kc::strprintf(&destpath, "%s%c%08d%c%s",
+                      bgspath_, kc::File::PATHCHR, i, kc::File::EXTCHR, BGSPATHEXT);
+        std::string tmppath;
+        kc::strprintf(&tmppath, "%s%ctmp", destpath.c_str(), kc::File::EXTCHR);
+
+
+        double stime = kc::time();
+        //printf("dumping: %d\n", (int)db->count());
+
+        if (db->dump_snapshot_atomic(tmppath, bgscomp_)) {
+          if (!kc::File::rename(tmppath, destpath)) {
+            serv->log(Logger::ERROR, "renaming a file failed: %s: %s",
+                      tmppath.c_str(), destpath.c_str());
+          }
+        } else {
+          const kc::BasicDB::Error& e = db->error();
+          log_db_error(serv, e);
+        }
+        kc::File::remove(tmppath);
+
+        //printf("done: %f\n", kc::time() - stime);
+
+
+        kc::Thread::yield();
+      }
+      bgsnext_ = kc::time() + bgsi_;
     }
   }
   // set the error message
@@ -2265,12 +2300,16 @@ private:
   const int32_t omode_;
   const double asi_;
   const bool ash_;
+  const char* const bgspath_;
+  const double bgsi_;
+  kc::Compressor* const bgscomp_;
   kt::UpdateLogger* const ulog_;
   DBUpdateLogger* const ulogdbs_;
   const char* const cmdpath_;
   ScriptProcessor* const scrprocs_;
   uint64_t idlecnt_;
-  uint64_t asnext_;
+  double asnext_;
+  double bgsnext_;
   Slave* slave_;
 };
 
@@ -2297,10 +2336,11 @@ static void usage() {
   eprintf("\n");
   eprintf("usage:\n");
   eprintf("  %s [-host str] [-port num] [-tout num] [-th num] [-log file] [-li|-ls|-le|-lz]"
-          " [-ulog str] [-ulim num] [-uasi num] [-sid num] [-ord] [-oat|-oas|-onl|-otl|-onr]"
-          " [-asi num] [-ash] [-dmn] [-pid file] [-cmd dir] [-scr file]"
-          " [-mhost str] [-mport num] [-rts file] [-riv num] [-plsv file] [-plex str]"
-          " [-pldb file] [db...]\n", g_progname);
+          " [-ulog dir] [-ulim num] [-uasi num] [-sid num] [-ord] [-oat|-oas|-onl|-otl|-onr]"
+          " [-asi num] [-ash] [-bgs dir] [-bgsi num] [-bgc str]"
+          " [-dmn] [-pid file] [-cmd dir] [-scr file]"
+          " [-mhost str] [-mport num] [-rts file] [-riv num]"
+          " [-plsv file] [-plex str] [-pldb file] [db...]\n", g_progname);
   eprintf("\n");
   std::exit(1);
 }
@@ -2333,6 +2373,9 @@ static int32_t run(int argc, char** argv) {
   int32_t omode = kc::BasicDB::OWRITER | kc::BasicDB::OCREATE;
   double asi = 0;
   bool ash = false;
+  const char* bgspath = NULL;
+  double bgsi = DEFBGSI;
+  kc::Compressor* bgscomp = NULL;
   bool dmn = false;
   const char* pidpath = NULL;
   const char* cmdpath = NULL;
@@ -2401,6 +2444,22 @@ static int32_t run(int argc, char** argv) {
         asi = kc::atof(argv[i]);
       } else if (!std::strcmp(argv[i], "-ash")) {
         ash = true;
+      } else if (!std::strcmp(argv[i], "-bgs")) {
+        if (++i >= argc) usage();
+        bgspath = argv[i];
+      } else if (!std::strcmp(argv[i], "-bgsi")) {
+        if (++i >= argc) usage();
+        bgsi = kc::atof(argv[i]);
+      } else if (!std::strcmp(argv[i], "-bgsc")) {
+        if (++i >= argc) usage();
+        const char* cn = argv[i];
+        if (!kc::stricmp(cn, "zlib") || !kc::stricmp(cn, "gz")) {
+          bgscomp = new kc::ZLIBCompressor<kc::ZLIB::RAW>;
+        } else if (!kc::stricmp(cn, "lzo") || !kc::stricmp(cn, "oz")) {
+          bgscomp = new kc::LZOCompressor<kc::LZO::RAW>;
+        } else if (!kc::stricmp(cn, "lzma") || !kc::stricmp(cn, "xz")) {
+          bgscomp = new kc::LZMACompressor<kc::LZMA::RAW>;
+        }
       } else if (!std::strcmp(argv[i], "-dmn")) {
         dmn = true;
       } else if (!std::strcmp(argv[i], "-pid")) {
@@ -2445,9 +2504,10 @@ static int32_t run(int argc, char** argv) {
   if (thnum > THREADMAX) thnum = THREADMAX;
   if (dbpaths.empty()) dbpaths.push_back(":");
   int32_t rv = proc(dbpaths, host, port, tout, thnum, logpath, logkinds,
-                    ulogpath, ulim, uasi, sid, omode, asi, ash,
+                    ulogpath, ulim, uasi, sid, omode, asi, ash, bgspath, bgsi, bgscomp,
                     dmn, pidpath, cmdpath, scrpath, mhost, mport, rtspath, riv,
                     plsvpath, plsvex, pldbpath);
+  delete bgscomp;
   return rv;
 }
 
@@ -2457,7 +2517,8 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
                     const char* host, int32_t port, double tout, int32_t thnum,
                     const char* logpath, uint32_t logkinds,
                     const char* ulogpath, int64_t ulim, double uasi,
-                    int32_t sid, int32_t omode, double asi, bool ash, bool dmn,
+                    int32_t sid, int32_t omode, double asi, bool ash,
+                    const char* bgspath, double bgsi, kc::Compressor* bgscomp, bool dmn,
                     const char* pidpath, const char* cmdpath, const char* scrpath,
                     const char* mhost, int32_t mport, const char* rtspath, double riv,
                     const char* plsvpath, const char* plsvex, const char* pldbpath) {
@@ -2470,6 +2531,10 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
       }
       if (ulogpath && *ulogpath != kc::File::PATHCHR) {
         eprintf("%s: %s: a daemon can accept absolute path only\n", g_progname, ulogpath);
+        return 1;
+      }
+      if (bgspath && *bgspath != kc::File::PATHCHR) {
+        eprintf("%s: %s: a daemon can accept absolute path only\n", g_progname, bgspath);
         return 1;
       }
       if (pidpath && *pidpath != kc::File::PATHCHR) {
@@ -2521,6 +2586,10 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
   }
   if (sid < 0) sid = 0;
   kc::File::Status sbuf;
+  if (bgspath && (!kc::File::status(bgspath, &sbuf) || !sbuf.isdir)) {
+    eprintf("%s: %s: no such directory\n", g_progname, bgspath);
+    return 1;
+  }
   if (!kc::File::status(cmdpath, &sbuf) || !sbuf.isdir) {
     eprintf("%s: %s: no such directory\n", g_progname, cmdpath);
     return 1;
@@ -2603,6 +2672,28 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
     if (pv) rp = pv + 1;
     dbmap[rp] = i;
   }
+  if (bgspath) {
+    kc::DirStream dir;
+    if (dir.open(bgspath)) {
+      std::string name;
+      while (dir.read(&name)) {
+        const char* nstr = name.c_str();
+        const char* pv = std::strrchr(nstr, kc::File::EXTCHR);
+        int32_t idx = kc::atoi(nstr);
+        if (*nstr >= '0' && *nstr <= '9' && pv && !kc::stricmp(pv + 1, BGSPATHEXT) &&
+            idx >= 0 && idx < dbnum) {
+          std::string path;
+          kc::strprintf(&path, "%s%c%s", bgspath, kc::File::PATHCHR, nstr);
+          serv.log(Logger::SYSTEM, "applying a snapshot file: %s", path.c_str());
+          if (!dbs[idx].load_snapshot_atomic(path, bgscomp)) {
+            const kc::BasicDB::Error& e = dbs[idx].error();
+            serv.log(Logger::ERROR, "could not apply a snapshot: %s: %s", e.name(), e.message());
+          }
+        }
+      }
+      dir.close();
+    }
+  }
   ScriptProcessor* scrprocs = NULL;
   if (scrpath) {
     serv.log(Logger::SYSTEM, "loading a script file: path=%s", scrpath);
@@ -2651,7 +2742,8 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
     plsv = init();
     plsv->configure(dbs, dbnum, &logger, logkinds, plsvex);
   }
-  Worker worker(thnum, dbs, dbnum, dbmap, omode, asi, ash, ulog, ulogdbs, cmdpath, scrprocs);
+  Worker worker(thnum, dbs, dbnum, dbmap, omode, asi, ash, bgspath, bgsi, bgscomp,
+                ulog, ulogdbs, cmdpath, scrprocs);
   serv.set_worker(&worker, thnum);
   if (pidpath) {
     char numbuf[kc::NUMBUFSIZ];
