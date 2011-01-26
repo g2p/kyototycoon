@@ -63,6 +63,10 @@ public:
    */
   bool load(const std::string& path);
   /**
+   * Clear the internal state.
+   */
+  void clear();
+  /**
    * Call a procedure.
    * @param name the name of the procecude.
    * @param inmap a string map which contains the input of the procedure.

@@ -13,8 +13,8 @@
  *************************************************************************************************/
 
 
-#include "ktremotedb.h"
 #include "myconf.h"
+#include "ktremotedb.h"
 
 namespace kyototycoon {                  // common namespace
 

@@ -13,8 +13,8 @@
  *************************************************************************************************/
 
 
-#include "kttimeddb.h"
 #include "myconf.h"
+#include "kttimeddb.h"
 
 namespace kyototycoon {                  // common namespace
 

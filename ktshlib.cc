@@ -13,8 +13,8 @@
  *************************************************************************************************/
 
 
-#include "ktshlib.h"
 #include "myconf.h"
+#include "ktshlib.h"
 
 namespace kyototycoon {                  // common namespace
 

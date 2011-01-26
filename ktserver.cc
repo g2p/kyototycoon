@@ -2330,6 +2330,7 @@ static void killserver(int signum) {
     g_serv->stop();
     g_serv = NULL;
     if (g_daemon && signum == SIGHUP) g_restart = true;
+    if (signum == SIGUSR1) g_restart = true;
   }
 }
 
@@ -2692,14 +2693,8 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
         delete ulog;
         return 1;
       }
-      if (!scrprocs[i].load(scrpath)) {
+      if (!scrprocs[i].load(scrpath))
         serv.log(Logger::ERROR, "could not load a script file: %s", scrpath);
-        delete[] scrprocs;
-        delete[] dbs;
-        delete[] ulogdbs;
-        delete ulog;
-        return 1;
-      }
     }
   }
   kt::SharedLibrary plsvlib;
@@ -2736,8 +2731,7 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
     kc::File::write_file(pidpath, numbuf, nsiz);
   }
   bool err = false;
-  g_restart = true;
-  while (g_restart) {
+  while (true) {
     g_restart = false;
     g_serv = &serv;
     Slave slave(sid, rtspath, mhost, mport, riv, &serv, dbs, dbnum, ulog, ulogdbs);
@@ -2759,13 +2753,27 @@ static int32_t proc(const std::vector<std::string>& dbpaths,
     }
     slave.stop();
     slave.join();
-    if (err) break;
+    if (!g_restart || err) break;
     logger.close();
     if (!logger.open(logpath)) {
       eprintf("%s: %s: could not open the log file\n", g_progname, logpath ? logpath : "-");
       err = true;
       break;
     }
+    if (scrprocs) {
+      serv.log(Logger::SYSTEM, "reloading a script file: path=%s", scrpath);
+      for (int32_t i = 0; i < thnum; i++) {
+        scrprocs[i].clear();
+        if (!scrprocs[i].set_resources(i, &serv, dbs, dbnum, &dbmap)) {
+          serv.log(Logger::ERROR, "could not initialize the scripting processor");
+          err = true;
+          break;
+        }
+        if (!scrprocs[i].load(scrpath))
+          serv.log(Logger::ERROR, "could not load a script file: %s", scrpath);
+      }
+    }
+    if (err) break;
   }
   if (plsv) {
     delete plsv;

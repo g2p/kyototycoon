@@ -13,8 +13,8 @@
  *************************************************************************************************/
 
 
-#include "ktutil.h"
 #include "myconf.h"
+#include "ktutil.h"
 
 namespace kyototycoon {                  // common namespace
 
@@ -55,6 +55,8 @@ bool setkillsignalhandler(void (*handler)(int)) {
   if (std::signal(SIGTERM, handler) == SIG_ERR) err = true;
   if (std::signal(SIGINT, handler) == SIG_ERR) err = true;
   if (std::signal(SIGHUP, handler) == SIG_ERR) err = true;
+  if (std::signal(SIGUSR1, handler) == SIG_ERR) err = true;
+  if (std::signal(SIGUSR2, handler) == SIG_ERR) err = true;
   return !err;
 }
 

@@ -13,8 +13,8 @@
  *************************************************************************************************/
 
 
-#include "myscript.h"
 #include "myconf.h"
+#include "myscript.h"
 
 
 #if _KT_LUA
@@ -228,6 +228,7 @@ ScriptProcessor::ScriptProcessor() {
  * Destructor.
  */
 ScriptProcessor::~ScriptProcessor() {
+  _assert_(true);
   ScriptProcessorCore* core = (ScriptProcessorCore*)opq_;
   lua_State* lua = core->lua;
   if (lua) lua_close(lua);
@@ -304,6 +305,7 @@ bool ScriptProcessor::set_resources(int32_t thid, kt::RPCServer* serv,
  * Load a script file.
  */
 bool ScriptProcessor::load(const std::string& path) {
+  _assert_(true);
   ScriptProcessorCore* core = (ScriptProcessorCore*)opq_;
   core->path = path;
   lua_State* lua = core->lua;
@@ -318,6 +320,23 @@ bool ScriptProcessor::load(const std::string& path) {
   }
   delete[] script;
   return !err;
+}
+
+
+/**
+ * Clear the internal state.
+ */
+void ScriptProcessor::clear() {
+  _assert_(true);
+  ScriptProcessorCore* core = (ScriptProcessorCore*)opq_;
+  lua_State* lua = core->lua;
+  if (lua) lua_close(lua);
+  core->thid = 0;
+  core->serv = NULL;
+  core->dbs = NULL;
+  core->dbnum = 0;
+  core->dbmap = NULL;
+  core->lua = NULL;
 }
 
 
@@ -3251,6 +3270,20 @@ bool ScriptProcessor::load(const std::string& path) {
   ScriptProcessorCore* core = (ScriptProcessorCore*)opq_;
   core->path = path;
   return true;
+}
+
+
+/**
+ * Clear the internal state.
+ */
+void ScriptProcessor::clear() {
+  _assert_(true);
+  ScriptProcessorCore* core = new ScriptProcessorCore;
+  core->thid = 0;
+  core->serv = NULL;
+  core->dbs = NULL;
+  core->dbnum = 0;
+  core->dbmap = NULL;
 }
 
 

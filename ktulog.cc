@@ -13,8 +13,8 @@
  *************************************************************************************************/
 
 
-#include "ktulog.h"
 #include "myconf.h"
+#include "ktulog.h"
 
 namespace kyototycoon {                  // common namespace
 
