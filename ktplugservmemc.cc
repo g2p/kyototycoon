@@ -18,6 +18,9 @@
 namespace kc = kyotocabinet;
 namespace kt = kyototycoon;
 
+const int32_t TIMEOUT = 30;              // networking timeout
+const int32_t THNUM = 8;                 // number of threads
+
 
 // pluggable server for the memcached protocol
 class MemcacheServer : public kt::PluggableServer {
@@ -86,8 +89,8 @@ public:
     }
     std::string nexpr;
     kc::strprintf(&nexpr, "%s:%d", addr.c_str(), port_);
-    serv_.set_network(nexpr, 30);
-    serv_.set_worker(&worker_, 8);
+    serv_.set_network(nexpr, TIMEOUT);
+    serv_.set_worker(&worker_, THNUM);
     return serv_.start();
   }
   // stop the server
@@ -107,9 +110,30 @@ private:
   };
   // server implementation
   class Worker : public kt::ThreadedServer::Worker {
+    // symbols for operation counting
+    enum {
+      CNTSET,
+      CNTSETMISS,
+      CNTGET,
+      CNTGETMISS,
+      CNTDELETE,
+      CNTDELETEMISS,
+      CNTINCR,
+      CNTINCRMISS,
+      CNTDECR,
+      CNTDECRMISS,
+      CNTFLUSH
+    };
+    typedef uint64_t OpCount[CNTFLUSH+1];
   public:
     // constructor
-    Worker(MemcacheServer* serv) : serv_(serv) {}
+    Worker(MemcacheServer* serv) : serv_(serv) {
+      for (int32_t i = 0; i < THNUM; i++) {
+        for (int32_t j = 0; j <= CNTFLUSH; j++) {
+          opcounts_[i][j] = 0;
+        }
+      }
+    }
   private:
     // process each request.
     bool process(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess) {
@@ -159,6 +183,7 @@ private:
     // process the set command
     bool do_set(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess,
                 const std::vector<std::string>& tokens, kt::TimedDB* db) {
+      uint32_t thid = sess->thread_id();
       if (tokens.size() < 5) return sess->printf("CLIENT_ERROR invalid parameters\r\n");
       const std::string& key = tokens[1];
       uint32_t flags = kc::atoi(tokens[2].c_str());
@@ -184,9 +209,11 @@ private:
             kc::writefixnum(vbuf + vsiz, flags, sizeof(flags));
             vsiz += sizeof(flags);
           }
+          opcounts_[thid][CNTSET]++;
           if (db->set(key.data(), key.size(), vbuf, vsiz, xt)) {
             if (!norep && !sess->printf("STORED\r\n")) err = true;
           } else {
+            opcounts_[thid][CNTSETMISS]++;
             const kc::BasicDB::Error& e = db->error();
             log_db_error(serv, e);
             if (!norep && !sess->printf("SERVER_ERROR DB::set failed\r\n")) err = true;
@@ -203,6 +230,7 @@ private:
     // process the add command
     bool do_add(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess,
                 const std::vector<std::string>& tokens, kt::TimedDB* db) {
+      uint32_t thid = sess->thread_id();
       if (tokens.size() < 5) return sess->printf("CLIENT_ERROR invalid parameters\r\n");
       const std::string& key = tokens[1];
       uint32_t flags = kc::atoi(tokens[2].c_str());
@@ -228,9 +256,11 @@ private:
             kc::writefixnum(vbuf + vsiz, flags, sizeof(flags));
             vsiz += sizeof(flags);
           }
+          opcounts_[thid][CNTSET]++;
           if (db->add(key.data(), key.size(), vbuf, vsiz, xt)) {
             if (!norep && !sess->printf("STORED\r\n")) err = true;
           } else {
+            opcounts_[thid][CNTSETMISS]++;
             const kc::BasicDB::Error& e = db->error();
             if (e == kc::BasicDB::Error::DUPREC) {
               if (!norep && !sess->printf("NOT_STORED\r\n")) err = true;
@@ -251,6 +281,7 @@ private:
     // process the replace command
     bool do_replace(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess,
                     const std::vector<std::string>& tokens, kt::TimedDB* db) {
+      uint32_t thid = sess->thread_id();
       if (tokens.size() < 5) return sess->printf("CLIENT_ERROR invalid parameters\r\n");
       const std::string& key = tokens[1];
       uint32_t flags = kc::atoi(tokens[2].c_str());
@@ -276,9 +307,11 @@ private:
             kc::writefixnum(vbuf + vsiz, flags, sizeof(flags));
             vsiz += sizeof(flags);
           }
+          opcounts_[thid][CNTSET]++;
           if (db->replace(key.data(), key.size(), vbuf, vsiz, xt)) {
             if (!norep && !sess->printf("STORED\r\n")) err = true;
           } else {
+            opcounts_[thid][CNTSETMISS]++;
             const kc::BasicDB::Error& e = db->error();
             if (e == kc::BasicDB::Error::NOREC) {
               if (!norep && !sess->printf("NOT_STORED\r\n")) err = true;
@@ -299,12 +332,14 @@ private:
     // process the get command
     bool do_get(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess,
                 const std::vector<std::string>& tokens, kt::TimedDB* db) {
+      uint32_t thid = sess->thread_id();
       if (tokens.size() < 1) return sess->printf("CLIENT_ERROR invalid parameters\r\n");
       bool err = false;
       std::vector<std::string>::const_iterator it = tokens.begin();
       std::vector<std::string>::const_iterator itend = tokens.end();
       std::string result;
       while (it != itend) {
+        opcounts_[thid][CNTGET]++;
         size_t vsiz;
         char* vbuf = db->get(it->data(), it->size(), &vsiz);
         if (vbuf) {
@@ -318,6 +353,8 @@ private:
           result.append(vbuf, vsiz);
           result.append("\r\n");
           delete[] vbuf;
+        } else {
+          opcounts_[thid][CNTGETMISS]++;
         }
         it++;
       }
@@ -328,6 +365,7 @@ private:
     // process the delete command
     bool do_delete(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess,
                    const std::vector<std::string>& tokens, kt::TimedDB* db) {
+      uint32_t thid = sess->thread_id();
       if (tokens.size() < 2) return sess->printf("CLIENT_ERROR invalid parameters\r\n");
       const std::string& key = tokens[1];
       bool norep = false;
@@ -335,9 +373,11 @@ private:
         if (tokens[i] == "noreply") norep = true;
       }
       bool err = false;
+      opcounts_[thid][CNTDELETE]++;
       if (db->remove(key.data(), key.size())) {
         if (!norep && !sess->printf("DELETED\r\n")) err = true;
       } else {
+        opcounts_[thid][CNTDELETEMISS]++;
         const kc::BasicDB::Error& e = db->error();
         if (e == kc::BasicDB::Error::NOREC) {
           if (!norep && !sess->printf("NOT_FOUND\r\n")) err = true;
@@ -351,6 +391,7 @@ private:
     // process the incr command
     bool do_incr(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess,
                  const std::vector<std::string>& tokens, kt::TimedDB* db) {
+      uint32_t thid = sess->thread_id();
       if (tokens.size() < 3) return sess->printf("CLIENT_ERROR invalid parameters\r\n");
       const std::string& key = tokens[1];
       int64_t num = kc::atoi(tokens[2].c_str());
@@ -394,13 +435,16 @@ private:
         char nbuf_[kc::NUMBUFSIZ];
       };
       Visitor visitor(num, serv_->opts_);
+      opcounts_[thid][CNTINCR]++;
       if (db->accept(key.data(), key.size(), &visitor, true)) {
         if (visitor.hit()) {
           if (!norep && !sess->printf("%lld\r\n", (long long)visitor.num())) err = true;
         } else {
+          opcounts_[thid][CNTINCRMISS]++;
           if (!norep && !sess->printf("NOT_FOUND\r\n")) err = true;
         }
       } else {
+        opcounts_[thid][CNTINCRMISS]++;
         const kc::BasicDB::Error& e = db->error();
         log_db_error(serv, e);
         if (!norep && !sess->printf("SERVER_ERROR DB::accept failed\r\n")) err = true;
@@ -410,6 +454,7 @@ private:
     // process the decr command
     bool do_decr(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess,
                  const std::vector<std::string>& tokens, kt::TimedDB* db) {
+      uint32_t thid = sess->thread_id();
       if (tokens.size() < 3) return sess->printf("CLIENT_ERROR invalid parameters\r\n");
       const std::string& key = tokens[1];
       int64_t num = -kc::atoi(tokens[2].c_str());
@@ -453,13 +498,16 @@ private:
         char nbuf_[kc::NUMBUFSIZ];
       };
       Visitor visitor(num, serv_->opts_);
+      opcounts_[thid][CNTDECR]++;
       if (db->accept(key.data(), key.size(), &visitor, true)) {
         if (visitor.hit()) {
           if (!norep && !sess->printf("%lld\r\n", (long long)visitor.num())) err = true;
         } else {
+          opcounts_[thid][CNTDECRMISS]++;
           if (!norep && !sess->printf("NOT_FOUND\r\n")) err = true;
         }
       } else {
+        opcounts_[thid][CNTDECRMISS]++;
         const kc::BasicDB::Error& e = db->error();
         log_db_error(serv, e);
         if (!norep && !sess->printf("SERVER_ERROR DB::accept failed\r\n")) err = true;
@@ -480,6 +528,8 @@ private:
         kc::strprintf(&result, "STAT time %lld\r\n", (long long)now);
         kc::strprintf(&result, "STAT version KyotoTycoon/%s\r\n", kt::VERSION);
         kc::strprintf(&result, "STAT pointer_size %d\r\n", (int)(sizeof(void*) * 8));
+        kc::strprintf(&result, "STAT curr_connections %d\r\n", (int)serv->connection_count());
+        kc::strprintf(&result, "STAT threads %d\r\n", (int)THNUM);
         kc::strprintf(&result, "STAT curr_items %lld\r\n", (long long)db->count());
         kc::strprintf(&result, "STAT bytes %lld\r\n", (long long)db->size());
         std::map<std::string, std::string>::iterator it = status.begin();
@@ -488,6 +538,34 @@ private:
           kc::strprintf(&result, "STAT db_%s %s\r\n", it->first.c_str(), it->second.c_str());
           it++;
         }
+        OpCount ocsum;
+        for (int32_t i = 0; i <= CNTFLUSH; i++) {
+          ocsum[i] = 0;
+        }
+        for (int32_t i = 0; i < THNUM; i++) {
+          for (int32_t j = 0; j <= CNTFLUSH; j++) {
+            ocsum[j] += opcounts_[i][j];
+          }
+        }
+        kc::strprintf(&result, "STAT set_hits %lld\r\n",
+                      (long long)(ocsum[CNTSET] - ocsum[CNTSETMISS]));
+        kc::strprintf(&result, "STAT set_misses %lld\r\n", (long long)ocsum[CNTSETMISS]);
+        kc::strprintf(&result, "STAT get_hits %lld\r\n",
+                      (long long)(ocsum[CNTGET] - ocsum[CNTGETMISS]));
+        kc::strprintf(&result, "STAT get_misses %lld\r\n", (long long)ocsum[CNTGETMISS]);
+        kc::strprintf(&result, "STAT delete_hits %lld\r\n",
+                      (long long)(ocsum[CNTDELETE] - ocsum[CNTDELETEMISS]));
+        kc::strprintf(&result, "STAT delete_misses %lld\r\n", (long long)ocsum[CNTDELETEMISS]);
+        kc::strprintf(&result, "STAT incr_hits %lld\r\n",
+                      (long long)(ocsum[CNTINCR] - ocsum[CNTINCRMISS]));
+        kc::strprintf(&result, "STAT incr_misses %lld\r\n", (long long)ocsum[CNTINCRMISS]);
+        kc::strprintf(&result, "STAT decr_hits %lld\r\n",
+                      (long long)(ocsum[CNTDECR] - ocsum[CNTDECRMISS]));
+        kc::strprintf(&result, "STAT decr_misses %lld\r\n", (long long)ocsum[CNTDECRMISS]);
+        kc::strprintf(&result, "STAT cmd_set %lld\r\n", (long long)ocsum[CNTSET]);
+        kc::strprintf(&result, "STAT cmd_get %lld\r\n", (long long)ocsum[CNTGET]);
+        kc::strprintf(&result, "STAT cmd_delete %lld\r\n", (long long)ocsum[CNTDELETE]);
+        kc::strprintf(&result, "STAT cmd_flush %lld\r\n", (long long)ocsum[CNTFLUSH]);
         kc::strprintf(&result, "END\r\n");
       } else {
         const kc::BasicDB::Error& e = db->error();
@@ -500,12 +578,14 @@ private:
     // process the flush_all command
     bool do_flush_all(kt::ThreadedServer* serv, kt::ThreadedServer::Session* sess,
                       const std::vector<std::string>& tokens, kt::TimedDB* db) {
+      uint32_t thid = sess->thread_id();
       if (tokens.size() < 1) return sess->printf("CLIENT_ERROR invalid parameters\r\n");
       bool norep = false;
       for (size_t i = 1; i < tokens.size(); i++) {
         if (tokens[i] == "noreply") norep = true;
       }
       bool err = false;
+      opcounts_[thid][CNTFLUSH]++;
       std::map<std::string, std::string> status;
       if (db->clear()) {
         if (!norep && !sess->printf("OK\r\n")) err = true;
@@ -525,6 +605,7 @@ private:
       return !err;
     }
     MemcacheServer* serv_;
+    OpCount opcounts_[THNUM];
   };
   kt::TimedDB* dbary_;
   size_t dbnum_;
