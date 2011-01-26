@@ -1,3 +1,19 @@
+kyototycoon (0.9.24-1) unstable; urgency=low
+
+  * Imported Upstream version 0.9.24
+
+ -- Gabriel de Perthuis <g2p.code+debian@gmail.com>  Wed, 26 Jan 2011 10:59:01 +0100
+
+kyototycoon (0.9.24-1~1.gbpb1c2a7) UNRELEASED; urgency=low
+
+  * Correct inaccurate package description.
+  * Tweak descriptions
+  * Relax dependencies for the debug package
+  * Don't mention domain sockets in README.Debian.
+  * Version libkyototycoon2 symbols.
+
+ -- Gabriel de Perthuis <g2p.code+debian@gmail.com>  Wed, 26 Jan 2011 10:59:01 +0100
+
 kyototycoon (0.9.23-1) unstable; urgency=low
 
   * Imported Upstream version 0.9.23
