@@ -93,7 +93,7 @@ all : $(LIBRARYFILES) $(SHLIBFILES) $(COMMANDFILES)
 clean :
 	rm -rf $(LIBRARYFILES) $(LIBOBJFILES) $(SHLIBFILES) $(COMMANDFILES) $(CGIFILES) \
 	  *.o *.gch a.out check.in check.out gmon.out *.log *.vlog words.tsv \
-	  casket* *.kch *.kct *.kcd *.kcf *.wal *.tmpkc* *.kcss *.pid *-ulog *.rts \
+	  casket* *.kch *.kct *.kcd *.kcf *.wal *.tmpkc* *.kcss *.ktss *.pid *-ulog *.rts \
 	  *~ hoge moge tako ika
 
 

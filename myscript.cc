@@ -282,7 +282,7 @@ bool ScriptProcessor::set_resources(int32_t thid, kt::RPCServer* serv,
   std::map<std::string, int32_t>::const_iterator it = dbmap->begin();
   std::map<std::string, int32_t>::const_iterator itend = dbmap->end();
   while (it != itend) {
-    lua_rawgeti(lua, -1, it->second);
+    lua_rawgeti(lua, -1, it->second + 1);
     lua_setfield(lua, -2, it->first.c_str());
     it++;
   }

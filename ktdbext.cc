@@ -16,7 +16,7 @@
 #include "ktdbext.h"
 #include "myconf.h"
 
-namespace kyotocabinet {                 // common namespace
+namespace kyototycoon {                  // common namespace
 
 
 // There is no implementation now.

@@ -1,3 +1,13 @@
+2011-01-08  Mikio Hirabayashi  <info@fallabs.com>
+
+	* myscript.cc (set_resources): a bug about database name solver was fixed.
+
+	* kttimeddb.h (TimedDB::dump_snapshot_atomic): new function.
+
+	* kttimeddb.cc (fork_impl, wait_impl, nice_impl, exit_impl): new function.
+
+	- Release: 0.9.24
+
 2011-01-05  Mikio Hirabayashi  <info@fallabs.com>
 
 	* ktthserv.h (TaskQueueImpl::do_task): keep-alive mechanism was modified.

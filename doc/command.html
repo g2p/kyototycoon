@@ -47,7 +47,7 @@
 <p>The command `<code>ktserver</code>' runs the server managing database instances.  This command is used in the following format.  `<var>db</var>' specifies a database name.  If no database is specified, an unnamed on-memory database is opened.</p>
 
 <dl class="api">
-<dt><code>ktserver [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-th <var>num</var>] [-log <var>file</var>] [-li|-ls|-le|-lz] [-ulog <var>str</var>] [-ulim <var>num</var>] [-uasi <var>num</var>] [-sid <var>num</var>] [-ord] [-oat|-oas|-onl|-otl|-onr] [-asi <var>num</var>] [-ash] [-dmn] [-pid <var>file</var>] [-scr <var>file</var>] [-mhost <var>str</var>] [-mport <var>num</var>] [-rts <var>file</var>] [-riv <var>num</var>] [-plsv <var>file</var>] [-plex <var>str</var>] [-pldb <var>file</var>] [<var>db</var>...]</code></dt>
+<dt><code>ktserver [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-th <var>num</var>] [-log <var>file</var>] [-li|-ls|-le|-lz] [-ulog <var>dir</var>] [-ulim <var>num</var>] [-uasi <var>num</var>] [-sid <var>num</var>] [-ord] [-oat|-oas|-onl|-otl|-onr] [-asi <var>num</var>] [-ash] [-bgs <var>dir</var>] [-bgsi <var>num</var>] [-bgc <var>str</var>] [-dmn] [-pid <var>file</var>] [-scr <var>file</var>] [-mhost <var>str</var>] [-mport <var>num</var>] [-rts <var>file</var>] [-riv <var>num</var>] [-plsv <var>file</var>] [-plex <var>str</var>] [-pldb <var>file</var>] [<var>db</var>...]</code></dt>
 </dl>
 
 <p>Options feature the following.</p>
@@ -62,7 +62,7 @@
 <li><code>-ls</code> : sets the logging level "SYSTEM".</li>
 <li><code>-le</code> : sets the logging level "ERROR".</li>
 <li><code>-lz</code> : sets the logging level "NONE".</li>
-<li><code>-ulog <var>str</var></code> : specifies the update log directory.</li>
+<li><code>-ulog <var>dir</var></code> : specifies the path of the update log directory.  By default, it is disabled.</li>
 <li><code>-ulim <var>num</var></code> : specifies the limit size of each update log file.</li>
 <li><code>-uasi <var>num</var></code> : specifies the interval of synchronization of update log files.  By default, it is disabled.</li>
 <li><code>-sid <var>num</var></code> : specifies the server ID number.</li>
@@ -74,6 +74,9 @@
 <li><code>-onr</code> : opens the database with the no auto repair option.</li>
 <li><code>-asi <var>num</var></code> : specifies the interval of auto synchronization.  By default, it is disabled.</li>
 <li><code>-ash</code> : does physical synchronization while auto synchronization.</li>
+<li><code>-bgs <var>dir</var></code> : specifies the path of the snapshot directory.  By default, it is disabled.</li>
+<li><code>-bgsi <var>num</var></code> : specifies the interval of auto snapshotting.  By default, it is 180.</li>
+<li><code>-bgsc <var>str</var></code> : specifies the compression algorithm of the snapshot.  "zlib", "lzo", are "lzma" are supported.</li>
 <li><code>-dmn</code> : switches to a daemon process.</li>
 <li><code>-pid <var>file</var></code> : specifies the file to contain the process ID to send signals by.</li>
 <li><code>-cmd <var>dir</var></code> : specifies the command search path for outer commands.  By default, it is the current directroy.</li>
