@@ -82,6 +82,7 @@ libkyototycoon.so.2 libkyototycoon2 #MINVER#
  _ZN11kyototycoon6jetlagEv@Base 0.9.23
  _ZN11kyototycoon7TimedDB20dump_snapshot_atomicERKSsPN12kyotocabinet10CompressorEPNS3_7BasicDB15ProgressCheckerE@Base 0.9.24
  _ZN11kyototycoon7TimedDB20load_snapshot_atomicERKSsPN12kyotocabinet10CompressorEPNS3_7BasicDB15ProgressCheckerE@Base 0.9.24
+ _ZN11kyototycoon7TimedDB22status_snapshot_atomicERKSsPmPlS4_@Base 0.9.26
  _ZN11kyototycoon7TimedDB7Visitor3NOPE@Base 0.9.23
  _ZN11kyototycoon7TimedDB7Visitor6REMOVEE@Base 0.9.23
  _ZN11kyototycoon7VERSIONE@Base 0.9.23
@@ -111,6 +112,8 @@ libkyototycoon.so.2 libkyototycoon2 #MINVER#
  _ZN12kyotocabinet4atoiEPKc@Base 0.9.23
  _ZN12kyotocabinet5atoihEPKc@Base 0.9.23
  _ZN12kyotocabinet6PolyDB15reveal_inner_dbEv@Base 0.9.24
+ _ZN12kyotocabinet6PolyDB4sizeEv@Base 0.9.26
+ _ZN12kyotocabinet6PolyDB5countEv@Base 0.9.26
  _ZN12kyotocabinet6PolyDB7iterateEPNS_2DB7VisitorEbPNS_7BasicDB15ProgressCheckerE@Base 0.9.24
  _ZN12kyotocabinet6PolyDB9set_errorEPKciS2_NS_7BasicDB5Error4CodeES2_@Base 0.9.24
  _ZN12kyotocabinet6chknanEd@Base 0.9.23
