@@ -132,7 +132,7 @@ static void usage() {
   eprintf("\n");
   eprintf("usage:\n");
   eprintf("  %s report [-host str] [-port num] [-tout num]\n", g_progname);
-  eprintf("  %s script [-host str] [-port num] [-tout num] [-bin] [-arg name value] proc\n",
+  eprintf("  %s script [-host str] [-port num] [-tout num] [-bin] proc [args...]\n",
           g_progname);
   eprintf("  %s tunerepl [-host str] [-port num] [-tout num] [-mport num] [-ts num] [-iv num]"
           " [mhost]\n", g_progname);
@@ -229,9 +229,6 @@ static int32_t runscript(int argc, char** argv) {
         tout = kc::atof(argv[i]);
       } else if (!std::strcmp(argv[i], "-bin")) {
         bin = true;
-      } else if (!std::strcmp(argv[i], "-arg")) {
-        if ((i += 2) >= argc) usage();
-        params[argv[i-1]] = argv[i];
       } else {
         usage();
       }
@@ -239,7 +236,8 @@ static int32_t runscript(int argc, char** argv) {
       argbrk = true;
       proc = argv[i];
     } else {
-      usage();
+      if (++i >= argc) usage();
+      params[argv[i-1]] = argv[i];
     }
   }
   if (!proc || port < 1) usage();

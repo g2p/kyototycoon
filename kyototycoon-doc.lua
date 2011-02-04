@@ -159,6 +159,30 @@ function strbwm(str, pattern) end
 function regex(str, pattern, alt) end
 
 
+--- Serialize an array into a string.
+-- @param src the source table.
+-- @return the result string.
+function arraydump(src) end
+
+
+--- Deserialize a string into an array.
+-- @param src the source string.
+-- @return the result map.
+function arrayload(src) end
+
+
+--- Serialize a map into a string.
+-- @param src the source table.
+-- @return the result string.
+function mapdump(src) end
+
+
+--- Deserialize a string into a map.
+-- @param src the source string.
+-- @return the result map.
+function mapload(src) end
+
+
 ---
 -- Error data.
 -- @class table
@@ -548,6 +572,7 @@ function db:append(key, value, xt) end
 -- @param num the additional number.  if it is omitted, 0 is specified.
 -- @param xt the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.  If it is omitted, no expiration time is specified.
 -- @return the result value, or nil on failure.
+-- @usage If no record corresponds to the key, a new record is created with the initial value set by the additional value.  The value is serialized as an 8-byte binary integer in big-endian order, not a decimal string.  If existing value is not 8-byte, this method fails.
 function db:increment(key, num, xt) end
 
 
@@ -556,6 +581,7 @@ function db:increment(key, num, xt) end
 -- @param num the additional number.  if it is omitted, 0 is specified.
 -- @param xt the expiration time from now in seconds.  If it is negative, the absolute value is treated as the epoch time.  If it is omitted, no expiration time is specified.
 -- @return the result value, or nil on failure.
+-- @note If no record corresponds to the key, a new record is created with the initial value set by the additional value.  The value is serialized as an 16-byte binary fixed-point number in big-endian order, not a decimal string.  If existing value is not 16-byte, this method fails.
 function db:increment_double(key, num, xt) end
 
 

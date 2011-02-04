@@ -62,6 +62,10 @@ static int kt_strstr(lua_State *lua);
 static int kt_strfwm(lua_State *lua);
 static int kt_strbwm(lua_State *lua);
 static int kt_regex(lua_State *lua);
+static int kt_arraydump(lua_State *lua);
+static int kt_arrayload(lua_State *lua);
+static int kt_mapdump(lua_State *lua);
+static int kt_mapload(lua_State *lua);
 static void define_err(lua_State* lua);
 static int err_new(lua_State* lua);
 static int err_tostring(lua_State* lua);
@@ -628,6 +632,10 @@ static void define_module(lua_State* lua) {
   setfieldfunc(lua, "strfwm", kt_strfwm);
   setfieldfunc(lua, "strbwm", kt_strbwm);
   setfieldfunc(lua, "regex", kt_regex);
+  setfieldfunc(lua, "arraydump", kt_arraydump);
+  setfieldfunc(lua, "arrayload", kt_arrayload);
+  setfieldfunc(lua, "mapdump", kt_mapdump);
+  setfieldfunc(lua, "mapload", kt_mapload);
 }
 
 
@@ -1343,6 +1351,173 @@ static int kt_regex(lua_State *lua) {
   } else {
     bool rv = kc::Regex::match(str, pat);
     lua_pushboolean(lua, rv);
+  }
+  return 1;
+}
+
+
+/**
+ * Implementation of arraydump.
+ */
+static int kt_arraydump(lua_State *lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  size_t rnum = lua_objlen(lua, 1);
+  std::string rstr;
+  rstr.reserve(rnum * 16 + 256);
+  for (size_t i = 1; i <= rnum; i++) {
+    lua_rawgeti(lua, 1, i);
+    char vnbuf[kc::NUMBUFSIZ];
+    const char* vbuf = NULL;
+    size_t vsiz = 0;
+    switch (lua_type(lua, -1)) {
+      case LUA_TNUMBER: {
+        double num = lua_tonumber(lua, -1);
+        if (num == std::floor(num)) {
+          vsiz = std::sprintf(vnbuf, "%lld", (long long)num);
+        } else {
+          vsiz = std::snprintf(vnbuf, sizeof(vnbuf), "%.6f", num);
+          vnbuf[sizeof(vnbuf)-1] = '\0';
+        }
+        vbuf = vnbuf;
+        break;
+      }
+      case LUA_TSTRING: {
+        vbuf = lua_tolstring(lua, -1, &vsiz);
+        break;
+      }
+    }
+    if (vbuf) {
+      char nbuf[kc::NUMBUFSIZ];
+      size_t nsiz = kc::writevarnum(nbuf, vsiz);
+      rstr.append(nbuf, nsiz);
+      rstr.append(vbuf, vsiz);
+    }
+    lua_pop(lua, 1);
+  }
+  lua_pushlstring(lua, rstr.data(), rstr.size());
+  return 1;
+}
+
+
+/**
+ * Implementation of arrayload.
+ */
+static int kt_arrayload(lua_State *lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc != 1) throwinvarg(lua, __KCFUNC__);
+  size_t size;
+  const char* rp = lua_tolstring(lua, 1, &size);
+  if (!rp) throwinvarg(lua, __KCFUNC__);
+  lua_newtable(lua);
+  int32_t idx = 1;
+  while (size > 0) {
+    uint64_t vsiz;
+    size_t step = kc::readvarnum(rp, size, &vsiz);
+    rp += step;
+    size -= step;
+    if (vsiz > size) break;
+    lua_pushlstring(lua, rp, vsiz);
+    lua_rawseti(lua, -2, idx++);
+    rp += vsiz;
+    size -= vsiz;
+  }
+  return 1;
+}
+
+
+/**
+ * Implementation of mapdump.
+ */
+static int kt_mapdump(lua_State *lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc != 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  std::string rstr;
+  rstr.reserve(512);
+  lua_pushnil(lua);
+  while (lua_next(lua, 1) != 0) {
+    char knbuf[kc::NUMBUFSIZ];
+    const char* kbuf = NULL;
+    size_t ksiz = 0;
+    switch (lua_type(lua, -2)) {
+      case LUA_TNUMBER: {
+        double num = lua_tonumber(lua, -2);
+        if (num == std::floor(num)) {
+          ksiz = std::sprintf(knbuf, "%lld", (long long)num);
+        } else {
+          ksiz = std::snprintf(knbuf, sizeof(knbuf), "%.6f", num);
+          knbuf[sizeof(knbuf)-1] = '\0';
+        }
+        kbuf = knbuf;
+        break;
+      }
+      case LUA_TSTRING: {
+        kbuf = lua_tolstring(lua, -2, &ksiz);
+        break;
+      }
+    }
+    char vnbuf[kc::NUMBUFSIZ];
+    const char* vbuf = NULL;
+    size_t vsiz = 0;
+    switch (lua_type(lua, -1)) {
+      case LUA_TNUMBER: {
+        double num = lua_tonumber(lua, -1);
+        if (num == std::floor(num)) {
+          vsiz = std::sprintf(vnbuf, "%lld", (long long)num);
+        } else {
+          vsiz = std::snprintf(vnbuf, sizeof(vnbuf), "%.6f", num);
+          vnbuf[sizeof(vnbuf)-1] = '\0';
+        }
+        vbuf = vnbuf;
+        break;
+      }
+      case LUA_TSTRING: {
+        vbuf = lua_tolstring(lua, -1, &vsiz);
+        break;
+      }
+    }
+    if (kbuf && vbuf) {
+      char nbuf[kc::NUMBUFSIZ*2];
+      size_t nsiz = kc::writevarnum(nbuf, ksiz);
+      nsiz += kc::writevarnum(nbuf + nsiz, vsiz);
+      rstr.append(nbuf, nsiz);
+      rstr.append(kbuf, ksiz);
+      rstr.append(vbuf, vsiz);
+    }
+    lua_pop(lua, 1);
+  }
+  lua_pushlstring(lua, rstr.data(), rstr.size());
+  return 1;
+}
+
+
+/**
+ * Implementation of mapload.
+ */
+static int kt_mapload(lua_State *lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc != 1) throwinvarg(lua, __KCFUNC__);
+  size_t size;
+  const char* rp = lua_tolstring(lua, 1, &size);
+  if (!rp) throwinvarg(lua, __KCFUNC__);
+  lua_newtable(lua);
+  while (size > 1) {
+    uint64_t ksiz;
+    size_t step = kc::readvarnum(rp, size, &ksiz);
+    rp += step;
+    size -= step;
+    if (size < 1) break;
+    uint64_t vsiz;
+    step = kc::readvarnum(rp, size, &vsiz);
+    rp += step;
+    size -= step;
+    size_t rsiz = ksiz + vsiz;
+    if (rsiz > size) break;
+    std::string key(rp, ksiz);
+    lua_pushlstring(lua, rp + ksiz, vsiz);
+    lua_setfield(lua, -2, key.c_str());
+    rp += rsiz;
+    size -= rsiz;
   }
   return 1;
 }
@@ -2545,7 +2720,13 @@ static int db_set_bulk(lua_State* lua) {
     size_t ksiz = 0;
     switch (lua_type(lua, -2)) {
       case LUA_TNUMBER: {
-        ksiz = std::sprintf(knbuf, "%d", (int)lua_tonumber(lua, -2));
+        double num = lua_tonumber(lua, -2);
+        if (num == std::floor(num)) {
+          ksiz = std::sprintf(knbuf, "%lld", (long long)num);
+        } else {
+          ksiz = std::snprintf(knbuf, sizeof(knbuf), "%.6f", num);
+          knbuf[sizeof(knbuf)-1] = '\0';
+        }
         kbuf = knbuf;
         break;
       }
@@ -2559,7 +2740,13 @@ static int db_set_bulk(lua_State* lua) {
     size_t vsiz = 0;
     switch (lua_type(lua, -1)) {
       case LUA_TNUMBER: {
-        vsiz = std::sprintf(vnbuf, "%d", (int)lua_tonumber(lua, -1));
+        double num = lua_tonumber(lua, -1);
+        if (num == std::floor(num)) {
+          vsiz = std::sprintf(vnbuf, "%lld", (long long)num);
+        } else {
+          vsiz = std::snprintf(vnbuf, sizeof(vnbuf), "%.6f", num);
+          vnbuf[sizeof(vnbuf)-1] = '\0';
+        }
         vbuf = vnbuf;
         break;
       }

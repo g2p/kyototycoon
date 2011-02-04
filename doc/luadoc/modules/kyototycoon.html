@@ -1902,6 +1902,9 @@ Add a number to the numeric integer value of a record.
 
 
 
+<h3>Usage:</h3>
+If no record corresponds to the key, a new record is created with the initial value set by the additional value.  The value is serialized as an 8-byte binary integer in big-endian order, not a decimal string.  If existing value is not 8-byte, this method fails.
+
 
 
 <h3>Return value:</h3>
