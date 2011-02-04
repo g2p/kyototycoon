@@ -1,2 +1,3 @@
 debian/tmp/usr/bin/ktserver usr/sbin
 debian/tmp/usr/share/man/man?/ktserver*
+debian/tmp/usr/lib/kyototycoon/ktplug*.so
