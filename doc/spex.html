@@ -432,7 +432,7 @@ end
 
 <p>To call the operation, execute the following command.</p>
 
-<pre>$ ktremotemgr script -arg key japan -arg value japan -arg xt 60 set
+<pre>$ ktremotemgr script set key japan value japan xt 60
 </pre>
 
 <p>See the specification of <a href="luadoc/">the scripting extension</a> for more details.  If you edit the script file and want to make the server reload it, send the `<code>SIGUSR1</code>' signal to the server.  If the server is a daemon, sending the `<code>SIGHUP</code>' signal causes the same effect.</p>

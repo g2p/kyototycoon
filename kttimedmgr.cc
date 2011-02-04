@@ -2069,7 +2069,9 @@ static int32_t procbgsinform(const char* bgspath) {
     uint64_t ssts;
     int64_t sscount, sssize;
     if (kt::TimedDB::status_snapshot_atomic(bgspath, &ssts, &sscount, &sssize)) {
-      oprintf("%llu\t%lld\t%lld\n",
+      const char* nstr = std::strrchr(bgspath, kc::File::PATHCHR);
+      if (!nstr) nstr = bgspath;
+      oprintf("%d\t%llu\t%lld\t%lld\n", (int)kc::atoi(nstr),
               (unsigned long long)ssts, (long long)sscount, (long long)sssize);
     } else {
       eprintf("%s: %s: could not open the file\n", g_progname, bgspath);

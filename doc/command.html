@@ -218,6 +218,8 @@
 <li><code>-lz</code> : sets the logging level "NONE".</li>
 </ul>
 
+<p>This command returns 0 on success, another on failure.</p>
+
 <hr />
 
 <h2 id="kttimedtest">kttimedtest</h2>
@@ -382,12 +384,12 @@
 
 <h2 id="ktremotemgr">ktremotemgr</h2>
 
-<p>The command `<code>ktremotedmgr</code>' is a utility for test and debugging of the remote database and its applications.  `<var>proc</var>' specifies the name of a procedure.  `<var>mhost</var>' specifies the host name of the master server.  `<var>key</var>' specifies the key of a record.  `<var>value</var>' specifies the value of a record.</p>
+<p>The command `<code>ktremotedmgr</code>' is a utility for test and debugging of the remote database and its applications.  `<var>proc</var>' specifies the name of a procedure.  `<var>params</var>' specifies arbitrary parameters.  `<var>mhost</var>' specifies the host name of the master server.  `<var>key</var>' specifies the key of a record.  `<var>value</var>' specifies the value of a record.</p>
 
 <dl class="api">
 <dt><code>ktremotemgr report [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>]</code></dt>
 <dd>Prints statistics of the server.</dd>
-<dt><code>ktremotemgr script [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-bin] [-arg <var>name</var> <var>value</var>] <var>proc</var></code></dt>
+<dt><code>ktremotemgr script [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-bin] <var>proc</var> [<var>params</var>...]</code></dt>
 <dd>Calls a procedure of the scripting extension.</dd>
 <dt><code>ktremotemgr tunerepl [-host <var>str</var>] [-port <var>num</var>] [-tout <var>num</var>] [-mport <var>str</var>] [-ts <var>num</var>] [-iv <var>num</var>] [<var>mhost</var>]</code></dt>
 <dd>Sets the replication configuration.</dd>
