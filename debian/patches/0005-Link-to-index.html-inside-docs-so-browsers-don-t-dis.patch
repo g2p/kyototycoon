@@ -1,0 +1,24 @@
+From: Gabriel de Perthuis <g2p.code+debian@gmail.com>
+Date: Fri, 4 Feb 2011 13:45:01 +0100
+Subject: [PATCH] Link to index.html inside docs, so browsers don't display folder contents.
+
+---
+ doc/index.html |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/doc/index.html b/doc/index.html
+index b650b53..50b6efd 100644
+--- a/doc/index.html
++++ b/doc/index.html
+@@ -82,8 +82,8 @@
+ <ul>
+ <li><a href="spex.html">Fundamental Specifications</a></li>
+ <li><a href="command.html">Specifications of Command Line Utilities</a></li>
+-<li><a href="api/">API Documents of the core library (C/C++)</a></li>
+-<li><a href="luadoc/">API Documents of the scripting extension (Lua)</a></li>
++<li><a href="api/index.html">API Documents of the core library (C/C++)</a></li>
++<li><a href="luadoc/index.html">API Documents of the scripting extension (Lua)</a></li>
+ </ul>
+ 
+ <hr />
+-- 
