@@ -1,2 +1,3 @@
-doc/*.html usr/share/doc/kyototycoon-doc/html/
-doc/*.css usr/share/doc/kyototycoon-doc/html/
+doc/* usr/share/doc/kyototycoon-doc/html/
+doc/api/* usr/share/doc/kyototycoon-doc/html/api/
+doc/luadoc/* usr/share/doc/kyototycoon-doc/html/luadoc/
