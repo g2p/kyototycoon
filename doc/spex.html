@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="common.css" />
 <link rel="icon" href="icon16.png" />
 <link rev="made" href="mailto:info@fallabs.com" />
-<title>Kyoto Tycoon: a persistent cache server</title>
+<title>Fundamental Specifications of Kyoto Tycoon Version 1</title>
 </head>
 
 <body>
@@ -42,7 +42,7 @@
 
 <h2 id="introduction">Introduction</h2>
 
-<p>Kyoto Tycoon is a lightweight database server with automatic expiration mechanism, which is useful to handle cache data of various applications.  Kyoto Tycoon is also a package of network interface to the DBM called Kyoto Cabinet.  Although the DBM has high performance and high concurrency, you might bother in case that multiple processes share the same database, or remote processes access the database.  Thus, Kyoto Tycoon is provided for concurrent and remote connections to Kyoto Cabinet.  Kyoto Tycoon is composed of the server process managing multiple databases and its access library for client applications.</p>
+<p>Kyoto Tycoon is a lightweight database server with automatic expiration mechanism, which is useful to handle cache data and persistent data of various applications.  Kyoto Tycoon is also a package of network interface to the DBM called Kyoto Cabinet.  Although the DBM has high performance and high concurrency, you might bother in case that multiple processes share the same database, or remote processes access the database.  Thus, Kyoto Tycoon is provided for concurrent and remote connections to Kyoto Cabinet.  Kyoto Tycoon is composed of the server process managing multiple databases and its access library for client applications.</p>
 
 <p>The server features high concurrency due to thread-pool modeled implementation and the epoll/kqueue mechanism of the modern Linux/*BSD kernel.  It can handle more than 10 thousand connections at the same time.  Because such system-specific features as epoll/kqueue are encapsulated and abstracted as the same interface, Kyoto Tycoon has high portability and works almost all UNIX-like systems and Windows.</p>
 

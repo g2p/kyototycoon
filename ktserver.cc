@@ -1,5 +1,5 @@
 /*************************************************************************************************
- * A persistent cache server
+ * A handy cache/storage server
  *                                                               Copyright (C) 2009-2011 FAL Labs
  * This file is part of Kyoto Tycoon.
  * This program is free software: you can redistribute it and/or modify it under the terms of
@@ -2472,7 +2472,7 @@ int main(int argc, char** argv) {
 
 // print the usage and exit
 static void usage() {
-  eprintf("%s: Kyoto Tycoon: a persistent cache server\n", g_progname);
+  eprintf("%s: Kyoto Tycoon: a handy cache/storage server\n", g_progname);
   eprintf("\n");
   eprintf("usage:\n");
   eprintf("  %s [-host str] [-port num] [-tout num] [-th num] [-log file] [-li|-ls|-le|-lz]"
