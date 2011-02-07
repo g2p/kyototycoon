@@ -328,7 +328,7 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
           char kbuf[RECBUFSIZ];
           size_t ksiz = std::sprintf(kbuf, "%08lld",
                                      (long long)(rnd_ ? myrand(range) + 1 : base + i));
-          int64_t xt = rnd_ ? myrand(600) + 1 : INT64_MAX;
+          int64_t xt = rnd_ ? myrand(600) + 1 : kc::INT64MAX;
           if (!db_->set(kbuf, ksiz, kbuf, ksiz, xt)) {
             dberrprint(db_, __LINE__, "DB::set");
             err_ = true;
@@ -383,7 +383,7 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
           char kbuf[RECBUFSIZ];
           size_t ksiz = std::sprintf(kbuf, "%08lld",
                                      (long long)(rnd_ ? myrand(range) + 1 : base + i));
-          int64_t xt = rnd_ ? myrand(600) + 1 : INT64_MAX;
+          int64_t xt = rnd_ ? myrand(600) + 1 : kc::INT64MAX;
           if (!db_->add(kbuf, ksiz, kbuf, ksiz, xt) &&
               db_->error() != kt::RemoteDB::Error::LOGIC) {
             dberrprint(db_, __LINE__, "DB::add");
@@ -439,7 +439,7 @@ static int32_t procorder(int64_t rnum, int32_t thnum, bool rnd, int32_t mode,
           char kbuf[RECBUFSIZ];
           size_t ksiz = std::sprintf(kbuf, "%08lld",
                                      (long long)(rnd_ ? myrand(range) + 1 : base + i));
-          int64_t xt = rnd_ ? myrand(600) + 1 : INT64_MAX;
+          int64_t xt = rnd_ ? myrand(600) + 1 : kc::INT64MAX;
           if (!db_->append(kbuf, ksiz, kbuf, ksiz, xt)) {
             dberrprint(db_, __LINE__, "DB::set");
             err_ = true;
@@ -773,7 +773,7 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
           size_t ksiz = std::sprintf(kbuf, "%08lld",
                                      (long long)(rnd_ ? myrand(range) + 1 : base + i));
           std::string key(kbuf, ksiz);
-          int64_t xt = rnd_ ? myrand(600) + 1 : INT64_MAX;
+          int64_t xt = rnd_ ? myrand(600) + 1 : kc::INT64MAX;
           if (bin_) {
             kt::RemoteDB::BulkRecord rec = { 0, key, key, xt };
             bulkrecs.push_back(rec);
@@ -807,7 +807,7 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
           bulkrecs.clear();
         }
         if (recs.size() > 0) {
-          int64_t xt = rnd_ ? myrand(600) + 1 : INT64_MAX;
+          int64_t xt = rnd_ ? myrand(600) + 1 : kc::INT64MAX;
           if (db_->set_bulk(recs, xt) != (int64_t)recs.size()) {
             dberrprint(db_, __LINE__, "DB::set_bulk");
             err_ = true;
@@ -1061,7 +1061,7 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
           size_t ksiz = std::sprintf(kbuf, "%08lld",
                                      (long long)(rnd_ ? myrand(rnum_) + 1 : i));
           std::string key(kbuf, ksiz);
-          int64_t xt = rnd_ ? myrand(600) + 1 : INT64_MAX;
+          int64_t xt = rnd_ ? myrand(600) + 1 : kc::INT64MAX;
           int32_t cmd;
           if (rnd_) {
             cmd = myrand(100);
@@ -1149,7 +1149,7 @@ static int32_t procbulk(int64_t rnum, int32_t thnum, bool bin, bool rnd, int32_t
           bulkrecs.clear();
         }
         if (recs.size() > 0) {
-          int64_t xt = rnd_ ? myrand(600) + 1 : INT64_MAX;
+          int64_t xt = rnd_ ? myrand(600) + 1 : kc::INT64MAX;
           if (db_->set_bulk(recs, xt) != (int64_t)recs.size()) {
             dberrprint(db_, __LINE__, "DB::set_bulk");
             err_ = true;
@@ -1286,7 +1286,7 @@ static int32_t procwicked(int64_t rnum, int32_t thnum, int32_t itnum,
               case 4: {
                 if (myrand(2) == 0) {
                   int64_t num = myrand(rnum_);
-                  if (db_->increment(kbuf, ksiz, num, xt) == INT64_MIN &&
+                  if (db_->increment(kbuf, ksiz, num, xt) == kc::INT64MIN &&
                       db_->error() != kt::RemoteDB::Error::LOGIC) {
                     dberrprint(db_, __LINE__, "DB::increment");
                     err_ = true;

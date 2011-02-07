@@ -58,10 +58,10 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Step the cursor to the next record.  <a href="#a713c2689362977000f19511b8acdf00e"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#adea62efb8472a9d68cd78a85241c700a">step_back</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Step the cursor to the previous record.  <a href="#adea62efb8472a9d68cd78a85241c700a"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#a24e5035c6e1563baf93a93784842b6fa">set_value</a> (const char *vbuf, size_t vsiz, int64_t xt=INT64_MAX, bool step=false)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the value of the current record.  <a href="#a24e5035c6e1563baf93a93784842b6fa"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#a587639a710ac54842631d66cfd07d0fb">set_value_str</a> (const std::string &amp;value, int64_t xt=INT64_MAX, bool step=false)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the value of the current record.  <a href="#a587639a710ac54842631d66cfd07d0fb"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#aa7fd26a093f5826b19f316c3a8a49de8">set_value</a> (const char *vbuf, size_t vsiz, int64_t xt=kc::INT64MAX, bool step=false)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the value of the current record.  <a href="#aa7fd26a093f5826b19f316c3a8a49de8"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#ad4dd40c17e7f4c7472d93f837b5829df">set_value_str</a> (const std::string &amp;value, int64_t xt=kc::INT64MAX, bool step=false)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the value of the current record.  <a href="#ad4dd40c17e7f4c7472d93f837b5829df"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#a3bfe7831e74eb6e770081624e2b33c9a">remove</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Remove the current record.  <a href="#a3bfe7831e74eb6e770081624e2b33c9a"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#a33b854554a3670d956c7b1efccb99a06">get_key</a> (size_t *sp, bool step=false)</td></tr>
@@ -333,7 +333,7 @@ class&nbsp;</td><td class="memItemRight" valign="bottom"><b>RemoteDB</b></td></t
 
 </div>
 </div>
-<a class="anchor" id="a24e5035c6e1563baf93a93784842b6fa"></a><!-- doxytag: member="kyototycoon::RemoteDB::Cursor::set_value" ref="a24e5035c6e1563baf93a93784842b6fa" args="(const char *vbuf, size_t vsiz, int64_t xt=INT64_MAX, bool step=false)" -->
+<a class="anchor" id="aa7fd26a093f5826b19f316c3a8a49de8"></a><!-- doxytag: member="kyototycoon::RemoteDB::Cursor::set_value" ref="aa7fd26a093f5826b19f316c3a8a49de8" args="(const char *vbuf, size_t vsiz, int64_t xt=kc::INT64MAX, bool step=false)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -353,7 +353,7 @@ class&nbsp;</td><td class="memItemRight" valign="bottom"><b>RemoteDB</b></td></t
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int64_t&nbsp;</td>
-          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code>, </td>
+          <td class="paramname"> <em>xt</em> = <code>kc::INT64MAX</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -384,7 +384,7 @@ class&nbsp;</td><td class="memItemRight" valign="bottom"><b>RemoteDB</b></td></t
 
 </div>
 </div>
-<a class="anchor" id="a587639a710ac54842631d66cfd07d0fb"></a><!-- doxytag: member="kyototycoon::RemoteDB::Cursor::set_value_str" ref="a587639a710ac54842631d66cfd07d0fb" args="(const std::string &amp;value, int64_t xt=INT64_MAX, bool step=false)" -->
+<a class="anchor" id="ad4dd40c17e7f4c7472d93f837b5829df"></a><!-- doxytag: member="kyototycoon::RemoteDB::Cursor::set_value_str" ref="ad4dd40c17e7f4c7472d93f837b5829df" args="(const std::string &amp;value, int64_t xt=kc::INT64MAX, bool step=false)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -398,7 +398,7 @@ class&nbsp;</td><td class="memItemRight" valign="bottom"><b>RemoteDB</b></td></t
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int64_t&nbsp;</td>
-          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code>, </td>
+          <td class="paramname"> <em>xt</em> = <code>kc::INT64MAX</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -416,7 +416,7 @@ class&nbsp;</td><td class="memItemRight" valign="bottom"><b>RemoteDB</b></td></t
 <div class="memdoc">
 
 <p>Set the value of the current record. </p>
-<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original <a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#a24e5035c6e1563baf93a93784842b6fa" title="Set the value of the current record.">Cursor::set_value</a> method except that the parameter is std::string. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original <a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#aa7fd26a093f5826b19f316c3a8a49de8" title="Set the value of the current record.">Cursor::set_value</a> method except that the parameter is std::string. </dd></dl>
 
 </div>
 </div>
@@ -697,7 +697,7 @@ class&nbsp;</td><td class="memItemRight" valign="bottom"><b>RemoteDB</b></td></t
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Jan 27 12:53:21 2011 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Sun Feb 6 20:50:09 2011 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

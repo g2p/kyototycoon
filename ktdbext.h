@@ -259,8 +259,8 @@ public:
       if (!logf("prepare", "started to open temporary databases under %s", tmppath.c_str()))
         err = true;
       stime = kc::time();
-      uint32_t pid = getpid() & UINT16_MAX;
-      uint32_t tid = kc::Thread::hash() & UINT16_MAX;
+      uint32_t pid = getpid() & kc::UINT16MAX;
+      uint32_t tid = kc::Thread::hash() & kc::UINT16MAX;
       uint32_t ts = kc::time() * 1000;
       for (size_t i = 0; i < dbnum_; i++) {
         std::string childpath =
@@ -414,7 +414,7 @@ public:
     if (dbnum_ > MRMAXDBNUM) dbnum_ = MRMAXDBNUM;
     clim_ = clim > 0 ? clim : MRDEFCLIM;
     cbnum_ = cbnum > 0 ? cbnum : MRDEFCBNUM;
-    if (cbnum_ > INT16_MAX) cbnum_ = kc::nearbyprime(cbnum_);
+    if (cbnum_ > kc::INT16MAX) cbnum_ = kc::nearbyprime(cbnum_);
   }
 private:
   /**

@@ -295,9 +295,9 @@ public:
           SessionTask* task = new SessionTask(SESSIDLE);
           queue_.add_task(task);
         }
-        timercnt += UINT8_MAX / 4;
+        timercnt += kc::UINT8MAX / 4;
       }
-      if (timercnt > UINT8_MAX && timersem_.cas(0, 1)) {
+      if (timercnt > kc::UINT8MAX && timersem_.cas(0, 1)) {
         SessionTask* task = new SessionTask(SESSTIMER);
         queue_.add_task(task);
         timercnt = 0;

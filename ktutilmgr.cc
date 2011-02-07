@@ -88,7 +88,7 @@ static void usage() {
 static int32_t rundate(int32_t argc, char** argv) {
   bool argbrk = false;
   const char* str = NULL;
-  int32_t jl = INT_MAX;
+  int32_t jl = kc::INT32MAX;
   bool wf = false;
   bool rf = false;
   for (int32_t i = 2; i < argc; i++) {
@@ -490,7 +490,7 @@ static int32_t proculog(const char* path, uint64_t ts, bool uw, bool uf) {
       return 1;
     }
   }
-  if (!ulog.open(path, INT64_MIN)) {
+  if (!ulog.open(path, kc::INT64MIN)) {
     eprintf("%s: opening the logger failed\n", g_progname);
     return 1;
   }

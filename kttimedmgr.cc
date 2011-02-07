@@ -291,7 +291,7 @@ static int32_t runset(int argc, char** argv) {
   uint16_t dbid = 0;
   int32_t mode = 0;
   bool sx = false;
-  int64_t xt = INT64_MAX;
+  int64_t xt = kc::INT64MAX;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -644,7 +644,7 @@ static int32_t runimport(int argc, char** argv) {
   uint16_t sid = 0;
   uint16_t dbid = 0;
   bool sx = false;
-  int64_t xt = INT64_MAX;
+  int64_t xt = kc::INT64MAX;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -1224,7 +1224,7 @@ static int32_t procset(const char* path, const char* kbuf, size_t ksiz,
     }
     case 'i': {
       int64_t onum = db.increment(kbuf, ksiz, kc::atoi(vbuf), xt);
-      if (onum == INT64_MIN) {
+      if (onum == kc::INT64MIN) {
         dberrprint(&db, "DB::increment failed");
         err = true;
       } else {
@@ -1395,7 +1395,7 @@ static int32_t proclist(const char* path, const char*kbuf, size_t ksiz, int32_t 
     bool pt_;
   } visitor(pv, px, pt);
   if (kbuf || des || max >= 0) {
-    if (max < 0) max = INT64_MAX;
+    if (max < 0) max = kc::INT64MAX;
     kt::TimedDB::Cursor cur(&db);
     if (des) {
       if (kbuf) {
@@ -1811,7 +1811,7 @@ static int32_t procrecover(const char* path, const char* dir, int32_t oflags,
     return 1;
   }
   kt::UpdateLogger ulogsrc;
-  if (!ulogsrc.open(dir, INT64_MIN)) {
+  if (!ulogsrc.open(dir, kc::INT64MIN)) {
     dberrprint(&db, "UpdateLogger::open failed");
     return 1;
   }

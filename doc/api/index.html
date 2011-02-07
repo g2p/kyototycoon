@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
-<title>Kyoto Tycoon: Kyoto Tycoon: a persistent cache server</title>
+<title>Kyoto Tycoon: Kyoto Tycoon: a handy cache/storage cache server</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <link href="doxygen.css" rel="stylesheet" type="text/css"/>
 </head>
@@ -19,9 +19,9 @@
   </div>
 </div>
 <div class="contents">
-<h1>Kyoto Tycoon: a persistent cache server </h1><h2><a class="anchor" id="Introduction">
+<h1>Kyoto Tycoon: a handy cache/storage cache server </h1><h2><a class="anchor" id="Introduction">
 Introduction</a></h2>
-<p>Kyoto Tycoon is a lightweight database server with automatic expiration mechanism, which is useful to handle cache data of various applications. Kyoto Tycoon is also a package of network interface to the DBM called Kyoto Cabinet. Although the DBM has high performance and high concurrency, you might bother in case that multiple processes share the same database, or remote processes access the database. Thus, Kyoto Tycoon is provided for concurrent and remote connections to Kyoto Cabinet. Kyoto Tycoon is composed of the server process managing multiple databases and its access library for client applications.</p>
+<p>Kyoto Tycoon is a lightweight database server with auto expiration mechanism, which is useful to handle cache data and persistent data of various applications. Kyoto Tycoon is also a package of network interface to the DBM called Kyoto Cabinet. Though the DBM has high performance and high concurrency, you might bother in case that multiple processes share the same database, or remote processes access the database. Thus, Kyoto Tycoon is provided for concurrent and remote connections to Kyoto Cabinet. Kyoto Tycoon is composed of the server process managing multiple databases and its access library for client applications.</p>
 <p>The network protocol between the server and clients is HTTP so that you can write client applications and client libraries in almost all popular languages. Both of RESTful-style interface by the GET, HEAD, PUT, DELETE methods and RPC-style inteface by the POST method are supported. The server can handle more than 10 thousand connections at the same time because it uses modern I/O event notification facilities such as "epoll" and "kqueue" of underlying systems. The server can embed Lua, a lightweight script language so that you can define arbitrary operations of the database.</p>
 <p>The following classes are the most important. If you are interested in writing applications of Kyoto Tycoon, all you have to learn is how to use the remote database interface.</p>
 <ul>
@@ -150,7 +150,7 @@ ThreadedServer* g_serv = NULL;
   <span class="keywordflow">return</span> 0;
 }
 </pre></div> </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Jan 27 12:53:21 2011 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Sun Feb 6 20:50:08 2011 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

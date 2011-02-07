@@ -1,3 +1,9 @@
+2011-02-06  Mikio Hirabayashi  <info@fallabs.com>
+
+	* ktcommon.h: macros for integer range were removed.
+
+	- Release: 0.9.31
+
 2011-01-30  Mikio Hirabayashi  <info@fallabs.com>
 
 	* kttimeddb.h (TimedDB::merge): type of the comarator was changed.

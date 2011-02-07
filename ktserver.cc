@@ -91,7 +91,7 @@ public:
   void log(Kind kind, const char* message) {
     if (!strm_) return;
     char date[48];
-    kt::datestrwww(kc::nan(), INT32_MAX, 6, date);
+    kt::datestrwww(kc::nan(), kc::INT32MAX, 6, date);
     const char* kstr = "MISC";
     switch (kind) {
       case kt::RPCServer::Logger::DEBUG: kstr = "DEBUG"; break;
@@ -146,7 +146,7 @@ public:
                  kt::UpdateLogger* ulog, DBUpdateLogger* ulogdbs) :
     lock_(), sid_(sid), rtspath_(rtspath), host_(""), port_(port), riv_(riv),
     serv_(serv), dbs_(dbs), dbnum_(dbnum), ulog_(ulog), ulogdbs_(ulogdbs),
-    wrts_(UINT64_MAX), rts_(0), alive_(true), hup_(false) {
+    wrts_(kc::UINT64MAX), rts_(0), alive_(true), hup_(false) {
     if (host) host_ = host;
   }
   // stop the slave
@@ -206,9 +206,9 @@ private:
       uint64_t wrts = wrts_;
       lock_.unlock();
       if (!host.empty()) {
-        if (wrts != UINT64_MAX) {
+        if (wrts != kc::UINT64MAX) {
           lock_.lock();
-          wrts_ = UINT64_MAX;
+          wrts_ = kc::UINT64MAX;
           rts_ = wrts;
           write_rts(&rtsfile, rts_);
           lock_.unlock();
@@ -765,7 +765,7 @@ private:
     int32_t port = rp ? kc::atoi(rp) : 0;
     if (port < 1) port = kt::DEFPORT;
     rp = kt::strmapget(inmap, "ts");
-    uint64_t ts = UINT64_MAX;
+    uint64_t ts = kc::UINT64MAX;
     if (rp) {
       if (!std::strcmp(rp, "now")) {
         ts = kt::UpdateLogger::clock_pure();
@@ -776,7 +776,7 @@ private:
     rp = kt::strmapget(inmap, "iv");
     double iv = rp ? kc::atof(rp) : -1;
     char tsstr[kc::NUMBUFSIZ];
-    if (ts == UINT64_MAX) {
+    if (ts == kc::UINT64MAX) {
       std::sprintf(tsstr, "*");
     } else {
       std::sprintf(tsstr, "%llu", (unsigned long long)ts);
@@ -821,7 +821,7 @@ private:
       return kt::RPCClient::RVEINVALID;
     }
     const char* rp = kt::strmapget(inmap, "ts");
-    uint64_t ts = UINT64_MAX;
+    uint64_t ts = kc::UINT64MAX;
     if (rp) {
       if (!std::strcmp(rp, "now")) {
         ts = kt::UpdateLogger::clock_pure();
@@ -970,7 +970,7 @@ private:
       return kt::RPCClient::RVEINVALID;
     }
     const char* rp = kt::strmapget(inmap, "xt");
-    int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
+    int64_t xt = rp ? kc::atoi(rp) : kc::INT64MAX;
     RV rv;
     opcounts_[thid][CNTSET]++;
     if (db->set(kbuf, ksiz, vbuf, vsiz, xt)) {
@@ -1003,7 +1003,7 @@ private:
       return kt::RPCClient::RVEINVALID;
     }
     const char* rp = kt::strmapget(inmap, "xt");
-    int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
+    int64_t xt = rp ? kc::atoi(rp) : kc::INT64MAX;
     RV rv;
     opcounts_[thid][CNTSET]++;
     if (db->add(kbuf, ksiz, vbuf, vsiz, xt)) {
@@ -1040,7 +1040,7 @@ private:
       return kt::RPCClient::RVEINVALID;
     }
     const char* rp = kt::strmapget(inmap, "xt");
-    int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
+    int64_t xt = rp ? kc::atoi(rp) : kc::INT64MAX;
     RV rv;
     opcounts_[thid][CNTSET]++;
     if (db->replace(kbuf, ksiz, vbuf, vsiz, xt)) {
@@ -1077,7 +1077,7 @@ private:
       return kt::RPCClient::RVEINVALID;
     }
     const char* rp = kt::strmapget(inmap, "xt");
-    int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
+    int64_t xt = rp ? kc::atoi(rp) : kc::INT64MAX;
     RV rv;
     opcounts_[thid][CNTSET]++;
     if (db->append(kbuf, ksiz, vbuf, vsiz, xt)) {
@@ -1110,11 +1110,11 @@ private:
     }
     int64_t num = kc::atoi(nstr);
     const char* rp = kt::strmapget(inmap, "xt");
-    int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
+    int64_t xt = rp ? kc::atoi(rp) : kc::INT64MAX;
     RV rv;
     opcounts_[thid][CNTSET]++;
     num = db->increment(kbuf, ksiz, num, xt);
-    if (num != INT64_MIN) {
+    if (num != kc::INT64MIN) {
       rv = kt::RPCClient::RVSUCCESS;
       set_message(outmap, "num", "%lld", (long long)num);
     } else {
@@ -1149,7 +1149,7 @@ private:
     }
     double num = kc::atof(nstr);
     const char* rp = kt::strmapget(inmap, "xt");
-    int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
+    int64_t xt = rp ? kc::atoi(rp) : kc::INT64MAX;
     RV rv;
     opcounts_[thid][CNTSET]++;
     num = db->increment_double(kbuf, ksiz, num, xt);
@@ -1190,7 +1190,7 @@ private:
     size_t nvsiz;
     const char* nvbuf = kt::strmapget(inmap, "nval", &nvsiz);
     const char* rp = kt::strmapget(inmap, "xt");
-    int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
+    int64_t xt = rp ? kc::atoi(rp) : kc::INT64MAX;
     RV rv;
     opcounts_[thid][CNTSET]++;
     if (db->cas(kbuf, ksiz, ovbuf, ovsiz, nvbuf, nvsiz, xt)) {
@@ -1291,7 +1291,7 @@ private:
       return kt::RPCClient::RVEINVALID;
     }
     const char* rp = kt::strmapget(inmap, "xt");
-    int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
+    int64_t xt = rp ? kc::atoi(rp) : kc::INT64MAX;
     rp = kt::strmapget(inmap, "atomic");
     bool atomic = rp ? true : false;
     std::map<std::string, std::string> recs;
@@ -1708,7 +1708,7 @@ private:
     const char* rp = kt::strmapget(inmap, "step");
     bool step = rp ? true : false;
     rp = kt::strmapget(inmap, "xt");
-    int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
+    int64_t xt = rp ? kc::atoi(rp) : kc::INT64MAX;
     RV rv;
     opcounts_[thid][CNTSET]++;
     if (cur->set_value(vbuf, vsiz, xt, step)) {
@@ -1949,7 +1949,7 @@ private:
     }
     rp = kt::strmapget(reqheads, "x-kt-xt");
     int64_t xt = rp ? kt::strmktime(rp) : -1;
-    xt = xt > 0 && xt < kt::TimedDB::XTMAX ? -xt : INT64_MAX;
+    xt = xt > 0 && xt < kt::TimedDB::XTMAX ? -xt : kc::INT64MAX;
     int32_t code;
     opcounts_[thid][CNTSET]++;
 
@@ -2506,7 +2506,7 @@ static int32_t run(int argc, char** argv) {
   double tout = DEFTOUT;
   int32_t thnum = DEFTHNUM;
   const char* logpath = NULL;
-  uint32_t logkinds = UINT32_MAX;
+  uint32_t logkinds = kc::UINT32MAX;
   const char* ulogpath = NULL;
   int64_t ulim = DEFULIM;
   double uasi = 0;

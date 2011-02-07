@@ -16,9 +16,6 @@
 #ifndef _KTCOMMON_H                      // duplication check
 #define _KTCOMMON_H
 
-#undef __STDC_LIMIT_MACROS
-#define __STDC_LIMIT_MACROS 1            ///< enable limit macros
-
 #include <kccommon.h>
 #include <kcutil.h>
 #include <kcthread.h>

@@ -552,7 +552,7 @@ static int32_t procorder(const char* path, int64_t rnum, int32_t thnum, bool rnd
   oprintf("opening the database:\n");
   double stime = kc::time();
   db.tune_logger(stddblogger(g_progname, &std::cout),
-                 lv ? UINT32_MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
+                 lv ? kc::UINT32MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
   kt::UpdateLogger ulog;
   DBUpdateLogger ulogdb;
   if (ulogpath) {
@@ -609,7 +609,7 @@ static int32_t procorder(const char* path, int64_t rnum, int32_t thnum, bool rnd
           char kbuf[RECBUFSIZ];
           size_t ksiz = std::sprintf(kbuf, "%08lld",
                                      (long long)(rnd_ ? myrand(range) + 1 : base + i));
-          int64_t xt = rnd_ ? myrand(600) + 1 : INT64_MAX;
+          int64_t xt = rnd_ ? myrand(600) + 1 : kc::INT64MAX;
           if (!db_->set(kbuf, ksiz, kbuf, ksiz, xt)) {
             dberrprint(db_, __LINE__, "DB::set");
             err_ = true;
@@ -783,7 +783,7 @@ static int32_t procorder(const char* path, int64_t rnum, int32_t thnum, bool rnd
           char kbuf[RECBUFSIZ];
           size_t ksiz = std::sprintf(kbuf, "%08lld",
                                      (long long)(rnd_ ? myrand(range) + 1 : base + i));
-          int64_t xt = rnd_ ? myrand(600) + 1 : INT64_MAX;
+          int64_t xt = rnd_ ? myrand(600) + 1 : kc::INT64MAX;
           if (!db_->add(kbuf, ksiz, kbuf, ksiz, xt) &&
               db_->error() != kc::BasicDB::Error::DUPREC) {
             dberrprint(db_, __LINE__, "DB::add");
@@ -856,7 +856,7 @@ static int32_t procorder(const char* path, int64_t rnum, int32_t thnum, bool rnd
           char kbuf[RECBUFSIZ];
           size_t ksiz = std::sprintf(kbuf, "%08lld",
                                      (long long)(rnd_ ? myrand(range) + 1 : base + i));
-          int64_t xt = rnd_ ? myrand(600) + 1 : INT64_MAX;
+          int64_t xt = rnd_ ? myrand(600) + 1 : kc::INT64MAX;
           if (!db_->append(kbuf, ksiz, kbuf, ksiz, xt)) {
             dberrprint(db_, __LINE__, "DB::append");
             err_ = true;
@@ -1185,7 +1185,7 @@ static int32_t procorder(const char* path, int64_t rnum, int32_t thnum, bool rnd
           case 0: {
             rv = rbuf_;
             *sp = rnd_ ? myrand(sizeof(rbuf_)) : sizeof(rbuf_) / (cnt_ % 5 + 1);
-            *xtp = rnd_ ? myrand(100) + 1 : INT64_MAX;
+            *xtp = rnd_ ? myrand(100) + 1 : kc::INT64MAX;
             break;
           }
           case 1: {
@@ -1247,7 +1247,7 @@ static int32_t procorder(const char* path, int64_t rnum, int32_t thnum, bool rnd
           case 0: {
             rv = rbuf_;
             *sp = rnd_ ? myrand(sizeof(rbuf_)) : sizeof(rbuf_) / (cnt_ % 5 + 1);
-            *xtp = rnd_ ? myrand(100) + 1 : INT64_MAX;
+            *xtp = rnd_ ? myrand(100) + 1 : kc::INT64MAX;
             break;
           }
           case 1: {
@@ -1585,7 +1585,7 @@ static int32_t procqueue(const char* path, int64_t rnum, int32_t thnum, int32_t 
   bool err = false;
   kt::TimedDB db;
   db.tune_logger(stddblogger(g_progname, &std::cout),
-                 lv ? UINT32_MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
+                 lv ? kc::UINT32MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
   kt::UpdateLogger ulog;
   DBUpdateLogger ulogdb;
   if (ulogpath) {
@@ -1773,7 +1773,7 @@ static int32_t procwicked(const char* path, int64_t rnum, int32_t thnum, int32_t
   bool err = false;
   kt::TimedDB db;
   db.tune_logger(stddblogger(g_progname, &std::cout),
-                 lv ? UINT32_MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
+                 lv ? kc::UINT32MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
   kt::UpdateLogger ulog;
   DBUpdateLogger ulogdb;
   if (ulogpath) {
@@ -1889,7 +1889,7 @@ static int32_t procwicked(const char* path, int64_t rnum, int32_t thnum, int32_t
               case 4: {
                 if (myrand(2) == 0) {
                   int64_t num = myrand(rnum_);
-                  if (db_->increment(kbuf, ksiz, num, xt) == INT64_MIN &&
+                  if (db_->increment(kbuf, ksiz, num, xt) == kc::INT64MIN &&
                       db_->error() != kc::BasicDB::Error::LOGIC) {
                     dberrprint(db_, __LINE__, "DB::increment");
                     err_ = true;
@@ -2089,9 +2089,9 @@ static int32_t proctran(const char* path, int64_t rnum, int32_t thnum, int32_t i
   kt::TimedDB db;
   kt::TimedDB paradb;
   db.tune_logger(stddblogger(g_progname, &std::cout),
-                 lv ? UINT32_MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
+                 lv ? kc::UINT32MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
   paradb.tune_logger(stddblogger(g_progname, &std::cout),
-                     lv ? UINT32_MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
+                     lv ? kc::UINT32MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
   kt::UpdateLogger ulog;
   DBUpdateLogger ulogdb;
   if (ulogpath) {
@@ -2175,7 +2175,7 @@ static int32_t proctran(const char* path, int64_t rnum, int32_t thnum, int32_t i
                 case 0: {
                   rv = vbuf_;
                   *sp = vsiz_;
-                  *xtp = INT64_MAX;
+                  *xtp = kc::INT64MAX;
                   if (paradb_) paradb_->set(kbuf, ksiz, vbuf_, vsiz_);
                   break;
                 }
@@ -2335,7 +2335,7 @@ static int32_t procmapred(const char* path, int64_t rnum, bool rnd, int32_t ofla
   bool err = false;
   kt::TimedDB db;
   db.tune_logger(stddblogger(g_progname, &std::cout),
-                 lv ? UINT32_MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
+                 lv ? kc::UINT32MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
   double stime = kc::time();
   kt::UpdateLogger ulog;
   DBUpdateLogger ulogdb;

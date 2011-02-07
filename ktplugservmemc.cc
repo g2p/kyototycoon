@@ -194,7 +194,7 @@ private:
         if (tokens[i] == "noreply") norep = true;
       }
       if (xt < 1) {
-        xt = INT64_MAX;
+        xt = kc::INT64MAX;
       } else if (xt > 1 << 24) {
         xt *= -1;
       }
@@ -241,7 +241,7 @@ private:
         if (tokens[i] == "noreply") norep = true;
       }
       if (xt < 1) {
-        xt = INT64_MAX;
+        xt = kc::INT64MAX;
       } else if (xt > 1 << 24) {
         xt *= -1;
       }
@@ -292,7 +292,7 @@ private:
         if (tokens[i] == "noreply") norep = true;
       }
       if (xt < 1) {
-        xt = INT64_MAX;
+        xt = kc::INT64MAX;
       } else if (xt > 1 << 24) {
         xt *= -1;
       }

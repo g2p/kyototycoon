@@ -73,7 +73,7 @@ public:
       _assert_(db);
       uint64_t uid = (((uint64_t)(intptr_t)db_ >> 8) << 16) ^ ((uint64_t)(intptr_t)this >> 8);
       uid ^= ((uint64_t)(kc::time() * 65536)) << 24;
-      id_ = ((uid << 16) & (INT64_MAX >> 4)) + (++db->curcnt_);
+      id_ = ((uid << 16) & (kc::INT64MAX >> 4)) + (++db->curcnt_);
       db_->curs_.push_back(this);
     }
     /**
@@ -228,7 +228,7 @@ public:
      * @param step true to move the cursor to the next record, or false for no move.
      * @return true on success, or false on failure.
      */
-    bool set_value(const char* vbuf, size_t vsiz, int64_t xt = INT64_MAX, bool step = false) {
+    bool set_value(const char* vbuf, size_t vsiz, int64_t xt = kc::INT64MAX, bool step = false) {
       _assert_(vbuf && vsiz <= kc::MEMMAXSIZ);
       std::map<std::string, std::string> inmap;
       db_->set_db_param(inmap);
@@ -249,7 +249,7 @@ public:
      * @note Equal to the original Cursor::set_value method except that the parameter is
      * std::string.
      */
-    bool set_value_str(const std::string& value, int64_t xt = INT64_MAX, bool step = false) {
+    bool set_value_str(const std::string& value, int64_t xt = kc::INT64MAX, bool step = false) {
       _assert_(true);
       return set_value(value.c_str(), value.size(), xt, step);
     }
@@ -413,7 +413,7 @@ public:
         return NULL;
       }
       const char* rp = strmapget(outmap, "xt");
-      int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
+      int64_t xt = rp ? kc::atoi(rp) : kc::INT64MAX;
       char* rbuf = new char[ksiz+vsiz+2];
       std::memcpy(rbuf, kbuf, ksiz);
       rbuf[ksiz] = '\0';
@@ -748,20 +748,21 @@ public:
    * @param host the name or the address of the master server.  If it is an empty string,
    * replication is disabled.
    * @param port the port numger of the server.
-   * @param ts the maximum time stamp of already read logs.  If it is UINT64_MAX, the current
-   * setting is not modified.  If it is UINT64_MAX - 1, the current time is specified.
+   * @param ts the maximum time stamp of already read logs.  If it is kyotocabinet::UINT64MAX,
+   * the current setting is not modified.  If it is kyotocabinet::UINT64MAX - 1, the current
+   * time is specified.
    * @param iv the interval of each replication operation in milliseconds.  If it is negative,
    * the current interval is not modified.
    * @return true on success, or false on failure.
    */
   bool tune_replication(const std::string& host = "", int32_t port = DEFPORT,
-                        uint64_t ts = UINT64_MAX, double iv = -1) {
+                        uint64_t ts = kc::UINT64MAX, double iv = -1) {
     std::map<std::string, std::string> inmap;
     if (!host.empty()) inmap["host"] = host;
     if (port != DEFPORT) kc::strprintf(&inmap["port"], "%d", port);
-    if (ts == UINT64_MAX - 1) {
+    if (ts == kc::UINT64MAX - 1) {
       inmap["ts"] = "now";
-    } else if (ts != UINT64_MAX) {
+    } else if (ts != kc::UINT64MAX) {
       kc::strprintf(&inmap["ts"], "%llu", (unsigned long long)ts);
     }
     if (iv >= 0) kc::strprintf(&inmap["iv"], "%.6f", iv);
@@ -810,7 +811,7 @@ public:
    * @param ts the maximum time stamp of disposable logs.
    * @return true on success, or false on failure.
    */
-  bool ulog_remove(uint64_t ts = UINT64_MAX) {
+  bool ulog_remove(uint64_t ts = kc::UINT64MAX) {
     _assert_(true);
     std::map<std::string, std::string> inmap;
     kc::strprintf(&inmap["ts"], "%llu", (unsigned long long)ts);
@@ -934,7 +935,7 @@ public:
    * record exists, the value is overwritten.
    */
   bool set(const char* kbuf, size_t ksiz, const char* vbuf, size_t vsiz,
-           int64_t xt = INT64_MAX) {
+           int64_t xt = kc::INT64MAX) {
     _assert_(kbuf && ksiz <= kc::MEMMAXSIZ && vbuf && vsiz <= kc::MEMMAXSIZ);
     std::map<std::string, std::string> inmap;
     set_db_param(inmap);
@@ -953,7 +954,7 @@ public:
    * Set the value of a record.
    * @note Equal to the original DB::set method except that the parameters are std::string.
    */
-  bool set(const std::string& key, const std::string& value, int64_t xt = INT64_MAX) {
+  bool set(const std::string& key, const std::string& value, int64_t xt = kc::INT64MAX) {
     _assert_(true);
     return set(key.c_str(), key.size(), value.c_str(), value.size(), xt);
   }
@@ -970,7 +971,7 @@ public:
    * record exists, the record is not modified and false is returned.
    */
   bool add(const char* kbuf, size_t ksiz, const char* vbuf, size_t vsiz,
-           int64_t xt = INT64_MAX) {
+           int64_t xt = kc::INT64MAX) {
     _assert_(kbuf && ksiz <= kc::MEMMAXSIZ && vbuf && vsiz <= kc::MEMMAXSIZ);
     std::map<std::string, std::string> inmap;
     set_db_param(inmap);
@@ -989,7 +990,7 @@ public:
    * Set the value of a record.
    * @note Equal to the original DB::add method except that the parameters are std::string.
    */
-  bool add(const std::string& key, const std::string& value, int64_t xt = INT64_MAX) {
+  bool add(const std::string& key, const std::string& value, int64_t xt = kc::INT64MAX) {
     _assert_(true);
     return add(key.c_str(), key.size(), value.c_str(), value.size(), xt);
   }
@@ -1006,7 +1007,7 @@ public:
    * If the corresponding record exists, the value is modified.
    */
   bool replace(const char* kbuf, size_t ksiz, const char* vbuf, size_t vsiz,
-               int64_t xt = INT64_MAX) {
+               int64_t xt = kc::INT64MAX) {
     _assert_(kbuf && ksiz <= kc::MEMMAXSIZ && vbuf && vsiz <= kc::MEMMAXSIZ);
     std::map<std::string, std::string> inmap;
     set_db_param(inmap);
@@ -1025,7 +1026,7 @@ public:
    * Replace the value of a record.
    * @note Equal to the original DB::replace method except that the parameters are std::string.
    */
-  bool replace(const std::string& key, const std::string& value, int64_t xt = INT64_MAX) {
+  bool replace(const std::string& key, const std::string& value, int64_t xt = kc::INT64MAX) {
     _assert_(true);
     return replace(key.c_str(), key.size(), value.c_str(), value.size(), xt);
   }
@@ -1042,7 +1043,7 @@ public:
    * record exists, the given value is appended at the end of the existing value.
    */
   bool append(const char* kbuf, size_t ksiz, const char* vbuf, size_t vsiz,
-              int64_t xt = INT64_MAX) {
+              int64_t xt = kc::INT64MAX) {
     _assert_(kbuf && ksiz <= kc::MEMMAXSIZ && vbuf && vsiz <= kc::MEMMAXSIZ);
     std::map<std::string, std::string> inmap;
     set_db_param(inmap);
@@ -1061,7 +1062,7 @@ public:
    * Set the value of a record.
    * @note Equal to the original DB::append method except that the parameters are std::string.
    */
-  bool append(const std::string& key, const std::string& value, int64_t xt = INT64_MAX) {
+  bool append(const std::string& key, const std::string& value, int64_t xt = kc::INT64MAX) {
     _assert_(true);
     return append(key.c_str(), key.size(), value.c_str(), value.size(), xt);
   }
@@ -1072,9 +1073,9 @@ public:
    * @param num the additional number.
    * @param xt the expiration time from now in seconds.  If it is negative, the absolute value
    * is treated as the epoch time.
-   * @return the result value, or INT64_MIN on failure.
+   * @return the result value, or kyotocabinet::INT64MIN on failure.
    */
-  int64_t increment(const char* kbuf, size_t ksiz, int64_t num, int64_t xt = INT64_MAX) {
+  int64_t increment(const char* kbuf, size_t ksiz, int64_t num, int64_t xt = kc::INT64MAX) {
     _assert_(kbuf && ksiz <= kc::MEMMAXSIZ);
     std::map<std::string, std::string> inmap;
     set_db_param(inmap);
@@ -1085,12 +1086,12 @@ public:
     RPCClient::ReturnValue rv = rpc_.call("increment", &inmap, &outmap);
     if (rv != RPCClient::RVSUCCESS) {
       set_rpc_error(rv, outmap);
-      return INT64_MIN;
+      return kc::INT64MIN;
     }
     const char* rp = strmapget(outmap, "num");
     if (!rp) {
       set_error(RPCClient::RVELOGIC, "no information");
-      return INT64_MIN;
+      return kc::INT64MIN;
     }
     return kc::atoi(rp);
   }
@@ -1098,7 +1099,7 @@ public:
    * Add a number to the numeric integer value of a record.
    * @note Equal to the original DB::increment method except that the parameter is std::string.
    */
-  int64_t increment(const std::string& key, int64_t num, int64_t xt = INT64_MAX) {
+  int64_t increment(const std::string& key, int64_t num, int64_t xt = kc::INT64MAX) {
     _assert_(true);
     return increment(key.c_str(), key.size(), num, xt);
   }
@@ -1111,7 +1112,7 @@ public:
    * is treated as the epoch time.
    * @return the result value, or Not-a-number on failure.
    */
-  double increment_double(const char* kbuf, size_t ksiz, double num, int64_t xt = INT64_MAX) {
+  double increment_double(const char* kbuf, size_t ksiz, double num, int64_t xt = kc::INT64MAX) {
     _assert_(kbuf && ksiz <= kc::MEMMAXSIZ);
     std::map<std::string, std::string> inmap;
     set_db_param(inmap);
@@ -1136,7 +1137,7 @@ public:
    * @note Equal to the original DB::increment_double method except that the parameter is
    * std::string.
    */
-  double increment_double(const std::string& key, double num, int64_t xt = INT64_MAX) {
+  double increment_double(const std::string& key, double num, int64_t xt = kc::INT64MAX) {
     _assert_(true);
     return increment_double(key.c_str(), key.size(), num, xt);
   }
@@ -1154,7 +1155,7 @@ public:
    */
   bool cas(const char* kbuf, size_t ksiz,
            const char* ovbuf, size_t ovsiz, const char* nvbuf, size_t nvsiz,
-           int64_t xt = INT64_MAX) {
+           int64_t xt = kc::INT64MAX) {
     _assert_(kbuf && ksiz <= kc::MEMMAXSIZ);
     std::map<std::string, std::string> inmap;
     set_db_param(inmap);
@@ -1175,7 +1176,7 @@ public:
    * @note Equal to the original DB::cas method except that the parameters are std::string.
    */
   bool cas(const std::string& key,
-           const std::string& ovalue, const std::string& nvalue, int64_t xt = INT64_MAX) {
+           const std::string& ovalue, const std::string& nvalue, int64_t xt = kc::INT64MAX) {
     _assert_(true);
     return cas(key.c_str(), key.size(),
                ovalue.c_str(), ovalue.size(), nvalue.c_str(), nvalue.size(), xt);
@@ -1241,7 +1242,7 @@ public:
       return NULL;
     }
     const char* rp = strmapget(outmap, "xt");
-    int64_t xt = rp ? kc::atoi(rp) : INT64_MAX;
+    int64_t xt = rp ? kc::atoi(rp) : kc::INT64MAX;
     char* rbuf = new char[vsiz+1];
     std::memcpy(rbuf, vbuf, vsiz);
     rbuf[vsiz] = '\0';
@@ -1272,7 +1273,7 @@ public:
    * @return the number of stored records, or -1 on failure.
    */
   int64_t set_bulk(const std::map<std::string, std::string>& recs,
-                   int64_t xt = INT64_MAX, bool atomic = true) {
+                   int64_t xt = kc::INT64MAX, bool atomic = true) {
     _assert_(true);
     std::map<std::string, std::string> inmap;
     set_db_param(inmap);
