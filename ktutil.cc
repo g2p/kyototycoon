@@ -129,7 +129,7 @@ int32_t executecommand(const std::vector<std::string>& args) {
   if (WIFEXITED(rv)) {
     rv = WEXITSTATUS(rv);
   } else {
-    rv = INT_MAX;
+    rv = kc::INT32MAX;
   }
   return rv;
 }
@@ -142,8 +142,8 @@ void getcalendar(int64_t t, int32_t jl,
                  int32_t* yearp, int32_t* monp, int32_t* dayp,
                  int32_t* hourp, int32_t* minp, int32_t* secp) {
   _assert_(true);
-  if (t == INT64_MAX) t = std::time(NULL);
-  if (jl == INT32_MAX) jl = jetlag();
+  if (t == kc::INT64MAX) t = std::time(NULL);
+  if (jl == kc::INT32MAX) jl = jetlag();
   time_t tt = (time_t)t + jl;
   struct std::tm ts;
   if (!getgmtime(tt, &ts)) {
@@ -168,8 +168,8 @@ void getcalendar(int64_t t, int32_t jl,
  */
 void datestrwww(int64_t t, int32_t jl, char* buf) {
   _assert_(buf);
-  if (t == INT64_MAX) t = std::time(NULL);
-  if (jl == INT32_MAX) jl = jetlag();
+  if (t == kc::INT64MAX) t = std::time(NULL);
+  if (jl == kc::INT32MAX) jl = jetlag();
   time_t tt = (time_t)t + jl;
   struct std::tm ts;
   if (!getgmtime(tt, &ts)) std::memset(&ts, 0, sizeof(ts));
@@ -198,7 +198,7 @@ void datestrwww(double t, int32_t jl, int32_t acr, char* buf) {
   if (kc::chknan(t)) t = kc::time();
   double tinteg, tfract;
   tfract = std::fabs(std::modf(t, &tinteg));
-  if (jl == INT32_MAX) jl = jetlag();
+  if (jl == kc::INT32MAX) jl = jetlag();
   if (acr > 12) acr = 12;
   time_t tt = (time_t)tinteg + jl;
   struct std::tm ts;
@@ -235,8 +235,8 @@ void datestrwww(double t, int32_t jl, int32_t acr, char* buf) {
  */
 void datestrhttp(int64_t t, int32_t jl, char* buf) {
   _assert_(buf);
-  if (t == INT64_MAX) t = std::time(NULL);
-  if (jl == INT_MAX) jl = jetlag();
+  if (t == kc::INT64MAX) t = std::time(NULL);
+  if (jl == kc::INT32MAX) jl = jetlag();
   time_t tt = (time_t)t + jl;
   struct std::tm ts;
   if (!getgmtime(tt, &ts)) std::memset(&ts, 0, sizeof(ts));
@@ -288,7 +288,7 @@ int64_t strmktime(const char* str) {
   while (*str > '\0' && *str <= ' ') {
     str++;
   }
-  if (*str == '\0') return INT64_MIN;
+  if (*str == '\0') return kc::INT64MIN;
   if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X')) return kc::atoih(str + 2);
   struct std::tm ts;
   std::memset(&ts, 0, sizeof(ts));
@@ -466,7 +466,7 @@ int64_t strmktime(const char* str) {
     }
     return mkgmtime(&ts);
   }
-  return INT64_MIN;
+  return kc::INT64MIN;
 }
 
 

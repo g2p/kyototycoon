@@ -151,7 +151,7 @@ static int32_t runmtecho(int argc, char** argv) {
   int32_t port = kt::DEFPORT;
   double tout = DEFTOUT;
   int32_t thnum = DEFTHNUM;
-  uint32_t logkinds = UINT32_MAX;
+  uint32_t logkinds = kc::UINT32MAX;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -200,7 +200,7 @@ static int32_t runhttp(int argc, char** argv) {
   int32_t port = kt::DEFPORT;
   double tout = DEFTOUT;
   int32_t thnum = DEFTHNUM;
-  uint32_t logkinds = UINT32_MAX;
+  uint32_t logkinds = kc::UINT32MAX;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -250,7 +250,7 @@ static int32_t runrpc(int argc, char** argv) {
   int32_t port = kt::DEFPORT;
   double tout = DEFTOUT;
   int32_t thnum = DEFTHNUM;
-  uint32_t logkinds = UINT32_MAX;
+  uint32_t logkinds = kc::UINT32MAX;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {

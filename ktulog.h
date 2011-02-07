@@ -296,7 +296,7 @@ public:
    * Open the logger.
    * @param path the path of the base directory.
    * @param limsiz the limit size of each log file.  If it is not more than 0, no limit is
-   * specified.  If it is INT64_MIN, the logger is opened as reader.
+   * specified.  If it is kyotocabinet::INT64MIN, the logger is opened as reader.
    * @param asi the interval of auto synchronization.  If it is not more than 0, auto
    * synchronization is not performed.
    * @return true on success, or false on failure.
@@ -313,7 +313,7 @@ public:
     if (kc::File::status(cpath, &sbuf)) {
       if (!sbuf.isdir) return false;
     } else {
-      if (limsiz == INT64_MIN) return false;
+      if (limsiz == kc::INT64MIN) return false;
       if (!kc::File::make_directory(cpath)) return false;
     }
     kc::DirStream dir;
@@ -328,11 +328,11 @@ public:
       }
     }
     path_ = cpath;
-    limsiz_ = limsiz > 0 ? limsiz : INT64_MAX;
+    limsiz_ = limsiz > 0 ? limsiz : kc::INT64MAX;
     asi_ = asi;
     id_ = id > 0 ? id : 1;
     std::string tpath = generate_path(id_);
-    if (limsiz == INT64_MIN) {
+    if (limsiz == kc::INT64MIN) {
       if (!file_.open(tpath, kc::File::OREADER | kc::File::ONOLOCK, 0)) {
         path_.clear();
         return false;

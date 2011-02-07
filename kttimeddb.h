@@ -212,7 +212,7 @@ public:
      * @param step true to move the cursor to the next record, or false for no move.
      * @return true on success, or false on failure.
      */
-    bool set_value(const char* vbuf, size_t vsiz, int64_t xt = INT64_MAX, bool step = false) {
+    bool set_value(const char* vbuf, size_t vsiz, int64_t xt = kc::INT64MAX, bool step = false) {
       _assert_(vbuf && vsiz <= kc::MEMMAXSIZ);
       class VisitorImpl : public Visitor {
       public:
@@ -244,7 +244,7 @@ public:
      * @note Equal to the original Cursor::set_value method except that the parameter is
      * std::string.
      */
-    bool set_value_str(const std::string& value, int64_t xt = INT64_MAX, bool step = false) {
+    bool set_value_str(const std::string& value, int64_t xt = kc::INT64MAX, bool step = false) {
       _assert_(true);
       return set_value(value.c_str(), value.size(), xt, step);
     }
@@ -969,7 +969,7 @@ public:
    * record exists, the value is overwritten.
    */
   bool set(const char* kbuf, size_t ksiz, const char* vbuf, size_t vsiz,
-           int64_t xt = INT64_MAX) {
+           int64_t xt = kc::INT64MAX) {
     _assert_(kbuf && ksiz <= kc::MEMMAXSIZ && vbuf && vsiz <= kc::MEMMAXSIZ);
     class VisitorImpl : public Visitor {
     public:
@@ -999,7 +999,7 @@ public:
    * Set the value of a record.
    * @note Equal to the original DB::set method except that the parameters are std::string.
    */
-  bool set(const std::string& key, const std::string& value, int64_t xt = INT64_MAX) {
+  bool set(const std::string& key, const std::string& value, int64_t xt = kc::INT64MAX) {
     _assert_(true);
     return set(key.c_str(), key.size(), value.c_str(), value.size(), xt);
   }
@@ -1016,7 +1016,7 @@ public:
    * record exists, the record is not modified and false is returned.
    */
   bool add(const char* kbuf, size_t ksiz, const char* vbuf, size_t vsiz,
-           int64_t xt = INT64_MAX) {
+           int64_t xt = kc::INT64MAX) {
     _assert_(kbuf && ksiz <= kc::MEMMAXSIZ && vbuf && vsiz <= kc::MEMMAXSIZ);
     class VisitorImpl : public Visitor {
     public:
@@ -1049,7 +1049,7 @@ public:
    * Set the value of a record.
    * @note Equal to the original DB::add method except that the parameters are std::string.
    */
-  bool add(const std::string& key, const std::string& value, int64_t xt = INT64_MAX) {
+  bool add(const std::string& key, const std::string& value, int64_t xt = kc::INT64MAX) {
     _assert_(true);
     return add(key.c_str(), key.size(), value.c_str(), value.size(), xt);
   }
@@ -1066,7 +1066,7 @@ public:
    * If the corresponding record exists, the value is modified.
    */
   bool replace(const char* kbuf, size_t ksiz, const char* vbuf, size_t vsiz,
-               int64_t xt = INT64_MAX) {
+               int64_t xt = kc::INT64MAX) {
     _assert_(kbuf && ksiz <= kc::MEMMAXSIZ && vbuf && vsiz <= kc::MEMMAXSIZ);
     class VisitorImpl : public Visitor {
     public:
@@ -1100,7 +1100,7 @@ public:
    * Replace the value of a record.
    * @note Equal to the original DB::replace method except that the parameters are std::string.
    */
-  bool replace(const std::string& key, const std::string& value, int64_t xt = INT64_MAX) {
+  bool replace(const std::string& key, const std::string& value, int64_t xt = kc::INT64MAX) {
     _assert_(true);
     return replace(key.c_str(), key.size(), value.c_str(), value.size(), xt);
   }
@@ -1117,7 +1117,7 @@ public:
    * record exists, the given value is appended at the end of the existing value.
    */
   bool append(const char* kbuf, size_t ksiz, const char* vbuf, size_t vsiz,
-              int64_t xt = INT64_MAX) {
+              int64_t xt = kc::INT64MAX) {
     _assert_(kbuf && ksiz <= kc::MEMMAXSIZ && vbuf && vsiz <= kc::MEMMAXSIZ);
     class VisitorImpl : public Visitor {
     public:
@@ -1155,7 +1155,7 @@ public:
    * Set the value of a record.
    * @note Equal to the original DB::append method except that the parameters are std::string.
    */
-  bool append(const std::string& key, const std::string& value, int64_t xt = INT64_MAX) {
+  bool append(const std::string& key, const std::string& value, int64_t xt = kc::INT64MAX) {
     _assert_(true);
     return append(key.c_str(), key.size(), value.c_str(), value.size(), xt);
   }
@@ -1166,9 +1166,9 @@ public:
    * @param num the additional number.
    * @param xt the expiration time from now in seconds.  If it is negative, the absolute value
    * is treated as the epoch time.
-   * @return the result value, or INT64_MIN on failure.
+   * @return the result value, or kyotocabinet::INT64MIN on failure.
    */
-  int64_t increment(const char* kbuf, size_t ksiz, int64_t num, int64_t xt = INT64_MAX) {
+  int64_t increment(const char* kbuf, size_t ksiz, int64_t num, int64_t xt = kc::INT64MAX) {
     _assert_(kbuf && ksiz <= kc::MEMMAXSIZ);
     class VisitorImpl : public Visitor {
     public:
@@ -1180,7 +1180,7 @@ public:
       const char* visit_full(const char* kbuf, size_t ksiz,
                              const char* vbuf, size_t vsiz, size_t* sp, int64_t* xtp) {
         if (vsiz != sizeof(num_)) {
-          num_ = INT64_MIN;
+          num_ = kc::INT64MIN;
           return NOP;
         }
         int64_t onum;
@@ -1207,9 +1207,9 @@ public:
       uint64_t big_;
     };
     VisitorImpl visitor(num, xt);
-    if (!accept(kbuf, ksiz, &visitor, true)) return INT64_MIN;
+    if (!accept(kbuf, ksiz, &visitor, true)) return kc::INT64MIN;
     num = visitor.num();
-    if (num == INT64_MIN) {
+    if (num == kc::INT64MIN) {
       set_error(kc::BasicDB::Error::LOGIC, "logical inconsistency");
       return num;
     }
@@ -1219,7 +1219,7 @@ public:
    * Add a number to the numeric integer value of a record.
    * @note Equal to the original DB::increment method except that the parameter is std::string.
    */
-  int64_t increment(const std::string& key, int64_t num, int64_t xt = INT64_MAX) {
+  int64_t increment(const std::string& key, int64_t num, int64_t xt = kc::INT64MAX) {
     _assert_(true);
     return increment(key.c_str(), key.size(), num, xt);
   }
@@ -1232,7 +1232,7 @@ public:
    * is treated as the epoch time.
    * @return the result value, or Not-a-number on failure.
    */
-  double increment_double(const char* kbuf, size_t ksiz, double num, int64_t xt = INT64_MAX) {
+  double increment_double(const char* kbuf, size_t ksiz, double num, int64_t xt = kc::INT64MAX) {
     _assert_(kbuf && ksiz <= kc::MEMMAXSIZ);
     class VisitorImpl : public Visitor {
     public:
@@ -1253,13 +1253,13 @@ public:
         linteg = kc::ntoh64(linteg);
         std::memcpy(&lfract, vbuf + sizeof(linteg), sizeof(lfract));
         lfract = kc::ntoh64(lfract);
-        if (lfract == INT64_MIN && linteg == INT64_MIN) {
+        if (lfract == kc::INT64MIN && linteg == kc::INT64MIN) {
           num_ = kc::nan();
           return NOP;
-        } else if (linteg == INT64_MAX) {
+        } else if (linteg == kc::INT64MAX) {
           num_ = HUGE_VAL;
           return NOP;
-        } else if (linteg == INT64_MIN) {
+        } else if (linteg == kc::INT64MIN) {
           num_ = -HUGE_VAL;
           return NOP;
         }
@@ -1270,11 +1270,11 @@ public:
         long double dinteg;
         long double dfract = std::modfl(num_, &dinteg);
         if (kc::chknan(dinteg)) {
-          linteg = INT64_MIN;
-          lfract = INT64_MIN;
+          linteg = kc::INT64MIN;
+          lfract = kc::INT64MIN;
           num_ = kc::nan();
         } else if (kc::chkinf(dinteg)) {
-          linteg = dinteg > 0 ? INT64_MAX : INT64_MIN;
+          linteg = dinteg > 0 ? kc::INT64MAX : kc::INT64MIN;
           lfract = 0;
           num_ = dinteg;
         } else {
@@ -1299,10 +1299,10 @@ public:
         long double dfract = std::modfl(num_, &dinteg);
         int64_t linteg, lfract;
         if (kc::chknan(dinteg)) {
-          linteg = INT64_MIN;
-          lfract = INT64_MIN;
+          linteg = kc::INT64MIN;
+          lfract = kc::INT64MIN;
         } else if (kc::chkinf(dinteg)) {
-          linteg = dinteg > 0 ? INT64_MAX : INT64_MIN;
+          linteg = dinteg > 0 ? kc::INT64MAX : kc::INT64MIN;
           lfract = 0;
         } else {
           linteg = (int64_t)dinteg;
@@ -1335,7 +1335,7 @@ public:
    * @note Equal to the original DB::increment_double method except that the parameter is
    * std::string.
    */
-  double increment_double(const std::string& key, double num, int64_t xt = INT64_MAX) {
+  double increment_double(const std::string& key, double num, int64_t xt = kc::INT64MAX) {
     _assert_(true);
     return increment_double(key.c_str(), key.size(), num, xt);
   }
@@ -1353,7 +1353,7 @@ public:
    */
   bool cas(const char* kbuf, size_t ksiz,
            const char* ovbuf, size_t ovsiz, const char* nvbuf, size_t nvsiz,
-           int64_t xt = INT64_MAX) {
+           int64_t xt = kc::INT64MAX) {
     _assert_(kbuf && ksiz <= kc::MEMMAXSIZ);
     class VisitorImpl : public Visitor {
     public:
@@ -1401,7 +1401,7 @@ public:
    * @note Equal to the original DB::cas method except that the parameters are std::string.
    */
   bool cas(const std::string& key,
-           const std::string& ovalue, const std::string& nvalue, int64_t xt = INT64_MAX) {
+           const std::string& ovalue, const std::string& nvalue, int64_t xt = kc::INT64MAX) {
     _assert_(true);
     return cas(key.c_str(), key.size(),
                ovalue.c_str(), ovalue.size(), nvalue.c_str(), nvalue.size(), xt);
@@ -1569,7 +1569,7 @@ public:
    * @return the number of stored records, or -1 on failure.
    */
   int64_t set_bulk(const std::map<std::string, std::string>& recs,
-                   int64_t xt = INT64_MAX, bool atomic = true) {
+                   int64_t xt = kc::INT64MAX, bool atomic = true) {
     _assert_(true);
     if (atomic) {
       std::vector<std::string> keys;
@@ -1778,12 +1778,12 @@ public:
     bool err = false;
     if (xcur_) {
       if (step > 1) {
-        if (step > INT64_MAX / JDBXTSCUNIT) step = INT64_MAX / JDBXTSCUNIT;
+        if (step > kc::INT64MAX / JDBXTSCUNIT) step = kc::INT64MAX / JDBXTSCUNIT;
         if (!expire_records(step * JDBXTSCUNIT)) err = true;
       } else {
         xcur_->jump();
         xsc_ = 0;
-        if (!expire_records(INT64_MAX)) err = true;
+        if (!expire_records(kc::INT64MAX)) err = true;
         xsc_ = 0;
       }
     }
@@ -2123,7 +2123,7 @@ private:
       _assert_(kbuf && vbuf && sp);
       if (db_->opts_ & TimedDB::TPERSIST) {
         size_t rsiz;
-        int64_t xt = INT64_MAX;
+        int64_t xt = kc::INT64MAX;
         const char* rbuf = visitor_->visit_full(kbuf, ksiz, vbuf, vsiz, &rsiz, &xt);
         *sp = rsiz;
         if (db_->utrigger_) log_update(db_->utrigger_, kbuf, ksiz, rbuf, rsiz);
@@ -2172,7 +2172,7 @@ private:
     const char* visit_empty(const char* kbuf, size_t ksiz, size_t* sp) {
       if (db_->opts_ & TimedDB::TPERSIST) {
         size_t rsiz;
-        int64_t xt = INT64_MAX;
+        int64_t xt = kc::INT64MAX;
         const char* rbuf = visitor_->visit_empty(kbuf, ksiz, &rsiz, &xt);
         *sp = rsiz;
         if (db_->utrigger_) log_update(db_->utrigger_, kbuf, ksiz, rbuf, rsiz);
@@ -2379,10 +2379,10 @@ private:
   static int64_t modify_exptime(int64_t xt, int64_t ct) {
     _assert_(true);
     if (xt < 0) {
-      if (xt < INT64_MIN / 2) xt = INT64_MIN / 2;
+      if (xt < kc::INT64MIN / 2) xt = kc::INT64MIN / 2;
       xt = -xt;
     } else {
-      if (xt > INT64_MAX / 2) xt = INT64_MAX / 2;
+      if (xt > kc::INT64MAX / 2) xt = kc::INT64MAX / 2;
       xt += ct;
     }
     if (xt > XTMAX) xt = XTMAX;

@@ -98,6 +98,16 @@
 	</tr>
 
 	<tr>
+	<td class="name" nowrap><a href="#arraydump">arraydump</a>&nbsp;(src)</td>
+	<td class="summary">Serialize an array into a string.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#arrayload">arrayload</a>&nbsp;(src)</td>
+	<td class="summary">Deserialize a string into an array.</td>
+	</tr>
+
+	<tr>
 	<td class="name" nowrap><a href="#atof">atof</a>&nbsp;(str)</td>
 	<td class="summary">Convert a string to a real number.</td>
 	</tr>
@@ -438,6 +448,16 @@
 	</tr>
 
 	<tr>
+	<td class="name" nowrap><a href="#mapdump">mapdump</a>&nbsp;(src)</td>
+	<td class="summary">Serialize a map into a string.</td>
+	</tr>
+
+	<tr>
+	<td class="name" nowrap><a href="#mapload">mapload</a>&nbsp;(src)</td>
+	<td class="summary">Deserialize a string into a map.</td>
+	</tr>
+
+	<tr>
 	<td class="name" nowrap><a href="#pack">pack</a>&nbsp;(format, ary, ...)</td>
 	<td class="summary">Serialize an array of numbers into a string.</td>
 	</tr>
@@ -724,6 +744,64 @@ Create a visitor object.
 
 <h3>Return value:</h3>
 the visitor object.
+
+
+
+</dd>
+
+
+
+
+<dt><a name="arraydump"></a><strong>arraydump</strong>&nbsp;(src)</dt>
+<dd>
+Serialize an array into a string.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  src: the source table.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+the result string.
+
+
+
+</dd>
+
+
+
+
+<dt><a name="arrayload"></a><strong>arrayload</strong>&nbsp;(src)</dt>
+<dd>
+Deserialize a string into an array.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  src: the source string.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+the result map.
 
 
 
@@ -2772,6 +2850,64 @@ Log a message
 
 <h3>Return value:</h3>
 always nil.
+
+
+
+</dd>
+
+
+
+
+<dt><a name="mapdump"></a><strong>mapdump</strong>&nbsp;(src)</dt>
+<dd>
+Serialize a map into a string.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  src: the source table.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+the result string.
+
+
+
+</dd>
+
+
+
+
+<dt><a name="mapload"></a><strong>mapload</strong>&nbsp;(src)</dt>
+<dd>
+Deserialize a string into a map.
+
+
+<h3>Parameters</h3>
+<ul>
+	
+	<li>
+	  src: the source string.
+	</li>
+	
+</ul>
+
+
+
+
+
+
+<h3>Return value:</h3>
+the result map.
 
 
 

@@ -90,7 +90,7 @@
 
 #endif
 
-#define _KT_VERSION    "0.9.30"
+#define _KT_VERSION    "0.9.31"
 #define _KT_LIBVER     2
 #define _KT_LIBREV     1
 
@@ -114,9 +114,6 @@
  * general headers
  *************************************************************************************************/
 
-
-#undef __STDC_LIMIT_MACROS
-#define __STDC_LIMIT_MACROS 1
 
 extern "C" {
 #include <assert.h>

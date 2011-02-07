@@ -254,7 +254,7 @@ static int32_t runtunerepl(int argc, char** argv) {
   int32_t port = kt::DEFPORT;
   double tout = 0;
   int32_t mport = kt::DEFPORT;
-  uint64_t ts = UINT64_MAX;
+  uint64_t ts = kc::UINT64MAX;
   double iv = -1;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
@@ -275,7 +275,7 @@ static int32_t runtunerepl(int argc, char** argv) {
       } else if (!std::strcmp(argv[i], "-ts")) {
         if (++i >= argc) usage();
         if (!std::strcmp(argv[i], "now") || !std::strcmp(argv[i], "-")) {
-          ts = UINT64_MAX - 1;
+          ts = kc::UINT64MAX - 1;
         } else {
           ts = kc::atoix(argv[i]);
         }
@@ -430,7 +430,7 @@ static int32_t runset(int argc, char** argv) {
   const char* dbexpr = NULL;
   int32_t mode = 0;
   bool sx = false;
-  int64_t xt = INT64_MAX;
+  int64_t xt = kc::INT64MAX;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -710,7 +710,7 @@ static int32_t runimport(int argc, char** argv) {
   double tout = 0;
   const char* dbexpr = NULL;
   bool sx = false;
-  int64_t xt = INT64_MAX;
+  int64_t xt = kc::INT64MAX;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -856,7 +856,7 @@ static int32_t runsetbulk(int argc, char** argv) {
   bool bin = false;
   const char* dbexpr = NULL;
   bool sx = false;
-  int64_t xt = INT64_MAX;
+  int64_t xt = kc::INT64MAX;
   for (int32_t i = 2; i < argc; i++) {
     if (!argbrk && argv[i][0] == '-') {
       if (!std::strcmp(argv[i], "--")) {
@@ -1241,7 +1241,7 @@ static int32_t procset(const char* kbuf, size_t ksiz, const char* vbuf, size_t v
     }
     case 'i': {
       int64_t onum = db.increment(kbuf, ksiz, kc::atoi(vbuf), xt);
-      if (onum == INT64_MIN) {
+      if (onum == kc::INT64MIN) {
         dberrprint(&db, "DB::increment failed");
         err = true;
       } else {
@@ -1332,7 +1332,7 @@ static int32_t proclist(const char* kbuf, size_t ksiz,
   }
   if (dbexpr) db.set_target(dbexpr);
   bool err = false;
-  if (max < 0) max = INT64_MAX;
+  if (max < 0) max = kc::INT64MAX;
   kt::RemoteDB::Cursor cur(&db);
   if (des) {
     if (kbuf) {
@@ -1512,7 +1512,7 @@ static int32_t procslave(const char* host, int32_t port, double tout,
       return 1;
     }
     if (ur) {
-      if (ts < 1) ts = UINT64_MAX;
+      if (ts < 1) ts = kc::UINT64MAX;
       if (!db.ulog_remove(ts)) {
         dberrprint(&db, "DB::ulog_remove failed");
         err = true;

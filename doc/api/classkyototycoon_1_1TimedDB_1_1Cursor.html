@@ -60,10 +60,10 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Step the cursor to the previous record.  <a href="#a2a2ae0cf7926dc6ce14221bb8b7d66d4"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Cursor.html#a898a2747166029ab550ef89c3b763ec5">accept</a> (<a class="el" href="classkyototycoon_1_1TimedDB_1_1Visitor.html">Visitor</a> *visitor, bool writable=true, bool step=false)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Accept a visitor to the current record.  <a href="#a898a2747166029ab550ef89c3b763ec5"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Cursor.html#af11f8b3c13a938d0d2d5811e400563ad">set_value</a> (const char *vbuf, size_t vsiz, int64_t xt=INT64_MAX, bool step=false)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the value of the current record.  <a href="#af11f8b3c13a938d0d2d5811e400563ad"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Cursor.html#a2c4b27f93bcc6ebd7003cc31bbeaffec">set_value_str</a> (const std::string &amp;value, int64_t xt=INT64_MAX, bool step=false)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the value of the current record.  <a href="#a2c4b27f93bcc6ebd7003cc31bbeaffec"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Cursor.html#ac755f23222faa68a7388e7e0f7cc1a9d">set_value</a> (const char *vbuf, size_t vsiz, int64_t xt=kc::INT64MAX, bool step=false)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the value of the current record.  <a href="#ac755f23222faa68a7388e7e0f7cc1a9d"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Cursor.html#a5db4a5ff63de4c3aed3f2f39645fd88a">set_value_str</a> (const std::string &amp;value, int64_t xt=kc::INT64MAX, bool step=false)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the value of the current record.  <a href="#a5db4a5ff63de4c3aed3f2f39645fd88a"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Cursor.html#a5156d51c097937915b6b54875e93f234">remove</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Remove the current record.  <a href="#a5156d51c097937915b6b54875e93f234"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Cursor.html#a1c9e0fd50c228cdb4aadd7cd5e738121">get_key</a> (size_t *sp, bool step=false)</td></tr>
@@ -380,7 +380,7 @@ class&nbsp;</td><td class="memItemRight" valign="bottom"><b>TimedDB</b></td></tr
 
 </div>
 </div>
-<a class="anchor" id="af11f8b3c13a938d0d2d5811e400563ad"></a><!-- doxytag: member="kyototycoon::TimedDB::Cursor::set_value" ref="af11f8b3c13a938d0d2d5811e400563ad" args="(const char *vbuf, size_t vsiz, int64_t xt=INT64_MAX, bool step=false)" -->
+<a class="anchor" id="ac755f23222faa68a7388e7e0f7cc1a9d"></a><!-- doxytag: member="kyototycoon::TimedDB::Cursor::set_value" ref="ac755f23222faa68a7388e7e0f7cc1a9d" args="(const char *vbuf, size_t vsiz, int64_t xt=kc::INT64MAX, bool step=false)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -400,7 +400,7 @@ class&nbsp;</td><td class="memItemRight" valign="bottom"><b>TimedDB</b></td></tr
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int64_t&nbsp;</td>
-          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code>, </td>
+          <td class="paramname"> <em>xt</em> = <code>kc::INT64MAX</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -431,7 +431,7 @@ class&nbsp;</td><td class="memItemRight" valign="bottom"><b>TimedDB</b></td></tr
 
 </div>
 </div>
-<a class="anchor" id="a2c4b27f93bcc6ebd7003cc31bbeaffec"></a><!-- doxytag: member="kyototycoon::TimedDB::Cursor::set_value_str" ref="a2c4b27f93bcc6ebd7003cc31bbeaffec" args="(const std::string &amp;value, int64_t xt=INT64_MAX, bool step=false)" -->
+<a class="anchor" id="a5db4a5ff63de4c3aed3f2f39645fd88a"></a><!-- doxytag: member="kyototycoon::TimedDB::Cursor::set_value_str" ref="a5db4a5ff63de4c3aed3f2f39645fd88a" args="(const std::string &amp;value, int64_t xt=kc::INT64MAX, bool step=false)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -445,7 +445,7 @@ class&nbsp;</td><td class="memItemRight" valign="bottom"><b>TimedDB</b></td></tr
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int64_t&nbsp;</td>
-          <td class="paramname"> <em>xt</em> = <code>INT64_MAX</code>, </td>
+          <td class="paramname"> <em>xt</em> = <code>kc::INT64MAX</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -463,7 +463,7 @@ class&nbsp;</td><td class="memItemRight" valign="bottom"><b>TimedDB</b></td></tr
 <div class="memdoc">
 
 <p>Set the value of the current record. </p>
-<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original <a class="el" href="classkyototycoon_1_1TimedDB_1_1Cursor.html#af11f8b3c13a938d0d2d5811e400563ad" title="Set the value of the current record.">Cursor::set_value</a> method except that the parameter is std::string. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original <a class="el" href="classkyototycoon_1_1TimedDB_1_1Cursor.html#ac755f23222faa68a7388e7e0f7cc1a9d" title="Set the value of the current record.">Cursor::set_value</a> method except that the parameter is std::string. </dd></dl>
 
 </div>
 </div>
@@ -744,7 +744,7 @@ class&nbsp;</td><td class="memItemRight" valign="bottom"><b>TimedDB</b></td></tr
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Jan 27 12:53:21 2011 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Sun Feb 6 20:50:09 2011 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

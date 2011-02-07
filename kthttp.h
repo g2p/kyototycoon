@@ -1327,7 +1327,7 @@ private:
       _assert_(str);
       kc::strprintf(str, "Server: KyotoTycoon/%s\r\n", VERSION);
       char buf[48];
-      datestrhttp(INT64_MAX, 0, buf);
+      datestrhttp(kc::INT64MAX, 0, buf);
       kc::strprintf(str, "Date: %s\r\n", buf);
     }
     HTTPServer* serv_;

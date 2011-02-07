@@ -511,7 +511,7 @@ private:
           rv = rbuf;
           *sp = rsiz;
         }
-        *xtp = lua_isnumber(lua_, -1) ? lua_tonumber(lua_, -1) : INT64_MAX;
+        *xtp = lua_isnumber(lua_, -1) ? lua_tonumber(lua_, -1) : kc::INT64MAX;
       }
     }
     if (!writable_) rv = NULL;
@@ -687,7 +687,7 @@ static int kt_hash_murmur(lua_State* lua) {
   size_t len;
   const char* str = lua_tolstring(lua, 1, &len);
   if (!str) return 0;
-  lua_pushinteger(lua, kc::hashmurmur(str, len) & INT32_MAX);
+  lua_pushinteger(lua, kc::hashmurmur(str, len) & kc::INT32MAX);
   return 1;
 }
 
@@ -701,7 +701,7 @@ static int kt_hash_fnv(lua_State* lua) {
   size_t len;
   const char* str = lua_tolstring(lua, 1, &len);
   if (!str) return 0;
-  lua_pushinteger(lua, kc::hashfnv(str, len) & INT32_MAX);
+  lua_pushinteger(lua, kc::hashfnv(str, len) & kc::INT32MAX);
   return 1;
 }
 
@@ -776,7 +776,7 @@ static int kt_pack(lua_State* lua) {
     int32_t c = *format;
     int32_t loop = 1;
     if (format[1] == '*') {
-      loop = INT32_MAX;
+      loop = kc::INT32MAX;
       format++;
     } else if (format[1] >= '0' && format[1] <= '9') {
       char* suffix;
@@ -940,7 +940,7 @@ static int kt_unpack(lua_State *lua) {
     int32_t c = *format;
     int32_t loop = 1;
     if (format[1] == '*') {
-      loop = INT32_MAX;
+      loop = kc::INT32MAX;
       format++;
     } else if (format[1] >= '0' && format[1] <= '9') {
       char* suffix;
@@ -1905,7 +1905,7 @@ static int cur_set_value(lua_State* lua) {
   size_t vsiz;
   const char* vbuf = lua_tolstring(lua, 2, &vsiz);
   if (!cur || !vsiz) throwinvarg(lua, __KCFUNC__);
-  int64_t xt = argc > 2 && !lua_isnil(lua, 3) ? lua_tonumber(lua, 3) : INT64_MAX;
+  int64_t xt = argc > 2 && !lua_isnil(lua, 3) ? lua_tonumber(lua, 3) : kc::INT64MAX;
   bool step = argc > 3 ? lua_toboolean(lua, 4) : false;
   bool rv = cur->cur->set_value(vbuf, vsiz, step, xt);
   lua_pushboolean(lua, rv);
@@ -2519,7 +2519,7 @@ static int db_set(lua_State* lua) {
   size_t vsiz;
   const char* vbuf = lua_tolstring(lua, 3, &vsiz);
   if (!db || !kbuf || !vbuf) throwinvarg(lua, __KCFUNC__);
-  int64_t xt = argc > 3 && !lua_isnil(lua, 4) ? lua_tonumber(lua, 4) : INT64_MAX;
+  int64_t xt = argc > 3 && !lua_isnil(lua, 4) ? lua_tonumber(lua, 4) : kc::INT64MAX;
   bool rv = db->db->set(kbuf, ksiz, vbuf, vsiz, xt);
   lua_pushboolean(lua, rv);
   return 1;
@@ -2540,7 +2540,7 @@ static int db_add(lua_State* lua) {
   size_t vsiz;
   const char* vbuf = lua_tolstring(lua, 3, &vsiz);
   if (!db || !kbuf || !vbuf) throwinvarg(lua, __KCFUNC__);
-  int64_t xt = argc > 3 && !lua_isnil(lua, 4) ? lua_tonumber(lua, 4) : INT64_MAX;
+  int64_t xt = argc > 3 && !lua_isnil(lua, 4) ? lua_tonumber(lua, 4) : kc::INT64MAX;
   bool rv = db->db->add(kbuf, ksiz, vbuf, vsiz, xt);
   lua_pushboolean(lua, rv);
   return 1;
@@ -2561,7 +2561,7 @@ static int db_replace(lua_State* lua) {
   size_t vsiz;
   const char* vbuf = lua_tolstring(lua, 3, &vsiz);
   if (!db || !kbuf || !vbuf) throwinvarg(lua, __KCFUNC__);
-  int64_t xt = argc > 3 && !lua_isnil(lua, 4) ? lua_tonumber(lua, 4) : INT64_MAX;
+  int64_t xt = argc > 3 && !lua_isnil(lua, 4) ? lua_tonumber(lua, 4) : kc::INT64MAX;
   bool rv = db->db->replace(kbuf, ksiz, vbuf, vsiz, xt);
   lua_pushboolean(lua, rv);
   return 1;
@@ -2582,7 +2582,7 @@ static int db_append(lua_State* lua) {
   size_t vsiz;
   const char* vbuf = lua_tolstring(lua, 3, &vsiz);
   if (!db || !kbuf || !vbuf) throwinvarg(lua, __KCFUNC__);
-  int64_t xt = argc > 3 && !lua_isnil(lua, 4) ? lua_tonumber(lua, 4) : INT64_MAX;
+  int64_t xt = argc > 3 && !lua_isnil(lua, 4) ? lua_tonumber(lua, 4) : kc::INT64MAX;
   bool rv = db->db->append(kbuf, ksiz, vbuf, vsiz, xt);
   lua_pushboolean(lua, rv);
   return 1;
@@ -2602,9 +2602,9 @@ static int db_increment(lua_State* lua) {
   const char* kbuf = lua_tolstring(lua, 2, &ksiz);
   if (!db || !kbuf) throwinvarg(lua, __KCFUNC__);
   int64_t num = argc > 2 ? lua_tonumber(lua, 3) : 0;
-  int64_t xt = argc > 3 && !lua_isnil(lua, 4) ? lua_tonumber(lua, 4) : INT64_MAX;
+  int64_t xt = argc > 3 && !lua_isnil(lua, 4) ? lua_tonumber(lua, 4) : kc::INT64MAX;
   num = db->db->increment(kbuf, ksiz, num, xt);
-  if (num == INT64_MIN) {
+  if (num == kc::INT64MIN) {
     lua_pushnil(lua);
   } else {
     lua_pushnumber(lua, num);
@@ -2626,7 +2626,7 @@ static int db_increment_double(lua_State* lua) {
   const char* kbuf = lua_tolstring(lua, 2, &ksiz);
   if (!db || !kbuf) throwinvarg(lua, __KCFUNC__);
   double num = argc > 2 ? lua_tonumber(lua, 3) : 0;
-  int64_t xt = argc > 3 && !lua_isnil(lua, 4) ? lua_tonumber(lua, 4) : INT64_MAX;
+  int64_t xt = argc > 3 && !lua_isnil(lua, 4) ? lua_tonumber(lua, 4) : kc::INT64MAX;
   num = db->db->increment_double(kbuf, ksiz, num, xt);
   if (kc::chknan(num)) {
     lua_pushnil(lua);
@@ -2653,7 +2653,7 @@ static int db_cas(lua_State* lua) {
   size_t nvsiz;
   const char* nvbuf = lua_tolstring(lua, 4, &nvsiz);
   if (!db || !kbuf) throwinvarg(lua, __KCFUNC__);
-  int64_t xt = argc > 4 && !lua_isnil(lua, 5) ? lua_tonumber(lua, 5) : INT64_MAX;
+  int64_t xt = argc > 4 && !lua_isnil(lua, 5) ? lua_tonumber(lua, 5) : kc::INT64MAX;
   bool rv = db->db->cas(kbuf, ksiz, ovbuf, ovsiz, nvbuf, nvsiz, xt);
   lua_pushboolean(lua, rv);
   return 1;
@@ -2758,7 +2758,7 @@ static int db_set_bulk(lua_State* lua) {
     if (kbuf && vbuf) recs[std::string(kbuf, ksiz)] = std::string(vbuf, vsiz);
     lua_pop(lua, 1);
   }
-  int64_t xt = argc > 2 && !lua_isnil(lua, 3) ? lua_tonumber(lua, 3) : INT64_MAX;
+  int64_t xt = argc > 2 && !lua_isnil(lua, 3) ? lua_tonumber(lua, 3) : kc::INT64MAX;
   bool atomic = argc > 3 ? lua_toboolean(lua, 4) : true;
   int64_t rv = db->db->set_bulk(recs, xt, atomic);
   lua_pushnumber(lua, rv);

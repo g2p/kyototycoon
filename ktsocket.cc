@@ -192,7 +192,7 @@ Socket::Socket() {
   SocketCore* core = new SocketCore;
   core->errmsg = NULL;
   core->fd = -1;
-  core->timeout = UINT32_MAX;
+  core->timeout = kc::UINT32MAX;
   core->aborted = false;
   core->buf = NULL;
   core->rp = NULL;
@@ -239,7 +239,7 @@ bool Socket::open(const std::string& expr) {
   char addr[NAMEBUFSIZ];
   int32_t port;
   parseaddr(expr.c_str(), addr, &port);
-  if (kc::atoi(addr) < 1 || port < 1 || port > INT16_MAX) {
+  if (kc::atoi(addr) < 1 || port < 1 || port > kc::INT16MAX) {
     sockseterrmsg(core, "invalid address expression");
     return false;
   }
@@ -562,8 +562,8 @@ bool Socket::set_timeout(double timeout) {
     sockseterrmsg(core, "already opened");
     return false;
   }
-  core->timeout = timeout > 0 ? timeout : UINT32_MAX;
-  if (timeout > UINT32_MAX) timeout = UINT32_MAX;
+  core->timeout = timeout > 0 ? timeout : kc::UINT32MAX;
+  if (timeout > kc::UINT32MAX) timeout = kc::UINT32MAX;
   return true;
 }
 
@@ -665,7 +665,7 @@ ServerSocket::ServerSocket() {
   ServerSocketCore* core = new ServerSocketCore;
   core->errmsg = NULL;
   core->fd = -1;
-  core->timeout = UINT32_MAX;
+  core->timeout = kc::UINT32MAX;
   core->aborted = false;
   core->evflags = 0;
   opq_ = core;
@@ -714,7 +714,7 @@ bool ServerSocket::open(const std::string& expr) {
     servseterrmsg(core, "invalid address expression");
     return false;
   }
-  if (port < 1 || port > INT16_MAX) {
+  if (port < 1 || port > kc::INT16MAX) {
     servseterrmsg(core, "invalid address expression");
     return false;
   }
@@ -864,8 +864,8 @@ bool ServerSocket::set_timeout(double timeout) {
     servseterrmsg(core, "already opened");
     return false;
   }
-  core->timeout = timeout > 0 ? timeout : UINT32_MAX;
-  if (timeout > UINT32_MAX) timeout = UINT32_MAX;
+  core->timeout = timeout > 0 ? timeout : kc::UINT32MAX;
+  if (timeout > kc::UINT32MAX) timeout = kc::UINT32MAX;
   return true;
 }
 
@@ -1398,7 +1398,7 @@ bool Poller::wait(double timeout) {
     pollseterrmsg(core, "not opened");
     return false;
   }
-  if (timeout <= 0) timeout = UINT32_MAX;
+  if (timeout <= 0) timeout = kc::UINT32MAX;
   core->hits.clear();
   double ct = kc::time();
   while (true) {
@@ -1448,7 +1448,7 @@ bool Poller::wait(double timeout) {
     pollseterrmsg(core, "not opened");
     return false;
   }
-  if (timeout <= 0) timeout = UINT32_MAX;
+  if (timeout <= 0) timeout = kc::UINT32MAX;
   core->hits.clear();
   ::sigset_t sigmask;
   struct ::sigaction sa;

@@ -858,8 +858,8 @@
 <p>Get the Gregorian calendar of a time. </p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
-    <tr><td valign="top"></td><td valign="top"><em>t</em>&nbsp;</td><td>the source time in seconds from the epoch. If it is INT64_MAX, the current time is specified. </td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>jl</em>&nbsp;</td><td>the jet lag of a location in seconds. If it is INT32_MAX, the local jet lag is specified. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>t</em>&nbsp;</td><td>the source time in seconds from the epoch. If it is kyotocabinet::INT64MAX, the current time is specified. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>jl</em>&nbsp;</td><td>the jet lag of a location in seconds. If it is kyotocabinet::INT32MAX, the local jet lag is specified. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>yearp</em>&nbsp;</td><td>the pointer to a variable to which the year is assigned. If it is NULL, it is not used. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>monp</em>&nbsp;</td><td>the pointer to a variable to which the month is assigned. If it is NULL, it is not used. 1 means January and 12 means December. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>dayp</em>&nbsp;</td><td>the pointer to a variable to which the day of the month is assigned. If it is NULL, it is not used. </td></tr>
@@ -906,8 +906,8 @@
 <p>Format a date as a string in W3CDTF. </p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
-    <tr><td valign="top"></td><td valign="top"><em>t</em>&nbsp;</td><td>the source time in seconds from the epoch. If it is INT64_MAX, the current time is specified. </td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>jl</em>&nbsp;</td><td>the jet lag of a location in seconds. If it is INT32_MAX, the local jet lag is specified. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>t</em>&nbsp;</td><td>the source time in seconds from the epoch. If it is kyotocabinet::INT64MAX, the current time is specified. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>jl</em>&nbsp;</td><td>the jet lag of a location in seconds. If it is kyotocabinet::INT32MAX, the local jet lag is specified. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>buf</em>&nbsp;</td><td>the pointer to the region into which the result string is written. The size of the buffer should be equal to or more than 48 bytes. </td></tr>
   </table>
   </dd>
@@ -956,7 +956,7 @@
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"></td><td valign="top"><em>t</em>&nbsp;</td><td>the source time in seconds from the epoch. If it is Not-a-Number, the current time is specified. </td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>jl</em>&nbsp;</td><td>the jet lag of a location in seconds. If it is INT32_MAX, the local jet lag is specified. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>jl</em>&nbsp;</td><td>the jet lag of a location in seconds. If it is kyotocabinet::INT32MAX, the local jet lag is specified. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>acr</em>&nbsp;</td><td>the accuracy of time by the number of columns of the fraction part. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>buf</em>&nbsp;</td><td>the pointer to the region into which the result string is written. The size of the buffer should be equal to or more than 48 bytes. </td></tr>
   </table>
@@ -999,8 +999,8 @@
 <p>Format a date as a string in RFC 1123 format. </p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
-    <tr><td valign="top"></td><td valign="top"><em>t</em>&nbsp;</td><td>the source time in seconds from the epoch. If it is INT64_MAX, the current time is specified. </td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>jl</em>&nbsp;</td><td>the jet lag of a location in seconds. If it is INT32_MAX, the local jet lag is specified. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>t</em>&nbsp;</td><td>the source time in seconds from the epoch. If it is kyotocabinet::INT64MAX, the current time is specified. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>jl</em>&nbsp;</td><td>the jet lag of a location in seconds. If it is kyotocabinet::INT32MAX, the local jet lag is specified. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>buf</em>&nbsp;</td><td>the pointer to the region into which the result string is written. The size of the buffer should be equal to or more than 48 bytes. </td></tr>
   </table>
   </dd>
@@ -1307,7 +1307,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Thu Jan 27 12:53:21 2011 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Sun Feb 6 20:50:08 2011 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

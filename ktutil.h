@@ -213,10 +213,10 @@ void strtokenize(const char* str, std::vector<std::string>* tokens);
 
 /**
  * Get the Gregorian calendar of a time.
- * @param t the source time in seconds from the epoch.  If it is INT64_MAX, the current time is
- * specified.
- * @param jl the jet lag of a location in seconds.  If it is INT32_MAX, the local jet lag is
- * specified.
+ * @param t the source time in seconds from the epoch.  If it is kyotocabinet::INT64MAX, the
+ * current time is specified.
+ * @param jl the jet lag of a location in seconds.  If it is kyotocabinet::INT32MAX, the local
+ * jet lag is specified.
  * @param yearp the pointer to a variable to which the year is assigned.  If it is NULL, it is
  * not used.
  * @param monp the pointer to a variable to which the month is assigned.  If it is NULL, it is
@@ -237,10 +237,10 @@ void getcalendar(int64_t t, int32_t jl,
 
 /**
  * Format a date as a string in W3CDTF.
- * @param t the source time in seconds from the epoch.  If it is INT64_MAX, the current time is
- * specified.
- * @param jl the jet lag of a location in seconds.  If it is INT32_MAX, the local jet lag is
- * specified.
+ * @param t the source time in seconds from the epoch.  If it is kyotocabinet::INT64MAX, the
+ * current time is specified.
+ * @param jl the jet lag of a location in seconds.  If it is kyotocabinet::INT32MAX, the local
+ * jet lag is specified.
  * @param buf the pointer to the region into which the result string is written.  The size of
  * the buffer should be equal to or more than 48 bytes.
  */
@@ -251,8 +251,8 @@ void datestrwww(int64_t t, int32_t jl, char* buf);
  * Format a date as a string in W3CDTF with the fraction part.
  * @param t the source time in seconds from the epoch.  If it is Not-a-Number, the current time
  * is specified.
- * @param jl the jet lag of a location in seconds.  If it is INT32_MAX, the local jet lag is
- * specified.
+ * @param jl the jet lag of a location in seconds.  If it is kyotocabinet::INT32MAX, the local
+ * jet lag is specified.
  * @param acr the accuracy of time by the number of columns of the fraction part.
  * @param buf the pointer to the region into which the result string is written.  The size of
  * the buffer should be equal to or more than 48 bytes.
@@ -262,10 +262,10 @@ void datestrwww(double t, int32_t jl, int32_t acr, char* buf);
 
 /**
  * Format a date as a string in RFC 1123 format.
- * @param t the source time in seconds from the epoch.  If it is INT64_MAX, the current time is
- * specified.
- * @param jl the jet lag of a location in seconds.  If it is INT32_MAX, the local jet lag is
- * specified.
+ * @param t the source time in seconds from the epoch.  If it is kyotocabinet::INT64MAX, the
+ * current time is specified.
+ * @param jl the jet lag of a location in seconds.  If it is kyotocabinet::INT32MAX, the local
+ * jet lag is specified.
  * @param buf the pointer to the region into which the result string is written.  The size of
  * the buffer should be equal to or more than 48 bytes.
  */
@@ -637,7 +637,7 @@ inline void maptowwwform(const std::map<std::string, std::string>& map, std::str
   _assert_(true);
   std::map<std::string, std::string>::const_iterator it = map.begin();
   std::map<std::string, std::string>::const_iterator itend = map.end();
-  str->reserve(UINT8_MAX);
+  str->reserve(kc::UINT8MAX);
   it = map.begin();
   while (it != itend) {
     if (str->size() > 0) str->append("&");
@@ -828,8 +828,8 @@ inline int32_t checkmapenc(const std::map<std::string, std::string>& map) {
   while (it != itend) {
     const char* buf = it->first.data();
     size_t size = it->first.size();
-    if (size > UINT8_MAX) {
-      size = UINT8_MAX;
+    if (size > kc::UINT8MAX) {
+      size = kc::UINT8MAX;
       bin = true;
     }
     blen += size * 6 / 4 + 3;
@@ -845,8 +845,8 @@ inline int32_t checkmapenc(const std::map<std::string, std::string>& map) {
     }
     buf = it->second.data();
     size = it->second.size();
-    if (size > UINT8_MAX) {
-      size = UINT8_MAX;
+    if (size > kc::UINT8MAX) {
+      size = kc::UINT8MAX;
       bin = true;
     }
     blen += size * 6 / 4 + 3;
