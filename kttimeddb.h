@@ -1902,7 +1902,7 @@ public:
              kc::BasicDB::ProgressChecker* checker = NULL) {
     _assert_(srcary && srcnum <= kc::MEMMAXSIZ);
     bool err = false;
-    kc::Comparator* comp = &kc::LEXICALCOMP;
+    kc::Comparator* comp = kc::LEXICALCOMP;
     std::priority_queue<MergeLine> lines;
     int64_t allcnt = 0;
     for (size_t i = 0; i < srcnum; i++) {

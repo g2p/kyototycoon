@@ -334,7 +334,7 @@ public:
     for (size_t i = 0; i < dbnum_; i++) {
       MergeLine line;
       line.cur = tmpdbs_[i]->cursor();
-      line.comp = &kc::LEXICALCOMP;
+      line.comp = kc::LEXICALCOMP;
       line.cur->jump();
       line.kbuf = line.cur->get(&line.ksiz, &line.vbuf, &line.vsiz, true);
       if (line.kbuf) {

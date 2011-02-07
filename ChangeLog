@@ -1,3 +1,11 @@
+2011-01-30  Mikio Hirabayashi  <info@fallabs.com>
+
+	* kttimeddb.h (TimedDB::merge): type of the comarator was changed.
+
+	* ktdbext.h (MapReduce::execute): type of the comarator was changed.
+
+	- Release: 0.9.30
+
 2011-01-27  Mikio Hirabayashi  <info@fallabs.com>
 
 	* myscript.cc (arraydump, arrayload, mapdump, mapload): new functions.
