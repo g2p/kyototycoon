@@ -167,6 +167,18 @@ libkyototycoon.so.2 libkyototycoon2 #MINVER#
  _ZNSaIPN11kyototycoon8PollableEED1Ev@Base 0.9.23
  _ZNSaISt13_Rb_tree_nodeIPN11kyototycoon8PollableEEEC2Ev@Base 0.9.23
  _ZNSaISt13_Rb_tree_nodeIPN11kyototycoon8PollableEEED2Ev@Base 0.9.23
+ _ZNSt14numeric_limitsIaE3maxEv@Base 0.9.30
+ _ZNSt14numeric_limitsIaE3minEv@Base 0.9.30
+ _ZNSt14numeric_limitsIhE3maxEv@Base 0.9.30
+ _ZNSt14numeric_limitsIiE3maxEv@Base 0.9.30
+ _ZNSt14numeric_limitsIiE3minEv@Base 0.9.30
+ _ZNSt14numeric_limitsIjE3maxEv@Base 0.9.30
+ _ZNSt14numeric_limitsIlE3maxEv@Base 0.9.30
+ _ZNSt14numeric_limitsIlE3minEv@Base 0.9.30
+ _ZNSt14numeric_limitsImE3maxEv@Base 0.9.30
+ _ZNSt14numeric_limitsIsE3maxEv@Base 0.9.30
+ _ZNSt14numeric_limitsIsE3minEv@Base 0.9.30
+ _ZNSt14numeric_limitsItE3maxEv@Base 0.9.30
  _ZNSt17_Rb_tree_iteratorIPN11kyototycoon8PollableEEC1EPSt13_Rb_tree_nodeIS2_E@Base 0.9.23
  _ZNSt17_Rb_tree_iteratorIPN11kyototycoon8PollableEEmmEv@Base 0.9.23
  _ZNSt17_Rb_tree_iteratorIPN11kyototycoon8PollableEEppEi@Base 0.9.23
