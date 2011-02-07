@@ -1,5 +1,17 @@
+kyototycoon (0.9.30-1) unstable; urgency=low
+
+  * Imported Upstream version 0.9.30
+
+ -- Gabriel de Perthuis <g2p.code+debian@gmail.com>  Mon, 07 Feb 2011 12:34:35 +0100
+
 kyototycoon (0.9.29-1) unstable; urgency=low
 
+  * Improve descriptions
+  * Link to index.html inside docs, so browsers don't display folder
+    contents.
+  * Install more docs.
+  * Install pluggable servers, pluggable dbs
+  * Ship idl file with docs.
   * Imported Upstream version 0.9.29
 
  -- Gabriel de Perthuis <g2p.code+debian@gmail.com>  Fri, 04 Feb 2011 12:34:43 +0100
