@@ -687,7 +687,7 @@ static int kt_hash_murmur(lua_State* lua) {
   size_t len;
   const char* str = lua_tolstring(lua, 1, &len);
   if (!str) return 0;
-  lua_pushinteger(lua, kc::hashmurmur(str, len) & kc::INT32MAX);
+  lua_pushinteger(lua, kc::hashmurmur(str, len) & ((1ULL << 48) - 1));
   return 1;
 }
 
@@ -701,7 +701,7 @@ static int kt_hash_fnv(lua_State* lua) {
   size_t len;
   const char* str = lua_tolstring(lua, 1, &len);
   if (!str) return 0;
-  lua_pushinteger(lua, kc::hashfnv(str, len) & kc::INT32MAX);
+  lua_pushinteger(lua, kc::hashfnv(str, len) & ((1ULL << 48) - 1));
   return 1;
 }
 

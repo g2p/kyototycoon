@@ -1,3 +1,9 @@
+2011-02-07  Mikio Hirabayashi  <info@fallabs.com>
+
+	* myscript.cc (kt_hash_murmur, kt_hash_fnv): accuracy was improved.
+
+	- Release: 0.9.32
+
 2011-02-06  Mikio Hirabayashi  <info@fallabs.com>
 
 	* ktcommon.h: macros for integer range were removed.
