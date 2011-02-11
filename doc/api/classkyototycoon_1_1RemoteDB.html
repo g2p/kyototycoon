@@ -127,8 +127,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Remove a record.  <a href="#a13262eeac1f407d4bd9ac1a4d3d2ac3a"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#acd063776b8998ab74365b76d64c65fd5">get</a> (const char *kbuf, size_t ksiz, size_t *sp, int64_t *xtp=NULL)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieve the value of a record.  <a href="#acd063776b8998ab74365b76d64c65fd5"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">std::string *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#af2043152498cfa4ced04cc92673b2aa0">get</a> (const std::string &amp;key, int64_t *xtp=NULL)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieve the value of a record.  <a href="#af2043152498cfa4ced04cc92673b2aa0"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a36dd34680a06377b2137f62076110689">get</a> (const std::string &amp;key, std::string *value, int64_t *xtp=NULL)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieve the value of a record.  <a href="#a36dd34680a06377b2137f62076110689"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#ad3602ec4c44cbea457e6819389143778">set_bulk</a> (const std::map&lt; std::string, std::string &gt; &amp;recs, int64_t xt=kc::INT64MAX, bool atomic=true)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Store records at once.  <a href="#ad3602ec4c44cbea457e6819389143778"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB.html#a87ad111091af89cada89c99810270f37">remove_bulk</a> (const std::vector&lt; std::string &gt; &amp;keys, bool atomic=true)</td></tr>
@@ -1435,15 +1435,21 @@
 
 </div>
 </div>
-<a class="anchor" id="af2043152498cfa4ced04cc92673b2aa0"></a><!-- doxytag: member="kyototycoon::RemoteDB::get" ref="af2043152498cfa4ced04cc92673b2aa0" args="(const std::string &amp;key, int64_t *xtp=NULL)" -->
+<a class="anchor" id="a36dd34680a06377b2137f62076110689"></a><!-- doxytag: member="kyototycoon::RemoteDB::get" ref="a36dd34680a06377b2137f62076110689" args="(const std::string &amp;key, std::string *value, int64_t *xtp=NULL)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::string* kyototycoon::RemoteDB::get </td>
+          <td class="memname">bool kyototycoon::RemoteDB::get </td>
           <td>(</td>
           <td class="paramtype">const std::string &amp;&nbsp;</td>
           <td class="paramname"> <em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string *&nbsp;</td>
+          <td class="paramname"> <em>value</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1461,7 +1467,7 @@
 <div class="memdoc">
 
 <p>Retrieve the value of a record. </p>
-<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original DB::get method except that the parameter and the return value are std::string. The return value should be deleted explicitly by the caller. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original DB::get method except that the first parameters is the key string and the second parameter is a string to contain the result and the return value is bool for success. </dd></dl>
 
 </div>
 </div>
@@ -1941,7 +1947,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Feb 8 00:50:28 2011 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Fri Feb 11 02:33:39 2011 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

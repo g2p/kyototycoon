@@ -133,8 +133,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Remove a record.  <a href="#a54fb97b111feaab89f5aedf72d69c462"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#ac26c13dcd8f043a4bba8c91b0034e130">get</a> (const char *kbuf, size_t ksiz, size_t *sp, int64_t *xtp=NULL)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieve the value of a record.  <a href="#ac26c13dcd8f043a4bba8c91b0034e130"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">std::string *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a8389b6dc6312865132a46081159915d0">get</a> (const std::string &amp;key, int64_t *xtp=NULL)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieve the value of a record.  <a href="#a8389b6dc6312865132a46081159915d0"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a39b0daa78ca980b868071b24406093f4">get</a> (const std::string &amp;key, std::string *value, int64_t *xtp=NULL)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieve the value of a record.  <a href="#a39b0daa78ca980b868071b24406093f4"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#abe9750c27a9f5c55f4f833aabd1a411d">get</a> (const char *kbuf, size_t ksiz, char *vbuf, size_t max, int64_t *xtp=NULL)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Retrieve the value of a record.  <a href="#abe9750c27a9f5c55f4f833aabd1a411d"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int64_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a6485cc0f8c7a225dccd0cf4f8678a0c3">set_bulk</a> (const std::map&lt; std::string, std::string &gt; &amp;recs, int64_t xt=kc::INT64MAX, bool atomic=true)</td></tr>
@@ -1589,15 +1589,21 @@
 
 </div>
 </div>
-<a class="anchor" id="a8389b6dc6312865132a46081159915d0"></a><!-- doxytag: member="kyototycoon::TimedDB::get" ref="a8389b6dc6312865132a46081159915d0" args="(const std::string &amp;key, int64_t *xtp=NULL)" -->
+<a class="anchor" id="a39b0daa78ca980b868071b24406093f4"></a><!-- doxytag: member="kyototycoon::TimedDB::get" ref="a39b0daa78ca980b868071b24406093f4" args="(const std::string &amp;key, std::string *value, int64_t *xtp=NULL)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::string* kyototycoon::TimedDB::get </td>
+          <td class="memname">bool kyototycoon::TimedDB::get </td>
           <td>(</td>
           <td class="paramtype">const std::string &amp;&nbsp;</td>
           <td class="paramname"> <em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string *&nbsp;</td>
+          <td class="paramname"> <em>value</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1615,7 +1621,7 @@
 <div class="memdoc">
 
 <p>Retrieve the value of a record. </p>
-<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original DB::get method except that the parameter and the return value are std::string. The return value should be deleted explicitly by the caller. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original DB::get method except that the first parameters is the key string and the second parameter is a string to contain the result and the return value is bool for success. </dd></dl>
 
 </div>
 </div>
@@ -2487,7 +2493,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Feb 8 00:50:28 2011 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Fri Feb 11 02:33:39 2011 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

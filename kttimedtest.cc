@@ -677,12 +677,10 @@ static int32_t procorder(const char* path, int64_t rnum, int32_t thnum, bool rnd
                       break;
                     }
                     case 3: {
-                      std::pair<std::string, std::string>* rec =
-                        cur->get_pair(NULL, myrand(10) == 0);
-                      if (rec) {
-                        delete rec;
-                      } else if (db_->error() != kc::BasicDB::Error::NOREC) {
-                        dberrprint(db_, __LINE__, "Cursor::get_pair");
+                      std::string key, value;
+                      if (!cur->get(&key, &value, NULL, myrand(10) == 0) &&
+                          db_->error() != kc::BasicDB::Error::NOREC) {
+                        dberrprint(db_, __LINE__, "Cursor::get");
                         err_ = true;
                       }
                       break;
@@ -1007,12 +1005,10 @@ static int32_t procorder(const char* path, int64_t rnum, int32_t thnum, bool rnd
                       break;
                     }
                     case 3: {
-                      std::pair<std::string, std::string>* rec =
-                        cur->get_pair(NULL, myrand(10) == 0);
-                      if (rec) {
-                        delete rec;
-                      } else if (db_->error() != kc::BasicDB::Error::NOREC) {
-                        dberrprint(db_, __LINE__, "Cursor::get_pair");
+                      std::string key, value;
+                      if (!cur->get(&key, &value, NULL, myrand(10) == 0) &&
+                          db_->error() != kc::BasicDB::Error::NOREC) {
+                        dberrprint(db_, __LINE__, "Cursor::get");
                         err_ = true;
                       }
                       break;
@@ -1479,12 +1475,10 @@ static int32_t procorder(const char* path, int64_t rnum, int32_t thnum, bool rnd
                       break;
                     }
                     case 3: {
-                      std::pair<std::string, std::string>* rec =
-                        cur->get_pair(NULL, myrand(10) == 0);
-                      if (rec) {
-                        delete rec;
-                      } else if (db_->error() != kc::BasicDB::Error::NOREC) {
-                        dberrprint(db_, __LINE__, "Cursor::get_pair");
+                      std::string key, value;
+                      if (!cur->get(&key, &value, NULL, myrand(10) == 0) &&
+                          db_->error() != kc::BasicDB::Error::NOREC) {
+                        dberrprint(db_, __LINE__, "Cursor::get");
                         err_ = true;
                       }
                       break;
@@ -2090,8 +2084,8 @@ static int32_t proctran(const char* path, int64_t rnum, int32_t thnum, int32_t i
   kt::TimedDB paradb;
   db.tune_logger(stddblogger(g_progname, &std::cout),
                  lv ? kc::UINT32MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
-  paradb.tune_logger(stddblogger(g_progname, &std::cout),
-                     lv ? kc::UINT32MAX : kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
+  paradb.tune_logger(stddblogger(g_progname, &std::cout), lv ? kc::UINT32MAX :
+                     kc::BasicDB::Logger::WARN | kc::BasicDB::Logger::ERROR);
   kt::UpdateLogger ulog;
   DBUpdateLogger ulogdb;
   if (ulogpath) {
