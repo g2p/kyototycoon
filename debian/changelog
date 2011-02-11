@@ -1,5 +1,13 @@
+kyototycoon (0.9.33-1) unstable; urgency=low
+
+  * Imported Upstream version 0.9.33
+
+ -- Gabriel de Perthuis <g2p.code+debian@gmail.com>  Fri, 11 Feb 2011 11:26:14 +0100
+
 kyototycoon (0.9.32-1) unstable; urgency=low
 
+  * Fix initscript restart. Removed socket dir setup, KT doesn't support
+    AF_UNIX.
   * Imported Upstream version 0.9.32
 
  -- Gabriel de Perthuis <g2p.code+debian@gmail.com>  Tue, 08 Feb 2011 11:01:55 +0100
