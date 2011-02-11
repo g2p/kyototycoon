@@ -21,7 +21,6 @@ DAEMON_NAME=ktserver
 DAEMON_USER="kyototycoon"
 DAEMON_GROUP="kyototycoon"
 DAEMON_UMASK=0022
-SOCKET_UMASK=0007
 
 # support for multiple instances is based on the symbolic link
 # try to resolve symbolic links from eg. /etc/rc*.d/
@@ -106,16 +105,6 @@ do_start() {
 		chown $DAEMON_USER:$DAEMON_GROUP "$PIDDIR"
 	fi
 
-	# setup directory for unix socket
-	# AF_UNIX is not implemented by kyoto tycoon at the moment
-	if [ "$SERVERPORT" -eq 0 ] && [ -n "$SERVERHOST" ]; then
-		socketdir=`dirname "$SERVERHOST"`
-		if [ ! -d "$socketdir" ]; then
-			mkdir "$socketdir"
-			chown $DAEMON_USER:$DAEMON_GROUP "$socketdir"
-		fi
-	fi
-
 	start-stop-daemon --start --quiet --pidfile "$PIDFILE" \
 	  --chuid $DAEMON_USER:$DAEMON_GROUP --umask $DAEMON_UMASK \
 	  --exec $DAEMON --test > /dev/null \
@@ -125,8 +114,7 @@ do_start() {
 	  --exec $DAEMON -- $DAEMON_ARGS \
 		|| return 2
 
-	# socket permissions (should be current mode & ~mask)
-	[ "$SERVERPORT" -eq 0 ] && chmod `expr 0777 - $SOCKET_UMASK` $SERVERHOST
+	return 0
 }
 
 do_stop() {
