@@ -48,7 +48,7 @@ DATADIR=/var/lib/kyototycoon/data
 ULOGDIR=/var/lib/kyototycoon/log
 
 # listening host/address and port
-SERVERHOST=
+SERVERHOST=localhost
 SERVERPORT=1978
 
 # database name and options

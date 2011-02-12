@@ -1,8 +1,9 @@
 ## listening host/address and port
 ## the default port conflicts with the tokyo tyrant upstream default,
-## but not with the debian default of using a unix domain socket.
+## but not with the tokyo tyrant debian package which defaults to
+## a unix domain socket.
 ## AF_UNIX socket support isn't available in kyoto tycoon at the moment.
-#SERVERHOST=
+#SERVERHOST=localhost
 #SERVERPORT=1978
 
 ## database name and options (see ktserver(1) for tuning options)
