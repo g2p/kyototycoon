@@ -1,15 +1,22 @@
 Source: kyototycoon
 Priority: extra
 Maintainer: Gabriel de Perthuis <g2p.code+debian@gmail.com>
-Build-Depends: debhelper (>= 7.0.50), automake, autotools-dev, gawk, pkg-config, libkyotocabinet-dev (>> 1.2.30), liblua5.1-0-dev, lua5.1
+Build-Depends:
+ autotools-dev,
+ debhelper (>= 7.0.50),
+ libkyotocabinet-dev (>> 1.2.30),
+ liblua5.1-0-dev,
+ lua5.1,
+ pkg-config
 Standards-Version: 3.9.1
-Section: misc
+Section: database
 Homepage: http://fallabs.com/kyototycoon/
 
 Package: kyototycoon
+Section: database
 Architecture: any
 Priority: optional
-Depends: ${shlibs:Depends}, ${misc:Depends}, adduser, libkyototycoon2 (= ${binary:Version}), lsb-base (>= 3.0-6)
+Depends: ${shlibs:Depends}, ${misc:Depends}, adduser, lsb-base (>= 3.0-6)
 Recommends: kyototycoon-utils
 Description: Kyoto Tycoon server
  Kyoto Tycoon is a network interface to the DBM Kyoto Cabinet. The server
@@ -33,17 +40,6 @@ Description: Kyoto Tycoon server
  .
  This is the Kyoto Tycoon server package.
 
-Package: kyototycoon-dbg
-Architecture: any
-Section: debug
-Depends: ${misc:Depends}, libkyototycoon2 (= ${binary:Version})
-Description: Kyoto Tycoon debugging symbols
- Kyoto Tycoon is a network interface to the DBM Kyoto Cabinet. It
- permits concurrent and remote connections to Kyoto Cabinet databases.
- .
- These are the debugging symbols for Kyoto Tycoon (library,
- server and utilities).
-
 Package: libkyototycoon2
 Section: libs
 Architecture: any
@@ -55,10 +51,21 @@ Description: Kyoto Tycoon runtime libraries
  This is the Kyoto Tycoon library. It contains support for writing clients
  and servers.
 
+Package: kyototycoon-dbg
+Section: debug
+Architecture: any
+Depends: libkyototycoon2 (= ${binary:Version}), kyotocabinet-dbg, ${misc:Depends}
+Description: Kyoto Tycoon debugging symbols
+ Kyoto Tycoon is a network interface to the DBM Kyoto Cabinet. It
+ permits concurrent and remote connections to Kyoto Cabinet databases.
+ .
+ These are the debugging symbols for Kyoto Tycoon (library,
+ server and utilities).
+
 Package: libkyototycoon-dev
 Section: libdevel
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libkyototycoon2 (= ${binary:Version}), libkyotocabinet-dev
+Depends: libkyototycoon2 (= ${binary:Version}), libkyotocabinet-dev, ${misc:Depends}
 Description: Kyoto Tycoon development files
  Kyoto Tycoon is a network interface to the DBM Kyoto Cabinet. It
  permits concurrent and remote connections to Kyoto Cabinet databases.
@@ -69,7 +76,7 @@ Description: Kyoto Tycoon development files
 Package: kyototycoon-doc
 Section: doc
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${misc:Depends}
 Priority: optional
 Description: Kyoto Tycoon documentation
  Kyoto Tycoon is a network interface to the DBM Kyoto Cabinet. It
@@ -78,13 +85,14 @@ Description: Kyoto Tycoon documentation
  This is the documentation for Kyoto Tycoon.
 
 Package: kyototycoon-utils
-Architecture: any
 Section: utils
+Architecture: any
 Priority: optional
-Depends: ${shlibs:Depends}, ${misc:Depends}, libkyototycoon2 (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Kyoto Tycoon utilities
  Kyoto Tycoon is a network interface to the DBM Kyoto Cabinet. It
  permits concurrent and remote connections to Kyoto Cabinet databases.
  .
  This is the Kyoto Tycoon utility package. It contains various client
- utilities to query, administrate, test and benchmark kyoto tycoon servers.
+ utilities to query, administrate, test and benchmark Kyoto Tycoon servers.
+
