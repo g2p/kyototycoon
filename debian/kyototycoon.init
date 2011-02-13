@@ -48,6 +48,7 @@ DATADIR=/var/lib/kyototycoon/data
 ULOGDIR=/var/lib/kyototycoon/log
 
 # listening host/address and port
+ENABLED=yes
 SERVERHOST=localhost
 SERVERPORT=1978
 
@@ -131,19 +132,25 @@ do_reload() {
 
 case "$1" in
 	start)
-		[ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
-		do_start
-		case "$?" in
-			0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-			2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
-		esac
+		if [ "x$ENABLED" = xyes ]; then
+			log_daemon_msg "Starting $DESC" "$NAME"
+			do_start
+			case "$?" in
+				0|1) log_end_msg 0 ;;
+				2) log_end_msg 1 ;;
+			esac
+		else
+			log_daemon_msg \
+				"Not starting $DESC, disabled in /etc/default/$NAME"
+			log_end_msg 0
+		fi
 		;;
 	stop)
-		[ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
+		log_daemon_msg "Stopping $DESC" "$NAME"
 		do_stop
 		case "$?" in
-			0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-			2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+			0|1) log_end_msg 0 ;;
+			2) log_end_msg 1 ;;
 		esac
 		;;
 	status)
@@ -155,22 +162,29 @@ case "$1" in
 		log_end_msg $?
 		;;
 	restart)
-		log_daemon_msg "Restarting $DESC" "$NAME"
-		do_stop
-		case "$?" in
-			0|1)
-				do_start
-				case "$?" in
-					0) log_end_msg 0 ;;
-					1) log_end_msg 1 ;; # old process is still running
-					*) log_end_msg 1 ;; # failed to start
-				esac
-				;;
-			*)
-				# failed to stop
-				log_end_msg 1
-				;;
-		esac
+		if [ "x$ENABLED" = xyes ]; then
+			log_daemon_msg "Restarting $DESC" "$NAME"
+			do_stop
+			case "$?" in
+				0|1)
+					do_start
+					case "$?" in
+						0) log_end_msg 0 ;;
+						1) log_end_msg 1 ;; # old process is still running
+						*) log_end_msg 1 ;; # failed to start
+					esac
+					;;
+				*)
+					# failed to stop
+					log_end_msg 1
+					;;
+			esac
+		else
+			do_stop
+			log_daemon_msg \
+				"Not restarting $DESC, disabled in /etc/default/$NAME"
+			log_end_msg 0
+		fi
 		;;
 	*)
 		echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload}" >&2

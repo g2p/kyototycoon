@@ -5,6 +5,7 @@
 ## AF_UNIX socket support isn't available in kyoto tycoon at the moment.
 #SERVERHOST=localhost
 #SERVERPORT=1978
+#ENABLED=yes
 
 ## database name and options (see ktserver(1) for tuning options)
 #DBNAME=$NAME.kch#bnum=1000000
@@ -16,3 +17,4 @@
 
 ## extra parameters to set for the daemon
 #DAEMON_ARGS_EXTRA=
+
