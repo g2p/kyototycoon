@@ -8,7 +8,7 @@ Subject: [PATCH] Link as-needed to avoid creating unnecessary dependencies.
  2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/configure b/configure
-index d2d0fa4..149061e 100755
+index c5a08f7..e0c6289 100755
 --- a/configure
 +++ b/configure
 @@ -2100,7 +2100,7 @@ MYCXXFLAGS="-Wall -fPIC -fsigned-char -O2"
@@ -21,7 +21,7 @@ index d2d0fa4..149061e 100755
  MYRUNPATH="\$(LIBDIR)"
  MYLDLIBPATHENV="LD_LIBRARY_PATH"
 diff --git a/configure.in b/configure.in
-index ec1f40f..d5cc9c4 100644
+index d0a9508..4fecb2e 100644
 --- a/configure.in
 +++ b/configure.in
 @@ -33,7 +33,7 @@ MYCXXFLAGS="-Wall -fPIC -fsigned-char -O2"

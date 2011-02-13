@@ -7,7 +7,7 @@ Subject: [PATCH] Link to index.html inside docs, so browsers don't display folde
  1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/doc/index.html b/doc/index.html
-index b650b53..50b6efd 100644
+index 0e98083..f761648 100644
 --- a/doc/index.html
 +++ b/doc/index.html
 @@ -82,8 +82,8 @@

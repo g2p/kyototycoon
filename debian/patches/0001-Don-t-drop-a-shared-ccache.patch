@@ -9,7 +9,7 @@ Subject: [PATCH] Don't drop a shared ccache.
  3 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/Makefile.in b/Makefile.in
-index 4dac785..cadb577 100644
+index d0f8b2b..833ada5 100644
 --- a/Makefile.in
 +++ b/Makefile.in
 @@ -162,7 +162,7 @@ distclean : clean
@@ -22,7 +22,7 @@ index 4dac785..cadb577 100644
  
  check :
 diff --git a/configure b/configure
-index ac5831d..0f1aee1 100755
+index 61bd2e1..4dcc423 100755
 --- a/configure
 +++ b/configure
 @@ -3387,7 +3387,7 @@ fi
@@ -35,7 +35,7 @@ index ac5831d..0f1aee1 100755
  fi
  
 diff --git a/configure.in b/configure.in
-index a992dad..71a97aa 100644
+index 76ee883..3550667 100644
 --- a/configure.in
 +++ b/configure.in
 @@ -200,7 +200,7 @@ then

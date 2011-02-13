@@ -3,3 +3,4 @@
 0003-Remove-some-references-to-HOME-and-don-t-link-unnece.patch
 0004-Link-as-needed-to-avoid-creating-unnecessary-depende.patch
 0005-Link-to-index.html-inside-docs-so-browsers-don-t-dis.patch
+0006-Don-t-run-ldconfig-when-DESTDIR-is-defined-it-s-slow.patch

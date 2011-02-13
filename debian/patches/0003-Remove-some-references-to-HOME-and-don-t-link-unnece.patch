@@ -9,7 +9,7 @@ Subject: [PATCH] Remove some references to HOME, and don't link unnecessarily.
  3 files changed, 22 insertions(+), 23 deletions(-)
 
 diff --git a/Makefile.in b/Makefile.in
-index cadb577..2fdaff9 100644
+index 833ada5..a6869e5 100644
 --- a/Makefile.in
 +++ b/Makefile.in
 @@ -55,8 +55,7 @@ CXXFLAGS = @MYCXXFLAGS@
@@ -22,7 +22,7 @@ index cadb577..2fdaff9 100644
  POSTCMD = @MYPOSTCMD@
  
  
-@@ -492,23 +491,23 @@ ktplugdbvoid.dylib : ktplugdbvoid.o $(LIBRARYFILES)
+@@ -494,23 +493,23 @@ ktplugdbvoid.dylib : ktplugdbvoid.o $(LIBRARYFILES)
  
  
  ktutiltest : ktutiltest.o $(LIBRARYFILES)
@@ -51,7 +51,7 @@ index cadb577..2fdaff9 100644
  
  
  ktserver : ktserver.o myscript.o $(LIBRARYFILES)
-@@ -517,11 +516,11 @@ ktserver : ktserver.o myscript.o $(LIBRARYFILES)
+@@ -519,11 +518,11 @@ ktserver : ktserver.o myscript.o $(LIBRARYFILES)
  
  
  ktremotetest : ktremotetest.o $(LIBRARYFILES)
@@ -66,7 +66,7 @@ index cadb577..2fdaff9 100644
  
  ktutil.o : ktcommon.h ktutil.h myconf.h
 diff --git a/configure b/configure
-index 0f1aee1..d2d0fa4 100755
+index 4dcc423..c5a08f7 100755
 --- a/configure
 +++ b/configure
 @@ -2097,22 +2097,22 @@ MYPCFILES="kyototycoon.pc"
@@ -100,7 +100,7 @@ index 0f1aee1..d2d0fa4 100755
  
  
 diff --git a/configure.in b/configure.in
-index 71a97aa..ec1f40f 100644
+index 3550667..d0a9508 100644
 --- a/configure.in
 +++ b/configure.in
 @@ -30,22 +30,22 @@ MYPCFILES="kyototycoon.pc"
