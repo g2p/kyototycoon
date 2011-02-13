@@ -4,8 +4,8 @@ Maintainer: Gabriel de Perthuis <g2p.code+debian@gmail.com>
 Build-Depends:
  autotools-dev,
  debhelper (>= 7.0.50),
- libkyotocabinet-dev (>> 1.2.30),
- liblua5.1-0-dev,
+ libkyotocabinet-dev (>> 1.2.40),
+ liblua5.1-dev,
  lua5.1,
  pkg-config
 Standards-Version: 3.9.1
