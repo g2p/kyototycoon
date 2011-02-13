@@ -10,6 +10,8 @@ Build-Depends:
  pkg-config
 Standards-Version: 3.9.1
 Section: database
+Vcs-Git: https://github.com/g2p/kyototycoon.git
+Vcs-Browser: https://github.com/g2p/kyototycoon
 Homepage: http://fallabs.com/kyototycoon/
 
 Package: kyototycoon
