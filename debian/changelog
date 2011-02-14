@@ -1,6 +1,5 @@
 kyototycoon (0.9.33-1) unstable; urgency=low
 
-  * First public release.
+  * Initial release. (Closes: #613452: ITP: kyototycoon)
 
- -- Gabriel de Perthuis <g2p.code+debian@gmail.com>  Fri, 11 Feb 2011 11:26:14 +0100
-
+ -- Gabriel de Perthuis <g2p.code+debian@gmail.com>  Mon, 14 Feb 2011 23:28:06 +0100
