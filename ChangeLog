@@ -1,3 +1,13 @@
+2011-02-08  Mikio Hirabayashi  <info@fallabs.com>
+
+	* kttimeddb.h (TimedDB::Cursor::get_key): signature was modified.
+
+	* kttimeddb.h (TimedDB::Cursor::get_pair, TimedDBCursor::get): renamed.
+
+	* kttimeddb.h (TimedDB::get): signature was modified.
+
+	- Release: 0.9.33
+
 2011-02-07  Mikio Hirabayashi  <info@fallabs.com>
 
 	* myscript.cc (kt_hash_murmur, kt_hash_fnv): accuracy was improved.

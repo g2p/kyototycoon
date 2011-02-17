@@ -23,7 +23,7 @@
 <h1 id="headline">Fundamental Specifications of Kyoto Tycoon Version 1</h1>
 
 <div class="note">Copyright (C) 2009-2011 FAL Labs</div>
-<div class="note">Last Update: Wed, 19 Jan 2011 18:13:26 +0900</div>
+<div class="note">Last Update: Tue, 08 Feb 2011 23:46:01 +0900</div>
 
 <hr />
 
@@ -677,6 +677,8 @@ $ ktremotemgr list -port 1980 -pv
 one     first
 two     second
 </pre>
+
+<p>Because the master server uses a dedicated worker thread for each connection to slave, the number of worker threads should be increased if you set several slave servers.</p>
 
 <h3 id="tips_dualmaster">Dual-Master Topology</h3>
 
@@ -1377,7 +1379,7 @@ key     mikio
 <dd>output: <code>ts</code>: (uint64_t): (iteration): the time stamp of the log.</dd>
 <dd>output: <code>size</code>: (uint32_t): (iteration): the size of the log.</dd>
 <dd>output: <code>log</code>: (variable): (iteration): the data of the log.</dd>
-<dd>note: The magic data of the output can be <code>0xB0</code>.  It means that the log reader has reached the current status and been waiting for the next update.  In this case, the current time stamp of uint64_t trails the magic data.  Clients must respond and send a one-byte message of <code>0xB0</code>.</dd>
+<dd>note: The magic data of the output can be <code>0xB0</code>.  It means that the log reader has reached the current status and been waiting for the next update.  In this case, the current time stamp of uint64_t trails the magic data.  Clients must respond and send a one-byte message of <code>0xB1</code>.</dd>
 </dl>
 
 <dl>

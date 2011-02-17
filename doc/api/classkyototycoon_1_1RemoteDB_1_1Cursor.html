@@ -66,17 +66,16 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Remove the current record.  <a href="#a3bfe7831e74eb6e770081624e2b33c9a"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#a33b854554a3670d956c7b1efccb99a06">get_key</a> (size_t *sp, bool step=false)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the key of the current record.  <a href="#a33b854554a3670d956c7b1efccb99a06"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">std::string *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#a601fefaa6cd77d3a585d513d246899b2">get_key</a> (bool step=false)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the key of the current record.  <a href="#a601fefaa6cd77d3a585d513d246899b2"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#ac7de2636e758680c00027a949bb60d84">get_key</a> (std::string *key, bool step=false)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the key of the current record.  <a href="#ac7de2636e758680c00027a949bb60d84"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#ab10ad473c090792e171783ca67987528">get_value</a> (size_t *sp, bool step=false)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the value of the current record.  <a href="#ab10ad473c090792e171783ca67987528"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">std::string *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#ae4593f01b7a6a3098faa5fae949ce93e">get_value</a> (bool step=false)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the value of the current record.  <a href="#ae4593f01b7a6a3098faa5fae949ce93e"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#a30f383c7a61ab1854ca3e9195183b0a7">get_value</a> (std::string *value, bool step=false)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the value of the current record.  <a href="#a30f383c7a61ab1854ca3e9195183b0a7"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#aeb882deaa1a99d1b80d00d1959bfbf66">get</a> (size_t *ksp, const char **vbp, size_t *vsp, int64_t *xtp=NULL, bool step=false)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get a pair of the key and the value of the current record.  <a href="#aeb882deaa1a99d1b80d00d1959bfbf66"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">std::pair&lt; std::string, <br class="typebreak"/>
-std::string &gt; *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#a4c1cb283001e6b1cdc7848f9d640ac96">get_pair</a> (int64_t *xtp=NULL, bool step=false)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get a pair of the key and the value of the current record.  <a href="#a4c1cb283001e6b1cdc7848f9d640ac96"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#aa5ed0f33e112d60a6abaeddfa56c9daa">get</a> (std::string *key, std::string *value, int64_t *xtp=NULL, bool step=false)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get a pair of the key and the value of the current record.  <a href="#aa5ed0f33e112d60a6abaeddfa56c9daa"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classkyototycoon_1_1RemoteDB.html">RemoteDB</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#a416bd06dbcf0162fd8abdd129c887b51">db</a> ()</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Get the database object.  <a href="#a416bd06dbcf0162fd8abdd129c887b51"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Error.html">Error</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#ad73aa44cb2c65aa31f2ea46236de45fa">error</a> ()</td></tr>
@@ -479,24 +478,33 @@ class&nbsp;</td><td class="memItemRight" valign="bottom"><b>RemoteDB</b></td></t
 
 </div>
 </div>
-<a class="anchor" id="a601fefaa6cd77d3a585d513d246899b2"></a><!-- doxytag: member="kyototycoon::RemoteDB::Cursor::get_key" ref="a601fefaa6cd77d3a585d513d246899b2" args="(bool step=false)" -->
+<a class="anchor" id="ac7de2636e758680c00027a949bb60d84"></a><!-- doxytag: member="kyototycoon::RemoteDB::Cursor::get_key" ref="ac7de2636e758680c00027a949bb60d84" args="(std::string *key, bool step=false)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::string* kyototycoon::RemoteDB::Cursor::get_key </td>
+          <td class="memname">bool kyototycoon::RemoteDB::Cursor::get_key </td>
           <td>(</td>
-          <td class="paramtype">bool&nbsp;</td>
-          <td class="paramname"> <em>step</em> = <code>false</code></td>
-          <td>&nbsp;)&nbsp;</td>
+          <td class="paramtype">std::string *&nbsp;</td>
+          <td class="paramname"> <em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool&nbsp;</td>
+          <td class="paramname"> <em>step</em> = <code>false</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
         </tr>
       </table>
 </div>
 <div class="memdoc">
 
 <p>Get the key of the current record. </p>
-<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original <a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#a33b854554a3670d956c7b1efccb99a06" title="Get the key of the current record.">Cursor::get_key</a> method except that the parameter and the return value are std::string. The return value should be deleted explicitly by the caller. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original <a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#a33b854554a3670d956c7b1efccb99a06" title="Get the key of the current record.">Cursor::get_key</a> method except that a parameter is a string to contain the result and the return value is bool for success. </dd></dl>
 
 </div>
 </div>
@@ -538,24 +546,33 @@ class&nbsp;</td><td class="memItemRight" valign="bottom"><b>RemoteDB</b></td></t
 
 </div>
 </div>
-<a class="anchor" id="ae4593f01b7a6a3098faa5fae949ce93e"></a><!-- doxytag: member="kyototycoon::RemoteDB::Cursor::get_value" ref="ae4593f01b7a6a3098faa5fae949ce93e" args="(bool step=false)" -->
+<a class="anchor" id="a30f383c7a61ab1854ca3e9195183b0a7"></a><!-- doxytag: member="kyototycoon::RemoteDB::Cursor::get_value" ref="a30f383c7a61ab1854ca3e9195183b0a7" args="(std::string *value, bool step=false)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::string* kyototycoon::RemoteDB::Cursor::get_value </td>
+          <td class="memname">bool kyototycoon::RemoteDB::Cursor::get_value </td>
           <td>(</td>
-          <td class="paramtype">bool&nbsp;</td>
-          <td class="paramname"> <em>step</em> = <code>false</code></td>
-          <td>&nbsp;)&nbsp;</td>
+          <td class="paramtype">std::string *&nbsp;</td>
+          <td class="paramname"> <em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool&nbsp;</td>
+          <td class="paramname"> <em>step</em> = <code>false</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
         </tr>
       </table>
 </div>
 <div class="memdoc">
 
 <p>Get the value of the current record. </p>
-<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original <a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#ab10ad473c090792e171783ca67987528" title="Get the value of the current record.">Cursor::get_value</a> method except that the parameter and the return value are std::string. The return value should be deleted explicitly by the caller. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original <a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#ab10ad473c090792e171783ca67987528" title="Get the value of the current record.">Cursor::get_value</a> method except that a parameter is a string to contain the result and the return value is bool for success. </dd></dl>
 
 </div>
 </div>
@@ -618,13 +635,25 @@ class&nbsp;</td><td class="memItemRight" valign="bottom"><b>RemoteDB</b></td></t
 
 </div>
 </div>
-<a class="anchor" id="a4c1cb283001e6b1cdc7848f9d640ac96"></a><!-- doxytag: member="kyototycoon::RemoteDB::Cursor::get_pair" ref="a4c1cb283001e6b1cdc7848f9d640ac96" args="(int64_t *xtp=NULL, bool step=false)" -->
+<a class="anchor" id="aa5ed0f33e112d60a6abaeddfa56c9daa"></a><!-- doxytag: member="kyototycoon::RemoteDB::Cursor::get" ref="aa5ed0f33e112d60a6abaeddfa56c9daa" args="(std::string *key, std::string *value, int64_t *xtp=NULL, bool step=false)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::pair&lt;std::string, std::string&gt;* kyototycoon::RemoteDB::Cursor::get_pair </td>
+          <td class="memname">bool kyototycoon::RemoteDB::Cursor::get </td>
           <td>(</td>
+          <td class="paramtype">std::string *&nbsp;</td>
+          <td class="paramname"> <em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string *&nbsp;</td>
+          <td class="paramname"> <em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">int64_t *&nbsp;</td>
           <td class="paramname"> <em>xtp</em> = <code>NULL</code>, </td>
         </tr>
@@ -644,15 +673,7 @@ class&nbsp;</td><td class="memItemRight" valign="bottom"><b>RemoteDB</b></td></t
 <div class="memdoc">
 
 <p>Get a pair of the key and the value of the current record. </p>
-<dl><dt><b>Parameters:</b></dt><dd>
-  <table border="0" cellspacing="2" cellpadding="0">
-    <tr><td valign="top"></td><td valign="top"><em>xtp</em>&nbsp;</td><td>the pointer to the variable into which the absolute expiration time is assigned. If it is NULL, it is ignored. </td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>step</em>&nbsp;</td><td>true to move the cursor to the next record, or false for no move. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="return"><dt><b>Returns:</b></dt><dd>the pointer to the pair of the key and the value, or NULL on failure. </dd></dl>
-<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original <a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#aeb882deaa1a99d1b80d00d1959bfbf66" title="Get a pair of the key and the value of the current record.">Cursor::get</a> method except that the return value is std::pair. If the cursor is invalidated, NULL is returned. The return value should be deleted explicitly by the caller. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>Equal to the original <a class="el" href="classkyototycoon_1_1RemoteDB_1_1Cursor.html#aeb882deaa1a99d1b80d00d1959bfbf66" title="Get a pair of the key and the value of the current record.">Cursor::get</a> method except that parameters are strings to contain the result and the return value is bool for success. </dd></dl>
 
 </div>
 </div>
@@ -697,7 +718,7 @@ class&nbsp;</td><td class="memItemRight" valign="bottom"><b>RemoteDB</b></td></t
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Feb 8 00:50:28 2011 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Fri Feb 11 02:33:39 2011 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>
