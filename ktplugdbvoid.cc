@@ -160,7 +160,7 @@ public:
     while (kit != kitend) {
       size_t vsiz;
       visitor->visit_empty(kit->data(), kit->size(), &vsiz);
-      kit++;
+      ++kit;
     }
     return true;
   }

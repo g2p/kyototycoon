@@ -71,7 +71,7 @@ public:
           if (std::strchr(value, 'f')) opts_ |= TFLAGS;
         }
       }
-      it++;
+      ++it;
     }
     if (port_ < 1) port_ = 11211;
     stime_ = kc::time();
@@ -356,7 +356,7 @@ private:
         } else {
           opcounts_[thid][CNTGETMISS]++;
         }
-        it++;
+        ++it;
       }
       kc::strprintf(&result, "END\r\n");
       if (!sess->send(result.data(), result.size())) err = true;
@@ -536,7 +536,7 @@ private:
         std::map<std::string, std::string>::iterator itend = status.end();
         while (it != itend) {
           kc::strprintf(&result, "STAT db_%s %s\r\n", it->first.c_str(), it->second.c_str());
-          it++;
+          ++it;
         }
         OpCount ocsum;
         for (int32_t i = 0; i <= CNTFLUSH; i++) {

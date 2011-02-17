@@ -1,4 +1,14 @@
-2011-02-08  Mikio Hirabayashi  <info@fallabs.com>
+2011-02-14  FAL Labs  <info@fallabs.com>
+
+	* ktremotemgr.cc (procimport): a bug related to the database expression was fixed.
+
+	- configuration files were modified for affinity for binary distributions.
+
+	- all classes were refactored to abolish unnamed namespaces.
+
+	- Release: 0.9.34
+
+2011-02-08  FAL Labs  <info@fallabs.com>
 
 	* kttimeddb.h (TimedDB::Cursor::get_key): signature was modified.
 
@@ -8,19 +18,19 @@
 
 	- Release: 0.9.33
 
-2011-02-07  Mikio Hirabayashi  <info@fallabs.com>
+2011-02-07  FAL Labs  <info@fallabs.com>
 
 	* myscript.cc (kt_hash_murmur, kt_hash_fnv): accuracy was improved.
 
 	- Release: 0.9.32
 
-2011-02-06  Mikio Hirabayashi  <info@fallabs.com>
+2011-02-06  FAL Labs  <info@fallabs.com>
 
 	* ktcommon.h: macros for integer range were removed.
 
 	- Release: 0.9.31
 
-2011-01-30  Mikio Hirabayashi  <info@fallabs.com>
+2011-01-30  FAL Labs  <info@fallabs.com>
 
 	* kttimeddb.h (TimedDB::merge): type of the comarator was changed.
 
@@ -28,7 +38,7 @@
 
 	- Release: 0.9.30
 
-2011-01-27  Mikio Hirabayashi  <info@fallabs.com>
+2011-01-27  FAL Labs  <info@fallabs.com>
 
 	* myscript.cc (arraydump, arrayload, mapdump, mapload): new functions.
 
@@ -36,7 +46,7 @@
 
 	- Release: 0.9.29
 
-2011-01-25  Mikio Hirabayashi  <info@fallabs.com>
+2011-01-25  FAL Labs  <info@fallabs.com>
 
 	* ktserver (Worker): operation counters were added.
 
@@ -46,7 +56,7 @@
 
 	- Release: 0.9.28
 
-2011-01-21  Mikio Hirabayashi  <info@fallabs.com>
+2011-01-21  FAL Labs  <info@fallabs.com>
 
 	* myscript.h (ScriptProcessor::clear): new function.
 
@@ -54,7 +64,7 @@
 
 	- Release: 0.9.27
 
-2011-01-20  Mikio Hirabayashi  <info@fallabs.com>
+2011-01-20  FAL Labs  <info@fallabs.com>
 
 	* ktpluvservmemc.cc (Worker::process): "gets" is now supported.
 
@@ -64,7 +74,7 @@
 
 	- Release: 0.9.26
 
-2011-01-18  Mikio Hirabayashi  <info@fallabs.com>
+2011-01-18  FAL Labs  <info@fallabs.com>
 
 	* ktserver.cc (dosnapshot): new function.
 
@@ -72,7 +82,7 @@
 
 	- Release: 0.9.25
 
-2011-01-08  Mikio Hirabayashi  <info@fallabs.com>
+2011-01-08  FAL Labs  <info@fallabs.com>
 
 	* myscript.cc (set_resources): a bug about database name solver was fixed.
 
@@ -82,7 +92,7 @@
 
 	- Release: 0.9.24
 
-2011-01-05  Mikio Hirabayashi  <info@fallabs.com>
+2011-01-05  FAL Labs  <info@fallabs.com>
 
 	* ktthserv.h (TaskQueueImpl::do_task): keep-alive mechanism was modified.
 
@@ -94,7 +104,7 @@
 
 	- Release: 0.9.23
 
-2011-01-02  Mikio Hirabayashi  <info@fallabs.com>
+2011-01-02  FAL Labs  <info@fallabs.com>
 
 	* kctimeddb.h (TimedDB::accept_bulk): new function.
 
@@ -108,7 +118,7 @@
 
 	- Release: 0.9.22
 
-2010-12-27  Mikio Hirabayashi  <info@fallabs.com>
+2010-12-27  FAL Labs  <info@fallabs.com>
 
 	* ktremotedb.h (ReplicationClient::open): WHITESID options was added.
 
@@ -116,7 +126,7 @@
 
 	- Release: 0.9.21
 
-2010-12-25  Mikio Hirabayashi  <info@fallabs.com>
+2010-12-25  FAL Labs  <info@fallabs.com>
 
 	* ktserver.cc (Worker::do_ulog_list, do_ulog_remove): new functions.
 
@@ -126,7 +136,7 @@
 
 	- Release: 0.9.20
 
-2010-12-20  Mikio Hirabayashi  <info@fallabs.com>
+2010-12-20  FAL Labs  <info@fallabs.com>
 
 	* ktsocket.h (Poller::wait): EPOLLRDHUP was abolished to support old kernels.
 
@@ -134,25 +144,25 @@
 
 	- Release: 0.9.19
 
-2010-12-20  Mikio Hirabayashi  <info@fallabs.com>
+2010-12-20  FAL Labs  <info@fallabs.com>
 
 	* ktplugdb.h, ktplugdbvoid.h: new files.
 
 	- Release: 0.9.18
 
-2010-12-18  Mikio Hirabayashi  <info@fallabs.com>
+2010-12-18  FAL Labs  <info@fallabs.com>
 
 	* ktplugservmmc.cc (Worker::do_set, Worker::do_get): "flags" support was added.
 
 	- Release: 0.9.17
 
-2010-12-11  Mikio Hirabayashi  <info@fallabs.com>
+2010-12-11  FAL Labs  <info@fallabs.com>
 
 	* cmdcommon.h (oprintf): new function instead of "iprintf".
 
 	- Release: 0.9.16
 
-2010-12-05  Mikio Hirabayashi  <info@fallabs.com>
+2010-12-05  FAL Labs  <info@fallabs.com>
 
 	* cmdcommon.h (DBUpdateLogger::trigger): transaction mechanism was modified.
 
@@ -162,7 +172,7 @@
 
 	- Release: 0.9.15
 
-2010-12-03  Mikio Hirabayashi  <info@fallabs.com>
+2010-12-03  FAL Labs  <info@fallabs.com>
 
 	* ktshlib.h, ktshlib.cc, ktserver.h, ktplugserv.cc: new files.
 
@@ -170,7 +180,7 @@
 
 	- Release: 0.9.14
 
-2010-12-01  Mikio Hirabayashi  <info@fallabs.com>
+2010-12-01  FAL Labs  <info@fallabs.com>
 
 	* ktserver.cc (Worker::do_bin_play_script): new function.
 
@@ -180,7 +190,7 @@
 
 	- Release: 0.9.13
 
-2010-11-27  Mikio Hirabayashi  <info@fallabs.com>
+2010-11-27  FAL Labs  <info@fallabs.com>
 
 	* cmdcommon.h (DBUpdateLogger::parse): invalid use of member variables was cleared.
 
@@ -190,7 +200,7 @@
 
 	- Release: 0.9.12
 
-2010-11-27  Mikio Hirabayashi  <info@fallabs.com>
+2010-11-27  FAL Labs  <info@fallabs.com>
 
 	* ktsocket.h (Poller::deposit): EPOLLRDHUP was abolished to support old kernels.
 
@@ -202,13 +212,13 @@
 
 	- Release: 0.9.11
 
-2010-11-20  Mikio Hirabayashi  <info@fallabs.com>
+2010-11-20  FAL Labs  <info@fallabs.com>
 
 	* ktulog.h (UpdateLogger::write_meta, validate_meta): new functions.
 
 	- Release: 0.9.10
 
-2010-11-12  Mikio Hirabayashi  <info@fallabs.com>
+2010-11-12  FAL Labs  <info@fallabs.com>
 
 	* ktulog.h, ktulog.cc: new files.
 
@@ -224,7 +234,7 @@
 
 	- Release: 0.9.9
 
-2010-11-12  Mikio Hirabayashi  <info@fallabs.com>
+2010-11-12  FAL Labs  <info@fallabs.com>
 
 	* kttimeddb.h (TimedDB::tune_options): abolished.
 
@@ -232,7 +242,7 @@
 
 	- Release: 0.9.8
 
-2010-11-09  Mikio Hirabayashi  <info@fallabs.com>
+2010-11-09  FAL Labs  <info@fallabs.com>
 
 	* ktserver (main): the default database was changed to the stash database.
 
@@ -240,7 +250,7 @@
 
 	- Release: 0.9.7
 
-2010-11-04  Mikio Hirabayashi  <info@fallabs.com>
+2010-11-04  FAL Labs  <info@fallabs.com>
 
 	* kcdbext.h (MapReduce::execute): the cache algorithm was modified.
 
@@ -248,7 +258,7 @@
 
 	- Release: 0.9.6
 
-2010-10-21  Mikio Hirabayashi  <info@fallabs.com>
+2010-10-21  FAL Labs  <info@fallabs.com>
 
 	* kttimeddb.h (TimedDB::merge): new function.
 
@@ -258,7 +268,7 @@
 
 	- Release: 0.9.5
 
-2010-10-21  Mikio Hirabayashi  <info@fallabs.com>
+2010-10-21  FAL Labs  <info@fallabs.com>
 
 	* kttimeddb.h (TimedDB::match_prefix, TimedDB::match_regex): new functions.
 
@@ -270,7 +280,7 @@
 
 	- Release: 0.9.4
 
-2010-10-15  Mikio Hirabayashi  <info@fallabs.com>
+2010-10-15  FAL Labs  <info@fallabs.com>
 
 	* kttimedtest.cc (procorder, procqueue, procwicked, proctran): "tune_logger" was added.
 
@@ -284,7 +294,7 @@
 
 	- Release: 0.9.3
 
-2010-10-13  Mikio Hirabayashi  <info@fallabs.com>
+2010-10-13  FAL Labs  <info@fallabs.com>
 
 	* ktutil.h (FEATURES): new constant.
 
@@ -296,13 +306,13 @@
 
 	- Release: 0.9.2
 
-2010-10-14  Mikio Hirabayashi  <info@fallabs.com>
+2010-10-14  FAL Labs  <info@fallabs.com>
 
 	* ktsocket.cc (Poller::Poller, Poller::~Poller, Poller::wait): "kqueue" is now supported.
 
 	- Release: 0.9.1
 
-2010-10-13  Mikio Hirabayashi  <info@fallabs.com>
+2010-10-13  FAL Labs  <info@fallabs.com>
 
 	* ktsocket.cc (Poller::Poller, Poller::~Poller, Poller::wait): "epoll" is now supported.
 
@@ -310,7 +320,7 @@
 
 	- Release: 0.9.0
 
-2010-10-11  Mikio Hirabayashi  <info@fallabs.com>
+2010-10-11  FAL Labs  <info@fallabs.com>
 
 	* ktserver.cc (Worker::process_idle): a bug related to the read only mode was fixed.
 
@@ -318,7 +328,7 @@
 
 	- Release: 0.8.1
 
-2010-10-08  Mikio Hirabayashi  <info@fallabs.com>
+2010-10-08  FAL Labs  <info@fallabs.com>
 
 	* kttimeddb.h (TimedDB::vacuum): new function.
 
@@ -336,13 +346,13 @@
 
 	- Release: 0.8.0
 
-2010-10-05  Mikio Hirabayashi  <info@fallabs.com>
+2010-10-05  FAL Labs  <info@fallabs.com>
 
 	* ktserver (Worker::process): the URL convention for RESTful interface was extended.
 
 	- Release: 0.7.1
 
-2010-10-03  Mikio Hirabayashi  <info@fallabs.com>
+2010-10-03  FAL Labs  <info@fallabs.com>
 
 	* ktrpc.h (RPIClient::NOIMPL): new constant.
 
@@ -356,7 +366,7 @@
 
 	- Release: 0.7.0
 
-2010-09-06  Mikio Hirabayashi  <info@fallabs.com>
+2010-09-06  FAL Labs  <info@fallabs.com>
 
 	- The initial version.
 

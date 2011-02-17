@@ -358,7 +358,7 @@ static int32_t prochttp(const char* url, kt::HTTPClient::Method meth, const char
         oss << name << "=" << value;
         delete[] value;
         delete[] name;
-        it++;
+        ++it;
       }
       (*reqheads)["content-type"] = "application/x-www-form-urlencoded";
     }
@@ -380,7 +380,7 @@ static int32_t prochttp(const char* url, kt::HTTPClient::Method meth, const char
       urlstr.append(value);
       delete[] value;
       delete[] name;
-      it++;
+      ++it;
     }
   }
   if (!kt::strmapget(*reqheads, "user-agent")) {
@@ -411,7 +411,7 @@ static int32_t prochttp(const char* url, kt::HTTPClient::Method meth, const char
           std::cout << name << ": " << it->second << std::endl;
           delete[] name;
         }
-        it++;
+        ++it;
       }
       std::cout << std::endl;
     }
@@ -467,7 +467,7 @@ static int32_t procrpc(const char* proc, std::map<std::string, std::string>* par
   std::map<std::string, std::string>::iterator itend = outmap.end();
   while (it != itend) {
     oprintf("%s\t%s\n", it->first.c_str(), it->second.c_str());
-    it++;
+    ++it;
   }
   if (!rpc.close()) {
     eprintf("%s: closing the connection failed\n", g_progname);
@@ -504,7 +504,7 @@ static int32_t proculog(const char* path, uint64_t ts, bool uw, bool uf) {
       if (it->ts >= ts)
         oprintf("%s\t%llu\t%llu\n",
                 it->path.c_str(), (unsigned long long)it->size, (unsigned long long)it->ts);
-      it++;
+      ++it;
     }
   } else {
     kt::UpdateLogger::Reader ulrd;

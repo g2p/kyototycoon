@@ -44,7 +44,7 @@ function set(inmap, outmap)
          if idxdb then
             local idxkey = rvalue .. " " .. id
             if not idxdb:set(idxkey, "") then
-               kt.log("error", "removing an index entry failed")
+               kt.log("error", "setting an index entry failed")
                err = true
             end
          end
@@ -175,7 +175,7 @@ function reindex(inmap, outmap)
          end
          local idxkey = key .. " " .. value
          if not idxdb:set(idxkey, "") then
-            kt.log("error", "removing an index entry failed")
+            kt.log("error", "setting an index entry failed")
             err = true
          end
       end

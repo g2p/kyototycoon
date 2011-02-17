@@ -346,7 +346,7 @@ inline void printstrvec(const std::vector<std::string>& vec, std::ostream& strm)
   std::vector<std::string>::const_iterator itend = vec.end();
   while (it != itend) {
     strm << *it << std::endl;
-    it++;
+    ++it;
   }
 }
 
@@ -360,7 +360,7 @@ inline void printstrmap(const std::map<std::string, std::string>& map, std::ostr
   std::map<std::string, std::string>::const_iterator itend = map.end();
   while (it != itend) {
     strm << it->first << '\t' << it->second << std::endl;
-    it++;
+    ++it;
   }
 }
 
@@ -648,7 +648,7 @@ inline void maptowwwform(const std::map<std::string, std::string>& map, std::str
     zstr = kc::urlencode(it->second.data(), it->second.size());
     str->append(zstr);
     delete[] zstr;
-    it++;
+    ++it;
   }
 }
 
@@ -680,7 +680,7 @@ inline void tsvtomap(const std::string& str, std::map<std::string, std::string>*
       }
       pv = it + 1;
     }
-    it++;
+    ++it;
   }
   if (it > pv) {
     std::string::const_iterator ev = it;
@@ -710,7 +710,7 @@ inline void maptotsv(const std::map<std::string, std::string>& map, std::string*
   size_t size = 0;
   while (it != itend) {
     size += it->first.size() + it->second.size() + 2;
-    it++;
+    ++it;
   }
   str->reserve(size);
   it = map.begin();
@@ -719,7 +719,7 @@ inline void maptotsv(const std::map<std::string, std::string>& map, std::string*
     str->append("\t");
     str->append(it->second);
     str->append("\n");
-    it++;
+    ++it;
   }
 }
 
@@ -763,7 +763,7 @@ inline void tsvmapencode(std::map<std::string, std::string>* map, int32_t mode) 
     }
     delete[] vstr;
     delete[] kstr;
-    it++;
+    ++it;
   }
   map->swap(nmap);
 }
@@ -809,7 +809,7 @@ inline void tsvmapdecode(std::map<std::string, std::string>* map, int32_t mode) 
     }
     delete[] vbuf;
     delete[] kbuf;
-    it++;
+    ++it;
   }
   map->swap(nmap);
 }
@@ -860,7 +860,7 @@ inline int32_t checkmapenc(const std::map<std::string, std::string>& map) {
         ulen += 3;
       }
     }
-    it++;
+    ++it;
   }
   if (!bin) return 0;
   return blen < ulen ? 'B' : 'U';

@@ -25,15 +25,6 @@ namespace kyototycoon {                  // common namespace
 
 
 /**
- * Constants for implementation.
- */
-namespace {
-const int32_t HTLINEBUFSIZ = 8192;       ///< size for a line buffer
-const int32_t HTRECVMAXSIZ = 1 << 28;    ///< maximum size of received data
-}
-
-
-/**
  * URL accessor.
  */
 class URL {
@@ -369,6 +360,10 @@ private:
  */
 class HTTPClient {
 public:
+  /** The size for a line buffer. */
+  static const int32_t LINEBUFSIZ = 8192;
+  /** The maximum size of received data. */
+  static const int32_t RECVMAXSIZ = 1 << 28;
   /**
    * Kinds of HTTP request methods.
    */
@@ -479,7 +474,7 @@ public:
         }
         delete[] value;
         delete[] name;
-        it++;
+        ++it;
       }
     }
     kc::strprintf(&request, "\r\n");
@@ -488,7 +483,7 @@ public:
       if (resbody) resbody->append("[sending data failed]");
       return -1;
     }
-    char line[HTLINEBUFSIZ];
+    char line[LINEBUFSIZ];
     if (!sock_.receive_line(line, sizeof(line))) {
       if (resbody) resbody->append("[receiving data failed]");
       return -1;
@@ -532,7 +527,7 @@ public:
     }
     if (method != MHEAD && code != 304) {
       if (clen >= 0) {
-        if (clen > HTRECVMAXSIZ) {
+        if (clen > RECVMAXSIZ) {
           if (resbody) resbody->append("[too large response]");
           return -1;
         }
@@ -545,7 +540,7 @@ public:
         if (resbody) resbody->append(body, clen);
         delete[] body;
       } else if (chunked) {
-        int64_t asiz = HTLINEBUFSIZ;
+        int64_t asiz = LINEBUFSIZ;
         char* body = (char*)kc::xmalloc(asiz);
         int64_t bsiz = 0;
         while (true) {
@@ -556,7 +551,7 @@ public:
           }
           if (*line == '\0') break;
           int64_t csiz = kc::atoih(line);
-          if (bsiz + csiz > HTRECVMAXSIZ) {
+          if (bsiz + csiz > RECVMAXSIZ) {
             if (resbody) resbody->append("[too large response]");
             kc::xfree(body);
             return -1;
@@ -581,13 +576,13 @@ public:
         if (resbody) resbody->append(body, bsiz);
         kc::xfree(body);
       } else {
-        int64_t asiz = HTLINEBUFSIZ;
+        int64_t asiz = LINEBUFSIZ;
         char* body = (char*)kc::xmalloc(asiz);
         int64_t bsiz = 0;
         while (true) {
           int32_t c = sock_.receive_byte();
           if (c < 0) break;
-          if (bsiz > HTRECVMAXSIZ - 1) {
+          if (bsiz > RECVMAXSIZ - 1) {
             if (resbody) resbody->append("[too large response]");
             kc::xfree(body);
             return -1;
@@ -1094,7 +1089,7 @@ public:
           nelems.push_back(zbuf);
         delete[] zbuf;
       }
-      it++;
+      ++it;
     }
     std::string rpath;
     it = nelems.begin();
@@ -1102,7 +1097,7 @@ public:
     while (it != itend) {
       if (!rpath.empty()) rpath.append(kc::File::PATHSTR);
       rpath.append(*it);
-      it++;
+      ++it;
     }
     return rpath;
   }
@@ -1123,7 +1118,7 @@ private:
       if (magic < 0) return false;
       sess->undo_receive_byte(magic);
       if (magic == 0 || magic >= 0x80) return worker_->process_binary(serv, sess);
-      char line[HTLINEBUFSIZ];
+      char line[HTTPClient::LINEBUFSIZ];
       if (!sess->receive_line(&line, sizeof(line))) return false;
       std::map<std::string, std::string> misc;
       std::map<std::string, std::string> reqheads;
@@ -1201,7 +1196,7 @@ private:
       if (method == HTTPClient::MPOST || method == HTTPClient::MPUT ||
           method == HTTPClient::MUNKNOWN) {
         if (clen >= 0) {
-          if (clen > HTRECVMAXSIZ) {
+          if (clen > HTTPClient::RECVMAXSIZ) {
             send_error(sess, 413, "request entity too large");
             return false;
           }
@@ -1214,7 +1209,7 @@ private:
           reqbody.append(body, clen);
           delete[] body;
         } else if (chunked) {
-          int64_t asiz = HTLINEBUFSIZ;
+          int64_t asiz = HTTPClient::LINEBUFSIZ;
           char* body = (char*)kc::xmalloc(asiz);
           int64_t bsiz = 0;
           while (true) {
@@ -1225,7 +1220,7 @@ private:
             }
             if (*line == '\0') break;
             int64_t csiz = kc::atoih(line);
-            if (bsiz + csiz > HTRECVMAXSIZ) {
+            if (bsiz + csiz > HTTPClient::RECVMAXSIZ) {
               send_error(sess, 413, "request entity too large");
               kc::xfree(body);
               return false;
@@ -1317,7 +1312,7 @@ private:
         }
         delete[] value;
         delete[] name;
-        it++;
+        ++it;
       }
       kc::strprintf(&data, "\r\n");
       if (body) data.append(resbody);

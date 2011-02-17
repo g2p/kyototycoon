@@ -13,8 +13,8 @@
  *************************************************************************************************/
 
 
-#include "myconf.h"
 #include "myscript.h"
+#include "myconf.h"
 
 
 #if _KT_LUA
@@ -289,7 +289,7 @@ bool ScriptProcessor::set_resources(int32_t thid, kt::RPCServer* serv,
   while (it != itend) {
     lua_rawgeti(lua, -1, it->second + 1);
     lua_setfield(lua, -2, it->first.c_str());
-    it++;
+    ++it;
   }
   lua_setfield(lua, -3, "dbs");
   lua_pop(lua, 1);
@@ -366,7 +366,7 @@ kt::RPCClient::ReturnValue ScriptProcessor::call(const std::string& name,
   while (it != itend) {
     lua_pushlstring(lua, it->second.data(), it->second.size());
     lua_setfield(lua, -2, it->first.c_str());
-    it++;
+    ++it;
   }
   lua_pushvalue(lua, 1);
   kt::RPCClient::ReturnValue rv;
@@ -407,7 +407,7 @@ public:
       while (dit != ditend) {
         kt::TimedDB::Cursor* cur = *dit;
         delete cur;
-        dit++;
+        ++dit;
       }
       dcurs_.clear();
     }
@@ -2823,7 +2823,7 @@ static int db_get_bulk(lua_State* lua) {
     while (it != itend) {
       lua_pushstring(lua, it->second.c_str());
       lua_setfield(lua, -2, it->first.c_str());
-      it++;
+      ++it;
     }
   } else {
     lua_pushnil(lua);
@@ -3052,7 +3052,7 @@ static int db_status(lua_State* lua) {
     while (it != itend) {
       lua_pushstring(lua, it->second.c_str());
       lua_setfield(lua, -2, it->first.c_str());
-      it++;
+      ++it;
     }
   } else {
     lua_pushnil(lua);
@@ -3083,7 +3083,7 @@ static int db_match_prefix(lua_State* lua) {
     while (it != itend) {
       lua_pushlstring(lua, it->data(), it->size());
       lua_rawseti(lua, -2, idx++);
-      it++;
+      ++it;
     }
   } else {
     lua_pushnil(lua);
@@ -3114,7 +3114,7 @@ static int db_match_regex(lua_State* lua) {
     while (it != itend) {
       lua_pushlstring(lua, it->data(), it->size());
       lua_rawseti(lua, -2, idx++);
-      it++;
+      ++it;
     }
   } else {
     lua_pushnil(lua);
@@ -3490,7 +3490,7 @@ kt::RPCClient::ReturnValue ScriptProcessor::call(const std::string& name,
     while (it != itend) {
       if (!keys.empty()) keys.append(",");
       keys.append(it->first);
-      it++;
+      ++it;
     }
     core->serv->log(kt::RPCServer::Logger::DEBUG, "[SCRIPT]: %s: thid=%d inmap=%s",
                     name.c_str(), core->thid, keys.c_str());

@@ -13,8 +13,8 @@
  *************************************************************************************************/
 
 
-#include "myconf.h"
 #include "ktsocket.h"
+#include "myconf.h"
 
 #if defined(_KT_EVENT_EPOLL)
 extern "C" {
@@ -1491,7 +1491,7 @@ bool Poller::wait(double timeout) {
         xmap[fd] = item;
       }
       if (fd > maxfd) maxfd = fd;
-      it++;
+      ++it;
     }
     core->elock.unlock();
     double integ, fract;
@@ -1517,7 +1517,7 @@ bool Poller::wait(double timeout) {
             core->events.erase(item);
             core->elock.unlock();
           }
-          mit++;
+          ++mit;
         }
       }
       if (!wmap.empty()) {
@@ -1536,7 +1536,7 @@ bool Poller::wait(double timeout) {
             core->events.erase(item);
             core->elock.unlock();
           }
-          mit++;
+          ++mit;
         }
       }
       if (!xmap.empty()) {
@@ -1555,7 +1555,7 @@ bool Poller::wait(double timeout) {
             core->events.erase(item);
             core->elock.unlock();
           }
-          mit++;
+          ++mit;
         }
       }
       return true;
@@ -1597,7 +1597,7 @@ bool Poller::flush() {
     Pollable* item = *it;
     item->set_event_flags(0);
     core->hits.insert(item);
-    it++;
+    ++it;
   }
   core->elock.unlock();
   return true;
@@ -1616,7 +1616,7 @@ bool Poller::flush() {
     Pollable* item = *it;
     item->set_event_flags(0);
     core->hits.insert(item);
-    it++;
+    ++it;
   }
   core->elock.unlock();
   return true;
@@ -1635,7 +1635,7 @@ bool Poller::flush() {
     Pollable* item = *it;
     item->set_event_flags(0);
     core->hits.insert(item);
-    it++;
+    ++it;
   }
   core->elock.unlock();
   return true;

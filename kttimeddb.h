@@ -25,19 +25,6 @@ namespace kyototycoon {                  // common namespace
 
 
 /**
- * Constants for implementation.
- */
-namespace {
-const uint8_t JDBMAGICDATA = 0xbb;       ///< magic data of the database type
-const int64_t JDBXTSCUNIT = 256;         ///< score unit of expiratoin
-const int64_t JDBXTREADFREQ = 8;         ///< inverse frequency of reading expiration
-const int64_t JDBXTITERFREQ = 4;         ///< inverse frequency of iterating expiration
-const int64_t JDBXTUNIT = 8;             ///< unit step number of expiration
-const size_t JDBLOGBUFSIZ = 1024;        ///< size of the logging buffer
-}
-
-
-/**
  * Timed database.
  * @note This class is a concrete class of a wrapper for the polymorphic database to add
  * expiration features.  This class can be inherited but overwriting methods is forbidden.
@@ -198,7 +185,7 @@ public:
         break;
       }
       if (db_->xcur_) {
-        int64_t xtsc = writable ? JDBXTSCUNIT : JDBXTSCUNIT / JDBXTREADFREQ;
+        int64_t xtsc = writable ? XTSCUNIT : XTSCUNIT / XTREADFREQ;
         if (!db_->expire_records(xtsc)) err = true;
       }
       return !err;
@@ -583,6 +570,18 @@ public:
       _assert_(kbuf && ksiz <= kc::MEMMAXSIZ && sp && xtp);
       return NOP;
     }
+    /**
+     * Preprocess the main operations.
+     */
+    virtual void visit_before() {
+      _assert_(true);
+    }
+    /**
+     * Postprocess the main operations.
+     */
+    virtual void visit_after() {
+      _assert_(true);
+    }
   };
   /**
    * Interface to trigger update operations.
@@ -692,7 +691,7 @@ public:
     opts_ = 0;
     std::vector<std::string>::iterator it = elems.begin();
     std::vector<std::string>::iterator itend = elems.end();
-    if (it != itend) it++;
+    if (it != itend) ++it;
     while (it != itend) {
       std::vector<std::string> fields;
       if (kc::strsplit(*it, '=', &fields) > 1) {
@@ -708,7 +707,7 @@ public:
           if (std::strchr(value, 'p')) opts_ |= TPERSIST;
         }
       }
-      it++;
+      ++it;
     }
     if (!db_.open(path, mode)) return false;
     kc::BasicDB* idb = db_.reveal_inner_db();
@@ -718,10 +717,10 @@ public:
         kc::HashDB* hdb = (kc::HashDB*)idb;
         char* opq = hdb->opaque();
         if (opq) {
-          if (*(uint8_t*)opq == JDBMAGICDATA) {
+          if (*(uint8_t*)opq == MAGICDATA) {
             opts_ = *(uint8_t*)(opq + 1);
           } else if ((mode & kc::BasicDB::OWRITER) && hdb->count() < 1) {
-            *(uint8_t*)opq = JDBMAGICDATA;
+            *(uint8_t*)opq = MAGICDATA;
             *(uint8_t*)(opq + 1) = opts_;
             hdb->synchronize_opaque();
           }
@@ -730,10 +729,10 @@ public:
         kc::TreeDB* tdb = (kc::TreeDB*)idb;
         char* opq = tdb->opaque();
         if (opq) {
-          if (*(uint8_t*)opq == JDBMAGICDATA) {
+          if (*(uint8_t*)opq == MAGICDATA) {
             opts_ = *(uint8_t*)(opq + 1);
           } else if ((mode & kc::BasicDB::OWRITER) && tdb->count() < 1) {
-            *(uint8_t*)opq = JDBMAGICDATA;
+            *(uint8_t*)opq = MAGICDATA;
             *(uint8_t*)(opq + 1) = opts_;
             tdb->synchronize_opaque();
           }
@@ -742,10 +741,10 @@ public:
         kc::DirDB* ddb = (kc::DirDB*)idb;
         char* opq = ddb->opaque();
         if (opq) {
-          if (*(uint8_t*)opq == JDBMAGICDATA) {
+          if (*(uint8_t*)opq == MAGICDATA) {
             opts_ = *(uint8_t*)(opq + 1);
           } else if ((mode & kc::BasicDB::OWRITER) && ddb->count() < 1) {
-            *(uint8_t*)opq = JDBMAGICDATA;
+            *(uint8_t*)opq = MAGICDATA;
             *(uint8_t*)(opq + 1) = opts_;
             ddb->synchronize_opaque();
           }
@@ -754,10 +753,10 @@ public:
         kc::ForestDB* fdb = (kc::ForestDB*)idb;
         char* opq = fdb->opaque();
         if (opq) {
-          if (*(uint8_t*)opq == JDBMAGICDATA) {
+          if (*(uint8_t*)opq == MAGICDATA) {
             opts_ = *(uint8_t*)(opq + 1);
           } else if ((mode & kc::BasicDB::OWRITER) && fdb->count() < 1) {
-            *(uint8_t*)opq = JDBMAGICDATA;
+            *(uint8_t*)opq = MAGICDATA;
             *(uint8_t*)(opq + 1) = opts_;
             fdb->synchronize_opaque();
           }
@@ -807,7 +806,7 @@ public:
     TimedVisitor myvisitor(this, visitor, ct, false);
     if (!db_.accept(kbuf, ksiz, &myvisitor, writable)) err = true;
     if (xcur_) {
-      int64_t xtsc = writable ? JDBXTSCUNIT : JDBXTSCUNIT / JDBXTREADFREQ;
+      int64_t xtsc = writable ? XTSCUNIT : XTSCUNIT / XTREADFREQ;
       if (!expire_records(xtsc)) err = true;
     }
     return !err;
@@ -830,7 +829,7 @@ public:
     TimedVisitor myvisitor(this, visitor, ct, false);
     if (!db_.accept_bulk(keys, &myvisitor, writable)) err = true;
     if (xcur_) {
-      int64_t xtsc = writable ? JDBXTSCUNIT : JDBXTSCUNIT / JDBXTREADFREQ;
+      int64_t xtsc = writable ? XTSCUNIT : XTSCUNIT / XTREADFREQ;
       if (!expire_records(xtsc)) err = true;
     }
     return !err;
@@ -852,8 +851,8 @@ public:
     if (!db_.iterate(&myvisitor, writable, checker)) err = true;
     if (xcur_) {
       int64_t count = db_.count();
-      int64_t xtsc = writable ? JDBXTSCUNIT : JDBXTSCUNIT / JDBXTREADFREQ;
-      if (count > 0) xtsc *= count / JDBXTITERFREQ;
+      int64_t xtsc = writable ? XTSCUNIT : XTSCUNIT / XTREADFREQ;
+      if (count > 0) xtsc *= count / XTITERFREQ;
       if (!expire_records(xtsc)) err = true;
     }
     return !err;
@@ -1579,7 +1578,7 @@ public:
       std::map<std::string, std::string>::const_iterator ritend = recs.end();
       while (rit != ritend) {
         keys.push_back(rit->first);
-        rit++;
+        ++rit;
       }
       class VisitorImpl : public Visitor {
       public:
@@ -1615,7 +1614,7 @@ public:
     while (rit != ritend) {
       if (!set(rit->first.data(), rit->first.size(), rit->second.data(), rit->second.size(), xt))
         return -1;
-      rit++;
+      ++rit;
     }
     return recs.size();
   }
@@ -1658,7 +1657,7 @@ public:
       } else if (error() != kc::BasicDB::Error::NOREC) {
         return -1;
       }
-      kit++;
+      ++kit;
     }
     return cnt;
   }
@@ -1699,7 +1698,7 @@ public:
       } else if (error() != kc::BasicDB::Error::NOREC) {
         return -1;
       }
-      kit++;
+      ++kit;
     }
     return recs->size();
   }
@@ -1779,8 +1778,8 @@ public:
     bool err = false;
     if (xcur_) {
       if (step > 1) {
-        if (step > kc::INT64MAX / JDBXTSCUNIT) step = kc::INT64MAX / JDBXTSCUNIT;
-        if (!expire_records(step * JDBXTSCUNIT)) err = true;
+        if (step > kc::INT64MAX / XTSCUNIT) step = kc::INT64MAX / XTSCUNIT;
+        if (!expire_records(step * XTSCUNIT)) err = true;
       } else {
         xcur_->jump();
         xsc_ = 0;
@@ -2078,6 +2077,18 @@ public:
   static bool status_snapshot_atomic(const std::string& src, uint64_t* tsp = NULL,
                                      int64_t* cntp = NULL, int64_t* sizp = NULL);
 private:
+  /* The magic data of the database type. */
+  static const uint8_t MAGICDATA = 0xbb;
+  /* The score unit of expiratoin. */
+  static const int64_t XTSCUNIT = 256;
+  /* The inverse frequency of reading expiration. */
+  static const int64_t XTREADFREQ = 8;
+  /* The inverse frequency of iterating expiration. */
+  static const int64_t XTITERFREQ = 4;
+  /* The unit step number of expiration. */
+  static const int64_t XTUNIT = 8;
+  /* The size of the logging buffer. */
+  static const size_t LOGBUFSIZ = 1024;
   /**
    * Tuning Options.
    */
@@ -2195,6 +2206,14 @@ private:
       if (db_->utrigger_) log_update(db_->utrigger_, kbuf, ksiz, jbuf_, jsiz);
       return jbuf_;
     }
+    void visit_before() {
+      _assert_(true);
+      visitor_->visit_before();
+    }
+    void visit_after() {
+      _assert_(true);
+      visitor_->visit_after();
+    }
     TimedDB* db_;
     TimedDB::Visitor* visitor_;
     int64_t ct_;
@@ -2264,10 +2283,10 @@ private:
   bool expire_records(int64_t score) {
     _assert_(score >= 0);
     xsc_ += score;
-    if (xsc_ < JDBXTSCUNIT * JDBXTUNIT) return true;
+    if (xsc_ < XTSCUNIT * XTUNIT) return true;
     if (!xlock_.lock_try()) return true;
-    int64_t step = (int64_t)xsc_ / JDBXTSCUNIT;
-    xsc_ -= step * JDBXTSCUNIT;
+    int64_t step = (int64_t)xsc_ / XTSCUNIT;
+    xsc_ -= step * XTSCUNIT;
     int64_t ct = std::time(NULL);
     class VisitorImpl : public kc::BasicDB::Visitor {
     public:
@@ -2402,7 +2421,7 @@ private:
     _assert_(utrigger && kbuf);
     if (vbuf == TimedVisitor::REMOVE) {
       size_t msiz = 1 + sizeof(uint64_t) + ksiz;
-      char stack[JDBLOGBUFSIZ];
+      char stack[LOGBUFSIZ];
       char* mbuf = msiz > sizeof(stack) ? new char[msiz] : stack;
       char* wp = mbuf;
       *(wp++) = UREMOVE;
@@ -2413,7 +2432,7 @@ private:
       if (mbuf != stack) delete[] mbuf;
     } else if (vbuf != TimedVisitor::NOP) {
       size_t msiz = 1 + sizeof(uint64_t) * 2 + ksiz + vsiz;
-      char stack[JDBLOGBUFSIZ];
+      char stack[LOGBUFSIZ];
       char* mbuf = msiz > sizeof(stack) ? new char[msiz] : stack;
       char* wp = mbuf;
       *(wp++) = USET;

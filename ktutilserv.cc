@@ -566,7 +566,7 @@ static int32_t prochttp(const char* base,
                       delete[] ubuf;
                     }
                   }
-                  it++;
+                  ++it;
                 }
                 kc::strprintf(&resbody, "</ul>\n");
                 kc::strprintf(&resbody, "</body>\n");

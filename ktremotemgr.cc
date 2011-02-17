@@ -1042,7 +1042,7 @@ static int32_t procreport(const char* host, int32_t port, double tout) {
     std::map<std::string, std::string>::iterator itend = status.end();
     while (it != itend) {
       oprintf("%s: %s\n", it->first.c_str(), it->second.c_str());
-      it++;
+      ++it;
     }
   } else {
     dberrprint(&db, "DB::status failed");
@@ -1072,7 +1072,7 @@ static int32_t procscript(const char* proc, const char* host, int32_t port, doub
       std::map<std::string, std::string>::iterator itend = result.end();
       while (it != itend) {
         oprintf("%s\t%s\n", it->first.c_str(), it->second.c_str());
-        it++;
+        ++it;
       }
     } else {
       dberrprint(&db, "DB::play_script_binary failed");
@@ -1085,7 +1085,7 @@ static int32_t procscript(const char* proc, const char* host, int32_t port, doub
       std::map<std::string, std::string>::iterator itend = result.end();
       while (it != itend) {
         oprintf("%s\t%s\n", it->first.c_str(), it->second.c_str());
-        it++;
+        ++it;
       }
     } else {
       dberrprint(&db, "DB::play_script failed");
@@ -1138,7 +1138,7 @@ static int32_t procinform(const char* host, int32_t port, double tout, const cha
       std::map<std::string, std::string>::iterator itend = status.end();
       while (it != itend) {
         oprintf("%s: %s\n", it->first.c_str(), it->second.c_str());
-        it++;
+        ++it;
       }
     } else {
       oprintf("count: %s\n", status["count"].c_str());
@@ -1432,6 +1432,7 @@ static int32_t procimport(const char* file, const char* host, int32_t port, doub
     dberrprint(&db, "DB::open failed");
     return 1;
   }
+  if (dbexpr) db.set_target(dbexpr);
   bool err = false;
   int64_t cnt = 0;
   std::string line;
@@ -1448,7 +1449,7 @@ static int32_t procimport(const char* file, const char* host, int32_t port, doub
         it->clear();
         it->append(ebuf, esiz);
         delete[] ebuf;
-        it++;
+        ++it;
       }
     }
     switch (fields.size()) {
@@ -1525,7 +1526,7 @@ static int32_t procslave(const char* host, int32_t port, double tout,
         while (it != itend) {
           oprintf("%s\t%llu\t%llu\n",
                   it->path.c_str(), (unsigned long long)it->size, (unsigned long long)it->ts);
-          it++;
+          ++it;
         }
       } else {
         dberrprint(&db, "DB::ulog_list failed");
@@ -1563,7 +1564,7 @@ static int32_t procslave(const char* host, int32_t port, double tout,
                 char* str = kc::baseencode(it->data(), it->size());
                 oprintf("\t%s", str);
                 delete[] str;
-                it++;
+                ++it;
               }
               oprintf("\n");
             }
@@ -1604,7 +1605,7 @@ static int32_t procsetbulk(const std::map<std::string, std::string>& recs,
     while (it != itend) {
       kt::RemoteDB::BulkRecord rec = { dbidx, it->first, it->second, xt };
       bulkrecs.push_back(rec);
-      it++;
+      ++it;
     }
     if (db.set_bulk_binary(bulkrecs) != (int64_t)recs.size()) {
       dberrprint(&db, "DB::set_bulk_binary failed");
@@ -1643,7 +1644,7 @@ static int32_t procremovebulk(const std::vector<std::string>& keys,
     while (it != itend) {
       kt::RemoteDB::BulkRecord rec = { dbidx, *it, "", 0 };
       bulkrecs.push_back(rec);
-      it++;
+      ++it;
     }
     if (db.remove_bulk_binary(bulkrecs) < 0) {
       dberrprint(&db, "DB::remove_bulk_binary failed");
@@ -1682,7 +1683,7 @@ static int32_t procgetbulk(const std::vector<std::string>& keys,
     while (it != itend) {
       kt::RemoteDB::BulkRecord rec = { dbidx, *it, "", 0 };
       bulkrecs.push_back(rec);
-      it++;
+      ++it;
     }
     if (db.get_bulk_binary(&bulkrecs) >= 0) {
       std::vector<kt::RemoteDB::BulkRecord>::iterator rit = bulkrecs.begin();
@@ -1694,7 +1695,7 @@ static int32_t procgetbulk(const std::vector<std::string>& keys,
           printdata(rit->value.data(), rit->value.size(), px);
           oprintf("\n");
         }
-        rit++;
+        ++rit;
       }
     } else {
       dberrprint(&db, "DB::get_bulk_binary failed");
@@ -1711,7 +1712,7 @@ static int32_t procgetbulk(const std::vector<std::string>& keys,
         oprintf("\t");
         printdata(it->second.data(), it->second.size(), px);
         oprintf("\n");
-        it++;
+        ++it;
       }
     } else {
       dberrprint(&db, "DB::get_bulk failed");

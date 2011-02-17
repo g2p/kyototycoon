@@ -22,18 +22,12 @@
 #include <ktthserv.h>
 #include <kthttp.h>
 
+#define KTRPCPATHPREFIX  "/rpc/"           ///< prefix of the RPC entry
+#define KTRPCFORMMTYPE  "application/x-www-form-urlencoded"  //< MIME type of form data
+#define KTRPCTSVMTYPE  "text/tab-separated-values"  //< MIME type of TSV
+#define KTRPCTSVMATTR  "colenc"            ///< encoding attribute of TSV
+
 namespace kyototycoon {                  // common namespace
-
-
-/**
- * Constants for implementation.
- */
-namespace {
-const char RPCPATHPREFIX[] = "/rpc/";    ///< prefix of the RPC entry
-const char RPCFORMMTYPE[] = "application/x-www-form-urlencoded";  //< MIME type of form data
-const char RPCTSVMTYPE[] = "text/tab-separated-values";           //< MIME type of TSV
-const char RPCTSVMATTR[] = "colenc";     ///< encoding attribute of TSV
-}
 
 
 /**
@@ -117,7 +111,7 @@ public:
     if (!open_) return RVENETWORK;
     if (!alive_ && !ua_.open(host_, port_, timeout_)) return RVENETWORK;
     alive_ = true;
-    std::string pathquery = RPCPATHPREFIX;
+    std::string pathquery = KTRPCPATHPREFIX;
     char* zstr = kc::urlencode(name.data(), name.size());
     pathquery.append(zstr);
     delete[] zstr;
@@ -127,11 +121,11 @@ public:
       std::map<std::string, std::string> tmap;
       tmap.insert(inmap->begin(), inmap->end());
       int32_t enc = checkmapenc(tmap);
-      std::string outtype = RPCTSVMTYPE;
+      std::string outtype = KTRPCTSVMTYPE;
       switch (enc) {
-        case 'B': kc::strprintf(&outtype, "; %s=B", RPCTSVMATTR); break;
-        case 'Q': kc::strprintf(&outtype, "; %s=Q", RPCTSVMATTR); break;
-        case 'U': kc::strprintf(&outtype, "; %s=U", RPCTSVMATTR); break;
+        case 'B': kc::strprintf(&outtype, "; %s=B", KTRPCTSVMATTR); break;
+        case 'Q': kc::strprintf(&outtype, "; %s=Q", KTRPCTSVMATTR); break;
+        case 'U': kc::strprintf(&outtype, "; %s=U", KTRPCTSVMATTR); break;
       }
       reqheads["content-type"] = outtype;
       if (enc != 0) tsvmapencode(&tmap, enc);
@@ -144,17 +138,17 @@ public:
     if (outmap) {
       const char* rp = strmapget(resheads, "content-type");
       if (rp) {
-        if (kc::strifwm(rp, RPCFORMMTYPE)) {
+        if (kc::strifwm(rp, KTRPCFORMMTYPE)) {
           wwwformtomap(resbody.c_str(), outmap);
-        } else if (kc::strifwm(rp, RPCTSVMTYPE)) {
-          rp += sizeof(RPCTSVMTYPE) - 1;
+        } else if (kc::strifwm(rp, KTRPCTSVMTYPE)) {
+          rp += sizeof(KTRPCTSVMTYPE) - 1;
           int32_t enc = 0;
           while (*rp != '\0') {
             while (*rp == ' ' || *rp == ';') {
               rp++;
             }
-            if (kc::strifwm(rp, RPCTSVMATTR) && rp[sizeof(RPCTSVMATTR)-1] == '=') {
-              rp += sizeof(RPCTSVMATTR);
+            if (kc::strifwm(rp, KTRPCTSVMATTR) && rp[sizeof(KTRPCTSVMATTR)-1] == '=') {
+              rp += sizeof(KTRPCTSVMATTR);
               if (*rp == '"') rp++;
               switch (*rp) {
                 case 'b': case 'B': enc = 'B'; break;
@@ -525,10 +519,10 @@ private:
                     std::string& resbody,
                     const std::map<std::string, std::string>& misc) {
       const char* name = path.c_str();
-      if (!kc::strfwm(name, RPCPATHPREFIX))
+      if (!kc::strfwm(name, KTRPCPATHPREFIX))
         return worker_->process(serv, sess, path, method, reqheads, reqbody,
                                 resheads, resbody, misc);
-      name += sizeof(RPCPATHPREFIX) - 1;
+      name += sizeof(KTRPCPATHPREFIX) - 1;
       size_t zsiz;
       char* zbuf = kc::urldecode(name, &zsiz);
       std::string rawname(zbuf, zsiz);
@@ -538,17 +532,17 @@ private:
       if (rp) wwwformtomap(rp, &inmap);
       rp = strmapget(reqheads, "content-type");
       if (rp) {
-        if (kc::strifwm(rp, RPCFORMMTYPE)) {
+        if (kc::strifwm(rp, KTRPCFORMMTYPE)) {
           wwwformtomap(reqbody.c_str(), &inmap);
-        } else if (kc::strifwm(rp, RPCTSVMTYPE)) {
-          rp += sizeof(RPCTSVMTYPE) - 1;
+        } else if (kc::strifwm(rp, KTRPCTSVMTYPE)) {
+          rp += sizeof(KTRPCTSVMTYPE) - 1;
           int32_t enc = 0;
           while (*rp != '\0') {
             while (*rp == ' ' || *rp == ';') {
               rp++;
             }
-            if (kc::strifwm(rp, RPCTSVMATTR) && rp[sizeof(RPCTSVMATTR)-1] == '=') {
-              rp += sizeof(RPCTSVMATTR);
+            if (kc::strifwm(rp, KTRPCTSVMATTR) && rp[sizeof(KTRPCTSVMATTR)-1] == '=') {
+              rp += sizeof(KTRPCTSVMATTR);
               if (*rp == '"') rp++;
               switch (*rp) {
                 case 'b': case 'B': enc = 'B'; break;
@@ -576,11 +570,11 @@ private:
         default: code = 500; break;
       }
       int32_t enc = checkmapenc(outmap);
-      std::string outtype = RPCTSVMTYPE;
+      std::string outtype = KTRPCTSVMTYPE;
       switch (enc) {
-        case 'B': kc::strprintf(&outtype, "; %s=B", RPCTSVMATTR); break;
-        case 'Q': kc::strprintf(&outtype, "; %s=Q", RPCTSVMATTR); break;
-        case 'U': kc::strprintf(&outtype, "; %s=U", RPCTSVMATTR); break;
+        case 'B': kc::strprintf(&outtype, "; %s=B", KTRPCTSVMATTR); break;
+        case 'Q': kc::strprintf(&outtype, "; %s=Q", KTRPCTSVMATTR); break;
+        case 'U': kc::strprintf(&outtype, "; %s=U", KTRPCTSVMATTR); break;
       }
       resheads["content-type"] = outtype;
       if (enc != 0) tsvmapencode(&outmap, enc);

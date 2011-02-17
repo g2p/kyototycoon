@@ -19,22 +19,9 @@
 #include <ktcommon.h>
 #include <ktutil.h>
 
+#define KTULPATHEXT  "ulog"              ///< extension of each file
+
 namespace kyototycoon {                  // common namespace
-
-
-/**
- * Constants for implementation.
- */
-namespace {
-const char* ULPATHEXT = "ulog";          ///< extension of each file
-const size_t ULCACHEMAX = 65536;         ///< maximum size of cached logs
-const uint8_t ULMETAMAGIC = 0xa0;        ///< magic data for meta data
-const uint8_t ULBEGMAGIC = 0xa1;         ///< magic data for beginning mark
-const uint8_t ULENDMAGIC = 0xa2;         ///< magic data for ending mark
-const uint64_t ULTSWACC = 1000;          ///< accuracy of wall clock time stamp
-const uint64_t ULTSLACC = 1000 * 1000;   ///< accuracy of logical time stamp
-const double ULFLUSHWAIT = 0.1;          ///< waiting seconds of auto flush
-}
 
 
 /**
@@ -93,13 +80,13 @@ public:
           if (file_.refresh()) {
             int64_t fsiz;
             uint64_t fts;
-            if (read_meta(&fsiz, &fts) && fts + ULTSWACC * ULTSLACC < ts) id_ = lid;
+            if (read_meta(&fsiz, &fts) && fts + TSWACC * TSLACC < ts) id_ = lid;
           }
           ulog_->flock_.unlock();
           file_.close();
           lid = cid;
         }
-        it++;
+        ++it;
       }
       if (id_ < 1) id_ = lid > 0 ? lid : 1;
       ulog_->flock_.lock_reader();
@@ -168,7 +155,7 @@ public:
       int64_t psiz = file_.size();
       if (psiz < (int64_t)sizeof(hbuf) || !file_.read(0, hbuf, sizeof(hbuf))) return false;
       const char* rp = hbuf;
-      if (*(uint8_t*)(rp++) != ULMETAMAGIC) return false;
+      if (*(uint8_t*)(rp++) != METAMAGIC) return false;
       int64_t fsiz = kc::readfixnum(rp, sizeof(uint64_t));
       rp += sizeof(uint64_t);
       uint64_t fts = kc::readfixnum(rp, sizeof(uint64_t));
@@ -213,13 +200,13 @@ public:
       }
       int64_t noff = off_ + sizeof(buf);
       const char* rp = buf;
-      if (*(uint8_t*)rp != ULBEGMAGIC) return NULL;
+      if (*(uint8_t*)rp != BEGMAGIC) return NULL;
       rp++;
       uint64_t ts = kc::readfixnum(rp, sizeof(uint64_t));
       rp += sizeof(uint64_t);
       size_t msiz = kc::readfixnum(rp, sizeof(uint32_t));
       char* mbuf = new char[msiz+1];
-      if (!file_.read(noff, mbuf, msiz + 1) || ((uint8_t*)mbuf)[msiz] != ULENDMAGIC) {
+      if (!file_.read(noff, mbuf, msiz + 1) || ((uint8_t*)mbuf)[msiz] != ENDMAGIC) {
         delete[] mbuf;
         return NULL;
       }
@@ -405,7 +392,7 @@ public:
     cache_.push_back(log);
     csiz_ += 2 + sizeof(uint64_t) + sizeof(uint32_t) + msiz;
     if (ts > cts_) cts_ = ts;
-    if (csiz_ > ULCACHEMAX && !flush()) err = true;
+    if (csiz_ > CACHEMAX && !flush()) err = true;
     return !err;
   }
   /**
@@ -430,9 +417,9 @@ public:
       cache_.push_back(log);
       csiz_ += 2 + sizeof(uint64_t) + sizeof(uint32_t) + msiz;
       if (mts > cts_) cts_ = mts;
-      it++;
+      ++it;
     }
-    if (csiz_ > ULCACHEMAX && !flush()) err = true;
+    if (csiz_ > CACHEMAX && !flush()) err = true;
     return !err;
   }
   /**
@@ -467,7 +454,7 @@ public:
           int64_t psiz = file.size();
           if (psiz >= (int64_t)sizeof(hbuf) && file.read(0, hbuf, sizeof(hbuf))) {
             const char* rp = hbuf;
-            if (*(uint8_t*)(rp++) == ULMETAMAGIC) {
+            if (*(uint8_t*)(rp++) == METAMAGIC) {
               int64_t fsiz = kc::readfixnum(rp, sizeof(uint64_t));
               rp += sizeof(uint64_t);
               uint64_t fts = kc::readfixnum(rp, sizeof(uint64_t));
@@ -479,7 +466,7 @@ public:
         flock_.unlock();
         file.close();
       }
-      it++;
+      ++it;
     }
   }
   /**
@@ -487,9 +474,23 @@ public:
    * @return the current pure clock data for time stamp.
    */
   static uint64_t clock_pure() {
-    return (uint64_t)(kc::time() * ULTSWACC) * ULTSLACC;
+    return (uint64_t)(kc::time() * TSWACC) * TSLACC;
   }
 private:
+  /* The maximum size of cached logs. */
+  static const size_t CACHEMAX = 65536;
+  /* The magic data for meta data. */
+  static const uint8_t METAMAGIC = 0xa0;
+  /* The magic data for beginning mark. */
+  static const uint8_t BEGMAGIC = 0xa1;
+  /* The magic data for ending mark. */
+  static const uint8_t ENDMAGIC = 0xa2;
+  /* The accuracy of wall clock time stamp. */
+  static const uint64_t TSWACC = 1000;
+  /* The accuracy of logical time stamp. */
+  static const uint64_t TSLACC = 1000 * 1000;
+  /* The waiting seconds of auto flush. */
+  static const double FLUSHWAIT = 0.1;
   /**
    * Log message.
    */
@@ -507,7 +508,7 @@ private:
     void run() {
       double asnext = 0;
       while (alive_ && !error_) {
-        kc::Thread::sleep(ULFLUSHWAIT);
+        kc::Thread::sleep(FLUSHWAIT);
         if (ulog_->clock_.lock_try()) {
           if (ulog_->csiz_ > 0 && !ulog_->flush()) error_ = true;
           ulog_->clock_.unlock();
@@ -544,7 +545,7 @@ private:
     while (*name != '\0') {
       if (*name == kc::File::EXTCHR) {
         if (name - bp != 10) return false;
-        return !std::strcmp(name + 1, ULPATHEXT);
+        return !std::strcmp(name + 1, KTULPATHEXT);
       }
       if (*name < '0' || *name > '9') return false;
       name++;
@@ -559,7 +560,7 @@ private:
   std::string generate_path(uint32_t id) {
     _assert_(true);
     return kc::strprintf("%s%c%010u%c%s", path_.c_str(), kc::File::PATHCHR,
-                         id, kc::File::EXTCHR, ULPATHEXT);
+                         id, kc::File::EXTCHR, KTULPATHEXT);
   }
   /**
    * Write meta data.
@@ -569,7 +570,7 @@ private:
     _assert_(true);
     char hbuf[1+sizeof(uint64_t)+sizeof(uint64_t)];
     char* wp = hbuf;
-    *(wp++) = ULMETAMAGIC;
+    *(wp++) = METAMAGIC;
     int64_t psiz = file_.size();
     if (psiz < (int64_t)sizeof(hbuf)) psiz = sizeof(hbuf);
     kc::writefixnum(wp, psiz, sizeof(uint64_t));
@@ -587,13 +588,13 @@ private:
     int64_t psiz = file_.size();
     if (psiz < (int64_t)sizeof(hbuf) || !file_.read(0, hbuf, sizeof(hbuf))) return false;
     const char* rp = hbuf;
-    if (*(uint8_t*)(rp++) != ULMETAMAGIC) return false;
+    if (*(uint8_t*)(rp++) != METAMAGIC) return false;
     int64_t fsiz = kc::readfixnum(rp, sizeof(uint64_t));
     rp += sizeof(uint64_t);
     uint64_t fts = kc::readfixnum(rp, sizeof(uint64_t));
     if (psiz < fsiz || fsiz < (int64_t)sizeof(hbuf)) return false;
     if (psiz > fsiz && !file_.truncate(fsiz)) return false;
-    tswall_ = fts / ULTSLACC + 1;
+    tswall_ = fts / TSLACC + 1;
     return true;
   }
   /**
@@ -619,16 +620,16 @@ private:
     Cache::iterator itend = cache_.end();
     while (it != itend) {
       Log log = *it;
-      *(wp++) = ULBEGMAGIC;
+      *(wp++) = BEGMAGIC;
       kc::writefixnum(wp, log.ts, sizeof(uint64_t));
       wp += sizeof(uint64_t);
       kc::writefixnum(wp, log.msiz, sizeof(uint32_t));
       wp += sizeof(uint32_t);
       std::memcpy(wp, log.mbuf, log.msiz);
       wp += log.msiz;
-      *(wp++) = ULENDMAGIC;
+      *(wp++) = ENDMAGIC;
       delete[] log.mbuf;
-      it++;
+      ++it;
     }
     if (!file_.append(cbuf, csiz_)) err = true;
     if (!err && !write_meta()) err = true;
@@ -644,14 +645,14 @@ private:
    */
   uint64_t clock_impl() {
     _assert_(true);
-    uint64_t ct = kc::time() * ULTSWACC;
+    uint64_t ct = kc::time() * TSWACC;
     if (ct > tswall_) {
       tswall_ = ct;
       tslogic_ = 0;
     } else {
       tslogic_++;
     }
-    return tswall_ * ULTSLACC + tslogic_;
+    return tswall_ * TSLACC + tslogic_;
   }
   /** Dummy constructor to forbid the use. */
   UpdateLogger(const UpdateLogger&);

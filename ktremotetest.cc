@@ -104,7 +104,7 @@ static void dbmetaprint(kt::RemoteDB* db, bool verbose) {
       std::map<std::string, std::string>::iterator itend = status.end();
       while (it != itend) {
         oprintf("%s: %s\n", it->first.c_str(), it->second.c_str());
-        it++;
+        ++it;
       }
     }
   } else {
