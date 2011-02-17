@@ -1,3 +1,10 @@
+kyototycoon (0.9.34-1) unstable; urgency=low
+
+  * Import upstream version 0.9.34
+  * The new release makes all build system patches unnecessary.
+
+ -- Gabriel de Perthuis <g2p.code+debian@gmail.com>  Thu, 17 Feb 2011 23:51:42 +0100
+
 kyototycoon (0.9.33-1) unstable; urgency=low
 
   * Initial release. (Closes: #613452: ITP: kyototycoon)
