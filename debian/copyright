@@ -7,7 +7,7 @@ License: GPL
  The Debian Packaging is under the GPL license.
 
 Files: *
-Copyright: (C) 2011 Mikio Hirabayashi
+Copyright: (C) 2011 FAL Labs <info@fallabs.com>
 License: GPL-3+
 Copyright:
  Kyoto Cabinet is free software; you can redistribute it and/or modify it
