@@ -44,7 +44,7 @@ const int32_t DEFTHNUM = 8;              // default number of threads
 const double DEFRIV = 0.04;              // default interval of replication
 const int64_t DEFULIM = 256LL << 20;     // default limit size of update log file
 const double DEFBGSI = 180;              // default interval of background saver
-const char* BGSPATHEXT = "ktss";         // extension of a snapshot file
+const char* const BGSPATHEXT = "ktss";   // extension of a snapshot file
 
 
 // global variables

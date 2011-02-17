@@ -668,7 +668,7 @@ private:
       std::string key;
       kc::strprintf(&key, "sys_%s", it->first.c_str());
       set_message(outmap, key.c_str(), it->second.c_str());
-      it++;
+      ++it;
     }
     const std::string& mhost = slave_->host();
     if (!mhost.empty()) {
@@ -730,7 +730,7 @@ private:
         std::string key(kbuf + 1, ksiz - 1);
         scrinmap[key] = it->second;
       }
-      it++;
+      ++it;
     }
     opcounts_[thid][CNTSCRIPT]++;
     std::map<std::string, std::string> scroutmap;
@@ -742,7 +742,7 @@ private:
         std::string key = "_";
         key.append(it->first);
         outmap[key] = it->second;
-        it++;
+        ++it;
       }
     } else if (rv == kt::RPCClient::RVENOIMPL) {
       set_message(outmap, "ERROR", "no such scripting procedure");
@@ -808,7 +808,7 @@ private:
     while (it != itend) {
       set_message(outmap, it->path.c_str(), "%llu:%llu",
                   (unsigned long long)it->size, (unsigned long long)it->ts);
-      it++;
+      ++it;
     }
     return kt::RPCClient::RVSUCCESS;
   }
@@ -841,7 +841,7 @@ private:
         serv->log(Logger::ERROR, "removing a file failed: %s", it->path.c_str());
         err = true;
       }
-      it++;
+      ++it;
     }
     return err ? kt::RPCClient::RVEINTERNAL : kt::RPCClient::RVSUCCESS;
   }
@@ -1305,7 +1305,7 @@ private:
         std::string value(it->second.data(), it->second.size());
         recs[key] = value;
       }
-      it++;
+      ++it;
     }
     RV rv;
     opcounts_[thid][CNTSET] += recs.size();
@@ -1346,7 +1346,7 @@ private:
         std::string key(kbuf + 1, ksiz - 1);
         keys.push_back(key);
       }
-      it++;
+      ++it;
     }
     RV rv;
     opcounts_[thid][CNTREMOVE] += keys.size();
@@ -1387,7 +1387,7 @@ private:
         std::string key(kbuf + 1, ksiz - 1);
         keys.push_back(key);
       }
-      it++;
+      ++it;
     }
     RV rv;
     opcounts_[thid][CNTGET] += keys.size();
@@ -1402,7 +1402,7 @@ private:
         std::string key("_");
         key.append(it->first);
         outmap[key] = it->second;
-        it++;
+        ++it;
       }
       set_message(outmap, "num", "%lld", (long long)num);
     } else {
@@ -1467,7 +1467,7 @@ private:
         std::string key = "_";
         key.append(*it);
         outmap[key] = "";
-        it++;
+        ++it;
       }
       set_message(outmap, "num", "%lld", (long long)num);
       rv = kt::RPCClient::RVSUCCESS;
@@ -1508,7 +1508,7 @@ private:
         std::string key = "_";
         key.append(*it);
         outmap[key] = "";
-        it++;
+        ++it;
       }
       set_message(outmap, "num", "%lld", (long long)num);
       rv = kt::RPCClient::RVSUCCESS;
@@ -2170,7 +2170,7 @@ private:
             std::map<std::string, std::string>::iterator itend = scroutmap.end();
             while (it != itend) {
               osiz += sizeof(uint32_t) + sizeof(uint32_t) + it->first.size() + it->second.size();
-              it++;
+              ++it;
             }
             char* obuf = new char[osiz];
             char* wp = obuf;
@@ -2188,7 +2188,7 @@ private:
               wp += it->first.size();
               std::memcpy(wp, it->second.data(), it->second.size());
               wp += it->second.size();
-              it++;
+              ++it;
             }
             if (!norep && !sess->send(obuf, osiz)) err = true;
             delete[] obuf;
@@ -2419,7 +2419,7 @@ private:
       while (it != itend) {
         kt::TimedDB::Cursor* cur = it->second;
         delete cur;
-        it++;
+        ++it;
       }
     }
     static SLS* create(kt::RPCServer::Session* sess) {

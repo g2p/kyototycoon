@@ -13,8 +13,8 @@
  *************************************************************************************************/
 
 
-#include "myconf.h"
 #include "ktrpc.h"
+#include "myconf.h"
 
 namespace kyototycoon {                  // common namespace
 

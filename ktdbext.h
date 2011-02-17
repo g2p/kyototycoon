@@ -26,21 +26,6 @@ namespace kyototycoon {                  // common namespace
 
 
 /**
- * Constants for implementation.
- */
-namespace {
-const size_t MRDEFDBNUM = 8;             ///< default number of temporary databases
-const size_t MRMAXDBNUM = 256;           ///< maxinum number of temporary databases
-const int64_t MRDEFCLIM = 512LL << 20;   ///< default cache limit
-const int64_t MRDEFCBNUM = 1048583LL;    ///< default cache bucket numer
-const int64_t MRDBBNUM = 512LL << 10;    ///< bucket number of temprary databases
-const int32_t MRDBPSIZ = 32768;          ///< page size of temprary databases
-const int64_t MRDBMSIZ = 4LL << 20;      ///< mapped size of temprary databases
-const int64_t MRDBPCCAP = 16LL << 20;    ///< page cache capacity of temprary databases
-}
-
-
-/**
  * MapReduce framework.
  * @note Although this framework is not distributed or concurrent, it is useful for aggregate
  * calculation with less CPU loading and less memory usage.
@@ -417,6 +402,22 @@ public:
     if (cbnum_ > kc::INT16MAX) cbnum_ = kc::nearbyprime(cbnum_);
   }
 private:
+  /** The default number of temporary databases. */
+  static const size_t MRDEFDBNUM = 8;
+  /** The maxinum number of temporary databases. */
+  static const size_t MRMAXDBNUM = 256;
+  /** The default cache limit. */
+  static const int64_t MRDEFCLIM = 512LL << 20;
+  /** The default cache bucket numer. */
+  static const int64_t MRDEFCBNUM = 1048583LL;
+  /** The bucket number of temprary databases. */
+  static const int64_t MRDBBNUM = 512LL << 10;
+  /** The page size of temprary databases. */
+  static const int32_t MRDBPSIZ = 32768;
+  /** The mapped size of temprary databases. */
+  static const int64_t MRDBMSIZ = 4LL << 20;
+  /** The page cache capacity of temprary databases. */
+  static const int64_t MRDBPCCAP = 16LL << 20;
   /**
    * Checker for the map process.
    */

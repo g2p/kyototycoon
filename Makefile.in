@@ -54,9 +54,9 @@ CFLAGS = @MYCFLAGS@
 CXXFLAGS = @MYCXXFLAGS@
 LDFLAGS = @MYLDFLAGS@
 CMDLDFLAGS = @MYCMDLDFLAGS@
+CMDLIBS = @MYCMDLIBS@
 LIBS = @LIBS@
-LDENV = LD_RUN_PATH=/lib:/usr/lib:$(LIBDIR):$(HOME)/lib:/usr/local/lib:@MYRUNPATH@
-RUNENV = @MYLDLIBPATHENV@=.:/lib:/usr/lib:$(LIBDIR):$(HOME)/lib:/usr/local/lib:@MYRUNPATH@
+RUNENV = @MYLDLIBPATHENV@=@MYLDLIBPATH@
 POSTCMD = @MYPOSTCMD@
 
 
@@ -127,7 +127,6 @@ install :
 	cp -Rf $(DOCUMENTFILES) $(DESTDIR)$(DOCDIR)
 	mkdir -p $(DESTDIR)$(PCDIR)
 	cp -Rf $(PCFILES) $(DESTDIR)$(PCDIR)
-	-[ "$$UID" = 0 ] && PATH=/sbin:/usr/sbin:$(PATH) ldconfig 2>/dev/null || true
 	@printf '\n'
 	@printf '#================================================================\n'
 	@printf '# Thanks for using Kyoto Tycoon.\n'
@@ -147,7 +146,6 @@ uninstall :
 	-cd $(DESTDIR)$(MAN1DIR) && rm -f $(MAN1FILES)
 	-cd $(DESTDIR)$(DOCDIR) && rm -rf $(DOCUMENTFILES) && rmdir $(DOCDIR)
 	-cd $(DESTDIR)$(PCDIR) && rm -f $(PCFILES)
-	-[ "$$UID" = 0 ] && PATH=/sbin:/usr/sbin:$(PATH) ldconfig 2>/dev/null || true
 
 
 dist :
@@ -162,7 +160,6 @@ distclean : clean
 	cd example && $(MAKE) clean
 	rm -rf Makefile kyototycoon.pc \
 	  config.cache config.log config.status config.tmp autom4te.cache
-	which ccache >/dev/null 2>&1 && ccache -C >/dev/null 2>&1
 
 
 check :
@@ -494,36 +491,36 @@ ktplugdbvoid.dylib : ktplugdbvoid.o $(LIBRARYFILES)
 
 
 ktutiltest : ktutiltest.o $(LIBRARYFILES)
-	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(CMDLIBS)
 
 
 ktutilmgr : ktutilmgr.o $(LIBRARYFILES)
-	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(CMDLIBS)
 
 
 ktutilserv : ktutilserv.o $(LIBRARYFILES)
-	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(CMDLIBS)
 
 
 kttimedtest : kttimedtest.o $(LIBRARYFILES)
-	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(CMDLIBS)
 
 
 kttimedmgr : kttimedmgr.o $(LIBRARYFILES)
-	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(CMDLIBS)
 
 
 ktserver : ktserver.o myscript.o $(LIBRARYFILES)
-	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ $< myscript.o \
-	  $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $< myscript.o \
+	  $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(CMDLIBS)
 
 
 ktremotetest : ktremotetest.o $(LIBRARYFILES)
-	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(CMDLIBS)
 
 
 ktremotemgr : ktremotemgr.o $(LIBRARYFILES)
-	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(LIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(CMDLDFLAGS) -lkyototycoon $(CMDLIBS)
 
 
 ktutil.o : ktcommon.h ktutil.h myconf.h

@@ -8,7 +8,8 @@ includedir=@includedir@
 datadir=@datadir@
 
 Name: Kyoto Tyrant
-Description: cache server based on Kyoto Cabinet
+Description: a handy cache/storage server
 Version: @PACKAGE_VERSION@
-Libs: -L${libdir} -lkyototycoon @LIBS@
+Libs: -L${libdir} -lkyototycoon
+Libs.private: @LIBS@
 Cflags: -I${includedir}

@@ -301,7 +301,7 @@ static int32_t prochttp(const char* url, int64_t rnum, int32_t thnum,
         oss << name << "=" << value;
         delete[] value;
         delete[] name;
-        it++;
+        ++it;
       }
       (*reqheads)["content-type"] = "application/x-www-form-urlencoded";
     }
@@ -323,7 +323,7 @@ static int32_t prochttp(const char* url, int64_t rnum, int32_t thnum,
       urlstr.append(value);
       delete[] value;
       delete[] name;
-      it++;
+      ++it;
     }
   }
   if (!kt::strmapget(*reqheads, "user-agent")) {

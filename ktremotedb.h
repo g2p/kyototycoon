@@ -31,14 +31,6 @@ namespace kyototycoon {                  // common namespace
 
 
 /**
- * Constants for implementation.
- */
-namespace {
-const int32_t RDBRECBUFSIZ = 2048;       ///< size for a record buffer
-}
-
-
-/**
  * Remote database.
  * @note This class is a concrete class to access remote database servers.  This class can be
  * inherited but overwriting methods is forbidden.  Before every database operation, it is
@@ -643,7 +635,7 @@ public:
       while (cit != citend) {
         Cursor* cur = *cit;
         cur->db_ = NULL;
-        cit++;
+        ++cit;
       }
     }
   }
@@ -717,7 +709,7 @@ public:
       std::string key = "_";
       key.append(it->first);
       inmap[key] = it->second;
-      it++;
+      ++it;
     }
     std::map<std::string, std::string> outmap;
     RPCClient::ReturnValue rv = rpc_.call("play_script", &inmap, &outmap);
@@ -734,7 +726,7 @@ public:
         std::string key(kbuf + 1, ksiz - 1);
         (*result)[key] = it->second;
       }
-      it++;
+      ++it;
     }
     return true;
   }
@@ -797,7 +789,7 @@ public:
           fstvec->push_back(fs);
         }
       }
-      it++;
+      ++it;
     }
     return true;
   }
@@ -1282,7 +1274,7 @@ public:
       std::string key = "_";
       key.append(it->first);
       inmap[key] = it->second;
-      it++;
+      ++it;
     }
     std::map<std::string, std::string> outmap;
     RPCClient::ReturnValue rv = rpc_.call("set_bulk", &inmap, &outmap);
@@ -1314,7 +1306,7 @@ public:
       std::string key = "_";
       key.append(*it);
       inmap[key] = "";
-      it++;
+      ++it;
     }
     std::map<std::string, std::string> outmap;
     RPCClient::ReturnValue rv = rpc_.call("remove_bulk", &inmap, &outmap);
@@ -1348,7 +1340,7 @@ public:
       std::string key = "_";
       key.append(*it);
       inmap[key] = "";
-      it++;
+      ++it;
     }
     std::map<std::string, std::string> outmap;
     RPCClient::ReturnValue rv = rpc_.call("get_bulk", &inmap, &outmap);
@@ -1365,7 +1357,7 @@ public:
         std::string key(kbuf + 1, ksiz - 1);
         (*recs)[key] = oit->second;
       }
-      oit++;
+      ++oit;
     }
     const char* rp = strmapget(outmap, "num");
     if (!rp) {
@@ -1422,7 +1414,7 @@ public:
         std::string key(kbuf + 1, ksiz - 1);
         strvec->push_back(key);
       }
-      oit++;
+      ++oit;
     }
     const char* rp = strmapget(outmap, "num");
     if (!rp) {
@@ -1461,7 +1453,7 @@ public:
         std::string key(kbuf + 1, ksiz - 1);
         strvec->push_back(key);
       }
-      oit++;
+      ++oit;
     }
     const char* rp = strmapget(outmap, "num");
     if (!rp) {
@@ -1498,7 +1490,7 @@ public:
     while (it != itend) {
       rsiz += sizeof(uint32_t) + sizeof(uint32_t);
       rsiz += it->first.size() + it->second.size();
-      it++;
+      ++it;
     }
     char* rbuf = new char[rsiz];
     char* wp = rbuf;
@@ -1523,10 +1515,10 @@ public:
       wp += it->first.size();
       std::memcpy(wp, it->second.data(), it->second.size());
       wp += it->second.size();
-      it++;
+      ++it;
     }
     Socket* sock = rpc_.reveal_core()->reveal_core();
-    char stack[RDBRECBUFSIZ];
+    char stack[RECBUFSIZ];
     bool err = false;
     if (sock->send(rbuf, rsiz)) {
       if (!(opts & BONOREPLY)) {
@@ -1605,7 +1597,7 @@ public:
     while (it != itend) {
       rsiz += sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(int64_t);
       rsiz += it->key.size() + it->value.size();
-      it++;
+      ++it;
     }
     char* rbuf = new char[rsiz];
     char* wp = rbuf;
@@ -1630,7 +1622,7 @@ public:
       wp += it->key.size();
       std::memcpy(wp, it->value.data(), it->value.size());
       wp += it->value.size();
-      it++;
+      ++it;
     }
     Socket* sock = rpc_.reveal_core()->reveal_core();
     int64_t rv;
@@ -1681,7 +1673,7 @@ public:
     while (it != itend) {
       rsiz += sizeof(uint16_t) + sizeof(uint32_t);
       rsiz += it->key.size();
-      it++;
+      ++it;
     }
     char* rbuf = new char[rsiz];
     char* wp = rbuf;
@@ -1700,7 +1692,7 @@ public:
       wp += sizeof(uint32_t);
       std::memcpy(wp, it->key.data(), it->key.size());
       wp += it->key.size();
-      it++;
+      ++it;
     }
     Socket* sock = rpc_.reveal_core()->reveal_core();
     int64_t rv;
@@ -1750,7 +1742,7 @@ public:
     while (it != itend) {
       rsiz += sizeof(uint16_t) + sizeof(uint32_t);
       rsiz += it->key.size();
-      it++;
+      ++it;
     }
     char* rbuf = new char[rsiz];
     char* wp = rbuf;
@@ -1772,10 +1764,10 @@ public:
       std::string mkey((char*)&it->dbidx, sizeof(uint16_t));
       mkey.append(it->key);
       map[mkey] = &*it;
-      it++;
+      ++it;
     }
     Socket* sock = rpc_.reveal_core()->reveal_core();
-    char stack[RDBRECBUFSIZ];
+    char stack[RECBUFSIZ];
     int64_t rv = -1;
     bool err = false;
     if (sock->send(rbuf, rsiz)) {
@@ -1867,6 +1859,8 @@ public:
     return new Cursor(this);
   }
 private:
+  /** The size for a record buffer. */
+  static const int32_t RECBUFSIZ = 2048;
   /**
    * Set the parameter of the target database.
    * @param inmap the string map to contain the input parameters.
