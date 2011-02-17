@@ -103,7 +103,9 @@ libkyototycoon.so.2 libkyototycoon2 #MINVER#
  (c++)"kyotocabinet::writefixnum(void*, unsigned long, unsigned long)@Base" 0.9.24
  (c++)"kyotocabinet::writevarnum(void*, unsigned long)@Base" 0.9.24
  (c++)"kyotocabinet::DB::Visitor::visit_full(char const*, unsigned long, char const*, unsigned long, unsigned long*)@Base" 0.9.24
+ (c++)"kyotocabinet::DB::Visitor::visit_after()@Base" 0.9.34
  (c++)"kyotocabinet::DB::Visitor::visit_empty(char const*, unsigned long, unsigned long*)@Base" 0.9.24
+ (c++)"kyotocabinet::DB::Visitor::visit_before()@Base" 0.9.34
  (c++)"kyotocabinet::DB::Visitor::Visitor()@Base" 0.9.24
  (c++)"kyotocabinet::DB::Visitor::Visitor()@Base" 0.9.24
  (c++)"kyotocabinet::DB::Visitor::~Visitor()@Base" 0.9.24
@@ -184,7 +186,7 @@ libkyototycoon.so.2 libkyototycoon2 #MINVER#
  (c++)"std::_Rb_tree_iterator<kyototycoon::Pollable*>::operator++(int)@Base" 0.9.23
  (c++)"std::_Rb_tree_const_iterator<kyototycoon::Pollable*>::_Rb_tree_const_iterator(std::_Rb_tree_node<kyototycoon::Pollable*> const*)@Base" 0.9.23
  (c++)"std::_Rb_tree_const_iterator<kyototycoon::Pollable*>::_Rb_tree_const_iterator(std::_Rb_tree_iterator<kyototycoon::Pollable*> const&)@Base" 0.9.23
- (c++)"std::_Rb_tree_const_iterator<kyototycoon::Pollable*>::operator++(int)@Base" 0.9.23
+ (c++)"std::_Rb_tree_const_iterator<kyototycoon::Pollable*>::operator++()@Base" 0.9.34
  (c++)"std::set<kyototycoon::Pollable*, std::less<kyototycoon::Pollable*>, std::allocator<kyototycoon::Pollable*> >::clear()@Base" 0.9.23
  (c++)"std::set<kyototycoon::Pollable*, std::less<kyototycoon::Pollable*>, std::allocator<kyototycoon::Pollable*> >::erase(kyototycoon::Pollable* const&)@Base" 0.9.23
  (c++)"std::set<kyototycoon::Pollable*, std::less<kyototycoon::Pollable*>, std::allocator<kyototycoon::Pollable*> >::insert(kyototycoon::Pollable* const&)@Base" 0.9.23

@@ -137,6 +137,8 @@ libkyototycoon.so.2 libkyototycoon2 #MINVER#
  (c++)"__gnu_cxx::new_allocator<std::_Rb_tree_node<kyototycoon::Pollable*> >::allocate(unsigned int, void const*)@Base" 0.9.23
  (c++)"__gnu_cxx::new_allocator<std::_Rb_tree_node<kyototycoon::Pollable*> >::new_allocator()@Base" 0.9.23
  (c++)"__gnu_cxx::new_allocator<std::_Rb_tree_node<kyototycoon::Pollable*> >::~new_allocator()@Base" 0.9.23
+ (c++)"kyotocabinet::DB::Visitor::visit_after()@Base" 0.9.34
+ (c++)"kyotocabinet::DB::Visitor::visit_before()@Base" 0.9.34
  (c++)"__gnu_cxx::__normal_iterator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > const*, std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >::__normal_iterator(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const* const&)@Base" 0.9.23
  (c++)"bool __gnu_cxx::operator==<std::basic_string<char, std::char_traits<char>, std::allocator<char> > const*, std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >(__gnu_cxx::__normal_iterator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > const*, std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > > > const&, __gnu_cxx::__normal_iterator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > const*, std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > > > const&)@Base" 0.9.23
  (c++)"__gnu_cxx::new_allocator<std::_Rb_tree_node<kyototycoon::Pollable*> >::max_size() const@Base" 0.9.23
@@ -184,7 +186,7 @@ libkyototycoon.so.2 libkyototycoon2 #MINVER#
  (c++)"std::_Rb_tree_iterator<kyototycoon::Pollable*>::operator++(int)@Base" 0.9.23
  (c++)"std::_Rb_tree_const_iterator<kyototycoon::Pollable*>::_Rb_tree_const_iterator(std::_Rb_tree_node<kyototycoon::Pollable*> const*)@Base" 0.9.23
  (c++)"std::_Rb_tree_const_iterator<kyototycoon::Pollable*>::_Rb_tree_const_iterator(std::_Rb_tree_iterator<kyototycoon::Pollable*> const&)@Base" 0.9.23
- (c++)"std::_Rb_tree_const_iterator<kyototycoon::Pollable*>::operator++(int)@Base" 0.9.23
+ (c++)"std::_Rb_tree_const_iterator<kyototycoon::Pollable*>::operator++()@Base" 0.9.34
  (c++)"std::set<kyototycoon::Pollable*, std::less<kyototycoon::Pollable*>, std::allocator<kyototycoon::Pollable*> >::clear()@Base" 0.9.23
  (c++)"std::set<kyototycoon::Pollable*, std::less<kyototycoon::Pollable*>, std::allocator<kyototycoon::Pollable*> >::erase(kyototycoon::Pollable* const&)@Base" 0.9.23
  (c++)"std::set<kyototycoon::Pollable*, std::less<kyototycoon::Pollable*>, std::allocator<kyototycoon::Pollable*> >::insert(kyototycoon::Pollable* const&)@Base" 0.9.23
