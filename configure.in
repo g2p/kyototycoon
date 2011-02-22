@@ -7,7 +7,7 @@
 #================================================================
 
 # Package name
-AC_INIT(kyototycoon, 0.9.34)
+AC_INIT(kyototycoon, 0.9.35)
 
 # Package information
 MYLIBVER=2
@@ -264,6 +264,7 @@ fi
 # As-needed linking
 if uname | grep Linux >config.tmp
 then
+  MYLDFLAGS="$MYLDFLAGS -Wl,-rpath-link,.:/usr/local/lib:$MYLDLIBPATH"
   MYLDFLAGS="$MYLDFLAGS -Wl,--as-needed"
 fi
 
@@ -271,7 +272,7 @@ fi
 if type pkg-config >config.tmp 2>&1
 then
   printf 'checking Kyoto Cabinet by pkg-config... '
-  if pkg-config --atleast-version=1.2.42 kyotocabinet
+  if pkg-config --atleast-version=1.2.45 kyotocabinet
   then
     printf 'yes\n'
   else

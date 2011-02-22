@@ -260,7 +260,7 @@ function list(inmap, outmap)
    while true do
       local key, value, xt = cur:get(true)
       if not key then break end
-      outmap.key = value
+      outmap[key] = value
    end
    return kt.RVSUCCESS
 end

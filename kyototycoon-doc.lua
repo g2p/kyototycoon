@@ -282,6 +282,14 @@ function visitor:visit_full(key, value, xt) end
 function visitor:visit_empty(key) end
 
 
+--- Preprocess the main operations.
+function visitor:visit_before() end
+
+
+--- Postprocess the main operations.
+function visitor:visit_after() end
+
+
 ---
 -- Interface to process the database file.
 -- @class table

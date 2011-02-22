@@ -63,6 +63,12 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Map a record data.  <a href="#a4ef0e092c96233b18874599ae4d413ba"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1MapReduce.html#a849b2005354e0f0d1f1b1a26d90cfa4e">reduce</a> (const char *kbuf, size_t ksiz, <a class="el" href="classkyototycoon_1_1MapReduce_1_1ValueIterator.html">ValueIterator</a> *iter)=0</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Reduce a record data.  <a href="#a849b2005354e0f0d1f1b1a26d90cfa4e"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1MapReduce.html#aaf7950f45caa0145e5befd0ac7d6e3da">preprocess</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Preprocess the map operations.  <a href="#aaf7950f45caa0145e5befd0ac7d6e3da"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1MapReduce.html#ad4f7938a5dc0282afebd02de004377ec">midprocess</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Mediate between the map and the reduce phases.  <a href="#ad4f7938a5dc0282afebd02de004377ec"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1MapReduce.html#ab62169528d14d7339b670416d2dedaff">postprocess</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Postprocess the reduce operations.  <a href="#ab62169528d14d7339b670416d2dedaff"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1MapReduce.html#a8dc8699aa16c3782e669a99e9bf4ef79">log</a> (const char *name, const char *message)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Process a log message.  <a href="#a8dc8699aa16c3782e669a99e9bf4ef79"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1MapReduce.html#a31918332efe9731710a803e47b9c57c6">execute</a> (<a class="el" href="classkyototycoon_1_1TimedDB.html">TimedDB</a> *db, const std::string &amp;tmppath=&quot;&quot;, uint32_t opts=0)</td></tr>
@@ -194,7 +200,7 @@
   </dd>
 </dl>
 <dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
-<dl class="note"><dt><b>Note:</b></dt><dd>To avoid deadlock, any database operation must not be performed in this function. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>To avoid deadlock, any explicit database operation must not be performed in this function. </dd></dl>
 
 </div>
 </div>
@@ -239,7 +245,67 @@
   </dd>
 </dl>
 <dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
-<dl class="note"><dt><b>Note:</b></dt><dd>Database operations can be performed in this function. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>To avoid deadlock, any explicit database operation must not be performed in this function. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="aaf7950f45caa0145e5befd0ac7d6e3da"></a><!-- doxytag: member="kyototycoon::MapReduce::preprocess" ref="aaf7950f45caa0145e5befd0ac7d6e3da" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool kyototycoon::MapReduce::preprocess </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [virtual]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Preprocess the map operations. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ad4f7938a5dc0282afebd02de004377ec"></a><!-- doxytag: member="kyototycoon::MapReduce::midprocess" ref="ad4f7938a5dc0282afebd02de004377ec" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool kyototycoon::MapReduce::midprocess </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [virtual]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Mediate between the map and the reduce phases. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ab62169528d14d7339b670416d2dedaff"></a><!-- doxytag: member="kyototycoon::MapReduce::postprocess" ref="ab62169528d14d7339b670416d2dedaff" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool kyototycoon::MapReduce::postprocess </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [virtual]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Postprocess the reduce operations. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
 
 </div>
 </div>
@@ -368,7 +434,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Fri Feb 11 02:33:39 2011 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Feb 22 01:13:58 2011 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

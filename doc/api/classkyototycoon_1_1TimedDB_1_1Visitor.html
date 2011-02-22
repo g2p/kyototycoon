@@ -44,6 +44,10 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Visit a record.  <a href="#a16dbbf3f8e851b2c0b03192310ce7911"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual const char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Visitor.html#a56c83c103f1761c3d35d91f52dc57b10">visit_empty</a> (const char *kbuf, size_t ksiz, size_t *sp, int64_t *xtp)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Visit a empty record space.  <a href="#a56c83c103f1761c3d35d91f52dc57b10"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Visitor.html#a32ed62bf8db9dc9236bccf78ce23e0df">visit_before</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Preprocess the main operations.  <a href="#a32ed62bf8db9dc9236bccf78ce23e0df"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Visitor.html#a9152bd9282405cc7ad919760f44048f9">visit_after</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Postprocess the main operations.  <a href="#a9152bd9282405cc7ad919760f44048f9"></a><br/></td></tr>
 <tr><td colspan="2"><h2>Static Public Attributes</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">static const char *const&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB_1_1Visitor.html#abcdf28cbd15f7fb1f8c535104c5a6e4d">NOP</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Special pointer for no operation.  <a href="#abcdf28cbd15f7fb1f8c535104c5a6e4d"></a><br/></td></tr>
@@ -189,6 +193,44 @@
 
 </div>
 </div>
+<a class="anchor" id="a32ed62bf8db9dc9236bccf78ce23e0df"></a><!-- doxytag: member="kyototycoon::TimedDB::Visitor::visit_before" ref="a32ed62bf8db9dc9236bccf78ce23e0df" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void kyototycoon::TimedDB::Visitor::visit_before </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [virtual]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Preprocess the main operations. </p>
+
+</div>
+</div>
+<a class="anchor" id="a9152bd9282405cc7ad919760f44048f9"></a><!-- doxytag: member="kyototycoon::TimedDB::Visitor::visit_after" ref="a9152bd9282405cc7ad919760f44048f9" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void kyototycoon::TimedDB::Visitor::visit_after </td>
+          <td>(</td>
+          <td class="paramname"></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [virtual]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Postprocess the main operations. </p>
+
+</div>
+</div>
 <hr/><h2>Member Data Documentation</h2>
 <a class="anchor" id="abcdf28cbd15f7fb1f8c535104c5a6e4d"></a><!-- doxytag: member="kyototycoon::TimedDB::Visitor::NOP" ref="abcdf28cbd15f7fb1f8c535104c5a6e4d" args="" -->
 <div class="memitem">
@@ -221,7 +263,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Fri Feb 11 02:33:39 2011 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Feb 22 01:13:58 2011 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>
