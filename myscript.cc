@@ -455,12 +455,14 @@ private:
     int32_t argc;
     if (lua_istable(lua_, -1)) {
       lua_getfield(lua_, -1, "visit_full");
+      if (!lua_isfunction(lua_, -1)) return NOP;
       lua_pushvalue(lua_, -2);
       lua_pushlstring(lua_, kbuf, ksiz);
       lua_pushlstring(lua_, vbuf, vsiz);
       lua_pushnumber(lua_, *xtp < kt::TimedDB::XTMAX ? *xtp : kt::TimedDB::XTMAX);
       argc = 4;
     } else {
+      if (!lua_isfunction(lua_, -1)) return NOP;
       lua_pushvalue(lua_, -1);
       lua_pushlstring(lua_, kbuf, ksiz);
       lua_pushlstring(lua_, vbuf, vsiz);
@@ -490,10 +492,12 @@ private:
     int32_t argc;
     if (lua_istable(lua_, -1)) {
       lua_getfield(lua_, -1, "visit_empty");
+      if (!lua_isfunction(lua_, -1)) return NOP;
       lua_pushvalue(lua_, -2);
       lua_pushlstring(lua_, kbuf, ksiz);
       argc = 2;
     } else {
+      if (!lua_isfunction(lua_, -1)) return NOP;
       lua_pushvalue(lua_, -1);
       lua_pushlstring(lua_, kbuf, ksiz);
       lua_pushnil(lua_);
@@ -516,6 +520,22 @@ private:
     }
     if (!writable_) rv = NULL;
     return rv;
+  }
+  void visit_before() {
+    lua_settop(lua_, top_);
+    if (!lua_istable(lua_, -1)) return;
+    lua_getfield(lua_, -1, "visit_before");
+    if (!lua_isfunction(lua_, -1)) return;
+    lua_pushvalue(lua_, -2);
+    lua_pcall(lua_, 1, 0, 0);
+  }
+  void visit_after() {
+    lua_settop(lua_, top_);
+    if (!lua_istable(lua_, -1)) return;
+    lua_getfield(lua_, -1, "visit_after");
+    if (!lua_isfunction(lua_, -1)) return;
+    lua_pushvalue(lua_, -2);
+    lua_pcall(lua_, 1, 0, 0);
   }
   lua_State* lua_;
   bool writable_;

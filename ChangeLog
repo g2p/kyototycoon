@@ -1,3 +1,15 @@
+2011-02-21  FAL Labs  <info@fallabs.com>
+
+	* ktdbext.h (MapReduce::execute): adaptive comparator was added.
+
+	* ktdbext.h (MapReduce::execute_reduce): new function.
+
+	* ktdbext.h (MapReduce::before, MapReduce::after): new functions.
+
+	* myscript.cc (SoftVisitor::visit_before, SoftVisitor::visit_after): new functions.
+
+	- Release: 0.9.35
+
 2011-02-14  FAL Labs  <info@fallabs.com>
 
 	* ktremotemgr.cc (procimport): a bug related to the database expression was fixed.

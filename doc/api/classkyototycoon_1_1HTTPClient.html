@@ -66,6 +66,11 @@
 <tr><td colspan="2"><h2>Static Public Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">static int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPClient.html#a4f7799064593e4dfb6b15b2b659a9778">fetch_once</a> (const std::string &amp;url, <a class="el" href="classkyototycoon_1_1HTTPClient.html#aae547c07cce765679e5ab7808c748de7">Method</a> method=MGET, std::string *resbody=NULL, std::map&lt; std::string, std::string &gt; *resheads=NULL, const std::string *reqbody=NULL, const std::map&lt; std::string, std::string &gt; *reqheads=NULL, double timeout=-1)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Fetch a resource at once.  <a href="#a4f7799064593e4dfb6b15b2b659a9778"></a><br/></td></tr>
+<tr><td colspan="2"><h2>Static Public Attributes</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">static const int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPClient.html#a677d8f297eef83f80fa1cb3cdec6c4e8">LINEBUFSIZ</a> = 8192</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The size for a line buffer.  <a href="#a677d8f297eef83f80fa1cb3cdec6c4e8"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">static const int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1HTTPClient.html#a6fb723b5e9bec12aa3c84e786de22b59">RECVMAXSIZ</a> = 1 &lt;&lt; 28</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The maximum size of received data.  <a href="#a6fb723b5e9bec12aa3c84e786de22b59"></a><br/></td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>HTTP client. </p>
@@ -376,8 +381,39 @@
 
 </div>
 </div>
+<hr/><h2>Member Data Documentation</h2>
+<a class="anchor" id="a677d8f297eef83f80fa1cb3cdec6c4e8"></a><!-- doxytag: member="kyototycoon::HTTPClient::LINEBUFSIZ" ref="a677d8f297eef83f80fa1cb3cdec6c4e8" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const int32_t <a class="el" href="classkyototycoon_1_1HTTPClient.html#a677d8f297eef83f80fa1cb3cdec6c4e8">kyototycoon::HTTPClient::LINEBUFSIZ</a> = 8192<code> [static]</code></td>
+        </tr>
+      </table>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Fri Feb 11 02:33:39 2011 for Kyoto Tycoon by&nbsp;
+<div class="memdoc">
+
+<p>The size for a line buffer. </p>
+
+</div>
+</div>
+<a class="anchor" id="a6fb723b5e9bec12aa3c84e786de22b59"></a><!-- doxytag: member="kyototycoon::HTTPClient::RECVMAXSIZ" ref="a6fb723b5e9bec12aa3c84e786de22b59" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const int32_t <a class="el" href="classkyototycoon_1_1HTTPClient.html#a6fb723b5e9bec12aa3c84e786de22b59">kyototycoon::HTTPClient::RECVMAXSIZ</a> = 1 &lt;&lt; 28<code> [static]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>The maximum size of received data. </p>
+
+</div>
+</div>
+</div>
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Feb 22 01:13:58 2011 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>
