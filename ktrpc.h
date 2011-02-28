@@ -23,8 +23,8 @@
 #include <kthttp.h>
 
 #define KTRPCPATHPREFIX  "/rpc/"           ///< prefix of the RPC entry
-#define KTRPCFORMMTYPE  "application/x-www-form-urlencoded"  //< MIME type of form data
-#define KTRPCTSVMTYPE  "text/tab-separated-values"  //< MIME type of TSV
+#define KTRPCFORMMTYPE  "application/x-www-form-urlencoded"  ///< MIME type of form data
+#define KTRPCTSVMTYPE  "text/tab-separated-values"  ///< MIME type of TSV
 #define KTRPCTSVMATTR  "colenc"            ///< encoding attribute of TSV
 
 namespace kyototycoon {                  // common namespace

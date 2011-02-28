@@ -90,9 +90,9 @@
 
 #endif
 
-#define _KT_VERSION    "0.9.36"
+#define _KT_VERSION    "0.9.37"
 #define _KT_LIBVER     2
-#define _KT_LIBREV     2
+#define _KT_LIBREV     3
 
 #if ! defined(_MYNOEVENT)
 #if defined(_SYS_LINUX_)

@@ -1,3 +1,13 @@
+2011-02-25  FAL Labs  <info@fallabs.com>
+
+	* kctimeddb.h (TimedDB::occupy): new function.
+
+	* kttimeddb.h (TimedDB::dump_snapshot_atomic): fork mechanism was modified.
+
+	* myscript.cc (db_occupy): new function.
+
+	- Release: 0.9.37
+
 2011-02-23  FAL Labs  <info@fallabs.com>
 
 	- all database classes were refactored to support some old compilers.
