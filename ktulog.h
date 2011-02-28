@@ -35,6 +35,20 @@ private:
   struct Log;
   /** An alias of cached logs. */
   typedef std::vector<Log> Cache;
+  /* The maximum size of cached logs. */
+  static const size_t CACHEMAX = 65536;
+  /* The magic data for meta data. */
+  static const uint8_t METAMAGIC = 0xa0;
+  /* The magic data for beginning mark. */
+  static const uint8_t BEGMAGIC = 0xa1;
+  /* The magic data for ending mark. */
+  static const uint8_t ENDMAGIC = 0xa2;
+  /* The accuracy of wall clock time stamp. */
+  static const uint64_t TSWACC = 1000;
+  /* The accuracy of logical time stamp. */
+  static const uint64_t TSLACC = 1000 * 1000;
+  /* The waiting seconds of auto flush. */
+  static const double FLUSHWAIT = 0.1;
 public:
   /**
    * Reader of update logs.
@@ -477,20 +491,6 @@ public:
     return (uint64_t)(kc::time() * TSWACC) * TSLACC;
   }
 private:
-  /* The maximum size of cached logs. */
-  static const size_t CACHEMAX = 65536;
-  /* The magic data for meta data. */
-  static const uint8_t METAMAGIC = 0xa0;
-  /* The magic data for beginning mark. */
-  static const uint8_t BEGMAGIC = 0xa1;
-  /* The magic data for ending mark. */
-  static const uint8_t ENDMAGIC = 0xa2;
-  /* The accuracy of wall clock time stamp. */
-  static const uint64_t TSWACC = 1000;
-  /* The accuracy of logical time stamp. */
-  static const uint64_t TSLACC = 1000 * 1000;
-  /* The waiting seconds of auto flush. */
-  static const double FLUSHWAIT = 0.1;
   /**
    * Log message.
    */

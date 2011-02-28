@@ -45,12 +45,14 @@ public:
   class Cursor;
   class Error;
   struct BulkRecord;
+  /** The maximum size of each record data. */
+  static const size_t DATAMAXSIZ = 1ULL << 28;
 private:
   /** An alias of list of cursors. */
   typedef std::list<Cursor*> CursorList;
+  /** The size for a record buffer. */
+  static const int32_t RECBUFSIZ = 2048;
 public:
-  /** The maximum size of each record data. */
-  static const size_t DATAMAXSIZ = 1ULL << 28;
   /**
    * Cursor to indicate a record.
    */
@@ -1859,8 +1861,6 @@ public:
     return new Cursor(this);
   }
 private:
-  /** The size for a record buffer. */
-  static const int32_t RECBUFSIZ = 2048;
   /**
    * Set the parameter of the target database.
    * @param inmap the string map to contain the input parameters.

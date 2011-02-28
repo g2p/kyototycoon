@@ -39,15 +39,27 @@ public:
   class Cursor;
   class Visitor;
   class UpdateTrigger;
-private:
-  class TimedVisitor;
-  class TimedMetaTrigger;
-  struct MergeLine;
-public:
   /** The width of expiration time. */
   static const int32_t XTWIDTH = 5;
   /** The maximum number of expiration time. */
   static const int64_t XTMAX = (1LL << (XTWIDTH * 8)) - 1;
+private:
+  class TimedVisitor;
+  class TimedMetaTrigger;
+  struct MergeLine;
+  /* The magic data of the database type. */
+  static const uint8_t MAGICDATA = 0xbb;
+  /* The score unit of expiratoin. */
+  static const int64_t XTSCUNIT = 256;
+  /* The inverse frequency of reading expiration. */
+  static const int64_t XTREADFREQ = 8;
+  /* The inverse frequency of iterating expiration. */
+  static const int64_t XTITERFREQ = 4;
+  /* The unit step number of expiration. */
+  static const int64_t XTUNIT = 8;
+  /* The size of the logging buffer. */
+  static const size_t LOGBUFSIZ = 1024;
+public:
   /**
    * Cursor to indicate a record.
    */
@@ -2077,18 +2089,6 @@ public:
   static bool status_snapshot_atomic(const std::string& src, uint64_t* tsp = NULL,
                                      int64_t* cntp = NULL, int64_t* sizp = NULL);
 private:
-  /* The magic data of the database type. */
-  static const uint8_t MAGICDATA = 0xbb;
-  /* The score unit of expiratoin. */
-  static const int64_t XTSCUNIT = 256;
-  /* The inverse frequency of reading expiration. */
-  static const int64_t XTREADFREQ = 8;
-  /* The inverse frequency of iterating expiration. */
-  static const int64_t XTITERFREQ = 4;
-  /* The unit step number of expiration. */
-  static const int64_t XTUNIT = 8;
-  /* The size of the logging buffer. */
-  static const size_t LOGBUFSIZ = 1024;
   /**
    * Tuning Options.
    */
