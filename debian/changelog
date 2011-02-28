@@ -1,3 +1,9 @@
+kyototycoon (0.9.37-1) unstable; urgency=low
+
+  * Import upstream version 0.9.37
+
+ -- Gabriel de Perthuis <g2p.code+debian@gmail.com>  Mon, 28 Feb 2011 12:31:59 +0100
+
 kyototycoon (0.9.36-1) unstable; urgency=low
 
   * Import upstream version 0.9.36
