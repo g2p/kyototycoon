@@ -127,6 +127,7 @@ static int db_remove_bulk(lua_State* lua);
 static int db_get_bulk(lua_State* lua);
 static int db_clear(lua_State* lua);
 static int db_synchronize(lua_State* lua);
+static int db_occupy(lua_State* lua);
 static int db_copy(lua_State* lua);
 static int db_begin_transaction(lua_State* lua);
 static int db_end_transaction(lua_State* lua);
@@ -2209,6 +2210,7 @@ static int db_new(lua_State* lua) {
   setfieldfunc(lua, "get_bulk", db_get_bulk);
   setfieldfunc(lua, "clear", db_clear);
   setfieldfunc(lua, "synchronize", db_synchronize);
+  setfieldfunc(lua, "occupy", db_occupy);
   setfieldfunc(lua, "copy", db_copy);
   setfieldfunc(lua, "begin_transaction", db_begin_transaction);
   setfieldfunc(lua, "end_transaction", db_end_transaction);
@@ -2885,6 +2887,30 @@ static int db_synchronize(lua_State* lua) {
     rv = db->db->synchronize(hard, &proc);
   } else {
     rv = db->db->synchronize(hard, NULL);
+  }
+  lua_pushboolean(lua, rv);
+  return 1;
+}
+
+
+/**
+ * Implementation of occupy.
+ */
+static int db_occupy(lua_State* lua) {
+  int32_t argc = lua_gettop(lua);
+  if (argc < 1 || !lua_istable(lua, 1)) throwinvarg(lua, __KCFUNC__);
+  if (argc > 3) throwinvarg(lua, __KCFUNC__);
+  lua_getfield(lua, 1, "db_ptr_");
+  SoftDB* db = (SoftDB*)lua_touserdata(lua, -1);
+  if (!db) throwinvarg(lua, __KCFUNC__);
+  bool writable = argc > 1 ? lua_toboolean(lua, 2) : false;
+  bool rv;
+  if (argc > 2 && (lua_istable(lua, 3) || lua_isfunction(lua, 3))) {
+    lua_pushvalue(lua, 3);
+    SoftFileProcessor proc(lua);
+    rv = db->db->occupy(writable, &proc);
+  } else {
+    rv = db->db->occupy(writable, NULL);
   }
   lua_pushboolean(lua, rv);
   return 1;

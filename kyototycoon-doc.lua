@@ -646,7 +646,16 @@ function db:clear() end
 -- @param hard true for physical synchronization with the device, or false for logical synchronization with the file system.  If it is omitted, false is specified.
 -- @param proc a postprocessor object which implements the FileProcessor interface, or a function object which receives the same parameters.  If it is omitted or nil, no postprocessing is performed.
 -- @return true on success, or false on failure.
+-- @usage The operation of the processor is performed atomically and other threads accessing the same record are blocked.  To avoid deadlock, any explicit database operation must not be performed in this method.
 function db:synchronize(hard, proc) end
+
+
+--- Occupy database by locking and do something meanwhile.
+-- @param writable true to use writer lock, or false to use reader lock.  If it is omitted, false is specified.
+-- @param proc a processor object which implements the FileProcessor interface, or a function object which receives the same parameters.  If it is omitted or nil, no processing is performed.
+-- @return true on success, or false on failure.
+-- @usage The operation of the processor is performed atomically and other threads accessing the same record are blocked.  To avoid deadlock, any explicit database operation must not be performed in this method.
+function db:occupy(writable, proc) end
 
 
 --- Create a copy of the database file.

@@ -95,26 +95,21 @@ bool TimedDB::dump_snapshot_atomic(const std::string& dest, kc::Compressor* zcom
   }
   int64_t cpid = -1;
   if (forkable) {
-    class Forker : public kc::BasicDB::ProgressChecker {
+    class Forker : public kc::BasicDB::FileProcessor {
     public:
-      explicit Forker() : first_(true), cpid_(-1) {}
+      explicit Forker() : cpid_(-1) {}
       int64_t cpid() {
         return cpid_;
       }
     private:
-      bool check(const char* name, const char* message, int64_t curcnt, int64_t allcnt) {
-        if (first_) {
-          first_ = false;
-          cpid_ = fork_impl();
-        }
-        return false;
+      bool process(const std::string& path, int64_t count, int64_t size) {
+        cpid_ = fork_impl();
+        return true;
       }
-      bool first_;
       int64_t cpid_;
     };
     Forker forker;
-    kc::BasicDB::Visitor visitor;
-    db_.iterate(&visitor, true, &forker);
+    db_.occupy(true, &forker);
     cpid = forker.cpid();
   };
   if (cpid > 0) {

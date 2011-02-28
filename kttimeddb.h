@@ -876,11 +876,27 @@ public:
    * @param proc a postprocessor object.  If it is NULL, no postprocessing is performed.
    * @param checker a progress checker object.  If it is NULL, no checking is performed.
    * @return true on success, or false on failure.
+   * @note The operation of the postprocessor is performed atomically and other threads accessing
+   * the same record are blocked.  To avoid deadlock, any explicit database operation must not
+   * be performed in this function.
    */
   bool synchronize(bool hard = false, kc::BasicDB::FileProcessor* proc = NULL,
                    kc::BasicDB::ProgressChecker* checker = NULL) {
     _assert_(true);
     return db_.synchronize(hard, proc, checker);
+  }
+  /**
+   * Occupy database by locking and do something meanwhile.
+   * @param writable true to use writer lock, or false to use reader lock.
+   * @param proc a processor object.  If it is NULL, no processing is performed.
+   * @return true on success, or false on failure.
+   * @note The operation of the processor is performed atomically and other threads accessing
+   * the same record are blocked.  To avoid deadlock, any explicit database operation must not
+   * be performed in this function.
+   */
+  bool occupy(bool writable = true, kc::BasicDB::FileProcessor* proc = NULL) {
+    _assert_(true);
+    return db_.occupy(writable, proc);
   }
   /**
    * Create a copy of the database file.

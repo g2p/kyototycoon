@@ -81,6 +81,8 @@
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Iterate to accept a visitor for each record.  <a href="#a23644d5a1c298e1fd08dc86664d3e0ef"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a1f3c628337cd4d3b7e457e427bb9f2c9">synchronize</a> (bool hard=false, kc::BasicDB::FileProcessor *proc=NULL, kc::BasicDB::ProgressChecker *checker=NULL)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Synchronize updated contents with the file and the device.  <a href="#a1f3c628337cd4d3b7e457e427bb9f2c9"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a9b29ab81a93c419f13f1741c23a7d4f6">occupy</a> (bool writable=true, kc::BasicDB::FileProcessor *proc=NULL)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Occupy database by locking and do something meanwhile.  <a href="#a9b29ab81a93c419f13f1741c23a7d4f6"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#ac1cb3aa99b62dc24f31bbe7b18d346ea">copy</a> (const std::string &amp;dest, kc::BasicDB::ProgressChecker *checker=NULL)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Create a copy of the database file.  <a href="#ac1cb3aa99b62dc24f31bbe7b18d346ea"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkyototycoon_1_1TimedDB.html#a3dc22ca71dd7f7f9da5587e84ecdc3b8">begin_transaction</a> (bool hard=false)</td></tr>
@@ -582,6 +584,45 @@
   </dd>
 </dl>
 <dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>The operation of the postprocessor is performed atomically and other threads accessing the same record are blocked. To avoid deadlock, any explicit database operation must not be performed in this function. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a9b29ab81a93c419f13f1741c23a7d4f6"></a><!-- doxytag: member="kyototycoon::TimedDB::occupy" ref="a9b29ab81a93c419f13f1741c23a7d4f6" args="(bool writable=true, kc::BasicDB::FileProcessor *proc=NULL)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool kyototycoon::TimedDB::occupy </td>
+          <td>(</td>
+          <td class="paramtype">bool&nbsp;</td>
+          <td class="paramname"> <em>writable</em> = <code>true</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">kc::BasicDB::FileProcessor *&nbsp;</td>
+          <td class="paramname"> <em>proc</em> = <code>NULL</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Occupy database by locking and do something meanwhile. </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>writable</em>&nbsp;</td><td>true to use writer lock, or false to use reader lock. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>proc</em>&nbsp;</td><td>a processor object. If it is NULL, no processing is performed. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>true on success, or false on failure. </dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>The operation of the processor is performed atomically and other threads accessing the same record are blocked. To avoid deadlock, any explicit database operation must not be performed in this function. </dd></dl>
 
 </div>
 </div>
@@ -2493,7 +2534,7 @@
 </div>
 </div>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Tue Feb 22 01:13:58 2011 for Kyoto Tycoon by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Sat Feb 26 06:20:35 2011 for Kyoto Tycoon by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

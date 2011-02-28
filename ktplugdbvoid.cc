@@ -23,6 +23,8 @@ namespace kt = kyototycoon;
 class VoidDB : public kt::PluggableDB {
 public:
   class Cursor;
+private:
+  class ScopedVisitor;
 public:
   // cursor to indicate a record
   class Cursor : public BasicDB::Cursor {
@@ -155,6 +157,7 @@ public:
                    bool writable = true) {
     _assert_(visitor);
     kc::ScopedSpinRWLock lock(&mlock_, false);
+    ScopedVisitor svis(visitor);
     std::vector<std::string>::const_iterator kit = keys.begin();
     std::vector<std::string>::const_iterator kitend = keys.end();
     while (kit != kitend) {
@@ -169,6 +172,7 @@ public:
                ProgressChecker* checker = NULL) {
     _assert_(visitor);
     kc::ScopedSpinRWLock lock(&mlock_, true);
+    ScopedVisitor svis(visitor);
     trigger_meta(MetaTrigger::ITERATE, "iterate");
     return true;
   }
@@ -177,8 +181,25 @@ public:
                    ProgressChecker* checker = NULL) {
     _assert_(true);
     kc::ScopedSpinRWLock lock(&mlock_, false);
+    bool err = false;
+    if (proc && !proc->process(path_, 0, 0)) {
+      set_error(_KCCODELINE_, Error::LOGIC, "postprocessing failed");
+      err = true;
+    }
     trigger_meta(MetaTrigger::SYNCHRONIZE, "synchronize");
-    return true;
+    return !err;
+  }
+  // occupy database by locking and do something meanwhile
+  bool occupy(bool writable = true, FileProcessor* proc = NULL) {
+    _assert_(true);
+    kc::ScopedSpinRWLock lock(&mlock_, writable);
+    bool err = false;
+    if (proc && !proc->process(path_, 0, 0)) {
+      set_error(_KCCODELINE_, Error::LOGIC, "processing failed");
+      err = true;
+    }
+    trigger_meta(MetaTrigger::OCCUPY, "occupy");
+    return !err;
   }
   // begin transaction
   bool begin_transaction(bool hard = false) {
@@ -276,6 +297,20 @@ protected:
     if (mtrigger_) mtrigger_->trigger(kind, message);
   }
 private:
+  // scoped visitor
+  class ScopedVisitor {
+  public:
+    explicit ScopedVisitor(Visitor* visitor) : visitor_(visitor) {
+      _assert_(visitor);
+      visitor_->visit_before();
+    }
+    ~ScopedVisitor() {
+      _assert_(true);
+      visitor_->visit_after();
+    }
+  private:
+    Visitor* visitor_;
+  };
   VoidDB(const VoidDB&);
   VoidDB& operator =(const VoidDB&);
   kc::SpinRWLock mlock_;
