@@ -107,7 +107,6 @@ libkyototycoon.so.2 libkyototycoon2 #MINVER#
  (c++)"kyotocabinet::DB::Visitor::visit_empty(char const*, unsigned long, unsigned long*)@Base" 0.9.24
  (c++)"kyotocabinet::DB::Visitor::visit_before()@Base" 0.9.34
  (c++)"kyotocabinet::DB::Visitor::Visitor()@Base" 0.9.24
- (c++)"kyotocabinet::DB::Visitor::Visitor()@Base" 0.9.24
  (c++)"kyotocabinet::DB::Visitor::~Visitor()@Base" 0.9.24
  (c++)"kyotocabinet::DB::Visitor::~Visitor()@Base" 0.9.24
  (c++)"kyotocabinet::DB::Visitor::~Visitor()@Base" 0.9.24
@@ -116,6 +115,7 @@ libkyototycoon.so.2 libkyototycoon2 #MINVER#
  (c++)"kyotocabinet::PolyDB::reveal_inner_db()@Base" 0.9.24
  (c++)"kyotocabinet::PolyDB::size()@Base" 0.9.26
  (c++)"kyotocabinet::PolyDB::count()@Base" 0.9.26
+ (c++)"kyotocabinet::PolyDB::occupy(bool, kyotocabinet::BasicDB::FileProcessor*)@Base" 0.9.37
  (c++)"kyotocabinet::PolyDB::iterate(kyotocabinet::DB::Visitor*, bool, kyotocabinet::BasicDB::ProgressChecker*)@Base" 0.9.24
  (c++)"kyotocabinet::PolyDB::set_error(char const*, int, char const*, kyotocabinet::BasicDB::Error::Code, char const*)@Base" 0.9.24
  (c++)"kyotocabinet::chknan(double)@Base" 0.9.23
@@ -123,10 +123,10 @@ libkyototycoon.so.2 libkyototycoon2 #MINVER#
  (c++)"kyotocabinet::hton64(unsigned long)@Base" 0.9.24
  (c++)"kyotocabinet::ntoh32(unsigned int)@Base" 0.9.24
  (c++)"kyotocabinet::ntoh64(unsigned long)@Base" 0.9.24
- (c++)"kyotocabinet::BasicDB::ProgressChecker::ProgressChecker()@Base" 0.9.24
- (c++)"kyotocabinet::BasicDB::ProgressChecker::~ProgressChecker()@Base" 0.9.24
- (c++)"kyotocabinet::BasicDB::ProgressChecker::~ProgressChecker()@Base" 0.9.24
- (c++)"kyotocabinet::BasicDB::ProgressChecker::~ProgressChecker()@Base" 0.9.24
+ (c++)"kyotocabinet::BasicDB::FileProcessor::FileProcessor()@Base" 0.9.37
+ (c++)"kyotocabinet::BasicDB::FileProcessor::~FileProcessor()@Base" 0.9.37
+ (c++)"kyotocabinet::BasicDB::FileProcessor::~FileProcessor()@Base" 0.9.37
+ (c++)"kyotocabinet::BasicDB::FileProcessor::~FileProcessor()@Base" 0.9.37
  (c++)"kyotocabinet::BasicDB::set(char const*, unsigned long, char const*, unsigned long)@Base" 0.9.24
  (c++)"kyotocabinet::BasicDB::Error::set(kyotocabinet::BasicDB::Error::Code, char const*)@Base" 0.9.24
  (c++)"kyotocabinet::strifwm(char const*, char const*)@Base" 0.9.23
@@ -171,6 +171,8 @@ libkyototycoon.so.2 libkyototycoon2 #MINVER#
  (c++)"std::allocator<std::_Rb_tree_node<kyototycoon::Pollable*> >::~allocator()@Base" 0.9.23
  (c++)"std::numeric_limits<signed char>::max()@Base" 0.9.30
  (c++)"std::numeric_limits<signed char>::min()@Base" 0.9.30
+ (c++)"std::numeric_limits<double>::max()@Base" 0.9.37
+ (c++)"std::numeric_limits<float>::max()@Base" 0.9.37
  (c++)"std::numeric_limits<unsigned char>::max()@Base" 0.9.30
  (c++)"std::numeric_limits<int>::max()@Base" 0.9.30
  (c++)"std::numeric_limits<int>::min()@Base" 0.9.30
@@ -232,7 +234,7 @@ libkyototycoon.so.2 libkyototycoon2 #MINVER#
  (c++)"typeinfo for kyototycoon::Pollable@Base" 0.9.23
  (c++)"typeinfo for kyotocabinet::DB::Visitor@Base" 0.9.24
  (c++)"typeinfo for kyotocabinet::DB@Base" 0.9.24
- (c++)"typeinfo for kyotocabinet::BasicDB::ProgressChecker@Base" 0.9.24
+ (c++)"typeinfo for kyotocabinet::BasicDB::FileProcessor@Base" 0.9.37
  (c++)"typeinfo for kyotocabinet::BasicDB@Base" 0.9.24
  (c++)"typeinfo for kyotocabinet::CacheDB@Base" 0.9.24
  (c++)"typeinfo for kyotocabinet::PlantDB<kyotocabinet::CacheDB, (unsigned char)33>@Base" 0.9.24
@@ -247,7 +249,7 @@ libkyototycoon.so.2 libkyototycoon2 #MINVER#
  (c++)"typeinfo name for kyototycoon::Pollable@Base" 0.9.23
  (c++)"typeinfo name for kyotocabinet::DB::Visitor@Base" 0.9.24
  (c++)"typeinfo name for kyotocabinet::DB@Base" 0.9.24
- (c++)"typeinfo name for kyotocabinet::BasicDB::ProgressChecker@Base" 0.9.24
+ (c++)"typeinfo name for kyotocabinet::BasicDB::FileProcessor@Base" 0.9.37
  (c++)"typeinfo name for kyotocabinet::BasicDB@Base" 0.9.24
  (c++)"typeinfo name for kyotocabinet::CacheDB@Base" 0.9.24
  (c++)"typeinfo name for kyotocabinet::PlantDB<kyotocabinet::CacheDB, (unsigned char)33>@Base" 0.9.24
@@ -261,7 +263,7 @@ libkyototycoon.so.2 libkyototycoon2 #MINVER#
  (c++)"vtable for kyototycoon::Socket@Base" 0.9.23
  (c++)"vtable for kyototycoon::Pollable@Base" 0.9.23
  (c++)"vtable for kyotocabinet::DB::Visitor@Base" 0.9.24
- (c++)"vtable for kyotocabinet::BasicDB::ProgressChecker@Base" 0.9.24
+ (c++)"vtable for kyotocabinet::BasicDB::FileProcessor@Base" 0.9.37
  (c++)"vtable for kyototycoon::TimedDB::dump_snapshot_atomic(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, kyotocabinet::Compressor*, kyotocabinet::BasicDB::ProgressChecker*)::Dumper@Base" 0.9.24
  (c++)"vtable for kyototycoon::TimedDB::dump_snapshot_atomic(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, kyotocabinet::Compressor*, kyotocabinet::BasicDB::ProgressChecker*)::Forker@Base" 0.9.24
  (c++)"vtable for kyotocabinet::BasicDB::set(char const*, unsigned long, char const*, unsigned long)::VisitorImpl@Base" 0.9.24
