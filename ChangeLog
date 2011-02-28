@@ -1,3 +1,9 @@
+2011-02-23  FAL Labs  <info@fallabs.com>
+
+	- all database classes were refactored to support some old compilers.
+
+	- Release: 0.9.36
+
 2011-02-21  FAL Labs  <info@fallabs.com>
 
 	* ktdbext.h (MapReduce::execute): adaptive comparator was added.
